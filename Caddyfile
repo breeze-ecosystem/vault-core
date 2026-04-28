@@ -1,0 +1,20 @@
+:80 {
+	# API routes
+	handle /api/* {
+		reverse_proxy api:4000
+	}
+
+	# WebSocket routes
+	handle /ws/* {
+		reverse_proxy api:4000
+	}
+
+	# Dashboard (everything else)
+	handle {
+		reverse_proxy dashboard:3100
+	}
+
+	log {
+		output stdout
+	}
+}

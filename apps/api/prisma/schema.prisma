@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  SUPERVISOR
+  OPERATOR
+  VIEWER
+}
+
+enum CameraStatus {
+  ONLINE
+  OFFLINE
+  MAINTENANCE
+  DEGRADED
+}
+
+enum AlertSeverity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+  INFO
+}
+
+enum AlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+  FALSE_POSITIVE
+}
+
+model Site {
+  id        String   @id @default(uuid())
+  name      String
+  address   String?
+  city      String?
+  country   String   @default("SN")
+  latitude  Float?
+  longitude Float?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cameras Camera[]
+  users   User[]
+}
+
+model Camera {
+  id          String       @id @default(uuid())
+  name        String
+  rtspUrl     String
+  status      CameraStatus @default(OFFLINE)
+  siteId      String
+  resolution  String?
+  fps         Int          @default(25)
+  isRecording Boolean      @default(false)
+  lastHeartbeat DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  site   Site    @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  alerts Alert[]
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      Role     @default(VIEWER)
+  isActive  Boolean  @default(true)
+  siteId    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  site           Site?          @relation(fields: [siteId], references: [id])
+  refreshTokens  RefreshToken[]
+  pushTokens     MobilePushToken[]
+  auditLogs      AuditLog[]
+}
+
+model Alert {
+  id          String        @id @default(uuid())
+  title       String
+  description String?
+  severity    AlertSeverity
+  status      AlertStatus   @default(OPEN)
+  cameraId    String
+  snapshotUrl String?
+  metadata    Json?
+  acknowledgedBy String?
+  acknowledgedAt DateTime?
+  resolvedBy     String?
+  resolvedAt     DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  camera Camera @relation(fields: [cameraId], references: [id], onDelete: Cascade)
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  isRevoked Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MobilePushToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String
+  platform  String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, token])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  entity    String?
+  entityId  String?
+  metadata  Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}

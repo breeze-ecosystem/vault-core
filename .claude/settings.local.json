@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(pnpm:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx prisma validate:*)",
+      "Bash(docker compose:*)",
+      "Bash(docker ps:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(npx nest build:*)",
+      "Bash(npx next build:*)",
+      "Bash(curl:*)",
+      "Bash(node:*)",
+      "Bash(taskkill:*)",
+      "Bash(npx next start:*)",
+      "Bash(docker exec:*)",
+      "Bash(docker run:*)",
+      "Bash(docker:*)",
+      "Bash(xargs grep *)"
+    ]
+  }
+}

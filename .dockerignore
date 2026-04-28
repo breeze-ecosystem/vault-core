@@ -1,0 +1,16 @@
+node_modules
+.next
+dist
+.turbo
+.env
+.env.local
+*.log
+.git
+.gitignore
+.claude
+docs/
+*.md
+!packages/*/README.md
+apps/mobile
+apps/docs
+apps/web
