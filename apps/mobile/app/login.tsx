@@ -7,12 +7,15 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
-import { login } from "@/auth-client";
+import { useRouter } from "expo-router";
+import { useAuth } from "@/lib/auth-context";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const router = useRouter();
 
   async function handleLogin() {
     if (!email || !password) {
@@ -26,8 +29,7 @@ export default function LoginScreen() {
       if (result.error) {
         Alert.alert("Erreur", result.error);
       } else {
-        // TODO: navigate to main screen in Sprint 2
-        Alert.alert("Succes", `Bienvenue ${result.user?.firstName}`);
+        router.replace("/(tabs)");
       }
     } catch {
       Alert.alert("Erreur", "Connexion impossible");

@@ -4,6 +4,16 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 // --- Types ---
 
+export interface CameraPrompt {
+  id: string;
+  cameraId: string;
+  text: string;
+  severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO";
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Camera {
   id: string;
   name: string;
@@ -12,11 +22,15 @@ export interface Camera {
   siteId: string;
   resolution: string | null;
   fps: number;
+  captureInterval: number;
   isRecording: boolean;
+  lastSnapshotUrl: string | null;
   lastHeartbeat: string | null;
   createdAt: string;
   updatedAt: string;
   site?: Site;
+  prompts?: CameraPrompt[];
+  _count?: { alerts: number };
 }
 
 export interface Alert {
@@ -163,5 +177,123 @@ export async function fetchUsers(params?: {
 
   const res = await fetchWithAuth(`${API_URL}/api/users?${searchParams.toString()}`);
   if (!res.ok) throw new Error("Failed to fetch users");
+  return res.json();
+}
+
+// --- Alert actions ---
+
+export async function acknowledgeAlert(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/alerts/${id}/acknowledge`, { method: "PATCH" });
+  if (!res.ok) throw new Error("Failed to acknowledge alert");
+}
+
+export async function resolveAlert(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/alerts/${id}/resolve`, { method: "PATCH" });
+  if (!res.ok) throw new Error("Failed to resolve alert");
+}
+
+export async function markAlertFalsePositive(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/alerts/${id}/false-positive`, { method: "PATCH" });
+  if (!res.ok) throw new Error("Failed to mark as false positive");
+}
+
+// --- Site actions ---
+
+export async function createSite(data: { name: string; address?: string; city?: string; country?: string }): Promise<Site> {
+  const res = await fetchWithAuth(`${API_URL}/api/sites`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to create site");
+  return res.json();
+}
+
+export async function updateSite(id: string, data: any): Promise<Site> {
+  const res = await fetchWithAuth(`${API_URL}/api/sites/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to update site");
+  return res.json();
+}
+
+// --- Camera actions ---
+
+export async function createCamera(data: { name: string; rtspUrl: string; siteId: string; resolution?: string; fps?: number; captureInterval?: number }): Promise<Camera> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to create camera");
+  return res.json();
+}
+
+export async function updateCamera(id: string, data: any): Promise<Camera> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to update camera");
+  return res.json();
+}
+
+// --- Camera stream actions ---
+
+export async function startStream(cameraId: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/ingestion/${cameraId}/start`, { method: "POST", body: JSON.stringify({}) });
+  if (!res.ok) throw new Error("Failed to start stream");
+}
+
+export async function stopStream(cameraId: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/ingestion/${cameraId}/stop`, { method: "POST", body: JSON.stringify({}) });
+  if (!res.ok) throw new Error("Failed to stop stream");
+}
+
+export async function fetchActiveStreams(): Promise<string[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/ingestion/active`);
+  if (!res.ok) throw new Error("Failed to fetch active streams");
+  const data = await res.json();
+  return data.cameras;
+}
+
+// --- Camera prompt actions ---
+
+export async function fetchCameraPrompts(cameraId: string): Promise<CameraPrompt[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/${cameraId}/prompts`);
+  if (!res.ok) throw new Error("Failed to fetch prompts");
+  return res.json();
+}
+
+export async function addCameraPrompt(cameraId: string, data: { text: string; severity?: string }): Promise<CameraPrompt> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/${cameraId}/prompts`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to add prompt");
+  return res.json();
+}
+
+export async function updateCameraPrompt(cameraId: string, promptId: string, data: { text?: string; severity?: string; isActive?: boolean }): Promise<CameraPrompt> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/${cameraId}/prompts/${promptId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to update prompt");
+  return res.json();
+}
+
+export async function deleteCameraPrompt(cameraId: string, promptId: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/${cameraId}/prompts/${promptId}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Failed to delete prompt");
+}
+
+// --- User actions ---
+
+export async function updateUser(id: string, data: { firstName?: string; lastName?: string; role?: string; isActive?: boolean }): Promise<DashboardUser> {
+  const res = await fetchWithAuth(`${API_URL}/api/users/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to update user");
   return res.json();
 }

@@ -36,7 +36,7 @@ RUN cd apps/api && npx nest build
 
 # ── Stage 3: Production ──
 FROM node:20-alpine AS runner
-RUN apk add --no-cache openssl openssl-dev
+RUN apk add --no-cache openssl openssl-dev ffmpeg
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 WORKDIR /app
 

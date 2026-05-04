@@ -1,5 +1,5 @@
 import { Redirect } from "expo-router";
-import { getAccessTokenAsync } from "@/auth-storage";
+import { getAccessTokenAsync } from "@/lib/auth-storage";
 import { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
 
@@ -21,8 +21,7 @@ export default function Index() {
   }
 
   if (hasToken) {
-    // TODO: redirect to main screen in Sprint 2
-    return <Redirect href="/login" />;
+    return <Redirect href="/(tabs)" />;
   }
 
   return <Redirect href="/login" />;

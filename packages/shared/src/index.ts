@@ -12,6 +12,9 @@ export type { CameraStatus } from "./constants/camera-status";
 export { ALERT_SEVERITY } from "./constants/alert-severity";
 export type { AlertSeverity } from "./constants/alert-severity";
 
+export { ALERT_STATUS } from "./constants/alert-status";
+export type { AlertStatus } from "./constants/alert-status";
+
 // Schemas - Site
 export { createSiteSchema, updateSiteSchema } from "./schemas/site.schema";
 export type { CreateSiteInput, UpdateSiteInput } from "./schemas/site.schema";

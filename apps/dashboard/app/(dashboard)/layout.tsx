@@ -3,6 +3,7 @@
 import { AuthProvider } from "@/lib/auth-context";
 import { ProtectedLayout } from "@/components/protected-layout";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { ToastContainer } from "@/components/ui/toast";
 
 export default function DashboardGroupLayout({
   children,
@@ -13,6 +14,7 @@ export default function DashboardGroupLayout({
     <AuthProvider>
       <ProtectedLayout>
         <DashboardLayout>{children}</DashboardLayout>
+        <ToastContainer />
       </ProtectedLayout>
     </AuthProvider>
   );

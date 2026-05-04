@@ -19,7 +19,17 @@
       "Bash(docker exec:*)",
       "Bash(docker run:*)",
       "Bash(docker:*)",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(npx expo *)",
+      "Bash(netstat -ano)",
+      "Bash(tasklist //FI \"PID eq 26660\")",
+      "Bash(winpty docker *)",
+      "Bash(npx nest *)",
+      "Bash(disown)",
+      "Bash(tasklist)",
+      "Bash(ffmpeg -rtsp_transport tcp -i \"rtsp://192.168.1.91:8080/h264_ultra.sdp\" -frames:v 1 -f image2pipe -vcodec mjpeg -q:v 5 -an -y pipe:1)",
+      "Bash(ffmpeg -rtsp_transport tcp -i \"rtsp://192.168.1.91:8080/h264_ultra.sdp\" -frames:v 1 -f image2pipe -vcodec mjpeg -q:v 5 -an -y /tmp/test_frame.jpg)"
     ]
   }
 }
