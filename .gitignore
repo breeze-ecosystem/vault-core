@@ -37,7 +37,7 @@ yarn-error.log*
 *.pem
 
 # Prisma
-prisma/migrations/
+# prisma/migrations/ — DO NOT ignore migrations, they must be tracked in VCS
 
 # Python
 __pycache__/

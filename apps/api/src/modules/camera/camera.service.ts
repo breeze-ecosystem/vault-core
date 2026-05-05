@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { Prisma } from "@prisma/client";
+import { Prisma, AlertSeverity } from "@prisma/client";
 
 @Injectable()
 export class CameraService {
@@ -72,7 +72,7 @@ export class CameraService {
     });
   }
 
-  async addPrompt(cameraId: string, data: { text: string; severity?: Prisma.AlertSeverity }) {
+  async addPrompt(cameraId: string, data: { text: string; severity?: AlertSeverity }) {
     const camera = await this.prisma.camera.findUnique({ where: { id: cameraId } });
     if (!camera) throw new NotFoundException("Camera not found");
     return this.prisma.cameraPrompt.create({
@@ -86,7 +86,7 @@ export class CameraService {
 
   async updatePrompt(
     promptId: string,
-    data: { text?: string; severity?: Prisma.AlertSeverity; isActive?: boolean },
+    data: { text?: string; severity?: AlertSeverity; isActive?: boolean },
   ) {
     const prompt = await this.prisma.cameraPrompt.findUnique({ where: { id: promptId } });
     if (!prompt) throw new NotFoundException("Prompt not found");

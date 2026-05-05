@@ -24,7 +24,6 @@ export const validationSchema = Joi.object({
 
   AI_PREPROCESSOR_URL: Joi.string().default('http://localhost:8000'),
   OLLAMA_BASE_URL: Joi.string().default('http://localhost:11434'),
-  QDRANT_URL: Joi.string().default('http://localhost:6333'),
 
   FCM_SERVER_KEY: Joi.string().optional().allow(''),
   FIREBASE_CREDENTIALS: Joi.string().optional().allow(''),

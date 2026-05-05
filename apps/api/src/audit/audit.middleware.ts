@@ -1,6 +1,6 @@
 import { NestMiddleware, Injectable } from '@nestjs/common';
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { PrismaService } from '../../modules/prisma/prisma.service';
+import { PrismaService } from '../modules/prisma/prisma.service';
 
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 

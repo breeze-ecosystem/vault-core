@@ -12,6 +12,7 @@ import { CameraService } from "./camera.service";
 import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { createCameraSchema, updateCameraSchema } from "@repo/shared";
+import { AlertSeverity } from "@prisma/client";
 
 @Controller("cameras")
 export class CameraController {
@@ -62,7 +63,7 @@ export class CameraController {
   @Roles("OPERATOR", "SUPERVISOR", "ADMIN", "SUPER_ADMIN")
   async addPrompt(
     @Param("id") cameraId: string,
-    @Body() body: { text: string; severity?: string },
+    @Body() body: { text: string; severity?: AlertSeverity },
   ) {
     return this.cameraService.addPrompt(cameraId, body);
   }
@@ -72,7 +73,7 @@ export class CameraController {
   async updatePrompt(
     @Param("cameraId") _cameraId: string,
     @Param("promptId") promptId: string,
-    @Body() body: { text?: string; severity?: string; isActive?: boolean },
+    @Body() body: { text?: string; severity?: AlertSeverity; isActive?: boolean },
   ) {
     return this.cameraService.updatePrompt(promptId, body);
   }

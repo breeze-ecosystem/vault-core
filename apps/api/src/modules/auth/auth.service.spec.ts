@@ -6,6 +6,12 @@ import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 
+jest.mock('bcryptjs', () => ({
+  ...jest.requireActual('bcryptjs'),
+  hash: jest.fn(),
+  compare: jest.fn(),
+}));
+
 // ── Mocks ──────────────────────────────────────────────────────────────────────
 
 const mockPrismaService = {
