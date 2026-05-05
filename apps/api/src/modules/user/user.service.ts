@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { Prisma, Role } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
 
 @Injectable()
@@ -49,9 +50,20 @@ export class UserService {
     isActive?: boolean;
     siteId?: string | null;
   }) {
+    const updateData: Prisma.UserUpdateInput = {};
+    if (data.firstName !== undefined) updateData.firstName = data.firstName;
+    if (data.lastName !== undefined) updateData.lastName = data.lastName;
+    if (data.role !== undefined) updateData.role = data.role as Role;
+    if (data.isActive !== undefined) updateData.isActive = data.isActive;
+    if (data.siteId !== undefined) {
+      updateData.site = data.siteId
+        ? { connect: { id: data.siteId } }
+        : { disconnect: true };
+    }
+
     return this.prisma.user.update({
       where: { id },
-      data: data as any,
+      data: updateData,
       select: {
         id: true,
         email: true,
@@ -72,7 +84,7 @@ export class UserService {
 
     const valid = await bcrypt.compare(currentPassword, user.password);
     if (!valid) {
-      throw new Error("Current password is incorrect");
+      throw new BadRequestException("Current password is incorrect");
     }
 
     const hash = await bcrypt.hash(newPassword, 10);

@@ -6,7 +6,7 @@ import {
   clearAuth,
 } from "./auth-storage";
 
-const API_URL = "http://localhost:4000";
+const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:4000";
 
 interface AuthResult {
   accessToken?: string;
@@ -31,7 +31,7 @@ export async function login(email: string, password: string): Promise<AuthResult
     const data = await res.json();
 
     if (!res.ok) {
-      return { error: data.message || "Login failed" };
+      return { error: data.message || "Echec de la connexion" };
     }
 
     await saveTokens(data.accessToken, data.refreshToken);
@@ -39,7 +39,7 @@ export async function login(email: string, password: string): Promise<AuthResult
 
     return { accessToken: data.accessToken, user: data.user };
   } catch {
-    return { error: "Cannot reach server" };
+    return { error: "Serveur indisponible" };
   }
 }
 

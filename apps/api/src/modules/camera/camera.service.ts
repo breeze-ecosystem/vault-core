@@ -1,13 +1,14 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class CameraService {
   constructor(private prisma: PrismaService) {}
 
   async findAll(filters?: { status?: string; siteId?: string }) {
-    const where: any = {};
-    if (filters?.status) where.status = filters.status;
+    const where: Prisma.CameraWhereInput = {};
+    if (filters?.status) where.status = filters.status as Prisma.EnumCameraStatusFilter;
     if (filters?.siteId) where.siteId = filters.siteId;
 
     const [data, total] = await Promise.all([
@@ -39,14 +40,14 @@ export class CameraService {
     return camera;
   }
 
-  async create(data: any) {
+  async create(data: Prisma.CameraCreateInput) {
     return this.prisma.camera.create({
       data,
       include: { site: { select: { id: true, name: true } } },
     });
   }
 
-  async update(id: string, data: any) {
+  async update(id: string, data: Prisma.CameraUpdateInput) {
     await this.findById(id);
     return this.prisma.camera.update({
       where: { id },
@@ -71,22 +72,25 @@ export class CameraService {
     });
   }
 
-  async addPrompt(cameraId: string, data: { text: string; severity?: string }) {
+  async addPrompt(cameraId: string, data: { text: string; severity?: Prisma.AlertSeverity }) {
     const camera = await this.prisma.camera.findUnique({ where: { id: cameraId } });
     if (!camera) throw new NotFoundException("Camera not found");
     return this.prisma.cameraPrompt.create({
       data: {
         cameraId,
         text: data.text,
-        severity: (data.severity as any) || "MEDIUM",
+        severity: data.severity || "MEDIUM",
       },
     });
   }
 
-  async updatePrompt(promptId: string, data: { text?: string; severity?: string; isActive?: boolean }) {
+  async updatePrompt(
+    promptId: string,
+    data: { text?: string; severity?: Prisma.AlertSeverity; isActive?: boolean },
+  ) {
     const prompt = await this.prisma.cameraPrompt.findUnique({ where: { id: promptId } });
     if (!prompt) throw new NotFoundException("Prompt not found");
-    const updateData: any = {};
+    const updateData: Prisma.CameraPromptUpdateInput = {};
     if (data.text !== undefined) updateData.text = data.text;
     if (data.severity !== undefined) updateData.severity = data.severity;
     if (data.isActive !== undefined) updateData.isActive = data.isActive;

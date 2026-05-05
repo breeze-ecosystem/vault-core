@@ -1,16 +1,51 @@
+# Dependencies
 node_modules
+**/node_modules
+
+# Git
+.git
+.gitignore
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Documentation (keep README)
+*.md
+!README.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts (rebuilt in Docker)
 .next
 dist
 .turbo
-.env
-.env.local
-*.log
-.git
-.gitignore
-.claude
-docs/
-*.md
-!packages/*/README.md
-apps/mobile
-apps/docs
-apps/web
+*.tsbuildinfo
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+.venv
+
+# Prisma
+apps/api/prisma/migrations
+
+# Docker
+docker-compose*.yml
+
+# CI/CD
+.github
+
+# Testing
+coverage
+.nyc_output

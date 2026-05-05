@@ -9,18 +9,32 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import { FastifyReply, FastifyRequest } from "fastify";
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiCookieAuth } from "@nestjs/swagger";
 import { AuthService } from "./auth.service";
 import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
 import { Public } from "../../common/decorators/public.decorator";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { loginSchema, registerSchema, refreshSchema } from "@repo/shared";
+import {
+  LoginDto,
+  RegisterDto,
+  RefreshDto,
+  LogoutDto,
+  AuthResponseDto,
+} from "../../common/dto";
 
+@ApiTags("auth")
 @Controller("auth")
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Public()
   @Post("register")
+  @ApiOperation({ summary: "Register a new user account" })
+  @ApiBody({ type: RegisterDto })
+  @ApiResponse({ status: 201, description: "User registered successfully", type: AuthResponseDto })
+  @ApiResponse({ status: 409, description: "Email already registered" })
+  @ApiResponse({ status: 400, description: "Validation failed" })
   async register(@Body(new ZodValidationPipe(registerSchema)) body: any) {
     return this.authService.register(body);
   }
@@ -28,6 +42,10 @@ export class AuthController {
   @Public()
   @Post("login")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Login with email and password" })
+  @ApiBody({ type: LoginDto })
+  @ApiResponse({ status: 200, description: "Login successful", type: AuthResponseDto })
+  @ApiResponse({ status: 401, description: "Invalid credentials" })
   async login(
     @Body(new ZodValidationPipe(loginSchema)) body: any,
     @Res({ passthrough: true }) res: FastifyReply
@@ -53,6 +71,11 @@ export class AuthController {
   @Public()
   @Post("refresh")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Refresh access token using refresh token" })
+  @ApiBody({ type: RefreshDto })
+  @ApiCookieAuth()
+  @ApiResponse({ status: 200, description: "Token refreshed", type: AuthResponseDto })
+  @ApiResponse({ status: 401, description: "Invalid or expired refresh token" })
   async refresh(
     @Body() body: { refreshToken?: string },
     @Req() req: FastifyRequest,
@@ -89,6 +112,10 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post("logout")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Logout and revoke tokens" })
+  @ApiBody({ type: LogoutDto })
+  @ApiCookieAuth()
+  @ApiResponse({ status: 200, description: "Logged out successfully" })
   async logout(
     @Req() req: FastifyRequest,
     @Body() body: { refreshToken?: string },

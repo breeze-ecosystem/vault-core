@@ -2,11 +2,11 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
-  BadRequestException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../prisma/prisma.service";
+import { Role } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 
@@ -41,7 +41,7 @@ export class AuthService {
         password: passwordHash,
         firstName: data.firstName,
         lastName: data.lastName,
-        role: (data.role as any) || "VIEWER",
+        role: (data.role as Role) || "VIEWER",
         siteId: data.siteId || undefined,
       },
       select: {
@@ -160,7 +160,7 @@ export class AuthService {
     return { message: "Logged out successfully" };
   }
 
-  private async createTokens(userId: string, email: string, role: string) {
+  private async createTokens(userId: string, email: string, role: Role) {
     const accessSecret = this.config.get<string>("JWT_ACCESS_SECRET", "change-me-access-secret-in-prod");
     const refreshSecret = this.config.get<string>("JWT_REFRESH_SECRET", "change-me-refresh-secret-in-prod");
 

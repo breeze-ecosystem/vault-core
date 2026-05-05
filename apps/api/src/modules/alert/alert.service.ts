@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { Prisma, AlertSeverity, AlertStatus } from "@prisma/client";
 
 @Injectable()
 export class AlertService {
@@ -12,9 +13,9 @@ export class AlertService {
     page?: number;
     limit?: number;
   }) {
-    const where: any = {};
-    if (filters?.severity) where.severity = filters.severity;
-    if (filters?.status) where.status = filters.status;
+    const where: Prisma.AlertWhereInput = {};
+    if (filters?.severity) where.severity = filters.severity as AlertSeverity;
+    if (filters?.status) where.status = filters.status as AlertStatus;
     if (filters?.cameraId) where.cameraId = filters.cameraId;
 
     const page = filters?.page ?? 1;
@@ -47,7 +48,7 @@ export class AlertService {
     return alert;
   }
 
-  async create(data: any) {
+  async create(data: Prisma.AlertCreateInput) {
     return this.prisma.alert.create({
       data,
       include: { camera: { select: { id: true, name: true } } },

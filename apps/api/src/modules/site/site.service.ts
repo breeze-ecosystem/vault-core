@@ -1,12 +1,13 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class SiteService {
   constructor(private prisma: PrismaService) {}
 
   async findAll(filters?: { isActive?: boolean; city?: string }) {
-    const where: any = {};
+    const where: Prisma.SiteWhereInput = {};
     if (filters?.isActive !== undefined) where.isActive = filters.isActive;
     if (filters?.city) where.city = { contains: filters.city, mode: "insensitive" };
 
@@ -31,11 +32,11 @@ export class SiteService {
     return site;
   }
 
-  async create(data: any) {
+  async create(data: Prisma.SiteCreateInput) {
     return this.prisma.site.create({ data });
   }
 
-  async update(id: string, data: any) {
+  async update(id: string, data: Prisma.SiteUpdateInput) {
     await this.findById(id);
     return this.prisma.site.update({ where: { id }, data });
   }

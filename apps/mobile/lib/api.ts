@@ -1,6 +1,6 @@
 import { fetchWithAuth } from "@/lib/auth-client";
 
-const API_URL = "http://localhost:4000";
+const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:4000";
 
 export interface DashboardStats {
   cameras: {
@@ -41,24 +41,52 @@ export interface CameraItem {
   status: string;
   siteId: string;
   resolution: string | null;
+  fps: number;
   isRecording: boolean;
   site?: { id: string; name: string };
 }
 
+export interface SiteItem {
+  id: string;
+  name: string;
+  address: string | null;
+  city: string | null;
+  country: string;
+  isActive: boolean;
+  cameras?: CameraItem[];
+  _count?: { cameras: number };
+}
+
 export async function fetchDashboardStats(): Promise<DashboardStats> {
   const res = await fetchWithAuth(`${API_URL}/api/dashboard/stats`);
-  if (!res.ok) throw new Error("Failed to fetch stats");
+  if (!res.ok) throw new Error("Impossible de charger les statistiques");
   return res.json();
 }
 
 export async function fetchAlerts(limit = 20): Promise<{ data: AlertItem[]; total: number }> {
   const res = await fetchWithAuth(`${API_URL}/api/alerts?limit=${limit}`);
-  if (!res.ok) throw new Error("Failed to fetch alerts");
+  if (!res.ok) throw new Error("Impossible de charger les alertes");
   return res.json();
 }
 
 export async function fetchCameras(): Promise<{ data: CameraItem[]; total: number }> {
   const res = await fetchWithAuth(`${API_URL}/api/cameras`);
-  if (!res.ok) throw new Error("Failed to fetch cameras");
+  if (!res.ok) throw new Error("Impossible de charger les cameras");
   return res.json();
+}
+
+export async function fetchSites(): Promise<{ data: SiteItem[]; total: number }> {
+  const res = await fetchWithAuth(`${API_URL}/api/sites?limit=100`);
+  if (!res.ok) throw new Error("Impossible de charger les sites");
+  return res.json();
+}
+
+export async function acknowledgeAlert(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/alerts/${id}/acknowledge`, { method: "PATCH" });
+  if (!res.ok) throw new Error("Impossible de prendre en compte l'alerte");
+}
+
+export async function resolveAlert(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/alerts/${id}/resolve`, { method: "PATCH" });
+  if (!res.ok) throw new Error("Impossible de resoudre l'alerte");
 }
