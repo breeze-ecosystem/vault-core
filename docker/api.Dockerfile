@@ -4,6 +4,9 @@ RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 RUN apk add --no-cache openssl
 WORKDIR /app
 
+# Force development to get ALL deps (including prisma, typescript, etc.)
+ENV NODE_ENV=development
+
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY packages/shared/package.json packages/shared/
 COPY packages/typescript-config/package.json packages/typescript-config/
@@ -17,15 +20,17 @@ RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 RUN apk add --no-cache openssl
 WORKDIR /app
 
-# Copy source files first (node_modules excluded by .dockerignore)
+ENV NODE_ENV=production
+
+# Copy source files
 COPY . .
 
-# Now restore node_modules from deps stage
+# Restore node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 
-# Build shared package first (needed by API)
+# Build shared package first
 RUN npx tsc -p packages/shared/tsconfig.json
 
 # Generate Prisma client
@@ -42,16 +47,12 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Copy root node_modules (contains .pnpm store)
+# Copy everything we need from builder
 COPY --from=builder /app/node_modules ./node_modules
-# Copy API node_modules (contains symlinks into .pnpm store)
 COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
-# Copy shared node_modules (contains symlinks for zod etc.)
 COPY --from=builder /app/packages/shared/node_modules ./packages/shared/node_modules
-# Copy shared package (compiled)
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder /app/packages/shared/package.json ./packages/shared/
-# Copy API compiled output
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
 COPY --from=builder /app/apps/api/package.json ./apps/api/
