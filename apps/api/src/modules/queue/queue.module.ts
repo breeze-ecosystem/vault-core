@@ -12,6 +12,7 @@ import { QueueService } from "./queue.service";
         connection: {
           host: cfg.get("REDIS_HOST", "localhost"),
           port: cfg.get("REDIS_PORT", 6379),
+          password: cfg.get("REDIS_PASSWORD") || undefined,
         },
       }),
     }),
