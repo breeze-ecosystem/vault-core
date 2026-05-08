@@ -3,9 +3,59 @@ import * as bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-async function main() {
-  console.log("Seeding database...");
+// ── Environment-driven configuration ──────────────────────────────
+const SEED_MODE      = process.env.SEED_MODE || "production"; // "sample" | "production"
+const ADMIN_EMAIL    = process.env.ADMIN_EMAIL    || "admin@oversight.local";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || (SEED_MODE === "sample" ? "admin123" : "");
+const ADMIN_FIRST    = process.env.ADMIN_FIRST_NAME || "Admin";
+const ADMIN_LAST     = process.env.ADMIN_LAST_NAME  || "OVERSIGHT";
+const COMPANY_NAME   = process.env.COMPANY_NAME || "OVERSIGHT";
 
+// ── Production seed: admin user + single default site ─────────────
+async function seedProduction() {
+  if (!ADMIN_PASSWORD) {
+    throw new Error(
+      "ADMIN_PASSWORD env var is required in production SEED_MODE. " +
+      "Refusing to create an admin with an empty password."
+    );
+  }
+
+  const adminPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
+  const admin = await prisma.user.upsert({
+    where: { email: ADMIN_EMAIL },
+    update: {},                         // idempotent – don't overwrite on re-run
+    create: {
+      email: ADMIN_EMAIL,
+      password: adminPassword,
+      firstName: ADMIN_FIRST,
+      lastName: ADMIN_LAST,
+      role: Role.ADMIN,
+      isActive: true,
+    },
+  });
+
+  // Single default site named after the company
+  const defaultSite = await prisma.site.upsert({
+    where: { id: "default" },
+    update: {},
+    create: {
+      id: "default",
+      name: `${COMPANY_NAME} – Default Site`,
+      city: "Unknown",
+      country: "XX",
+    },
+  });
+
+  console.log("✅ Production seed completed:");
+  console.log(`   Admin user : ${admin.email}`);
+  console.log(`   Default site: ${defaultSite.name}`);
+}
+
+// ── Sample / dev seed: full test dataset ──────────────────────────
+async function seedSample() {
+  const pw = ADMIN_PASSWORD || "admin123";
+
+  // ── Users ──
   const adminPassword = await bcrypt.hash("admin123", 10);
   const admin = await prisma.user.upsert({
     where: { email: "admin@oversight.local" },
@@ -48,69 +98,111 @@ async function main() {
     },
   });
 
-  const dakar = await prisma.site.create({
-    data: { name: "Site Dakar Plateau", address: "Avenue L.S. Senghor", city: "Dakar", country: "SN", latitude: 14.6937, longitude: -17.4441 },
+  // ── Sites ──
+  const dakar = await prisma.site.upsert({
+    where: { id: "site-dakar" },
+    update: {},
+    create: {
+      id: "site-dakar",
+      name: "Site Dakar Plateau",
+      address: "Avenue L.S. Senghor",
+      city: "Dakar",
+      country: "SN",
+      latitude: 14.6937,
+      longitude: -17.4441,
+    },
   });
 
-  const paris = await prisma.site.create({
-    data: { name: "Site Paris CDG", address: "Rue de la Paix", city: "Paris", country: "FR", latitude: 48.8566, longitude: 2.3522 },
+  const paris = await prisma.site.upsert({
+    where: { id: "site-paris" },
+    update: {},
+    create: {
+      id: "site-paris",
+      name: "Site Paris CDG",
+      address: "Rue de la Paix",
+      city: "Paris",
+      country: "FR",
+      latitude: 48.8566,
+      longitude: 2.3522,
+    },
   });
 
-  const lyon = await prisma.site.create({
-    data: { name: "Site Lyon Part-Dieu", address: "Bd Vivier Merle", city: "Lyon", country: "FR", latitude: 45.7609, longitude: 4.8596 },
+  const lyon = await prisma.site.upsert({
+    where: { id: "site-lyon" },
+    update: {},
+    create: {
+      id: "site-lyon",
+      name: "Site Lyon Part-Dieu",
+      address: "Bd Vivier Merle",
+      city: "Lyon",
+      country: "FR",
+      latitude: 45.7609,
+      longitude: 4.8596,
+    },
   });
 
-  const cameras = await Promise.all([
-    prisma.camera.create({ data: { name: "CAM-DKR-001 Entree Principale", rtspUrl: "rtsp://stream:554/dakar-entree", siteId: dakar.id, status: "ONLINE", resolution: "1920x1080", fps: 25, captureInterval: 5, isRecording: false } }),
-    prisma.camera.create({ data: { name: "CAM-DKR-002 Parking", rtspUrl: "rtsp://stream:554/dakar-parking", siteId: dakar.id, status: "ONLINE", resolution: "1920x1080", fps: 25, captureInterval: 5, isRecording: false } }),
-    prisma.camera.create({ data: { name: "CAM-PAR-001 Hall Accueil", rtspUrl: "rtsp://stream:554/paris-hall", siteId: paris.id, status: "ONLINE", resolution: "2560x1440", fps: 30, captureInterval: 10, isRecording: false } }),
-    prisma.camera.create({ data: { name: "CAM-PAR-002 Entrepot", rtspUrl: "rtsp://stream:554/paris-entrepot", siteId: paris.id, status: "OFFLINE", resolution: "1920x1080", fps: 25, captureInterval: 5, isRecording: false } }),
-    prisma.camera.create({ data: { name: "CAM-LYN-001 Couloir A", rtspUrl: "rtsp://stream:554/lyon-couloir", siteId: lyon.id, status: "MAINTENANCE", resolution: "1280x720", fps: 15, captureInterval: 5, isRecording: false } }),
-    prisma.camera.create({ data: { name: "CAM-LYN-002 Sortie Secours", rtspUrl: "rtsp://stream:554/lyon-sortie", siteId: lyon.id, status: "DEGRADED", resolution: "1920x1080", fps: 10, captureInterval: 5, isRecording: false } }),
-  ]);
-
-  // Camera prompts - natural language detection rules
-  const promptData = [
-    { cameraIdx: 0, text: "Y a-t-il une personne qui entre dans la zone sans badge visible ?", severity: "HIGH" as const },
-    { cameraIdx: 0, text: "Detecter si quelqu'un porte un casque de securite", severity: "MEDIUM" as const },
-    { cameraIdx: 1, text: "Y a-t-il un vehicule stationne de maniere suspecte ?", severity: "HIGH" as const },
-    { cameraIdx: 1, text: "Detecter un colis ou objet abandonne", severity: "CRITICAL" as const },
-    { cameraIdx: 2, text: "Detecter une intrusion en dehors des heures d'ouverture", severity: "CRITICAL" as const },
-    { cameraIdx: 2, text: "Y a-t-il plus de 10 personnes dans le hall ?", severity: "MEDIUM" as const },
-    { cameraIdx: 4, text: "Detecter un mouvement dans le couloir apres 22h", severity: "HIGH" as const },
-    { cameraIdx: 5, text: "La sortie de secours est-elle bloquee ?", severity: "CRITICAL" as const },
+  // ── Cameras (idempotent with upsert) ──
+  const cameraSeeds = [
+    { id: "cam-dkr-001", name: "CAM-DKR-001 Entree Principale", rtspUrl: "rtsp://stream:554/dakar-entree",  siteId: dakar.id, status: "ONLINE" as const,      resolution: "1920x1080", fps: 25, captureInterval: 5 },
+    { id: "cam-dkr-002", name: "CAM-DKR-002 Parking",           rtspUrl: "rtsp://stream:554/dakar-parking", siteId: dakar.id, status: "ONLINE" as const,      resolution: "1920x1080", fps: 25, captureInterval: 5 },
+    { id: "cam-par-001", name: "CAM-PAR-001 Hall Accueil",      rtspUrl: "rtsp://stream:554/paris-hall",    siteId: paris.id, status: "ONLINE" as const,      resolution: "2560x1440", fps: 30, captureInterval: 10 },
+    { id: "cam-par-002", name: "CAM-PAR-002 Entrepot",          rtspUrl: "rtsp://stream:554/paris-entrepot",siteId: paris.id, status: "OFFLINE" as const,     resolution: "1920x1080", fps: 25, captureInterval: 5 },
+    { id: "cam-lyn-001", name: "CAM-LYN-001 Couloir A",         rtspUrl: "rtsp://stream:554/lyon-couloir",  siteId: lyon.id,  status: "MAINTENANCE" as const, resolution: "1280x720",  fps: 15, captureInterval: 5 },
+    { id: "cam-lyn-002", name: "CAM-LYN-002 Sortie Secours",    rtspUrl: "rtsp://stream:554/lyon-sortie",   siteId: lyon.id,  status: "DEGRADED" as const,    resolution: "1920x1080", fps: 10, captureInterval: 5 },
   ];
 
+  const cameras: Awaited<ReturnType<typeof prisma.camera.upsert>>[] = [];
+  for (const c of cameraSeeds) {
+    const cam = await prisma.camera.upsert({
+      where: { id: c.id },
+      update: {},
+      create: { ...c, isRecording: false },
+    });
+    cameras.push(cam);
+  }
+
+  // ── Camera prompts ──
+  const promptData = [
+    { cameraId: "cam-dkr-001", text: "Y a-t-il une personne qui entre dans la zone sans badge visible ?",        severity: "HIGH" as const },
+    { cameraId: "cam-dkr-001", text: "Detecter si quelqu'un porte un casque de securite",                         severity: "MEDIUM" as const },
+    { cameraId: "cam-dkr-002", text: "Y a-t-il un vehicule stationne de maniere suspecte ?",                     severity: "HIGH" as const },
+    { cameraId: "cam-dkr-002", text: "Detecter un colis ou objet abandonne",                                     severity: "CRITICAL" as const },
+    { cameraId: "cam-par-001", text: "Detecter une intrusion en dehors des heures d'ouverture",                  severity: "CRITICAL" as const },
+    { cameraId: "cam-par-001", text: "Y a-t-il plus de 10 personnes dans le hall ?",                             severity: "MEDIUM" as const },
+    { cameraId: "cam-lyn-001", text: "Detecter un mouvement dans le couloir apres 22h",                          severity: "HIGH" as const },
+    { cameraId: "cam-lyn-002", text: "La sortie de secours est-elle bloquee ?",                                  severity: "CRITICAL" as const },
+  ];
+
+  // Use deleteMany + create to avoid duplicates on re-run (no natural key)
+  await prisma.cameraPrompt.deleteMany({});
   for (const p of promptData) {
     await prisma.cameraPrompt.create({
-      data: {
-        cameraId: cameras[p.cameraIdx].id,
-        text: p.text,
-        severity: p.severity,
-        isActive: true,
-      },
+      data: { cameraId: p.cameraId, text: p.text, severity: p.severity, isActive: true },
     });
   }
 
+  // ── Alerts ──
   const alertTitles = [
-    { title: "Intrusion detectee - Zone restreinte", severity: "CRITICAL" as const, camera: 0 },
-    { title: "Mouvement inhabituel - Parking", severity: "HIGH" as const, camera: 1 },
-    { title: "Qualite video degradee", severity: "MEDIUM" as const, camera: 5 },
-    { title: "Camera hors ligne - Entrepot", severity: "HIGH" as const, camera: 3 },
-    { title: "Objet abandonne detecte", severity: "MEDIUM" as const, camera: 2 },
-    { title: "Maintenance planifiee", severity: "INFO" as const, camera: 4 },
-    { title: "Personne non identifiee", severity: "LOW" as const, camera: 0 },
-    { title: "Flux video intermittent", severity: "MEDIUM" as const, camera: 5 },
-    { title: "Acces non autorise tente", severity: "CRITICAL" as const, camera: 2 },
-    { title: "Notification systeme", severity: "INFO" as const, camera: 1 },
+    { title: "Intrusion detectee - Zone restreinte",   severity: "CRITICAL" as const, camera: 0 },
+    { title: "Mouvement inhabituel - Parking",          severity: "HIGH" as const,     camera: 1 },
+    { title: "Qualite video degradee",                  severity: "MEDIUM" as const,   camera: 5 },
+    { title: "Camera hors ligne - Entrepot",            severity: "HIGH" as const,     camera: 3 },
+    { title: "Objet abandonne detecte",                 severity: "MEDIUM" as const,   camera: 2 },
+    { title: "Maintenance planifiee",                   severity: "INFO" as const,     camera: 4 },
+    { title: "Personne non identifiee",                 severity: "LOW" as const,      camera: 0 },
+    { title: "Flux video intermittent",                 severity: "MEDIUM" as const,   camera: 5 },
+    { title: "Acces non autorise tente",                severity: "CRITICAL" as const, camera: 2 },
+    { title: "Notification systeme",                    severity: "INFO" as const,     camera: 1 },
   ];
 
+  // Clear old sample alerts before re-creating
+  await prisma.alert.deleteMany({});
   for (let i = 0; i < alertTitles.length; i++) {
     const alert = alertTitles[i];
     await prisma.alert.create({
       data: {
         title: alert.title,
-        description: `Alerte generee automatiquement par le systeme AI`,
+        description: "Alerte generee automatiquement par le systeme AI",
         severity: alert.severity,
         status: i < 3 ? "OPEN" : i < 6 ? "ACKNOWLEDGED" : i < 8 ? "RESOLVED" : "FALSE_POSITIVE",
         cameraId: cameras[alert.camera].id,
@@ -120,12 +212,23 @@ async function main() {
     });
   }
 
-  console.log("Seed completed:");
-  console.log(`  Users: 3`);
-  console.log(`  Sites: 3`);
-  console.log(`  Cameras: ${cameras.length}`);
-  console.log(`  Camera Prompts: ${promptData.length}`);
-  console.log(`  Alerts: ${alertTitles.length}`);
+  console.log("✅ Sample seed completed:");
+  console.log(`   Users          : 3`);
+  console.log(`   Sites          : 3`);
+  console.log(`   Cameras        : ${cameras.length}`);
+  console.log(`   Camera Prompts : ${promptData.length}`);
+  console.log(`   Alerts         : ${alertTitles.length}`);
+}
+
+// ── Main dispatcher ───────────────────────────────────────────────
+async function main() {
+  console.log(`Seeding database (mode=${SEED_MODE})...`);
+
+  if (SEED_MODE === "sample") {
+    await seedSample();
+  } else {
+    await seedProduction();
+  }
 }
 
 main()

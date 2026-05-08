@@ -63,4 +63,20 @@ WORKDIR /app/apps/api
 
 EXPOSE 4000
 
-CMD ["sh", "-c", "npx prisma migrate deploy || npx prisma db push && node dist/src/main.js"]
+# Entrypoint script: migrate DB → seed → start app
+COPY <<'EOF' /app/apps/api/docker-entrypoint.sh
+#!/bin/sh
+set -e
+
+echo "📦 Running database migration..."
+npx prisma migrate deploy 2>/dev/null || npx prisma db push
+
+echo "🌱 Running database seed..."
+npx prisma db seed
+
+echo "🚀 Starting API server..."
+exec node dist/src/main.js
+EOF
+RUN chmod +x /app/apps/api/docker-entrypoint.sh
+
+CMD ["/app/apps/api/docker-entrypoint.sh"]
