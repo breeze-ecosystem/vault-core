@@ -63,7 +63,7 @@ WORKDIR /app/apps/api
 
 EXPOSE 4000
 
-# Entrypoint script: migrate DB → seed → start app
+# Entrypoint script: migrate DB → seed (optional) → start app
 COPY <<'EOF' /app/apps/api/docker-entrypoint.sh
 #!/bin/sh
 set -e
@@ -71,8 +71,8 @@ set -e
 echo "📦 Running database migration..."
 npx prisma migrate deploy 2>/dev/null || npx prisma db push
 
-echo "🌱 Running database seed..."
-npx prisma db seed
+echo "🌱 Running database seed (if configured)..."
+npx prisma db seed 2>/dev/null && echo "✅ Seed completed" || echo "⚠️  Seed skipped (ADMIN_PASSWORD not set or already seeded)"
 
 echo "🚀 Starting API server..."
 exec node dist/src/main.js
