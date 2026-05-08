@@ -9,6 +9,9 @@ services:
       dockerfile: docker/api.Dockerfile
     container_name: oversight-api
     restart: unless-stopped
+    networks:
+      - default
+      - coolify
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
@@ -26,8 +29,8 @@ services:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4000/api/health || exit 1"]
       interval: 15s
       timeout: 5s
-      retries: 3
-      start_period: 30s
+      retries: 5
+      start_period: 45s
 
   dashboard:
     build:
@@ -38,9 +41,6 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: https://oversight-api.digitsoftafrica.com
       PORT: 3100
-    depends_on:
-      api:
-        condition: service_healthy
 
   ai-preprocessor:
     build:
@@ -57,3 +57,7 @@ services:
       interval: 15s
       timeout: 5s
       retries: 3
+
+networks:
+  coolify:
+    external: true
