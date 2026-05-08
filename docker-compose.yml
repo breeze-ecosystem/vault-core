@@ -18,6 +18,7 @@ services:
       DATABASE_URL: postgres://postgres:pZS2yJyclzMxL4Aq0dCwF11MfvPZicMoXhYuj1B8yTcTx0ewunSldsb07YtVSONr@dh4wundp5g2ofyek65r9ie7h:5432/postgres
       REDIS_HOST: j11m2r6qksg9pxx5ex80uegh
       REDIS_PORT: 6379
+      REDIS_PASSWORD: kMhfGqHl0na4nErPes2fUIbLG0YKTxpXgH6vkF1qn3GmaKNIduFAdZm7FzbGUi6K
       OLLAMA_BASE_URL: http://host.docker.internal:11434
       AI_PREPROCESSOR_URL: http://ai-preprocessor:8000
       PORT: 4000
