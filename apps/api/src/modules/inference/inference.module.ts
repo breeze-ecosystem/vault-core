@@ -3,11 +3,11 @@ import { InferenceService } from "./inference.service";
 import { InferenceProcessor } from "./inference.processor";
 import { QueueModule } from "../queue/queue.module";
 import { PrismaModule } from "../prisma/prisma.module";
-import { NotificationModule } from "../notification/notification.module";
+import { NotificationsModule } from "../notifications/notifications.module";
 import { ConfigModule } from "@nestjs/config";
 
 @Module({
-  imports: [QueueModule, PrismaModule, NotificationModule, ConfigModule],
+  imports: [QueueModule, PrismaModule, NotificationsModule, ConfigModule],
   providers: [InferenceService, InferenceProcessor],
   exports: [InferenceService],
 })

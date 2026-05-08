@@ -4,6 +4,7 @@ import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
 import { PrismaService } from "../prisma/prisma.service";
 import { InferenceService } from "./inference.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import { FrameJob } from "../queue/queue.service";
 
 @Processor("frame-processing")
@@ -16,6 +17,7 @@ export class InferenceProcessor extends WorkerHost {
     private prisma: PrismaService,
     private inference: InferenceService,
     @InjectQueue("notification") private notifQueue: Queue,
+    private notificationsService: NotificationsService,
   ) {
     super();
   }
@@ -63,6 +65,7 @@ export class InferenceProcessor extends WorkerHost {
         where: { id: data.cameraId },
       });
 
+      // Legacy websocket broadcast (kept for backward compatibility with existing WS gateway)
       await this.notifQueue.add("notify", {
         alertId: alert.id,
         type: "websocket",
@@ -75,6 +78,23 @@ export class InferenceProcessor extends WorkerHost {
           createdAt: alert.createdAt,
         },
       });
+
+      // New notification dispatch: resolve camera → site → users and enqueue jobs
+      try {
+        const notificationJobs = await this.notificationsService.dispatchAlertNotifications(alert.id);
+        if (notificationJobs && notificationJobs.length > 0) {
+          for (const notifJob of notificationJobs) {
+            await this.notifQueue.add("notify", notifJob, {
+              attempts: 2,
+              removeOnComplete: true,
+              removeOnFail: 20,
+            });
+          }
+          this.logger.log(`Dispatched ${notificationJobs.length} notification jobs for alert ${alert.id}`);
+        }
+      } catch (err: any) {
+        this.logger.warn(`Failed to dispatch notifications for alert ${alert.id}: ${err.message}`);
+      }
 
       this.logger.log(`Alert created: ${alert.id} - ${alert.title}`);
     }

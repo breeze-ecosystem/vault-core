@@ -1,26 +1,26 @@
-import { MiddlewareConsumer, Module, OnModuleInit } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
-import { APP_FILTER, APP_GUARD } from "@nestjs/core";
-import configuration from "./config/configuration";
-import { validationSchema } from "./config/validation";
-import { PrismaModule } from "./modules/prisma/prisma.module";
-import { AuthModule } from "./modules/auth/auth.module";
-import { UserModule } from "./modules/user/user.module";
-import { HealthModule } from "./modules/health/health.module";
-import { SiteModule } from "./modules/site/site.module";
-import { CameraModule } from "./modules/camera/camera.module";
-import { AlertModule } from "./modules/alert/alert.module";
-import { DashboardModule } from "./modules/dashboard/dashboard.module";
-import { QueueModule } from "./modules/queue/queue.module";
-import { IngestionModule } from "./modules/ingestion/ingestion.module";
-import { InferenceModule } from "./modules/inference/inference.module";
-import { AuditModule } from "./modules/audit/audit.module";
-import { NotificationModule } from "./modules/notification/notification.module";
-import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
-import { RolesGuard } from "./common/guards/roles.guard";
-import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
-import { AuditMiddleware } from "./audit/audit.middleware";
-import { IngestionService } from "./modules/ingestion/ingestion.service";
+import { MiddlewareConsumer, Module, OnModuleInit } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import configuration from './config/configuration';
+import { validationSchema } from './config/validation';
+import { PrismaModule } from './modules/prisma/prisma.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { UserModule } from './modules/user/user.module';
+import { HealthModule } from './modules/health/health.module';
+import { SiteModule } from './modules/site/site.module';
+import { CameraModule } from './modules/camera/camera.module';
+import { AlertModule } from './modules/alert/alert.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { QueueModule } from './modules/queue/queue.module';
+import { IngestionModule } from './modules/ingestion/ingestion.module';
+import { InferenceModule } from './modules/inference/inference.module';
+import { AuditModule } from './modules/audit/audit.module';
+import { NotificationModule } from './modules/notification/notification.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { RolesGuard } from './common/guards/roles.guard';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { IngestionService } from './modules/ingestion/ingestion.service';
 
 @Module({
   imports: [
@@ -46,6 +46,7 @@ import { IngestionService } from "./modules/ingestion/ingestion.service";
     InferenceModule,
     AuditModule,
     NotificationModule,
+    NotificationsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
@@ -63,9 +64,5 @@ export class AppModule implements OnModuleInit {
     } catch {
       // Cameras may not exist yet (first run)
     }
-  }
-
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuditMiddleware).forRoutes('*');
   }
 }

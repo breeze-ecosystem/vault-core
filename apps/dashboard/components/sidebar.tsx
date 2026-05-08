@@ -9,13 +9,25 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { useTranslation } from "@/lib/i18n/context";
 
 export function Sidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
   const { isCollapsed } = useSidebar();
+  const { t } = useTranslation();
 
   const items = getNavItems(user?.role ?? "VIEWER");
+
+  // Map nav item href to i18n key
+  const navKeyMap: Record<string, string> = {
+    "/": "nav.dashboard",
+    "/cameras": "nav.cameras",
+    "/alertes": "nav.alerts",
+    "/sites": "nav.sites",
+    "/utilisateurs": "nav.users",
+    "/parametres": "nav.settings",
+  };
 
   return (
     <aside
@@ -28,7 +40,7 @@ export function Sidebar() {
         {isCollapsed ? (
           <span className="text-lg font-bold text-primary">O</span>
         ) : (
-          <span className="text-lg font-bold text-primary">OVERSIGHT AI</span>
+          <span className="text-lg font-bold text-primary">{t("common.appName")}</span>
         )}
       </div>
 
@@ -37,6 +49,7 @@ export function Sidebar() {
           {items.map((item) => {
             const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
             const Icon = item.icon;
+            const label = navKeyMap[item.href] ? t(navKeyMap[item.href]!) : item.label;
 
             const linkContent = (
               <Link
@@ -51,7 +64,7 @@ export function Sidebar() {
                 )}
               >
                 <Icon className="h-5 w-5 shrink-0" />
-                {!isCollapsed && <span>{item.label}</span>}
+                {!isCollapsed && <span>{label}</span>}
               </Link>
             );
 
@@ -60,7 +73,7 @@ export function Sidebar() {
                 <Tooltip key={item.href} delayDuration={0}>
                   <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
                   <TooltipContent side="right" className="font-medium">
-                    {item.label}
+                    {label}
                   </TooltipContent>
                 </Tooltip>
               );
@@ -73,7 +86,7 @@ export function Sidebar() {
 
       <Separator />
       <div className={cn("p-3 text-xs text-muted-foreground", isCollapsed && "text-center")}>
-        {isCollapsed ? "v1.0" : "Oversight AI v1.0"}
+        {isCollapsed ? "v1.0" : `${t("common.appName")} v1.0`}
       </div>
     </aside>
   );
@@ -83,8 +96,18 @@ export function MobileSidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
   const { isMobileOpen, closeMobile } = useSidebar();
+  const { t } = useTranslation();
 
   const items = getNavItems(user?.role ?? "VIEWER");
+
+  const navKeyMap: Record<string, string> = {
+    "/": "nav.dashboard",
+    "/cameras": "nav.cameras",
+    "/alertes": "nav.alerts",
+    "/sites": "nav.sites",
+    "/utilisateurs": "nav.users",
+    "/parametres": "nav.settings",
+  };
 
   if (!isMobileOpen) return null;
 
@@ -93,12 +116,13 @@ export function MobileSidebar() {
       <div className="fixed inset-0 bg-black/80" onClick={closeMobile} />
       <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border">
         <div className="flex h-14 items-center border-b border-border px-4">
-          <span className="text-lg font-bold text-primary">OVERSIGHT AI</span>
+          <span className="text-lg font-bold text-primary">{t("common.appName")}</span>
         </div>
         <nav className="flex flex-col gap-1 p-2">
           {items.map((item) => {
             const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
             const Icon = item.icon;
+            const label = navKeyMap[item.href] ? t(navKeyMap[item.href]!) : item.label;
 
             return (
               <Link
@@ -113,7 +137,7 @@ export function MobileSidebar() {
                 )}
               >
                 <Icon className="h-5 w-5 shrink-0" />
-                <span>{item.label}</span>
+                <span>{label}</span>
               </Link>
             );
           })}

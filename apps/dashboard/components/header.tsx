@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/lib/auth-context";
 import { useSidebar } from "@/components/sidebar-provider";
+import { useTranslation } from "@/lib/i18n/context";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,10 +14,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Menu, PanelLeftClose, PanelLeftOpen, Bell } from "lucide-react";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 export function Header() {
   const { user, logout } = useAuth();
   const { isCollapsed, toggleCollapsed, toggleMobile } = useSidebar();
+  const { t } = useTranslation();
 
   const initials = user
     ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase()
@@ -47,6 +50,8 @@ export function Header() {
 
       <div className="flex-1" />
 
+      <LanguageSwitcher />
+
       <Button variant="ghost" size="icon" className="relative">
         <Bell className="h-5 w-5" />
       </Button>
@@ -74,7 +79,7 @@ export function Header() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => logout()}>
-            Deconnexion
+            {t("common.logout")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

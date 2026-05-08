@@ -3,6 +3,14 @@ import { Logger } from "@nestjs/common";
 import { NotificationGateway } from "./notification.gateway";
 import { NotificationPayload } from "./notification.service";
 
+/**
+ * Legacy processor for websocket-only notification jobs.
+ * The new NotificationsModule also registers a processor on the same queue
+ * and handles both legacy (websocket) and new (EMAIL/WEBHOOK/IN_APP) jobs.
+ * 
+ * This processor is kept for backward compatibility but the new NotificationsProcessor
+ * takes priority for jobs with { channel, recipient } shape.
+ */
 @Processor("notification")
 export class NotificationProcessor extends WorkerHost {
   private readonly logger = new Logger(NotificationProcessor.name);

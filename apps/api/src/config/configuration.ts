@@ -43,6 +43,18 @@ export default () => ({
     enabled: !!(process.env.FCM_SERVER_KEY || process.env.FIREBASE_CREDENTIALS || process.env.PUSH_WEBHOOK_URL),
   },
 
+  // ── SMTP / Email Notifications ──
+  smtp: {
+    host: process.env.SMTP_HOST || '',
+    port: parseInt(process.env.SMTP_PORT || '587', 10),
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASS || '',
+    from: process.env.SMTP_FROM || 'no-reply@oversight.local',
+  },
+
+  // ── Notifications ──
+  notificationEnabled: process.env.NOTIFICATION_ENABLED !== 'false',
+
   // ── CORS ──
   cors: {
     origin: process.env.CORS_ORIGIN || '*',
@@ -52,6 +64,10 @@ export default () => ({
   // ── Rate Limiting ──
   rateLimit: {
     ttl: parseInt(process.env.RATE_LIMIT_TTL || '60', 10), // seconds
-    max: parseInt(process.env.RATE_LIMIT_MAX || '20', 10), // requests per TTL
+    max: parseInt(process.env.RATE_LIMIT_MAX || '100', 10), // requests per TTL
+    authMax: parseInt(process.env.RATE_LIMIT_AUTH_MAX || '5', 10), // auth endpoints
   },
+
+  // ── Proxy ──
+  trustProxy: process.env.TRUST_PROXY === 'true' || process.env.NODE_ENV === 'production',
 });

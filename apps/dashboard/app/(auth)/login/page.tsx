@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { login } from "@/lib/auth-client";
+import { useTranslation } from "@/lib/i18n/context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
@@ -10,6 +11,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -19,12 +21,12 @@ export default function LoginPage() {
     try {
       const result = await login(email, password);
       if (result.error) {
-        setError(result.error);
+        setError(t("auth.loginError"));
       } else {
         window.location.href = "/";
       }
     } catch {
-      setError("Erreur de connexion au serveur");
+      setError(t("auth.serverError"));
     } finally {
       setLoading(false);
     }
@@ -34,8 +36,8 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-[400px]">
         <CardHeader className="text-center">
-          <CardTitle className="text-xl">OVERSIGHT AI</CardTitle>
-          <CardDescription>Connexion</CardDescription>
+          <CardTitle className="text-xl">{t("common.appName")}</CardTitle>
+          <CardDescription>{t("auth.login")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -46,7 +48,7 @@ export default function LoginPage() {
             )}
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
-                Email
+                {t("auth.email")}
               </label>
               <input
                 id="email"
@@ -59,7 +61,7 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium">
-                Mot de passe
+                {t("auth.password")}
               </label>
               <input
                 id="password"
@@ -71,7 +73,7 @@ export default function LoginPage() {
               />
             </div>
             <Button type="submit" disabled={loading} className="w-full">
-              {loading ? "Connexion..." : "Se connecter"}
+              {loading ? `${t("auth.loginButton")}...` : t("auth.loginButton")}
             </Button>
           </form>
         </CardContent>

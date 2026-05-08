@@ -29,6 +29,16 @@ export const validationSchema = Joi.object({
   FIREBASE_CREDENTIALS: Joi.string().optional().allow(''),
   PUSH_WEBHOOK_URL: Joi.string().optional().allow(''),
 
+  // ── SMTP / Email ──
+  SMTP_HOST: Joi.string().optional().allow(''),
+  SMTP_PORT: Joi.number().default(587),
+  SMTP_USER: Joi.string().optional().allow(''),
+  SMTP_PASS: Joi.string().optional().allow(''),
+  SMTP_FROM: Joi.string().optional().allow(''),
+
+  // ── Notifications ──
+  NOTIFICATION_ENABLED: Joi.string().valid('true', 'false').default('true'),
+
   CORS_ORIGIN: Joi.string().default('*'),
   CORS_CREDENTIALS: Joi.string().valid('true', 'false').default('false'),
 
