@@ -10,6 +10,7 @@ ENV NODE_ENV=development
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY packages/shared/package.json packages/shared/
 COPY packages/typescript-config/package.json packages/typescript-config/
+COPY packages/eslint-config/package.json packages/eslint-config/
 COPY apps/api/package.json apps/api/
 
 RUN pnpm install --frozen-lockfile
@@ -28,6 +29,7 @@ COPY . .
 # Restore node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
+COPY --from=deps /app/packages/eslint-config/node_modules ./packages/eslint-config/node_modules
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 
 # Build shared package first
@@ -61,4 +63,4 @@ WORKDIR /app/apps/api
 
 EXPOSE 4000
 
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/main.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy || npx prisma db push && node dist/src/main.js"]
