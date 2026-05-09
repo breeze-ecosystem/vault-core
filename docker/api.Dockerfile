@@ -71,7 +71,7 @@ COPY <<'EOF' /app/apps/api/docker-entrypoint.sh
 set -e
 
 echo "📦 Running database migration..."
-npx prisma migrate deploy 2>/dev/null || npx prisma db push
+npx prisma migrate deploy 2>/dev/null || npx prisma db push --accept-data-loss
 
 echo "🌱 Running database seed (if configured)..."
 if [ -n "$ADMIN_PASSWORD" ]; then
