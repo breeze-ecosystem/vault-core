@@ -1,6 +1,7 @@
 services:
   # ──────────────────────────────────────────────
   # Application services (using Coolify managed postgres + redis)
+  # All secrets come from Coolify environment panel
   # ──────────────────────────────────────────────
 
   api:
@@ -15,17 +16,27 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
-      DATABASE_URL: postgres://postgres:pZS2yJyclzMxL4Aq0dCwF11MfvPZicMoXhYuj1B8yTcTx0ewunSldsb07YtVSONr@dh4wundp5g2ofyek65r9ie7h:5432/postgres
-      REDIS_HOST: j11m2r6qksg9pxx5ex80uegh
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: kMhfGqHl0na4nErPes2fUIbLG0YKTxpXgH6vkF1qn3GmaKNIduFAdZm7FzbGUi6K
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      REDIS_HOST: ${REDIS_HOST:?REDIS_HOST is required}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
       OLLAMA_BASE_URL: http://host.docker.internal:11434
       AI_PREPROCESSOR_URL: http://ai-preprocessor:8000
       PORT: 4000
-      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-oversight-access-secret-2024}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-oversight-refresh-secret-2024}
-      JWT_ACCESS_EXPIRY: 15m
-      JWT_REFRESH_EXPIRY: 7d
+      NODE_ENV: production
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?JWT_ACCESS_SECRET is required}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET is required}
+      JWT_ACCESS_EXPIRY: ${JWT_ACCESS_EXPIRY:-15m}
+      JWT_REFRESH_EXPIRY: ${JWT_REFRESH_EXPIRY:-7d}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      CORS_CREDENTIALS: ${CORS_CREDENTIALS:-false}
+      RATE_LIMIT_TTL: ${RATE_LIMIT_TTL:-60}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-20}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_FIRST_NAME: ${ADMIN_FIRST_NAME:-Admin}
+      ADMIN_LAST_NAME: ${ADMIN_LAST_NAME:-}
+      COMPANY_NAME: ${COMPANY_NAME:-OVERSIGHT AI}
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4000/api/health || exit 1"]
       interval: 15s
@@ -40,8 +51,16 @@ services:
     container_name: oversight-dashboard
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_URL: https://oversight-api.digitsoftafrica.com
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL is required}
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-OVERSIGHT AI}
       PORT: 3100
+      NODE_ENV: production
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3100/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   ai-preprocessor:
     build:

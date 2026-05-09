@@ -37,8 +37,8 @@ __pycache__
 *.pyo
 .venv
 
-# Prisma
-apps/api/prisma/migrations
+# Prisma (keep schema + migrations for Docker build)
+# migrations needed for prisma migrate deploy
 
 # Docker
 docker-compose*.yml

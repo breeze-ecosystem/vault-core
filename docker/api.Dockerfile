@@ -41,15 +41,17 @@ RUN cd apps/api && npx prisma generate
 # Build API
 RUN cd apps/api && npx nest build
 
+# Pre-compile seed script so it works without tsx in production
+RUN cd apps/api && npx tsc prisma/seed.ts --outDir dist/prisma --esModuleInterop --skipLibCheck || true
+
 # ── Stage 3: Production ──
 FROM node:20-alpine AS runner
-RUN apk add --no-cache openssl openssl-dev ffmpeg
-RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
+RUN apk add --no-cache openssl ffmpeg
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Copy everything we need from builder
+# Copy node_modules (need full tree for prisma + shared deps)
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder /app/packages/shared/node_modules ./packages/shared/node_modules
@@ -72,7 +74,11 @@ echo "📦 Running database migration..."
 npx prisma migrate deploy 2>/dev/null || npx prisma db push
 
 echo "🌱 Running database seed (if configured)..."
-npx prisma db seed 2>/dev/null && echo "✅ Seed completed" || echo "⚠️  Seed skipped (ADMIN_PASSWORD not set or already seeded)"
+if [ -n "$ADMIN_PASSWORD" ]; then
+  npx tsx prisma/seed.ts 2>/dev/null && echo "✅ Seed completed" || echo "⚠️  Seed skipped"
+else
+  echo "⚠️  Seed skipped (ADMIN_PASSWORD not set)"
+fi
 
 echo "🚀 Starting API server..."
 exec node dist/src/main.js

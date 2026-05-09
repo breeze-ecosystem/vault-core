@@ -24,11 +24,10 @@ async function bootstrap() {
 
   // ── Trust proxy (behind Traefik/Caddy/Nginx) ──
   if (configService.get<boolean>("trustProxy", true)) {
-    app.getHttpAdapter().getInstance().trustProxy = true;
+    (app.getHttpAdapter().getInstance() as any).trustProxy = true;
   }
 
   // ── Request ID ──
-  await app.register(require("@fastify/formbody"));
   app
     .getHttpAdapter()
     .getInstance()

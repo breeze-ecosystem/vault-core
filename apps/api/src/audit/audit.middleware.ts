@@ -37,11 +37,11 @@ export class AuditMiddleware implements NestMiddleware {
           entity: resource,
           entityId: resourceId,
           ipAddress: ip,
-          metadata: {
+          userAgent: req.headers['user-agent'] || undefined,
+          changes: {
             method: req.method,
             path: req.url,
-            userAgent: req.headers['user-agent'],
-          } as any,
+          },
         },
       });
     } catch {
