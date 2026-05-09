@@ -75,7 +75,11 @@ npx prisma migrate deploy 2>/dev/null || npx prisma db push --accept-data-loss
 
 echo "🌱 Running database seed (if configured)..."
 if [ -n "$ADMIN_PASSWORD" ]; then
-  npx tsx prisma/seed.ts 2>/dev/null && echo "✅ Seed completed" || echo "⚠️  Seed skipped"
+  if [ -f dist/prisma/seed.js ]; then
+    node dist/prisma/seed.js && echo "✅ Seed completed" || echo "⚠️  Seed skipped (compile error)"
+  else
+    npx tsx prisma/seed.ts && echo "✅ Seed completed" || echo "⚠️  Seed skipped (tsx not found)"
+  fi
 else
   echo "⚠️  Seed skipped (ADMIN_PASSWORD not set)"
 fi
