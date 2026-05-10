@@ -213,7 +213,7 @@ function CameraPromptPanel({ camera, onClose }: { camera: Camera; onClose: () =>
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/cameras/${camera.id}/prompts`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://oversight-api.digitsoftafrica.com"}/api/cameras/${camera.id}/prompts`, {
       headers: { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}` },
     })
       .then((r) => r.json())

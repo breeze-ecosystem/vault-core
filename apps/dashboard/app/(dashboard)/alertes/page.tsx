@@ -42,7 +42,7 @@ export default function AlertesPage() {
     const token = getAccessToken();
     if (!token) return;
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://oversight-api.digitsoftafrica.com";
     const socket = io(`${API_URL}/ws/alerts`, {
       auth: { token },
       transports: ["websocket"],

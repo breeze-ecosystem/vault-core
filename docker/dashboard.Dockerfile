@@ -20,6 +20,8 @@ FROM node:20-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 WORKDIR /app
 
+ARG NEXT_PUBLIC_API_URL=https://oversight-api.digitsoftafrica.com
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
