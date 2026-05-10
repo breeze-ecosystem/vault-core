@@ -102,7 +102,7 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
   };
 
   // Only set Content-Type when there's a body (POST, PUT, PATCH)
-  if (options.body) {
+  if (options.body || ["POST", "PUT", "PATCH"].includes((options.method ?? "").toUpperCase())) {
     headers["Content-Type"] = "application/json";
   }
 

@@ -408,7 +408,13 @@ export async function getNotificationLogs(params?: {
 }
 
 export async function sendTestNotification(): Promise<{ success: boolean; message: string }> {
-  const res = await fetchWithAuth(`${API_URL}/api/notifications/test`, { method: "POST" });
-  if (!res.ok) throw new Error("Failed to send test notification");
+  const res = await fetchWithAuth(`${API_URL}/api/notifications/test`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Failed to send test notification");
+  }
   return res.json();
 }
