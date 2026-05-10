@@ -11,9 +11,12 @@ import {
   fetchSites,
   createCamera,
   updateCamera,
+  deleteCamera,
   startStream,
   stopStream,
   fetchActiveStreams,
+  fetchCameraSnapshot,
+  fetchCameraPrompts,
   addCameraPrompt,
   updateCameraPrompt,
   deleteCameraPrompt,
@@ -22,7 +25,7 @@ import {
   type CameraPrompt,
 } from "@/lib/api";
 import { toast } from "@/components/ui/toast";
-import { Plus, Video, Settings, X, Play, Square } from "lucide-react";
+import { Plus, Video, Settings, X, Play, Square, Eye, Trash2 } from "lucide-react";
 
 const statusColors: Record<string, "success" | "destructive" | "warning" | "default"> = {
   ONLINE: "success",
@@ -43,6 +46,9 @@ export default function CamerasPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedCamera, setSelectedCamera] = useState<Camera | null>(null);
+  const [previewCamera, setPreviewCamera] = useState<Camera | null>(null);
+  const [previewSnapshot, setPreviewSnapshot] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [sites, setSites] = useState<Site[]>([]);
   const [activeStreams, setActiveStreams] = useState<string[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -107,6 +113,31 @@ export default function CamerasPage() {
     }
   }
 
+  async function handlePreview(camera: Camera) {
+    setPreviewCamera(camera);
+    setPreviewSnapshot(null);
+    setPreviewLoading(true);
+    try {
+      const snapshot = await fetchCameraSnapshot(camera.id);
+      setPreviewSnapshot(snapshot);
+    } catch {
+      setPreviewSnapshot(null);
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
+
+  async function handleDeleteCamera(camera: Camera) {
+    if (!confirm(`Supprimer la camera "${camera.name}" ?`)) return;
+    try {
+      await deleteCamera(camera.id);
+      toast("Camera supprimee", "success");
+      setRefreshKey((k) => k + 1);
+    } catch (e: any) {
+      toast(e.message, "error");
+    }
+  }
+
   const filters: Record<string, string> | undefined = statusFilter ? { status: statusFilter } : undefined;
 
   return (
@@ -156,7 +187,45 @@ export default function CamerasPage() {
         <CameraPromptPanel camera={selectedCamera} onClose={() => { setSelectedCamera(null); setRefreshKey((k) => k + 1); }} />
       )}
 
-      <div className="mb-4 flex gap-2">
+      {previewCamera && (
+        <Card className="mb-6">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg">Apercu - {previewCamera.name}</CardTitle>
+            <Button size="sm" variant="ghost" onClick={() => { setPreviewCamera(null); setPreviewSnapshot(null); }}>
+              <X className="h-4 w-4" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="relative aspect-video w-full max-w-2xl overflow-hidden rounded-lg bg-black">
+              {previewLoading ? (
+                <div className="flex h-full items-center justify-center text-muted-foreground">
+                  <div className="text-center">
+                    <Video className="mx-auto mb-2 h-8 w-8 animate-pulse" />
+                    <p className="text-sm">Capture en cours...</p>
+                  </div>
+                </div>
+              ) : previewSnapshot ? (
+                <img
+                  src={`data:image/jpeg;base64,${previewSnapshot}`}
+                  alt={`Snapshot ${previewCamera.name}`}
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center text-muted-foreground">
+                  <p className="text-sm">Impossible de capturer une image. Verifiez que la camera est accessible.</p>
+                </div>
+              )}
+            </div>
+            <div className="mt-3 flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => handlePreview(previewCamera)}>
+                Rafraichir
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="mb-4 flex flex-wrap gap-2">
         {["", "ONLINE", "OFFLINE", "MAINTENANCE", "DEGRADED"].map((s) => (
           <Button key={s} variant={statusFilter === s ? "default" : "outline"} size="sm" onClick={() => setStatusFilter(s)}>
             {s ? statusLabels[s] : "Toutes"}
@@ -172,7 +241,7 @@ export default function CamerasPage() {
               <Video className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="font-medium">{c.name}</p>
-                <p className="text-xs text-muted-foreground font-mono">{c.rtspUrl}</p>
+                <p className="text-xs text-muted-foreground font-mono max-w-[200px] truncate">{c.rtspUrl}</p>
               </div>
             </div>
           )},
@@ -186,7 +255,10 @@ export default function CamerasPage() {
             </Badge>
           )},
           { key: "actions", label: "", render: (c: Camera) => (
-            <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+            <div className="flex flex-wrap gap-1" onClick={(e) => e.stopPropagation()}>
+              <Button size="sm" variant="outline" onClick={() => handlePreview(c)}>
+                <Eye className="mr-1 h-3 w-3" /> Voir
+              </Button>
               <Button size="sm" variant={activeStreams.includes(c.id) ? "destructive" : "default"} onClick={() => handleToggleStream(c)}>
                 {activeStreams.includes(c.id) ? <Square className="mr-1 h-3 w-3" /> : <Play className="mr-1 h-3 w-3" />}
                 {activeStreams.includes(c.id) ? "Arreter" : "Demarrer"}
@@ -195,6 +267,9 @@ export default function CamerasPage() {
                 <Settings className="mr-1 h-3 w-3" /> Prompts
               </Button>
               <Button size="sm" variant="ghost" onClick={() => startEdit(c)}>Modifier</Button>
+              <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDeleteCamera(c)}>
+                <Trash2 className="h-3 w-3" />
+              </Button>
             </div>
           )},
         ]}
@@ -213,10 +288,7 @@ function CameraPromptPanel({ camera, onClose }: { camera: Camera; onClose: () =>
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://oversight-api.digitsoftafrica.com"}/api/cameras/${camera.id}/prompts`, {
-      headers: { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}` },
-    })
-      .then((r) => r.json())
+    fetchCameraPrompts(camera.id)
       .then((data) => { setPrompts(Array.isArray(data) ? data : []); setLoading(false); })
       .catch(() => setLoading(false));
   }, [camera.id]);

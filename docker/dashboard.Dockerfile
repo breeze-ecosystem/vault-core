@@ -1,5 +1,4 @@
 # ── Stage 1: Dependencies ──
-# Build cache version: v2
 FROM node:20-alpine AS deps
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 WORKDIR /app
@@ -22,6 +21,7 @@ RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 WORKDIR /app
 
 ARG NEXT_PUBLIC_API_URL=https://oversight-api.digitsoftafrica.com
+ARG CACHEBUST=1
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1

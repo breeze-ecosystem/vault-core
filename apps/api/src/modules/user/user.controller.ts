@@ -124,4 +124,19 @@ export class UserController {
 
     return result;
   }
+
+  @Post(':id/change-password')
+  @ApiOperation({ summary: 'Change user password' })
+  @ApiParam({ name: 'id', description: 'User UUID' })
+  async changePassword(
+    @Param('id') id: string,
+    @Body() body: { currentPassword: string; newPassword: string },
+    @Req() req: FastifyRequest,
+  ) {
+    const currentUser = (req as any).user;
+    if (currentUser.id !== id) {
+      throw new ForbiddenException('You can only change your own password');
+    }
+    return this.userService.updatePassword(id, body.currentPassword, body.newPassword);
+  }
 }

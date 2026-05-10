@@ -289,6 +289,48 @@ export async function deleteCameraPrompt(cameraId: string, promptId: string): Pr
 
 // --- User actions ---
 
+export async function createUser(data: { email: string; password: string; firstName: string; lastName: string; role: string; siteId?: string }): Promise<DashboardUser> {
+  const res = await fetchWithAuth(`${API_URL}/api/users`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to create user");
+  return res.json();
+}
+
+export async function deleteUser(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/users/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Failed to delete user");
+}
+
+export async function deleteCamera(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Failed to delete camera");
+}
+
+export async function deleteSite(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/sites/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Failed to delete site");
+}
+
+export async function fetchCameraSnapshot(cameraId: string): Promise<string | null> {
+  const res = await fetchWithAuth(`${API_URL}/api/ingestion/${cameraId}/snapshot`);
+  if (!res.ok) throw new Error("Failed to fetch snapshot");
+  const data = await res.json();
+  return data.snapshot;
+}
+
+export async function changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/users/${userId}/change-password`, {
+    method: "POST",
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Failed to change password");
+  }
+}
+
 export async function updateUser(id: string, data: { firstName?: string; lastName?: string; role?: string; isActive?: boolean }): Promise<DashboardUser> {
   const res = await fetchWithAuth(`${API_URL}/api/users/${id}`, {
     method: "PATCH",

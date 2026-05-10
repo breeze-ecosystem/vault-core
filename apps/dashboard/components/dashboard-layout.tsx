@@ -14,7 +14,7 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
       <MobileSidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-auto p-6">{children}</main>
+        <main className="flex-1 overflow-auto p-3 sm:p-6">{children}</main>
       </div>
     </div>
   );

@@ -26,4 +26,10 @@ export class IngestionController {
   async getActiveStreams() {
     return { cameras: this.ingestionService.getActiveStreams() };
   }
+
+  @Get(':cameraId/snapshot')
+  async getSnapshot(@Param('cameraId') cameraId: string) {
+    const result = await this.ingestionService.captureSnapshot(cameraId);
+    return { snapshot: result };
+  }
 }

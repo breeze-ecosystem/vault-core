@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException, OnModuleDestroy } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { QueueService } from "../queue/queue.service";
 import { spawn, ChildProcess } from "child_process";
@@ -234,6 +234,12 @@ export class IngestionService implements OnModuleDestroy {
         this.logger.error(`Failed to start camera ${c.id}: ${err.message}`);
       }
     }
+  }
+
+  async captureSnapshot(cameraId: string): Promise<string | null> {
+    const camera = await this.prisma.camera.findUnique({ where: { id: cameraId } });
+    if (!camera) throw new NotFoundException('Camera not found');
+    return this.captureFrame(camera.rtspUrl);
   }
 
   getActiveStreams() {
