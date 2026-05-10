@@ -23,7 +23,9 @@ async function seedProduction() {
   const adminPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
   const admin = await prisma.user.upsert({
     where: { email: ADMIN_EMAIL },
-    update: {},                         // idempotent – don't overwrite on re-run
+    update: {
+      password: adminPassword,         // always update password on seed re-run
+    },
     create: {
       email: ADMIN_EMAIL,
       password: adminPassword,
@@ -56,7 +58,7 @@ async function seedSample() {
   const pw = ADMIN_PASSWORD || "admin123";
 
   // ── Users ──
-  const adminPassword = await bcrypt.hash("admin123", 10);
+  const adminPassword = await bcrypt.hash(pw, 10);
   const admin = await prisma.user.upsert({
     where: { email: "admin@oversight.local" },
     update: {},

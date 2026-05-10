@@ -40,7 +40,7 @@ export default function LoginPage() {
           <CardDescription>{t("auth.login")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form action="#" onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="rounded border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
                 {error}
