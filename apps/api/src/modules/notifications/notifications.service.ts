@@ -355,6 +355,7 @@ export class NotificationsService {
     const time = new Date(alert.createdAt).toLocaleString('fr-FR', {
       dateStyle: 'medium',
       timeStyle: 'short',
+      timeZone: 'Africa/Niamey',
     });
 
     const snapshotSection = alert.snapshotUrl
@@ -471,7 +472,7 @@ export class NotificationsService {
               Si vous recevez cet email, les notifications fonctionnent correctement.
             </p>
             <p style="color: #71717a; font-size: 13px;">
-              Envoyé le ${new Date().toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' })}
+              Envoyé le ${new Date().toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short', timeZone: 'Africa/Niamey' })}
             </p>
           </td>
         </tr>
