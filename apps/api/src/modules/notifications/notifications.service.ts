@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
-import { createTransport, Transporter } from 'nodemailer';
+import { Resend } from 'resend';
 
 export interface NotificationJobData {
   alertId: string;
@@ -13,29 +13,23 @@ export interface NotificationJobData {
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
-  private mailTransporter: Transporter | null = null;
+  private resend: Resend | null = null;
   private readonly notificationEnabled: boolean;
+  private readonly emailFrom: string;
 
   constructor(
     private prisma: PrismaService,
     private config: ConfigService,
   ) {
     this.notificationEnabled = this.config.get<string>('NOTIFICATION_ENABLED', 'true') === 'true';
+    this.emailFrom = this.config.get<string>('RESEND_FROM_EMAIL', 'OVERSIGHT AI <onboarding@resend.dev>');
 
-    const smtpHost = this.config.get<string>('SMTP_HOST');
-    if (smtpHost) {
-      this.mailTransporter = createTransport({
-        host: smtpHost,
-        port: this.config.get<number>('SMTP_PORT', 587),
-        secure: this.config.get<number>('SMTP_PORT', 587) === 465,
-        auth: {
-          user: this.config.get<string>('SMTP_USER'),
-          pass: this.config.get<string>('SMTP_PASS'),
-        },
-      });
-      this.logger.log('SMTP transporter configured');
+    const resendApiKey = this.config.get<string>('RESEND_API_KEY');
+    if (resendApiKey) {
+      this.resend = new Resend(resendApiKey);
+      this.logger.log('Resend email provider configured');
     } else {
-      this.logger.warn('SMTP_HOST not set — email notifications disabled');
+      this.logger.warn('RESEND_API_KEY not set — email notifications disabled');
     }
 
     if (!this.notificationEnabled) {
@@ -47,17 +41,12 @@ export class NotificationsService {
   // Core dispatch
   // ──────────────────────────────────────────────────────────────────────────────
 
-  /**
-   * Send a notification for a given alert via the specified channel.
-   * Creates a NotificationLog entry and dispatches to the correct provider.
-   */
   async sendNotification(alertId: string, channel: 'EMAIL' | 'WEBHOOK' | 'IN_APP', recipient: string) {
     if (!this.notificationEnabled) {
       this.logger.debug('Notifications disabled, skipping');
       return;
     }
 
-    // Fetch the alert with camera → site context
     const alert = await this.prisma.alert.findUnique({
       where: { id: alertId },
       include: {
@@ -72,23 +61,16 @@ export class NotificationsService {
       return;
     }
 
-    // Create a PENDING log
     const log = await this.prisma.notificationLog.create({
-      data: {
-        alertId,
-        channel,
-        recipient,
-        status: 'PENDING',
-      },
+      data: { alertId, channel, recipient, status: 'PENDING' },
     });
 
     try {
-      const subject = `[${alert.severity}] ${alert.title}`;
-      const body = this.buildEmailBody(alert);
+      const subject = `[${alert.severity}] ${alert.title} — ${alert.camera?.name ?? 'Camera'}`;
 
       switch (channel) {
         case 'EMAIL':
-          await this.sendEmail(recipient, subject, body);
+          await this.sendAlertEmail(recipient, subject, alert);
           break;
         case 'WEBHOOK':
           await this.sendWebhook(recipient, {
@@ -103,12 +85,8 @@ export class NotificationsService {
           });
           break;
         case 'IN_APP':
-          // IN_APP notifications are stored in the DB log only;
-          // the WebSocket gateway handles real-time delivery.
           this.logger.debug(`IN_APP notification logged for ${recipient}`);
           break;
-        default:
-          throw new Error(`Unknown notification channel: ${channel}`);
       }
 
       await this.prisma.notificationLog.update({
@@ -127,26 +105,61 @@ export class NotificationsService {
   }
 
   // ──────────────────────────────────────────────────────────────────────────────
-  // Email provider (nodemailer / SMTP)
+  // Email provider (Resend)
   // ──────────────────────────────────────────────────────────────────────────────
 
-  async sendEmail(to: string, subject: string, body: string): Promise<void> {
-    if (!this.mailTransporter) {
-      throw new Error('SMTP not configured — cannot send email');
+  async sendAlertEmail(to: string, subject: string, alert: any): Promise<void> {
+    if (!this.resend) {
+      throw new Error('Resend not configured — cannot send email. Set RESEND_API_KEY.');
     }
 
-    const from = this.config.get<string>('SMTP_FROM', 'no-reply@oversight.local');
+    const dashboardUrl = this.config.get<string>('DASHBOARD_URL', 'https://oversight.digitsoftafrica.com');
+    const html = this.buildAlertEmailHtml(alert, dashboardUrl);
 
-    await this.mailTransporter.sendMail({
-      from,
+    // If snapshot URL exists, attach it as an inline image
+    const attachments: any[] = [];
+    if (alert.snapshotUrl) {
+      try {
+        const imageResponse = await fetch(alert.snapshotUrl, { signal: AbortSignal.timeout(10000) });
+        if (imageResponse.ok) {
+          const buffer = Buffer.from(await imageResponse.arrayBuffer());
+          attachments.push({
+            filename: `alert-${alert.id}.jpg`,
+            content: buffer.toString('base64'),
+            contentType: 'image/jpeg',
+          });
+        }
+      } catch {
+        this.logger.warn(`Could not fetch snapshot image for alert ${alert.id}`);
+      }
+    }
+
+    await this.resend.emails.send({
+      from: this.emailFrom,
       to,
       subject,
-      html: body,
+      html,
+      attachments: attachments.length > 0 ? attachments : undefined,
+    });
+  }
+
+  async sendTestEmail(to: string): Promise<void> {
+    if (!this.resend) {
+      throw new Error('Resend not configured — set RESEND_API_KEY env var');
+    }
+
+    const dashboardUrl = this.config.get<string>('DASHBOARD_URL', 'https://oversight.digitsoftafrica.com');
+
+    await this.resend.emails.send({
+      from: this.emailFrom,
+      to,
+      subject: '[TEST] OVERSIGHT AI — Notification Email',
+      html: this.buildTestEmailHtml(dashboardUrl),
     });
   }
 
   // ──────────────────────────────────────────────────────────────────────────────
-  // Webhook provider (HTTP POST)
+  // Webhook provider
   // ──────────────────────────────────────────────────────────────────────────────
 
   async sendWebhook(url: string, payload: Record<string, unknown>): Promise<void> {
@@ -189,13 +202,10 @@ export class NotificationsService {
     userId: string,
     dto: { channel: 'EMAIL' | 'WEBHOOK' | 'IN_APP'; enabled: boolean; config?: any }[],
   ) {
-    // Upsert each setting
     const results = await Promise.all(
       dto.map((item) =>
         this.prisma.notificationSetting.upsert({
-          where: {
-            userId_channel: { userId, channel: item.channel },
-          },
+          where: { userId_channel: { userId, channel: item.channel } },
           create: {
             userId,
             channel: item.channel,
@@ -239,25 +249,18 @@ export class NotificationsService {
   }
 
   // ──────────────────────────────────────────────────────────────────────────────
-  // Alert → notification dispatch (integration hook)
+  // Alert → notification dispatch
   // ──────────────────────────────────────────────────────────────────────────────
 
-  /**
-   * Given a newly-created alert, resolve camera → site → users and
-   * enqueue notification jobs for all users who have notifications enabled.
-   */
   async dispatchAlertNotifications(alertId: string) {
     if (!this.notificationEnabled) return;
 
     const alert = await this.prisma.alert.findUnique({
       where: { id: alertId },
-      include: {
-        camera: { select: { siteId: true } },
-      },
+      include: { camera: { select: { siteId: true } } },
     });
     if (!alert) return;
 
-    // Find users associated with the site, or super-admins
     const users = await this.prisma.user.findMany({
       where: {
         OR: [
@@ -274,7 +277,6 @@ export class NotificationsService {
       return;
     }
 
-    // Get each user's notification settings
     const settings = await this.prisma.notificationSetting.findMany({
       where: {
         userId: { in: users.map((u) => u.id) },
@@ -282,7 +284,6 @@ export class NotificationsService {
       },
     });
 
-    // Group settings by user
     const settingsByUser = new Map<string, typeof settings>();
     for (const s of settings) {
       if (!settingsByUser.has(s.userId)) settingsByUser.set(s.userId, []);
@@ -308,7 +309,7 @@ export class NotificationsService {
         } else if (setting.channel === 'WEBHOOK') {
           const config = setting.config as any;
           recipient = config?.url ?? '';
-          if (!recipient) continue; // skip if no webhook URL configured
+          if (!recipient) continue;
         }
 
         jobs.push({ alertId, channel: setting.channel as any, recipient });
@@ -326,58 +327,186 @@ export class NotificationsService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new Error('User not found');
 
-    const subject = '[TEST] OVERSIGHT AI — Notification Test';
-    const body = `
-      <h2>Notification Test</h2>
-      <p>This is a test notification from OVERSIGHT AI.</p>
-      <p>User: ${user.firstName} ${user.lastName} (${user.email})</p>
-      <p>Time: ${new Date().toISOString()}</p>
-    `;
-
-    // Try email if SMTP is configured
-    if (this.mailTransporter) {
-      await this.sendEmail(user.email, subject, body);
+    if (this.resend) {
+      await this.sendTestEmail(user.email);
+      return { success: true, message: `Test email sent to ${user.email}` };
     }
 
-    return { success: true, message: 'Test notification dispatched' };
+    return { success: false, message: 'Email not configured. Set RESEND_API_KEY.' };
   }
 
   // ──────────────────────────────────────────────────────────────────────────────
-  // Helpers
+  // Email templates
   // ──────────────────────────────────────────────────────────────────────────────
 
-  private buildEmailBody(alert: any): string {
+  private buildAlertEmailHtml(alert: any, dashboardUrl: string): string {
     const cameraName = alert.camera?.name ?? 'Unknown';
     const siteName = alert.camera?.site?.name ?? 'Unknown';
+    const severityColor = this.severityColor(alert.severity);
+    const severityBg = this.severityBgColor(alert.severity);
+    const time = new Date(alert.createdAt).toLocaleString('fr-FR', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
+
+    const snapshotSection = alert.snapshotUrl
+      ? `
+      <tr>
+        <td style="padding: 20px 30px; text-align: center; background: #0a0a0a;">
+          <p style="color: #a1a1aa; font-size: 13px; margin-bottom: 10px;">📸 SNAPSHOT</p>
+          <img src="${alert.snapshotUrl}" alt="Alert snapshot"
+               style="max-width: 100%; border-radius: 8px; border: 2px solid #27272a;" />
+        </td>
+      </tr>`
+      : '';
 
     return `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: ${this.severityColor(alert.severity)};">
-          🚨 [${alert.severity}] ${alert.title}
-        </h2>
-        <hr />
-        <table style="width: 100%; border-collapse: collapse;">
-          <tr><td style="padding: 4px 8px; font-weight: bold;">Camera:</td><td>${cameraName}</td></tr>
-          <tr><td style="padding: 4px 8px; font-weight: bold;">Site:</td><td>${siteName}</td></tr>
-          <tr><td style="padding: 4px 8px; font-weight: bold;">Severity:</td><td>${alert.severity}</td></tr>
-          <tr><td style="padding: 4px 8px; font-weight: bold;">Time:</td><td>${alert.createdAt}</td></tr>
-        </table>
-        ${alert.description ? `<p><strong>Description:</strong> ${alert.description}</p>` : ''}
-        ${alert.snapshotUrl ? `<p><img src="${alert.snapshotUrl}" alt="Alert snapshot" style="max-width: 100%;" /></p>` : ''}
-        <hr />
-        <p style="color: #888; font-size: 12px;">OVERSIGHT AI — Automated surveillance notification</p>
-      </div>
-    `;
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+    <body style="margin: 0; padding: 0; background: #18181b; font-family: 'Segoe UI', Arial, sans-serif;">
+      <table role="presentation" style="width: 100%; max-width: 600px; margin: 20px auto; border-collapse: collapse;">
+        <!-- Header -->
+        <tr>
+          <td style="background: #09090b; padding: 20px 30px; border-radius: 12px 12px 0 0;">
+            <table style="width: 100%;">
+              <tr>
+                <td>
+                  <h1 style="margin: 0; color: #fafafa; font-size: 22px;">🛡️ OVERSIGHT AI</h1>
+                  <p style="margin: 4px 0 0; color: #71717a; font-size: 13px;">Alerte de surveillance</p>
+                </td>
+                <td style="text-align: right;">
+                  <span style="display: inline-block; padding: 6px 14px; border-radius: 20px;
+                    background: ${severityBg}; color: ${severityColor};
+                    font-size: 13px; font-weight: 600;">${alert.severity}</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Alert title -->
+        <tr>
+          <td style="background: #18181b; padding: 20px 30px; border-left: 4px solid ${severityColor};">
+            <h2 style="margin: 0; color: #fafafa; font-size: 18px;">${alert.title}</h2>
+            ${alert.description ? `<p style="margin: 8px 0 0; color: #a1a1aa; font-size: 14px;">${alert.description}</p>` : ''}
+          </td>
+        </tr>
+
+        <!-- Details -->
+        <tr>
+          <td style="background: #18181b; padding: 15px 30px;">
+            <table style="width: 100%; background: #27272a; border-radius: 8px; overflow: hidden;">
+              <tr>
+                <td style="padding: 12px 16px; color: #71717a; font-size: 13px; width: 100px;">📹 Camera</td>
+                <td style="padding: 12px 16px; color: #fafafa; font-size: 14px; font-weight: 500;">${cameraName}</td>
+              </tr>
+              <tr style="border-top: 1px solid #3f3f46;">
+                <td style="padding: 12px 16px; color: #71717a; font-size: 13px;">📍 Site</td>
+                <td style="padding: 12px 16px; color: #fafafa; font-size: 14px;">${siteName}</td>
+              </tr>
+              <tr style="border-top: 1px solid #3f3f46;">
+                <td style="padding: 12px 16px; color: #71717a; font-size: 13px;">🕐 Heure</td>
+                <td style="padding: 12px 16px; color: #fafafa; font-size: 14px;">${time}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Snapshot image -->
+        ${snapshotSection}
+
+        <!-- CTA button -->
+        <tr>
+          <td style="background: #18181b; padding: 20px 30px; text-align: center;">
+            <a href="${dashboardUrl}/alertes"
+               style="display: inline-block; padding: 12px 32px; background: #2563eb; color: #fff;
+                      text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">
+              Voir sur le dashboard →
+            </a>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background: #09090b; padding: 15px 30px; border-radius: 0 0 12px 12px; text-align: center;">
+            <p style="margin: 0; color: #52525b; font-size: 12px;">
+              OVERSIGHT AI — Surveillance intelligente •
+              <a href="${dashboardUrl}/parametres" style="color: #71717a;">Gérer les notifications</a>
+            </p>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>`;
+  }
+
+  private buildTestEmailHtml(dashboardUrl: string): string {
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+    <body style="margin: 0; padding: 0; background: #18181b; font-family: 'Segoe UI', Arial, sans-serif;">
+      <table role="presentation" style="width: 100%; max-width: 600px; margin: 20px auto; border-collapse: collapse;">
+        <tr>
+          <td style="background: #09090b; padding: 30px; border-radius: 12px; text-align: center;">
+            <h1 style="margin: 0; color: #fafafa; font-size: 22px;">🛡️ OVERSIGHT AI</h1>
+            <p style="color: #71717a; font-size: 14px;">Test de notification</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background: #18181b; padding: 30px; text-align: center;">
+            <div style="display: inline-block; padding: 16px 24px; background: #166534; border-radius: 12px; margin-bottom: 20px;">
+              <p style="margin: 0; color: #4ade80; font-size: 24px;">✅ Succès !</p>
+            </div>
+            <p style="color: #a1a1aa; font-size: 15px;">
+              Si vous recevez cet email, les notifications fonctionnent correctement.
+            </p>
+            <p style="color: #71717a; font-size: 13px;">
+              Envoyé le ${new Date().toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' })}
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background: #18181b; padding: 20px 30px; text-align: center;">
+            <a href="${dashboardUrl}"
+               style="display: inline-block; padding: 12px 32px; background: #2563eb; color: #fff;
+                      text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">
+              Ouvrir le dashboard →
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td style="background: #09090b; padding: 15px 30px; border-radius: 0 0 12px 12px; text-align: center;">
+            <p style="margin: 0; color: #52525b; font-size: 12px;">
+              OVERSIGHT AI — Surveillance intelligente
+            </p>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>`;
   }
 
   private severityColor(severity: string): string {
     const colors: Record<string, string> = {
-      CRITICAL: '#dc2626',
-      HIGH: '#ea580c',
-      MEDIUM: '#ca8a04',
-      LOW: '#2563eb',
+      CRITICAL: '#ef4444',
+      HIGH: '#f97316',
+      MEDIUM: '#eab308',
+      LOW: '#3b82f6',
       INFO: '#6b7280',
     };
     return colors[severity] ?? '#6b7280';
+  }
+
+  private severityBgColor(severity: string): string {
+    const colors: Record<string, string> = {
+      CRITICAL: '#450a0a',
+      HIGH: '#431407',
+      MEDIUM: '#422006',
+      LOW: '#172554',
+      INFO: '#1f2937',
+    };
+    return colors[severity] ?? '#1f2937';
   }
 }

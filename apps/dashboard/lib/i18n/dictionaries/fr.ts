@@ -28,6 +28,7 @@ export const fr = {
     alerts: "Alertes",
     users: "Utilisateurs",
     settings: "Parametres",
+    notifications: "Notifications",
   },
   dashboard: {
     title: "Tableau de bord",

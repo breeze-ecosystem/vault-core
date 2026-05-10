@@ -43,14 +43,12 @@ export default () => ({
     enabled: !!(process.env.FCM_SERVER_KEY || process.env.FIREBASE_CREDENTIALS || process.env.PUSH_WEBHOOK_URL),
   },
 
-  // ── SMTP / Email Notifications ──
-  smtp: {
-    host: process.env.SMTP_HOST || '',
-    port: parseInt(process.env.SMTP_PORT || '587', 10),
-    user: process.env.SMTP_USER || '',
-    pass: process.env.SMTP_PASS || '',
-    from: process.env.SMTP_FROM || 'no-reply@oversight.local',
-  },
+  // ── Resend / Email Notifications ──
+  resendApiKey: process.env.RESEND_API_KEY || '',
+  resendFromEmail: process.env.RESEND_FROM_EMAIL || 'OVERSIGHT AI <onboarding@resend.dev>',
+
+  // ── Dashboard URL (for email links) ──
+  dashboardUrl: process.env.DASHBOARD_URL || 'https://oversight.digitsoftafrica.com',
 
   // ── Notifications ──
   notificationEnabled: process.env.NOTIFICATION_ENABLED !== 'false',

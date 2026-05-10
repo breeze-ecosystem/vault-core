@@ -339,3 +339,67 @@ export async function updateUser(id: string, data: { firstName?: string; lastNam
   if (!res.ok) throw new Error("Failed to update user");
   return res.json();
 }
+
+// --- Notifications ---
+
+export interface NotificationSetting {
+  id: string;
+  userId: string;
+  channel: "EMAIL" | "WEBHOOK" | "IN_APP";
+  enabled: boolean;
+  config: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NotificationLog {
+  id: string;
+  alertId: string;
+  channel: "EMAIL" | "WEBHOOK" | "IN_APP";
+  recipient: string;
+  status: "PENDING" | "SENT" | "FAILED";
+  sentAt: string | null;
+  error: string | null;
+  createdAt: string;
+  alert: { id: string; title: string; severity: string };
+}
+
+export async function getNotificationSettings(): Promise<NotificationSetting[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/notifications/settings`);
+  if (!res.ok) throw new Error("Failed to fetch notification settings");
+  return res.json();
+}
+
+export async function updateNotificationSettings(
+  settings: { channel: "EMAIL" | "WEBHOOK" | "IN_APP"; enabled: boolean; config?: Record<string, any> }[]
+): Promise<NotificationSetting[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/notifications/settings`, {
+    method: "PUT",
+    body: JSON.stringify({ settings }),
+  });
+  if (!res.ok) throw new Error("Failed to update notification settings");
+  return res.json();
+}
+
+export async function getNotificationLogs(params?: {
+  page?: number;
+  limit?: number;
+  channel?: string;
+  status?: string;
+}): Promise<{ data: NotificationLog[]; total: number; page: number; limit: number }> {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+  if (params?.channel) searchParams.set("channel", params.channel);
+  if (params?.status) searchParams.set("status", params.status);
+
+  const res = await fetchWithAuth(`${API_URL}/api/notifications/logs?${searchParams}`);
+  if (!res.ok) throw new Error("Failed to fetch notification logs");
+  return res.json();
+}
+
+export async function sendTestNotification(): Promise<{ success: boolean; message: string }> {
+  const res = await fetchWithAuth(`${API_URL}/api/notifications/test`, { method: "POST" });
+  if (!res.ok) throw new Error("Failed to send test notification");
+  return res.json();
+}

@@ -30,6 +30,7 @@ export const en: Dictionary = {
     alerts: "Alerts",
     users: "Users",
     settings: "Settings",
+    notifications: "Notifications",
   },
   dashboard: {
     title: "Dashboard",

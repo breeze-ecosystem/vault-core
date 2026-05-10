@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   MapPin,
   Users,
+  Bell,
   Settings,
   type LucideIcon,
 } from "lucide-react";
@@ -46,6 +47,12 @@ const navItems: NavItem[] = [
     href: "/utilisateurs",
     icon: Users,
     minRole: "ADMIN" as Role,
+  },
+  {
+    label: "Notifications",
+    href: "/notifications",
+    icon: Bell,
+    minRole: null,
   },
   {
     label: "Parametres",

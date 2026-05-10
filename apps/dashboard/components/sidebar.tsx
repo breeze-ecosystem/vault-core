@@ -27,6 +27,7 @@ export function Sidebar() {
     "/sites": "nav.sites",
     "/utilisateurs": "nav.users",
     "/parametres": "nav.settings",
+    "/notifications": "nav.notifications",
   };
 
   return (
@@ -107,6 +108,7 @@ export function MobileSidebar() {
     "/sites": "nav.sites",
     "/utilisateurs": "nav.users",
     "/parametres": "nav.settings",
+    "/notifications": "nav.notifications",
   };
 
   if (!isMobileOpen) return null;
