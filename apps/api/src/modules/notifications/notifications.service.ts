@@ -333,7 +333,7 @@ export class NotificationsService {
     });
 
     const config = emailSetting?.config as Record<string, any> | null;
-    const recipientEmail = config?.address || user.email;
+    const recipientEmail = config?.address || config?.email || user.email;
 
     if (this.resend) {
       await this.sendTestEmail(recipientEmail);
