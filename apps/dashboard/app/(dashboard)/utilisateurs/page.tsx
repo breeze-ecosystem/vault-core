@@ -48,7 +48,7 @@ const emptyForm: UserForm = {
 };
 
 export default function UtilisateursPage() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<UserForm>({ ...emptyForm });
@@ -57,6 +57,14 @@ export default function UtilisateursPage() {
   useEffect(() => {
     fetchSites({ limit: 100 }).then((r) => setSites(r.data)).catch(() => {});
   }, [refreshKey]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
 
   if (!user || !hasMinRole(user.role as any, "ADMIN")) {
     return (

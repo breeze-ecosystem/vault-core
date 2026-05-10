@@ -294,18 +294,27 @@ export async function createUser(data: { email: string; password: string; firstN
     method: "POST",
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Failed to create user");
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Failed to create user");
+  }
   return res.json();
 }
 
 export async function deleteUser(id: string): Promise<void> {
   const res = await fetchWithAuth(`${API_URL}/api/users/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Failed to delete user");
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Failed to delete user");
+  }
 }
 
 export async function deleteCamera(id: string): Promise<void> {
   const res = await fetchWithAuth(`${API_URL}/api/cameras/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Failed to delete camera");
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Failed to delete camera");
+  }
 }
 
 export async function deleteSite(id: string): Promise<void> {
