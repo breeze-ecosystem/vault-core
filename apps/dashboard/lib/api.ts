@@ -1,6 +1,6 @@
 import { fetchWithAuth } from "@/lib/auth-client";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 // --- Types ---
 

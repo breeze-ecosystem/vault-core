@@ -98,7 +98,7 @@ export default function ParametresPage() {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">API</span>
-              <span>{process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}</span>
+              <span>{process.env.NEXT_PUBLIC_API_URL ?? window.location.origin}</span>
             </div>
           </CardContent>
         </Card>

@@ -42,7 +42,7 @@ export default function AlertesPage() {
     const token = getAccessToken();
     if (!token) return;
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
     const socket = io(`${API_URL}/ws/alerts`, {
       auth: { token },
       transports: ["websocket"],

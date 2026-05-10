@@ -213,7 +213,7 @@ function CameraPromptPanel({ camera, onClose }: { camera: Camera; onClose: () =>
 
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:4000/api/cameras/${camera.id}/prompts`, {
+    fetch(`/api/cameras/${camera.id}/prompts`, {
       headers: { Authorization: `Bearer ${sessionStorage.getItem("accessToken")}` },
     })
       .then((r) => r.json())
