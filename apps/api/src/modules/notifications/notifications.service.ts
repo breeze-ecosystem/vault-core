@@ -327,9 +327,17 @@ export class NotificationsService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new Error('User not found');
 
+    // Get email address from notification settings (user's real email)
+    const emailSetting = await this.prisma.notificationSetting.findUnique({
+      where: { userId_channel: { userId, channel: 'EMAIL' } },
+    });
+
+    const config = emailSetting?.config as Record<string, any> | null;
+    const recipientEmail = config?.address || user.email;
+
     if (this.resend) {
-      await this.sendTestEmail(user.email);
-      return { success: true, message: `Test email sent to ${user.email}` };
+      await this.sendTestEmail(recipientEmail);
+      return { success: true, message: `Test email sent to ${recipientEmail}` };
     }
 
     return { success: false, message: 'Email not configured. Set RESEND_API_KEY.' };
