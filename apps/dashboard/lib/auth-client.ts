@@ -98,9 +98,13 @@ export function getUser() {
 export async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const token = getAccessToken();
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
   };
+
+  // Only set Content-Type when there's a body (POST, PUT, PATCH)
+  if (options.body) {
+    headers["Content-Type"] = "application/json";
+  }
 
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
