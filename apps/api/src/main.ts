@@ -40,6 +40,7 @@ async function bootstrap() {
   const nodeEnv = configService.get<string>("nodeEnv", "development");
   await app.register(helmet, {
     contentSecurityPolicy: nodeEnv === "production" ? undefined : false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
   });
 
   await app.register(cookie);
