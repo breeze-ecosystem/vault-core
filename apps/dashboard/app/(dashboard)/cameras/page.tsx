@@ -25,7 +25,8 @@ import {
   type CameraPrompt,
 } from "@/lib/api";
 import { toast } from "@/components/ui/toast";
-import { Plus, Video, Settings, X, Play, Square, Eye, Trash2 } from "lucide-react";
+import { Plus, Video, Settings, X, Play, Square, Eye, Trash2, Radio } from "lucide-react";
+import VideoPlayer from "@/components/video-player";
 
 const statusColors: Record<string, "success" | "destructive" | "warning" | "default"> = {
   ONLINE: "success",
@@ -49,6 +50,7 @@ export default function CamerasPage() {
   const [previewCamera, setPreviewCamera] = useState<Camera | null>(null);
   const [previewSnapshot, setPreviewSnapshot] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [liveCamera, setLiveCamera] = useState<Camera | null>(null);
   const [sites, setSites] = useState<Site[]>([]);
   const [activeStreams, setActiveStreams] = useState<string[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -183,6 +185,28 @@ export default function CamerasPage() {
         </form>
       )}
 
+      {liveCamera && (
+        <Card className="mb-6">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Radio className="h-4 w-4 text-red-500 animate-pulse" />
+              Live - {liveCamera.name}
+            </CardTitle>
+            <Button size="sm" variant="ghost" onClick={() => setLiveCamera(null)}>
+              <X className="h-4 w-4" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="w-full max-w-4xl">
+              <VideoPlayer
+                cameraId={liveCamera.id}
+                cameraName={liveCamera.name}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {selectedCamera && (
         <CameraPromptPanel camera={selectedCamera} onClose={() => { setSelectedCamera(null); setRefreshKey((k) => k + 1); }} />
       )}
@@ -258,6 +282,9 @@ export default function CamerasPage() {
             <div className="flex flex-wrap gap-1" onClick={(e) => e.stopPropagation()}>
               <Button size="sm" variant="outline" onClick={() => handlePreview(c)}>
                 <Eye className="mr-1 h-3 w-3" /> Voir
+              </Button>
+              <Button size="sm" variant="default" className="bg-red-600 hover:bg-red-700" onClick={() => setLiveCamera(c)}>
+                <Radio className="mr-1 h-3 w-3" /> Live
               </Button>
               <Button size="sm" variant={activeStreams.includes(c.id) ? "destructive" : "default"} onClick={() => handleToggleStream(c)}>
                 {activeStreams.includes(c.id) ? <Square className="mr-1 h-3 w-3" /> : <Play className="mr-1 h-3 w-3" />}

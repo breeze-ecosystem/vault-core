@@ -1,0 +1,20 @@
+streams:
+  # Cameras are configured dynamically via environment or install script
+  # Example:
+  # cam1: rtsp://admin:pass@192.168.1.101:554/stream1
+  # cam2: rtsp://admin:pass@192.168.1.102:554/stream1
+
+api:
+  listen: "1984"
+
+webrtc:
+  listen: ":8554/tcp"
+  candidates:
+    - stun:8555
+
+hls:
+  listen: ":8888"
+
+log:
+  level: info
+  format: text

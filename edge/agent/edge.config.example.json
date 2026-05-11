@@ -1,0 +1,38 @@
+{
+  "tier": "or",
+  "clientId": "mynita",
+  "companyName": "MyNita SA",
+  "streaming": {
+    "baseUrl": "",
+    "go2rtcPort": 1984
+  },
+  "notifications": {
+    "email": {
+      "enabled": true,
+      "resendApiKey": "",
+      "resendFromEmail": "OVERSIGHT AI <onboarding@resend.dev>",
+      "dashboardUrl": ""
+    },
+    "sms": {
+      "enabled": false,
+      "provider": "",
+      "apiKey": "",
+      "from": "OVERSIGHT"
+    }
+  },
+  "heartbeat": {
+    "enabled": true,
+    "url": "https://supervision.digitsoftafrica.com/api/heartbeat",
+    "intervalSeconds": 60
+  },
+  "updates": {
+    "autoCheck": true,
+    "checkIntervalHours": 6,
+    "registry": "ghcr.io/breeze-ecosystem"
+  },
+  "backup": {
+    "enabled": true,
+    "schedule": "0 2 * * *",
+    "retentionDays": 7
+  }
+}

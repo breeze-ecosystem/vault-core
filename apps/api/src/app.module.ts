@@ -18,6 +18,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { SupervisionModule } from './modules/supervision/supervision.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -49,6 +50,7 @@ import { IngestionService } from './modules/ingestion/ingestion.service';
     NotificationModule,
     NotificationsModule,
     ChatModule,
+    SupervisionModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
