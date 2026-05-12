@@ -19,11 +19,8 @@ const STORAGE_KEY = "oversight-locale";
 const dictionaries: Record<Locale, Dictionary> = { fr, en };
 
 function detectLocale(): Locale {
-  if (typeof window === "undefined") return "fr";
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === "fr" || stored === "en") return stored;
-  const lang = navigator.language?.toLowerCase() ?? "";
-  return lang.startsWith("fr") ? "fr" : "en";
+  // Force French locale for OVERSIGHT AI
+  return "fr";
 }
 
 interface I18nContextValue {
