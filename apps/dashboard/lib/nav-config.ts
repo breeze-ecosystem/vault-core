@@ -2,7 +2,6 @@ import {
   LayoutDashboard,
   Video,
   AlertTriangle,
-  MapPin,
   Users,
   Bell,
   Settings,
@@ -43,12 +42,7 @@ const navItems: NavItem[] = [
     icon: AlertTriangle,
     minRole: null,
   },
-  {
-    label: "Sites",
-    href: "/sites",
-    icon: MapPin,
-    minRole: null,
-  },
+
   {
     label: "Utilisateurs",
     href: "/utilisateurs",
