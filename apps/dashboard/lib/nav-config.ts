@@ -6,6 +6,7 @@ import {
   Users,
   Bell,
   Settings,
+  MessageSquare,
   type LucideIcon,
 } from "lucide-react";
 import { hasMinRole, type Role } from "@repo/shared";
@@ -25,7 +26,13 @@ const navItems: NavItem[] = [
     minRole: null,
   },
   {
-    label: "Cameras",
+    label: "Chat IA",
+    href: "/chat",
+    icon: MessageSquare,
+    minRole: null,
+  },
+  {
+    label: "Caméras",
     href: "/cameras",
     icon: Video,
     minRole: null,
@@ -55,7 +62,7 @@ const navItems: NavItem[] = [
     minRole: null,
   },
   {
-    label: "Parametres",
+    label: "Paramètres",
     href: "/parametres",
     icon: Settings,
     minRole: null,

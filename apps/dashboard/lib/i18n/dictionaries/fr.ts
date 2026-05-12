@@ -23,11 +23,12 @@ export const fr = {
   },
   nav: {
     dashboard: "Vue d'ensemble",
-    cameras: "Cameras",
+    chat: "Chat IA",
+    cameras: "Caméras",
     sites: "Sites",
     alerts: "Alertes",
     users: "Utilisateurs",
-    settings: "Parametres",
+    settings: "Paramètres",
     notifications: "Notifications",
   },
   dashboard: {
@@ -67,6 +68,16 @@ export const fr = {
     warning: "Attention",
     info: "Info",
     noAlerts: "Aucune alerte",
+  },
+  chat: {
+    title: "Chat IA",
+    placeholder: "Posez une question sur votre système de surveillance...",
+    send: "Envoyer",
+    thinking: "L'IA réfléchit...",
+    welcome: "Bienvenue ! Je suis votre assistant IA OVERSIGHT. Comment puis-je vous aider ?",
+    error: "Erreur lors de la communication avec l'IA. Veuillez réessayer.",
+    clearHistory: "Effacer l'historique",
+    newChat: "Nouvelle conversation",
   },
   users: {
     title: "Utilisateurs",

@@ -22,6 +22,7 @@ export function Sidebar() {
   // Map nav item href to i18n key
   const navKeyMap: Record<string, string> = {
     "/": "nav.dashboard",
+    "/chat": "nav.chat",
     "/cameras": "nav.cameras",
     "/alertes": "nav.alerts",
     "/sites": "nav.sites",
@@ -103,6 +104,7 @@ export function MobileSidebar() {
 
   const navKeyMap: Record<string, string> = {
     "/": "nav.dashboard",
+    "/chat": "nav.chat",
     "/cameras": "nav.cameras",
     "/alertes": "nav.alerts",
     "/sites": "nav.sites",

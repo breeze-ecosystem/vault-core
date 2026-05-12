@@ -25,6 +25,7 @@ export const en: Dictionary = {
   },
   nav: {
     dashboard: "Dashboard",
+    chat: "AI Chat",
     cameras: "Cameras",
     sites: "Sites",
     alerts: "Alerts",
@@ -69,6 +70,16 @@ export const en: Dictionary = {
     warning: "Warning",
     info: "Info",
     noAlerts: "No alerts",
+  },
+  chat: {
+    title: "AI Chat",
+    placeholder: "Ask a question about your surveillance system...",
+    send: "Send",
+    thinking: "AI is thinking...",
+    welcome: "Welcome! I'm your OVERSIGHT AI assistant. How can I help you?",
+    error: "Error communicating with AI. Please try again.",
+    clearHistory: "Clear history",
+    newChat: "New conversation",
   },
   users: {
     title: "Users",
