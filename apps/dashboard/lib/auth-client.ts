@@ -45,6 +45,7 @@ export async function refreshTokens(): Promise<AuthResult | null> {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
     });
 
     if (!res.ok) return null;
