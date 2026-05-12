@@ -29,10 +29,15 @@ export class UserController {
   @Get()
   @Roles('ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'List all users (admin only)' })
-  @ApiResponse({ status: 200, description: 'List of users', type: [UserResponseDto] })
+  @ApiResponse({ status: 200, description: 'Paginated list of users' })
   @ApiResponse({ status: 403, description: 'Insufficient role' })
-  async findAll() {
-    return this.userService.findAll();
+  async findAll(@Query() query: PaginationQueryDto) {
+    const { page = 1, limit = 20 } = query;
+    const [data, total] = await Promise.all([
+      this.userService.findAll({ page: Number(page), limit: Number(limit) }),
+      this.userService.count(),
+    ]);
+    return { data, total, page: Number(page), limit: Number(limit) };
   }
 
   @Get(':id')

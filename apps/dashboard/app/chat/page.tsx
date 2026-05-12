@@ -46,10 +46,10 @@ export default function ChatPage() {
 
   const loadCameras = async () => {
     try {
-      const res = await fetchWithAuth(`${API_URL}/api/cameras`);
+      const res = await fetchWithAuth(`${API_URL}/api/chat/cameras`);
       if (!res.ok) throw new Error('Impossible de charger les caméras');
       const data = await res.json();
-      setCameras(data);
+      setCameras(Array.isArray(data) ? data : (data.data || []));
     } catch (e: any) {
       setError(e.message || 'Erreur de chargement des caméras');
     }

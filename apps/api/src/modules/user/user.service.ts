@@ -27,7 +27,8 @@ export class UserService {
     return user;
   }
 
-  async findAll() {
+  async findAll(params?: { page?: number; limit?: number }) {
+    const { page = 1, limit = 20 } = params || {};
     return this.prisma.user.findMany({
       select: {
         id: true,
@@ -40,7 +41,13 @@ export class UserService {
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
+  }
+
+  async count() {
+    return this.prisma.user.count();
   }
 
   async create(data: {
