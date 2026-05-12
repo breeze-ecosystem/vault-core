@@ -18,7 +18,12 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "OVERSIGHT AI",
   },
-  icons: {
+  // Additional metadata for mobile web app capability
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // @ts-ignore
+  // @ts-ignore
+  // We'll add via dangerouslySetInnerHTML in RootLayout instead
+};
     icon: [
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
@@ -39,6 +44,8 @@ export default function RootLayout({
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body>
         <I18nProvider>{children}</I18nProvider>

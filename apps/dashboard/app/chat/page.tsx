@@ -199,7 +199,6 @@ export default function ChatPage() {
                     <ChevronDown className="ml-2 h-4 w-4" />
                   </SelectPrimitive.Trigger>
                   <SelectPrimitive.Content>
-                    <SelectPrimitive.Item value="">Toutes les caméras</SelectPrimitive.Item>
                     {cameras.map(camera => (
                       <SelectPrimitive.Item key={camera.id} value={camera.id}>
                         {camera.name}
