@@ -25,7 +25,6 @@ export const fr = {
     dashboard: "Vue d'ensemble",
     chat: "Chat IA",
     cameras: "Caméras",
-    sites: "Sites",
     alerts: "Alertes",
     users: "Utilisateurs",
     settings: "Paramètres",
@@ -50,13 +49,6 @@ export const fr = {
     online: "En ligne",
     offline: "Hors ligne",
     actions: "Actions",
-  },
-  sites: {
-    title: "Sites",
-    addSite: "Ajouter un site",
-    name: "Nom",
-    address: "Adresse",
-    camerasCount: "Caméras",
   },
   alerts: {
     title: "Alertes",

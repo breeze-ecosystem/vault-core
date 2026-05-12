@@ -27,7 +27,6 @@ export const en: Dictionary = {
     dashboard: "Dashboard",
     chat: "AI Chat",
     cameras: "Cameras",
-    sites: "Sites",
     alerts: "Alerts",
     users: "Users",
     settings: "Settings",
@@ -52,13 +51,6 @@ export const en: Dictionary = {
     online: "Online",
     offline: "Offline",
     actions: "Actions",
-  },
-  sites: {
-    title: "Sites",
-    addSite: "Add site",
-    name: "Name",
-    address: "Address",
-    camerasCount: "Cameras",
   },
   alerts: {
     title: "Alerts",
