@@ -296,7 +296,7 @@ export async function createUser(data: { email: string; password: string; firstN
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.message || "Failed to create user");
+    throw new Error(data.message || "Échec de création de l'utilisateur");
   }
   return res.json();
 }
@@ -305,7 +305,7 @@ export async function deleteUser(id: string): Promise<void> {
   const res = await fetchWithAuth(`${API_URL}/api/users/${id}`, { method: "DELETE" });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.message || "Failed to delete user");
+    throw new Error(data.message || "Échec de suppression de l'utilisateur");
   }
 }
 
@@ -313,7 +313,7 @@ export async function deleteCamera(id: string): Promise<void> {
   const res = await fetchWithAuth(`${API_URL}/api/cameras/${id}`, { method: "DELETE" });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.message || "Failed to delete camera");
+    throw new Error(data.message || "Échec de suppression de la caméra");
   }
 }
 
@@ -336,7 +336,7 @@ export async function changePassword(userId: string, currentPassword: string, ne
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.message || "Failed to change password");
+    throw new Error(data.message || "Échec du changement de mot de passe");
   }
 }
 
@@ -414,7 +414,7 @@ export async function sendTestNotification(): Promise<{ success: boolean; messag
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.message || "Failed to send test notification");
+    throw new Error(data.message || "Échec de l'envoi de la notification test");
   }
   return res.json();
 }

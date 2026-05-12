@@ -44,7 +44,7 @@ export default function ParametresPage() {
     if (!user) return;
 
     if (newPassword.length < 8) {
-      toast("Le nouveau mot de passe doit contenir au moins 8 caracteres", "error");
+      toast("Le nouveau mot de passe doit contenir au moins 8 caractères", "error");
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -68,7 +68,7 @@ export default function ParametresPage() {
 
   return (
     <div>
-      <PageHeader title="Parametres" description="Configuration de votre compte" />
+      <PageHeader title="Paramètres" description="Configuration de votre compte" />
 
       <div className="mx-auto max-w-2xl space-y-6">
         <Card>

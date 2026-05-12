@@ -72,9 +72,9 @@ export default function UtilisateursPage() {
         <div className="rounded-full bg-destructive/10 p-4">
           <ShieldX className="h-8 w-8 text-destructive" />
         </div>
-        <h3 className="mt-4 text-lg font-semibold">Acces refuse</h3>
+        <h3 className="mt-4 text-lg font-semibold">Accès refusé</h3>
         <p className="mt-2 text-sm text-muted-foreground">
-          Vous n&apos;avez pas les permissions necessaires
+          Vous n&apos;avez pas les permissions nécessaires
         </p>
       </div>
     );
@@ -96,7 +96,7 @@ export default function UtilisateursPage() {
         role: form.role,
         siteId: form.siteId || undefined,
       });
-      toast("Utilisateur cree", "success");
+      toast("Utilisateur créé", "success");
       resetForm();
       setRefreshKey((k) => k + 1);
     } catch (e: any) {
@@ -107,7 +107,7 @@ export default function UtilisateursPage() {
   async function toggleActive(u: DashboardUser) {
     try {
       await updateUser(u.id, { isActive: !u.isActive });
-      toast(u.isActive ? "Utilisateur desactive" : "Utilisateur active", "success");
+      toast(u.isActive ? "Utilisateur désactivé" : "Utilisateur activé", "success");
       setRefreshKey((k) => k + 1);
     } catch (e: any) {
       toast(e.message, "error");
@@ -117,7 +117,7 @@ export default function UtilisateursPage() {
   async function changeRole(u: DashboardUser, role: string) {
     try {
       await updateUser(u.id, { role });
-      toast(`Role change en ${role}`, "success");
+      toast(`Rôle changé en ${role}`, "success");
       setRefreshKey((k) => k + 1);
     } catch (e: any) {
       toast(e.message, "error");
@@ -128,7 +128,7 @@ export default function UtilisateursPage() {
     if (!confirm(`Supprimer l'utilisateur ${u.firstName} ${u.lastName} ?`)) return;
     try {
       await deleteUser(u.id);
-      toast("Utilisateur supprime", "success");
+      toast("Utilisateur supprimé", "success");
       setRefreshKey((k) => k + 1);
     } catch (e: any) {
       toast(e.message, "error");
@@ -181,7 +181,7 @@ export default function UtilisateursPage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm text-muted-foreground">Prenom</label>
+              <label className="mb-1 block text-sm text-muted-foreground">Prénom</label>
               <input
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 required
@@ -199,7 +199,7 @@ export default function UtilisateursPage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm text-muted-foreground">Role</label>
+              <label className="mb-1 block text-sm text-muted-foreground">Rôle</label>
               <select
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 required
@@ -230,7 +230,7 @@ export default function UtilisateursPage() {
             </div>
           </div>
           <div className="mt-4 flex gap-2">
-            <Button type="submit">Creer</Button>
+            <Button type="submit">Créer</Button>
             <Button type="button" variant="outline" onClick={resetForm}>
               Annuler
             </Button>
@@ -261,7 +261,7 @@ export default function UtilisateursPage() {
           },
           {
             key: "role",
-            label: "Role",
+            label: "Rôle",
             render: (u: DashboardUser) => (
               <Badge variant={roleVariant[u.role] ?? "secondary"}>
                 {u.role}
@@ -306,7 +306,7 @@ export default function UtilisateursPage() {
                       variant={u.isActive ? "outline" : "default"}
                       onClick={() => toggleActive(u)}
                     >
-                      {u.isActive ? "Desactiver" : "Activer"}
+                      {u.isActive ? "Désactiver" : "Activer"}
                     </Button>
                     <Button
                       size="sm"

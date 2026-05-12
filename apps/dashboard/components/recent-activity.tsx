@@ -32,7 +32,7 @@ export function RecentActivity({ alerts }: RecentActivityProps) {
           <div className="flex flex-col gap-1">
             <p className="text-sm font-medium">{alert.title}</p>
             <p className="text-xs text-muted-foreground">
-              {alert.camera?.name ?? "Camera inconnue"} —{" "}
+              {alert.camera?.name ?? "Caméra inconnue"} —{" "}
               {new Date(alert.createdAt).toLocaleString("fr-FR", {
                 day: "2-digit",
                 month: "short",

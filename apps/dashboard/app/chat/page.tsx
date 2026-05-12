@@ -179,7 +179,7 @@ export default function ChatPage() {
                     <p className="whitespace-pre-wrap">{message.content}</p>
                     {message.cameraId && (
                       <div className="mt-2 text-xs text-muted-foreground">
-                        Camera: {cameras.find(c => c.id === message.cameraId)?.name ?? 'Inconnue'}
+                        Caméra : {cameras.find(c => c.id === message.cameraId)?.name ?? 'Inconnue'}
                       </div>
                     )}
                   </div>

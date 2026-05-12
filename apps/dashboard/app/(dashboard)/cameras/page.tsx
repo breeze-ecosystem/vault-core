@@ -39,7 +39,7 @@ const statusLabels: Record<string, string> = {
   ONLINE: "En ligne",
   OFFLINE: "Hors ligne",
   MAINTENANCE: "Maintenance",
-  DEGRADED: "Degrade",
+  DEGRADED: "Dégradé",
 };
 
 export default function CamerasPage() {
@@ -87,10 +87,10 @@ export default function CamerasPage() {
       if (form.resolution) data.resolution = form.resolution;
       if (editingId) {
         await updateCamera(editingId, data);
-        toast("Camera mise a jour", "success");
+        toast("Caméra mise à jour", "success");
       } else {
         await createCamera(data);
-        toast("Camera creee", "success");
+        toast("Caméra créée", "success");
       }
       resetForm();
       setRefreshKey((k) => k + 1);
@@ -103,10 +103,10 @@ export default function CamerasPage() {
     try {
       if (activeStreams.includes(camera.id)) {
         await stopStream(camera.id);
-        toast("Flux arrete", "success");
+        toast("Flux arrêté", "success");
       } else {
         await startStream(camera.id);
-        toast("Flux demarre - capture en cours", "success");
+        toast("Flux démarré - capture en cours", "success");
       }
       fetchActiveStreams().then(setActiveStreams).catch(() => {});
       setRefreshKey((k) => k + 1);
@@ -130,10 +130,10 @@ export default function CamerasPage() {
   }
 
   async function handleDeleteCamera(camera: Camera) {
-    if (!confirm(`Supprimer la camera "${camera.name}" ?`)) return;
+    if (!confirm(`Supprimer la caméra "${camera.name}" ?`)) return;
     try {
       await deleteCamera(camera.id);
-      toast("Camera supprimee", "success");
+      toast("Caméra supprimée", "success");
       setRefreshKey((k) => k + 1);
     } catch (e: any) {
       toast(e.message, "error");
@@ -145,14 +145,14 @@ export default function CamerasPage() {
   return (
     <div>
       <PageHeader
-        title="Cameras"
-        description="Gestion des cameras et flux video"
+        title="Caméras"
+        description="Gestion des caméras et flux vidéo"
         action={{ label: "Ajouter", icon: Plus, onClick: () => { resetForm(); setShowForm(true); } }}
       />
 
       {showForm && (
         <form onSubmit={handleSubmit} className="mb-6 rounded-lg border border-border bg-card p-4">
-          <h3 className="mb-3 font-semibold">{editingId ? "Modifier la camera" : "Nouvelle camera"}</h3>
+          <h3 className="mb-3 font-semibold">{editingId ? "Modifier la caméra" : "Nouvelle caméra"}</h3>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm text-muted-foreground">Nom</label>
@@ -170,7 +170,7 @@ export default function CamerasPage() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm text-muted-foreground">Resolution</label>
+              <label className="mb-1 block text-sm text-muted-foreground">Résolution</label>
               <input className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="1920x1080" value={form.resolution} onChange={(e) => setForm({ ...form, resolution: e.target.value })} />
             </div>
             <div>
@@ -179,7 +179,7 @@ export default function CamerasPage() {
             </div>
           </div>
           <div className="mt-4 flex gap-2">
-            <Button type="submit">{editingId ? "Modifier" : "Creer"}</Button>
+            <Button type="submit">{editingId ? "Modifier" : "Créer"}</Button>
             <Button type="button" variant="outline" onClick={resetForm}>Annuler</Button>
           </div>
         </form>
@@ -214,7 +214,7 @@ export default function CamerasPage() {
       {previewCamera && (
         <Card className="mb-6">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Apercu - {previewCamera.name}</CardTitle>
+            <CardTitle className="text-lg">Aperçu - {previewCamera.name}</CardTitle>
             <Button size="sm" variant="ghost" onClick={() => { setPreviewCamera(null); setPreviewSnapshot(null); }}>
               <X className="h-4 w-4" />
             </Button>
@@ -236,13 +236,13 @@ export default function CamerasPage() {
                 />
               ) : (
                 <div className="flex h-full items-center justify-center text-muted-foreground">
-                  <p className="text-sm">Impossible de capturer une image. Verifiez que la camera est accessible.</p>
+                  <p className="text-sm">Impossible de capturer une image. Vérifiez que la caméra est accessible.</p>
                 </div>
               )}
             </div>
             <div className="mt-3 flex gap-2">
               <Button size="sm" variant="outline" onClick={() => handlePreview(previewCamera)}>
-                Rafraichir
+                Rafraîchir
               </Button>
             </div>
           </CardContent>
@@ -260,7 +260,7 @@ export default function CamerasPage() {
       <DataTable
         key={refreshKey}
         columns={[
-          { key: "name", label: "Camera", render: (c: Camera) => (
+          { key: "name", label: "Caméra", render: (c: Camera) => (
             <div className="flex items-center gap-2">
               <Video className="h-4 w-4 text-muted-foreground" />
               <div>
@@ -275,7 +275,7 @@ export default function CamerasPage() {
           )},
           { key: "stream", label: "Flux", render: (c: Camera) => (
             <Badge variant={activeStreams.includes(c.id) ? "success" : "secondary"}>
-              {activeStreams.includes(c.id) ? "En cours" : "Arrete"}
+              {activeStreams.includes(c.id) ? "En cours" : "Arrêté"}
             </Badge>
           )},
           { key: "actions", label: "", render: (c: Camera) => (
@@ -288,7 +288,7 @@ export default function CamerasPage() {
               </Button>
               <Button size="sm" variant={activeStreams.includes(c.id) ? "destructive" : "default"} onClick={() => handleToggleStream(c)}>
                 {activeStreams.includes(c.id) ? <Square className="mr-1 h-3 w-3" /> : <Play className="mr-1 h-3 w-3" />}
-                {activeStreams.includes(c.id) ? "Arreter" : "Demarrer"}
+                {activeStreams.includes(c.id) ? "Arrêter" : "Démarrer"}
               </Button>
               <Button size="sm" variant="outline" onClick={() => setSelectedCamera(c)}>
                 <Settings className="mr-1 h-3 w-3" /> Prompts
@@ -327,7 +327,7 @@ function CameraPromptPanel({ camera, onClose }: { camera: Camera; onClose: () =>
       const p = await addCameraPrompt(camera.id, { text: newPrompt, severity: newSeverity });
       setPrompts([p, ...prompts]);
       setNewPrompt("");
-      toast("Prompt ajoute", "success");
+      toast("Prompt ajouté", "success");
     } catch (e: any) {
       toast(e.message, "error");
     }
@@ -346,7 +346,7 @@ function CameraPromptPanel({ camera, onClose }: { camera: Camera; onClose: () =>
     try {
       await deleteCameraPrompt(camera.id, p.id);
       setPrompts(prompts.filter((x) => x.id !== p.id));
-      toast("Prompt supprime", "success");
+      toast("Prompt supprimé", "success");
     } catch (e: any) {
       toast(e.message, "error");
     }
@@ -370,7 +370,7 @@ function CameraPromptPanel({ camera, onClose }: { camera: Camera; onClose: () =>
             <Button type="submit" size="sm">Ajouter</Button>
           </div>
           <div className="flex items-center gap-1">
-            <span className="text-xs text-muted-foreground mr-1">Severite:</span>
+            <span className="text-xs text-muted-foreground mr-1">Sévérité :</span>
             {["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"].map((sev) => (
               <Button
                 key={sev}
@@ -403,7 +403,7 @@ function CameraPromptPanel({ camera, onClose }: { camera: Camera; onClose: () =>
                 </div>
                 <div className="flex gap-1">
                   <Button size="sm" variant="ghost" onClick={() => handleToggle(p)}>
-                    {p.isActive ? "Desactiver" : "Activer"}
+                    {p.isActive ? "Désactiver" : "Activer"}
                   </Button>
                   <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDelete(p)}>
                     <X className="h-3 w-3" />

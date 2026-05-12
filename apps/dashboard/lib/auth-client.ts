@@ -24,7 +24,7 @@ export async function login(email: string, password: string): Promise<AuthResult
     const data = await res.json();
 
     if (!res.ok) {
-      return { error: data.message || "Login failed" };
+      return { error: data.message || "Échec de connexion" };
     }
 
     // Store access token in memory / sessionStorage
@@ -35,7 +35,7 @@ export async function login(email: string, password: string): Promise<AuthResult
 
     return { accessToken: data.accessToken, user: data.user };
   } catch {
-    return { error: "Cannot reach server" };
+    return { error: "Serveur inaccessible" };
   }
 }
 

@@ -92,7 +92,7 @@ export default function AlertesPage() {
 
   return (
     <div>
-      <PageHeader title="Alertes" description="Consultation et gestion des alertes du systeme" />
+      <PageHeader title="Alertes" description="Consultation et gestion des alertes du système" />
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="flex items-center gap-1">
