@@ -3,7 +3,6 @@ import { ConfigModule } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
 import { NotificationService } from "./notification.service";
 import { NotificationGateway } from "./notification.gateway";
-import { NotificationProcessor } from "./notification.processor";
 import { QueueModule } from "../queue/queue.module";
 
 @Module({
@@ -12,7 +11,7 @@ import { QueueModule } from "../queue/queue.module";
     JwtModule.register({}),
     ConfigModule,
   ],
-  providers: [NotificationService, NotificationGateway, NotificationProcessor],
+  providers: [NotificationService, NotificationGateway],
   exports: [NotificationService, NotificationGateway],
 })
 export class NotificationModule {}
