@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = 'oversight-v1';
+const CACHE_NAME = 'oversight-v2';
 
 // Static assets to pre-cache on install
 const PRECACHE_ASSETS = [
