@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { fetchChatCameras, sendChatMessage, type ChatMessageDto } from '@/lib/api';
-import { X, ChevronDown } from 'lucide-react';
+import { X } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -12,7 +12,6 @@ import {
   Button,
 } from '@/components/ui';
 import { cn } from '@/lib/utils';
-import * as SelectPrimitive from '@radix-ui/react-select';
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<
@@ -215,34 +214,19 @@ export default function ChatPage() {
           </CardContent>
           <CardHeader className="pt-4 shrink-0 border-t border-border">
             <div className="flex items-center gap-3">
-              <div className="w-[200px]">
-                <SelectPrimitive.Root
-                  value={selectedCameraId ?? ''}
-                  onValueChange={(val) => setSelectedCameraId(val === '' ? undefined : val)}
-                  disabled={camerasLoading}
-                >
-                  <SelectPrimitive.Trigger className="inline-flex items-center justify-between w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                    <SelectPrimitive.Value placeholder="Toutes les caméras" />
-                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </SelectPrimitive.Trigger>
-                  <SelectPrimitive.Portal>
-                    <SelectPrimitive.Content className="z-50 rounded-md border bg-popover p-1 shadow-md">
-                      <SelectPrimitive.Item value="" className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground">
-                        <SelectPrimitive.ItemText>Toutes les caméras</SelectPrimitive.ItemText>
-                      </SelectPrimitive.Item>
-                      {cameras.map((camera) => (
-                        <SelectPrimitive.Item
-                          key={camera.id}
-                          value={camera.id}
-                          className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                        >
-                          <SelectPrimitive.ItemText>{camera.name}</SelectPrimitive.ItemText>
-                        </SelectPrimitive.Item>
-                      ))}
-                    </SelectPrimitive.Content>
-                  </SelectPrimitive.Portal>
-                </SelectPrimitive.Root>
-              </div>
+              <select
+                value={selectedCameraId ?? ''}
+                onChange={(e) => setSelectedCameraId(e.target.value === '' ? undefined : e.target.value)}
+                disabled={camerasLoading}
+                className="w-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="">Toutes les caméras</option>
+                {cameras.map((camera) => (
+                  <option key={camera.id} value={camera.id}>
+                    {camera.name}
+                  </option>
+                ))}
+              </select>
               <Input
                 placeholder="Posez une question..."
                 value={input}
