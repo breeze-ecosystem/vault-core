@@ -3,14 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { fetchChatCameras, sendChatMessage, type ChatMessageDto } from '@/lib/api';
 import { X } from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Input,
-  Button,
-} from '@/components/ui';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export default function ChatPage() {
@@ -47,7 +42,7 @@ export default function ChatPage() {
         id: 'welcome',
         role: 'assistant',
         content:
-          'Bonjour ! Je suis votre assistant IA OVERSIGHT. Comment puis-je vous aider aujourd\'hui ?',
+          "Bonjour ! Je suis votre assistant IA OVERSIGHT. Comment puis-je vous aider aujourd'hui ?",
       },
     ]);
   }, []);
@@ -64,8 +59,8 @@ export default function ChatPage() {
           siteName: cam.siteName,
         }))
       );
-    } catch (e: any) {
-      setError(e.message || 'Impossible de charger les caméras');
+    } catch {
+      setError('Impossible de charger les caméras');
     } finally {
       setCamerasLoading(false);
     }
@@ -85,9 +80,8 @@ export default function ChatPage() {
     setLoading(true);
     setError(null);
 
-    // Build history from previous messages (last 5 exchanges)
     const history = messages
-      .slice(-10) // Last 10 messages (5 exchanges)
+      .slice(-10)
       .map((msg) => msg.content);
 
     const dto: ChatMessageDto = {
@@ -104,12 +98,11 @@ export default function ChatPage() {
         content: res.answer,
         cameraName:
           res.camerasQueried.length > 0
-            ? res.camerasQueried[0] // This is camera ID, we need to find name
+            ? res.camerasQueried[0]
             : undefined,
         snapshotIncluded: res.snapshotIncluded,
       };
 
-      // Find camera name from ID if available
       if (res.camerasQueried.length > 0) {
         const camera = cameras.find((c) => c.id === res.camerasQueried[0]);
         if (camera) {
@@ -118,9 +111,9 @@ export default function ChatPage() {
       }
 
       setMessages((prev) => [...prev, aiMessage]);
-    } catch (e: any) {
-      setError(e.message || 'Erreur inattendue');
-      setMessages((prev) => prev.slice(0, -1)); // Remove the user message we just added
+    } catch {
+      setError('Erreur inattendue');
+      setMessages((prev) => prev.slice(0, -1));
     } finally {
       setLoading(false);
       if (messagesEndRef.current) {
@@ -135,7 +128,7 @@ export default function ChatPage() {
         id: 'welcome',
         role: 'assistant',
         content:
-          'Bonjour ! Je suis votre assistant IA OVERSIGHT. Comment puis-je vous aider aujourd\'hui ?',
+          "Bonjour ! Je suis votre assistant IA OVERSIGHT. Comment puis-je vous aider aujourd'hui ?",
       },
     ]);
     setSelectedCameraId(undefined);
