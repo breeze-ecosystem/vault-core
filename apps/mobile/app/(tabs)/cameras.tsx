@@ -13,6 +13,7 @@ import { CameraCard } from "@/components/camera-card";
 export default function CamerasScreen() {
   const [cameras, setCameras] = useState<CameraItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function loadCameras() {
@@ -25,6 +26,19 @@ export default function CamerasScreen() {
       setError(e.message || "Erreur de chargement");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function refreshCameras() {
+    try {
+      setRefreshing(true);
+      setError(null);
+      const result = await fetchCameras();
+      setCameras(result.data);
+    } catch (e: any) {
+      setError(e.message || "Erreur de chargement");
+    } finally {
+      setRefreshing(false);
     }
   }
 
@@ -44,7 +58,7 @@ export default function CamerasScreen() {
   return (
     <ScrollView
       style={styles.container}
-      refreshControl={<RefreshControl refreshing={loading} onRefresh={loadCameras} tintColor="#2563eb" />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshCameras} tintColor="#2563eb" />}
     >
       <View style={styles.header}>
         <Text style={styles.title}>Cameras</Text>

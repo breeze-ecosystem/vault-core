@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { useRouter } from "expo-router";
 import type { CameraItem } from "@/lib/api";
 
 const statusColors: Record<string, string> = {
@@ -20,11 +21,12 @@ interface CameraCardProps {
 }
 
 export function CameraCard({ camera }: CameraCardProps) {
+  const router = useRouter();
   const color = statusColors[camera.status] ?? "#6b7280";
   const label = statusLabels[camera.status] ?? camera.status;
 
   return (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={() => router.push(`/camera/${camera.id}`)} activeOpacity={0.7}>
       <View style={styles.row}>
         <View style={[styles.statusDot, { backgroundColor: color }]} />
         <Text style={styles.name} numberOfLines={1}>
@@ -42,7 +44,7 @@ export function CameraCard({ camera }: CameraCardProps) {
       {camera.resolution && (
         <Text style={styles.resolution}>{camera.resolution} · {camera.fps} fps</Text>
       )}
-    </View>
+    </TouchableOpacity>
   );
 }
 

@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       const token = await getAccessTokenAsync();
-      if (token) {
+      if (!token) {
         const refreshed = await refreshTokens();
         if (refreshed?.user) {
           setUser(refreshed.user as User);

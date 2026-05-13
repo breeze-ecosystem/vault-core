@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { useRouter } from "expo-router";
 import type { AlertItem } from "@/lib/api";
 
 const severityColors: Record<string, string> = {
@@ -14,10 +15,11 @@ interface AlertCardProps {
 }
 
 export function AlertCard({ alert }: AlertCardProps) {
+  const router = useRouter();
   const color = severityColors[alert.severity] ?? "#6b7280";
 
   return (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={() => router.push(`/alert/${alert.id}`)} activeOpacity={0.7}>
       <View style={styles.header}>
         <View style={[styles.badge, { backgroundColor: color }]}>
           <Text style={styles.badgeText}>{alert.severity}</Text>
@@ -37,7 +39,7 @@ export function AlertCard({ alert }: AlertCardProps) {
       <Text style={styles.camera}>
         {alert.camera?.name ?? "Camera inconnue"}
       </Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 

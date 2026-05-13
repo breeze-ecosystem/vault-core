@@ -9,9 +9,6 @@ export interface AuditLogMetadata {
 
 /**
  * Decorator that marks an endpoint for automatic audit logging.
- * The AuditLogInterceptor will pick up this metadata and create
- * an audit log entry after a successful response.
- *
  * Usage:
  *   @AuditLog('CREATE', 'camera')
  *   @Post()

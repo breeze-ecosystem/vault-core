@@ -15,6 +15,7 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function loadStats() {
@@ -30,6 +31,19 @@ export default function HomeScreen() {
     }
   }
 
+  async function refreshStats() {
+    try {
+      setRefreshing(true);
+      setError(null);
+      const data = await fetchDashboardStats();
+      setStats(data);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
   useEffect(() => {
     loadStats();
   }, []);
@@ -37,7 +51,7 @@ export default function HomeScreen() {
   return (
     <ScrollView
       style={styles.container}
-      refreshControl={<RefreshControl refreshing={loading} onRefresh={loadStats} tintColor="#2563eb" />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshStats} tintColor="#2563eb" />}
     >
       <View style={styles.header}>
         <Text style={styles.greeting}>

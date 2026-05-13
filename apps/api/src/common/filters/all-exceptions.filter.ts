@@ -24,8 +24,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<FastifyReply>();
-    const request = ctx.getResponse<FastifyRequest>();
-    // Fix: use ctx.getRequest for the request object
     const req = ctx.getRequest<FastifyRequest>();
 
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;

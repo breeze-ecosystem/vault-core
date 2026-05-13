@@ -7,6 +7,7 @@ import {
   Req,
   HttpCode,
   HttpStatus,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiCookieAuth } from '@nestjs/swagger';
@@ -115,7 +116,7 @@ export class AuthController {
     if (!refreshToken) {
       const validated = refreshSchema.safeParse({ refreshToken: body.refreshToken });
       if (!validated.success) {
-        return { error: 'Refresh token required' };
+        throw new UnauthorizedException('Refresh token required');
       }
     }
 

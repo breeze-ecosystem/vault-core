@@ -4,20 +4,15 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
-  RefreshControl,
-  Image,
   TouchableOpacity,
   Alert,
-  Platform,
 } from "react-native";
 import { Video } from "expo-av";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { fetchCameraById, fetchCameraAlerts, CameraItem, AlertItem } from "@/lib/api";
-import { CameraCard } from "@/components/camera-card";
 
 export default function CameraDetailScreen() {
-  const router = useRouter();
-  const { id } = router.params as { id: string };
+  const { id } = useLocalSearchParams<{ id: string }>();
   const [camera, setCamera] = useState<CameraItem | null>(null);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +28,7 @@ export default function CameraDetailScreen() {
         fetchCameraById(id),
         fetchCameraAlerts(id, 20),
       ]);
-      setCamera(cameraResult.data);
+      setCamera(cameraResult);
       setAlerts(alertsResult.data);
     } catch (e: any) {
       setError(e.message || "Erreur de chargement");
@@ -207,11 +202,11 @@ const statusLabels: Record<string, string> = {
 };
 
 const severityColors: Record<string, string> = {
-  critical: "#dc2626",
-  high: "#f97316",
-  medium: "#eab308",
-  low: "#22c55e",
-  info: "#3b82f6",
+  CRITICAL: "#dc2626",
+  HIGH: "#f97316",
+  MEDIUM: "#eab308",
+  LOW: "#22c55e",
+  INFO: "#3b82f6",
 };
 
 const styles = StyleSheet.create({

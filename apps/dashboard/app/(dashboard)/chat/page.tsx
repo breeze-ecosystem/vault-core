@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { fetchWithAuth } from '@/lib/auth-client';
-import { fetchCameras, type Camera } from '@/lib/api';
-import { MessageCircle, ChevronDown, X } from 'lucide-react';
+import type { Camera } from '@/lib/api';
+import { X, ChevronDown } from 'lucide-react';
 import * as SelectPrimitive from '@radix-ui/react-select';
 import {
   Card,
@@ -12,17 +12,11 @@ import {
   CardTitle,
   Input,
   Button,
-  ScrollArea,
-  ScrollBar,
-  Avatar,
-  Badge,
-  Separator,
-  Toaster,
-} from '../../components/ui';
+} from '@/components/ui';
 import { cn } from '@/lib/utils';
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Array<{ id: string; role: 'user' | 'assistant'; content: string; cameraId?: string }>>([]);
+  const [messages, setMessages] = useState<Array<{ id: string; role: 'user' | 'assistant'; content: string; cameraName?: string }>>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [cameras, setCameras] = useState<Camera[]>([]);
@@ -34,12 +28,11 @@ export default function ChatPage() {
 
   useEffect(() => {
     loadCameras();
-    // Add a welcome message
     setMessages([
       {
         id: 'welcome',
         role: 'assistant',
-        content: 'Bonjour ! Je suis votre assistant IA OVERSIGHT. Comment puis-je vous aider aujourd’hui ?',
+        content: 'Bonjour ! Je suis votre assistant IA OVERSIGHT. Comment puis-je vous aider aujourd\'hui ?',
       },
     ]);
   }, []);
@@ -62,7 +55,6 @@ export default function ChatPage() {
       id: Date.now().toString(),
       role: 'user' as const,
       content: input,
-      cameraId: undefined as string | undefined,
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -92,17 +84,15 @@ export default function ChatPage() {
         id: Date.now().toString() + 'a',
         role: 'assistant' as const,
         content: data.answer,
-        cameraId: data.camerasQueried.length > 0 ? data.camerasQueried[0] : undefined,
+        cameraName: data.camerasQueried.length > 0 ? data.camerasQueried[0] : undefined,
       };
 
       setMessages(prev => [...prev, aiMessage]);
     } catch (e: any) {
       setError(e.message || 'Erreur inattendue');
-      // Remove the user message we just added on error
       setMessages(prev => prev.slice(0, -1));
     } finally {
       setLoading(false);
-      // Scroll to the bottom
       if (messagesEndRef.current) {
         messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
       }
@@ -113,8 +103,8 @@ export default function ChatPage() {
     setMessages([
       {
         id: 'welcome',
-        role: 'assistant' as const,
-        content: 'Bonjour ! Je suis votre assistant IA OVERSIGHT. Comment puis-je vous aider aujourd’hui ?',
+        role: 'assistant',
+        content: 'Bonjour ! Je suis votre assistant IA OVERSIGHT. Comment puis-je vous aider aujourd\'hui ?',
       },
     ]);
     setSelectedCameraId(undefined);
@@ -122,64 +112,56 @@ export default function ChatPage() {
 
   if (error) {
     return (
-      <Card className="w-full max-w-md mx-auto mt-10">
-        <CardHeader className="pb-2">
-          <CardTitle>Erreur</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>{error}</p>
-          <Button onClick={() => setError(null)} variant="outline">
-            Fermer
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center h-full">
+        <Card className="w-full max-w-md">
+          <CardHeader className="pb-2">
+            <CardTitle>Erreur</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>{error}</p>
+            <Button onClick={() => setError(null)} variant="outline" className="mt-4">
+              Fermer
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <div className="flex h-[calc(100vh-64px)] flex-col">
-      <Toaster />
+    <div className="flex h-full flex-col">
       <div className="flex-1 overflow-hidden">
-        <Card className="h-full overflow-hidden">
-          <CardHeader className="pb-4">
+        <Card className="h-full flex flex-col">
+          <CardHeader className="pb-4 shrink-0">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Chat IA</h2>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={clearChat}
-                  aria-label="Effacer la conversation"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+              <Button variant="ghost" size="icon" onClick={clearChat} aria-label="Effacer la conversation">
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           </CardHeader>
-          <CardContent className="p-4 flex-1 overflow-y-auto">
-            <div className="space-y-4" ref={messagesEndRef}>
+          <CardContent className="flex-1 overflow-y-auto px-4 py-0">
+            <div className="space-y-4 pb-4" ref={messagesEndRef}>
               {messages.map(message => (
                 <div
                   key={message.id}
                   className={cn(
                     'flex max-w-[80%]',
-                    message.role === 'user'
-                      ? 'ml-auto justify-end'
-                      : 'mr-auto justify-start'
+                    message.role === 'user' ? 'ml-auto justify-end' : 'mr-auto justify-start'
                   )}
                 >
                   <div
                     className={cn(
-                      'rounded-lg px-4 py-2 max-w-[80%]',
+                      'rounded-lg px-4 py-2',
                       message.role === 'user'
                         ? 'bg-primary/20 text-primary'
                         : 'bg-muted/20 text-muted-foreground'
                     )}
                   >
                     <p className="whitespace-pre-wrap">{message.content}</p>
-                    {message.cameraId && (
+                    {message.cameraName && (
                       <div className="mt-2 text-xs text-muted-foreground">
-                        Caméra : {cameras.find(c => c.id === message.cameraId)?.name ?? 'Inconnue'}
+                        Caméra : {cameras.find(c => c.name === message.cameraName)?.name ?? message.cameraName}
                       </div>
                     )}
                   </div>
@@ -187,24 +169,29 @@ export default function ChatPage() {
               ))}
             </div>
           </CardContent>
-          <CardHeader className="pt-4">
+          <CardHeader className="pt-4 shrink-0 border-t border-border">
             <div className="flex items-center gap-3">
               <div className="w-[200px]">
                 <SelectPrimitive.Root
                   value={selectedCameraId ?? ''}
                   onValueChange={(val) => setSelectedCameraId(val === '' ? undefined : val)}
                 >
-                  <SelectPrimitive.Trigger>
+                  <SelectPrimitive.Trigger className="inline-flex items-center justify-between w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                     <SelectPrimitive.Value placeholder="Toutes les caméras" />
-                    <ChevronDown className="ml-2 h-4 w-4" />
+                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </SelectPrimitive.Trigger>
-                  <SelectPrimitive.Content>
-                    {cameras.map(camera => (
-                      <SelectPrimitive.Item key={camera.id} value={camera.id}>
-                        {camera.name}
+                  <SelectPrimitive.Portal>
+                    <SelectPrimitive.Content className="z-50 rounded-md border bg-popover p-1 shadow-md">
+                      <SelectPrimitive.Item value="" className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground">
+                        <SelectPrimitive.ItemText>Toutes les caméras</SelectPrimitive.ItemText>
                       </SelectPrimitive.Item>
-                    ))}
-                  </SelectPrimitive.Content>
+                      {cameras.map(camera => (
+                        <SelectPrimitive.Item key={camera.id} value={camera.id} className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground">
+                          <SelectPrimitive.ItemText>{camera.name}</SelectPrimitive.ItemText>
+                        </SelectPrimitive.Item>
+                      ))}
+                    </SelectPrimitive.Content>
+                  </SelectPrimitive.Portal>
                 </SelectPrimitive.Root>
               </div>
               <Input
@@ -221,7 +208,7 @@ export default function ChatPage() {
                 disabled={loading}
               />
               <Button onClick={sendMessage} disabled={loading || !input.trim()}>
-                {loading ? "Envoi..." : "Envoyer"}
+                {loading ? 'Envoi...' : 'Envoyer'}
               </Button>
             </div>
           </CardHeader>

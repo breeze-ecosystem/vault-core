@@ -13,6 +13,7 @@ import { AlertCard } from "@/components/alert-card";
 export default function AlertsScreen() {
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function loadAlerts() {
@@ -25,6 +26,19 @@ export default function AlertsScreen() {
       setError(e.message || "Erreur de chargement");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function refreshAlerts() {
+    try {
+      setRefreshing(true);
+      setError(null);
+      const result = await fetchAlerts(50);
+      setAlerts(result.data);
+    } catch (e: any) {
+      setError(e.message || "Erreur de chargement");
+    } finally {
+      setRefreshing(false);
     }
   }
 
@@ -44,7 +58,7 @@ export default function AlertsScreen() {
   return (
     <ScrollView
       style={styles.container}
-      refreshControl={<RefreshControl refreshing={loading} onRefresh={loadAlerts} tintColor="#2563eb" />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshAlerts} tintColor="#2563eb" />}
     >
       <View style={styles.header}>
         <Text style={styles.title}>Alertes</Text>

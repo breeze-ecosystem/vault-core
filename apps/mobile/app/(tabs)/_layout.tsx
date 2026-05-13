@@ -8,6 +8,7 @@ function TabIcon({ name, focused }: { name: string; focused: boolean }) {
     index: "📊",
     cameras: "📹",
     alerts: "🔔",
+    sites: "📍",
     settings: "⚙️",
   };
   return (
@@ -61,6 +62,13 @@ export default function TabLayout() {
         options={{
           title: "Alertes",
           tabBarIcon: ({ focused }) => <TabIcon name="alerts" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
+        name="sites"
+        options={{
+          title: "Sites",
+          tabBarIcon: ({ focused }) => <TabIcon name="sites" focused={focused} />,
         }}
       />
       <Tabs.Screen

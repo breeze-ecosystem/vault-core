@@ -98,7 +98,7 @@ export async function fetchCameraById(id: string): Promise<CameraItem> {
 }
 
 export async function fetchCameraAlerts(cameraId: string, limit = 10): Promise<{ data: AlertItem[]; total: number }> {
-  const res = await fetchWithAuth(`${API_URL}/api/alerts?cameraId=${cameraId}&limit=${limit}`);
+  const res = await fetchWithAuth(`${API_URL}/api/alerts?cameraId=${encodeURIComponent(cameraId)}&limit=${limit}`);
   if (!res.ok) throw new Error("Impossible de charger les alertes de la camera");
   return res.json();
 }
