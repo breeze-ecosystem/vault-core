@@ -62,7 +62,7 @@ async function bootstrap() {
     errorResponseBuilder: () => ({
       statusCode: 429,
       error: "Too Many Requests",
-      message: "Trop de requêtes. Veuillez réessayer plus tard.",
+      message: "Too many requests. Please try again later.",
     }),
   });
 
@@ -88,11 +88,20 @@ async function bootstrap() {
   app.setGlobalPrefix("api");
 
   // ── CORS ──
-  const corsOrigin = configService.get<string>("cors.origin", "*");
+  const corsOrigin = configService.get<string>("cors.origin", "");
   const allowedOrigins =
-    corsOrigin === "*" ? true : corsOrigin.split(",").map((s) => s.trim());
+    corsOrigin === "*"
+      ? true
+      : corsOrigin
+        ? corsOrigin.split(",").map((s) => s.trim())
+        : [configService.get<string>("dashboardUrl", "")].filter(Boolean);
+
+  if (Array.isArray(allowedOrigins) && allowedOrigins.length === 0) {
+    logger.warn("No CORS origin configured — falling back to same-origin only");
+  }
+
   app.enableCors({
-    origin: allowedOrigins,
+    origin: allowedOrigins as any,
     credentials: configService.get<boolean>("cors.credentials", true),
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: [

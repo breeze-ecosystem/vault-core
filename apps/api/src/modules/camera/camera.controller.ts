@@ -28,8 +28,15 @@ export class CameraController {
   async findAll(
     @Query('status') status?: string,
     @Query('siteId') siteId?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
-    return this.cameraService.findAll({ status, siteId });
+    return this.cameraService.findAll({
+      status,
+      siteId,
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    });
   }
 
   @Get(':id')

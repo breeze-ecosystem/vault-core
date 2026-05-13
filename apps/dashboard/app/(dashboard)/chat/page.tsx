@@ -111,23 +111,19 @@ export default function ChatPage() {
 
     try {
       const res = await sendChatMessage(dto);
+      let cameraName: string | undefined;
+      if (res.camerasQueried.length > 0) {
+        const camera = cameras.find((c) => c.id === res.camerasQueried[0]);
+        cameraName = camera?.name ?? res.camerasQueried[0];
+      }
+
       const aiMessage = {
         id: Date.now().toString() + 'a',
         role: 'assistant' as const,
         content: res.answer,
-        cameraName:
-          res.camerasQueried.length > 0
-            ? res.camerasQueried[0]
-            : undefined,
+        cameraName,
         snapshotIncluded: res.snapshotIncluded,
       };
-
-      if (res.camerasQueried.length > 0) {
-        const camera = cameras.find((c) => c.id === res.camerasQueried[0]);
-        if (camera) {
-          aiMessage.cameraName = camera.name;
-        }
-      }
 
       setMessages((prev) => [...prev, aiMessage]);
     } catch {

@@ -69,6 +69,8 @@ export default function NotificationsPage() {
       setInAppEnabled(inAppSetting?.enabled ?? true);
     } catch (err) {
       console.error("Failed to load notifications:", err);
+      setSettings([]);
+      setLogs({ data: [], total: 0 });
     } finally {
       setLoading(false);
     }

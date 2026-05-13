@@ -6,21 +6,27 @@ import { Prisma } from "@prisma/client";
 export class SiteService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(filters?: { isActive?: boolean; city?: string }) {
+  async findAll(filters?: { isActive?: boolean; city?: string; page?: number; limit?: number }) {
     const where: Prisma.SiteWhereInput = {};
     if (filters?.isActive !== undefined) where.isActive = filters.isActive;
     if (filters?.city) where.city = { contains: filters.city, mode: "insensitive" };
 
+    const page = filters?.page ?? 1;
+    const limit = filters?.limit ?? 50;
+    const skip = (page - 1) * limit;
+
     const [data, total] = await Promise.all([
       this.prisma.site.findMany({
         where,
+        skip,
+        take: limit,
         include: { _count: { select: { cameras: true, users: true } } },
         orderBy: { createdAt: "desc" },
       }),
       this.prisma.site.count({ where }),
     ]);
 
-    return { data, total };
+    return { data, total, page, limit };
   }
 
   async findById(id: string) {

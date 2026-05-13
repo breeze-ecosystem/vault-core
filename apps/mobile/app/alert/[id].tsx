@@ -10,6 +10,7 @@ import {
   Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import {
   fetchAlertById,
   acknowledgeAlert,
@@ -233,12 +234,12 @@ export default function AlertDetailScreen() {
             activeOpacity={0.7}
           >
             <View style={styles.cameraLinkContent}>
-              <Text style={styles.cameraLinkIcon}>📹</Text>
+              <Ionicons name="videocam" size={24} color="#888" style={styles.cameraLinkIcon} />
               <View style={styles.cameraLinkText}>
                 <Text style={styles.cameraLinkTitle}>{alert.camera.name}</Text>
                 <Text style={styles.cameraLinkSub}>Voir la caméra</Text>
               </View>
-              <Text style={styles.cameraLinkArrow}>›</Text>
+              <Ionicons name="chevron-forward" size={20} color="#555" />
             </View>
           </TouchableOpacity>
         )}
@@ -478,7 +479,6 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   cameraLinkIcon: {
-    fontSize: 24,
     marginRight: 12,
   },
   cameraLinkText: {
@@ -494,10 +494,7 @@ const styles = StyleSheet.create({
     color: "#2563eb",
     marginTop: 2,
   },
-  cameraLinkArrow: {
-    fontSize: 22,
-    color: "#555",
-  },
+
   actionsSection: {
     padding: 20,
     gap: 12,

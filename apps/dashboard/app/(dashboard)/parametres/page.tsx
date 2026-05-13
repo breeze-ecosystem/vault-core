@@ -31,7 +31,7 @@ export default function ParametresPage() {
     setSaving(true);
     try {
       await updateUser(user.id, { firstName, lastName });
-      toast("Profil mis a jour", "success");
+      toast("Profil mis à jour", "success");
     } catch (e: any) {
       toast(e.message, "error");
     } finally {
@@ -55,7 +55,7 @@ export default function ParametresPage() {
     setChangingPassword(true);
     try {
       await changePassword(user.id, currentPassword, newPassword);
-      toast("Mot de passe modifie avec succes", "success");
+      toast("Mot de passe modifié avec succès", "success");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -92,7 +92,7 @@ export default function ParametresPage() {
             <form onSubmit={handleSaveProfile} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-sm text-muted-foreground">Prenom</label>
+                  <label className="mb-1 block text-sm text-muted-foreground">Prénom</label>
                   <input
                     className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                     value={firstName}
@@ -141,7 +141,7 @@ export default function ParametresPage() {
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Minimum 8 caracteres"
+                  placeholder="Minimum 8 caractères"
                 />
               </div>
               <div>
@@ -153,7 +153,7 @@ export default function ParametresPage() {
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Repetez le nouveau mot de passe"
+                  placeholder="Répétez le nouveau mot de passe"
                 />
               </div>
               <Button type="submit" disabled={changingPassword}>
@@ -165,7 +165,7 @@ export default function ParametresPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Informations systeme</CardTitle>
+            <CardTitle className="text-lg">Informations système</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex justify-between text-sm">

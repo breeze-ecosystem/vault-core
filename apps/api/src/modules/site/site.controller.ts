@@ -27,10 +27,14 @@ export class SiteController {
   async findAll(
     @Query('isActive') isActive?: string,
     @Query('city') city?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
     return this.siteService.findAll({
       isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined,
       city,
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
     });
   }
 

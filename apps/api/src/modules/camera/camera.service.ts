@@ -6,14 +6,20 @@ import { Prisma, AlertSeverity } from "@prisma/client";
 export class CameraService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(filters?: { status?: string; siteId?: string }) {
+  async findAll(filters?: { status?: string; siteId?: string; page?: number; limit?: number }) {
     const where: Prisma.CameraWhereInput = {};
     if (filters?.status) where.status = filters.status as Prisma.EnumCameraStatusFilter;
     if (filters?.siteId) where.siteId = filters.siteId;
 
+    const page = filters?.page ?? 1;
+    const limit = filters?.limit ?? 50;
+    const skip = (page - 1) * limit;
+
     const [data, total] = await Promise.all([
       this.prisma.camera.findMany({
         where,
+        skip,
+        take: limit,
         include: {
           site: { select: { id: true, name: true } },
           prompts: { where: { isActive: true }, orderBy: { createdAt: "desc" } },
@@ -24,7 +30,7 @@ export class CameraService {
       this.prisma.camera.count({ where }),
     ]);
 
-    return { data, total };
+    return { data, total, page, limit };
   }
 
   async findById(id: string) {

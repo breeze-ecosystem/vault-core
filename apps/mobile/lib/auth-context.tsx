@@ -2,8 +2,6 @@ import { createContext, useContext, useEffect, useState, useCallback } from "rea
 import {
   getUserAsync,
   getAccessTokenAsync,
-  saveUser,
-  clearAuth,
 } from "@/lib/auth-storage";
 import { login as apiLogin, refreshTokens, logout as apiLogout } from "@/lib/auth-client";
 

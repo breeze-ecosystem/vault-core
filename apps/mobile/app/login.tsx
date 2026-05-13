@@ -34,8 +34,9 @@ export default function LoginScreen() {
         router.replace("/(tabs)");
       }
     } catch (e) {
-      console.warn("[login] error:", e);
-      Alert.alert("Erreur", "Connexion impossible");
+      const msg = e instanceof Error ? e.message : "Connexion impossible";
+      console.warn("[login] error:", msg);
+      Alert.alert("Erreur", msg);
     } finally {
       setLoading(false);
     }

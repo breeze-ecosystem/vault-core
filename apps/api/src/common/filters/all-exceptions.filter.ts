@@ -46,12 +46,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
         }
       }
     } else if (exception instanceof Error) {
-      message = exception.message;
+      message = 'An unexpected error occurred';
       this.logger.error(
         `Unhandled exception: ${exception.message}`,
         exception.stack,
       );
     } else {
+      message = 'An unexpected error occurred';
       this.logger.error('Unhandled unknown exception', JSON.stringify(exception));
     }
 

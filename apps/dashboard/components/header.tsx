@@ -18,7 +18,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/lib/auth-client";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://oversight-api.digitsoftafrica.com";
 
 export function Header() {
   const { user, logout } = useAuth();

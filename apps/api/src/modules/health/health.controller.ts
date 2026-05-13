@@ -24,6 +24,7 @@ export class HealthController {
   }
 
   @Get("detailed")
+  @Public()
   @ApiOperation({ summary: "Detailed health check with system metrics" })
   async healthDetailed() {
     const os = require("os");

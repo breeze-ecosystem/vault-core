@@ -71,8 +71,7 @@ COPY <<'EOF' /app/apps/api/docker-entrypoint.sh
 
 echo "📦 Running database migration..."
 npx prisma migrate deploy 2>&1 || {
-  echo "⚠️  migrate deploy failed, trying db push..."
-  npx prisma db push --accept-data-loss 2>&1 || echo "❌ DB migration failed, starting anyway..."
+  echo "❌ DB migration failed — starting anyway (schema may be outdated)"
 }
 
 echo "🌱 Running database seed (if configured)..."

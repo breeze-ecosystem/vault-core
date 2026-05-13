@@ -181,11 +181,24 @@ export class ChatService {
     // Fallback: try RTSP snapshot via ffmpeg
     if (camera.rtspUrl) {
       try {
-        const { execSync } = await import('child_process');
-        const buffer = execSync(
-          `ffmpeg -rtsp_transport tcp -i "${camera.rtspUrl}" -frames:v 1 -f image2 -q:v 2 - 2>/dev/null`,
-          { timeout: 10000, maxBuffer: 5 * 1024 * 1024 },
-        );
+        const { spawn } = await import('child_process');
+        const buffer = await new Promise<Buffer>((resolve, reject) => {
+          const chunks: Buffer[] = [];
+          const proc = spawn('ffmpeg', [
+            '-rtsp_transport', 'tcp',
+            '-i', camera.rtspUrl,
+            '-frames:v', '1',
+            '-f', 'image2',
+            '-q:v', '2',
+            '-',
+          ], { stdio: ['ignore', 'pipe', 'pipe'], timeout: 10000 });
+          proc.stdout.on('data', (chunk: Buffer) => chunks.push(chunk));
+          proc.on('error', reject);
+          proc.on('close', (code) => {
+            if (code === 0) resolve(Buffer.concat(chunks));
+            else reject(new Error(`ffmpeg exited with code ${code}`));
+          });
+        });
         return buffer.toString('base64');
       } catch {
         this.logger.warn(`Failed to capture RTSP snapshot from ${camera.name}`);
