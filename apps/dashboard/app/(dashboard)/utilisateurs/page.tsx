@@ -9,12 +9,10 @@ import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/table";
 import {
   fetchUsers,
-  fetchSites,
   updateUser,
   createUser,
   deleteUser,
   type DashboardUser,
-  type Site,
 } from "@/lib/api";
 import { toast } from "@/components/ui/toast";
 import { ShieldX, Plus, Trash2 } from "lucide-react";
@@ -35,7 +33,6 @@ interface UserForm {
   firstName: string;
   lastName: string;
   role: string;
-  siteId: string;
 }
 
 const emptyForm: UserForm = {
@@ -44,7 +41,6 @@ const emptyForm: UserForm = {
   firstName: "",
   lastName: "",
   role: "VIEWER",
-  siteId: "",
 };
 
 export default function UtilisateursPage() {
@@ -52,11 +48,6 @@ export default function UtilisateursPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<UserForm>({ ...emptyForm });
-  const [sites, setSites] = useState<Site[]>([]);
-
-  useEffect(() => {
-    fetchSites({ limit: 100 }).then((r) => setSites(r.data)).catch(() => {});
-  }, [refreshKey]);
 
   if (isLoading) {
     return (
@@ -94,7 +85,6 @@ export default function UtilisateursPage() {
         firstName: form.firstName,
         lastName: form.lastName,
         role: form.role,
-        siteId: form.siteId || undefined,
       });
       toast("Utilisateur créé", "success");
       resetForm();
@@ -213,21 +203,7 @@ export default function UtilisateursPage() {
                 ))}
               </select>
             </div>
-            <div>
-              <label className="mb-1 block text-sm text-muted-foreground">Site</label>
-              <select
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={form.siteId}
-                onChange={(e) => setForm({ ...form, siteId: e.target.value })}
-              >
-                <option value="">Aucun site</option>
-                {sites.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+
           </div>
           <div className="mt-4 flex gap-2">
             <Button type="submit">Créer</Button>

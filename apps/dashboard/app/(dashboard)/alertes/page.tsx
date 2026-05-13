@@ -19,6 +19,14 @@ const severityVariant: Record<string, "destructive" | "warning" | "default" | "s
   INFO: "secondary",
 };
 
+const severityLabels: Record<string, string> = {
+  CRITICAL: "Critique",
+  HIGH: "Élevée",
+  MEDIUM: "Moyenne",
+  LOW: "Faible",
+  INFO: "Info",
+};
+
 const statusLabels: Record<string, string> = {
   OPEN: "Ouverte",
   ACKNOWLEDGED: "Prise en compte",
@@ -123,7 +131,7 @@ export default function AlertesPage() {
           <span className="self-center text-xs text-muted-foreground mr-1">Sévérité:</span>
           {["", "CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"].map((s) => (
             <Button key={s} variant={severityFilter === s ? "default" : "outline"} size="sm" onClick={() => setSeverityFilter(s)}>
-              {s || "Toutes"}
+              {s ? severityLabels[s] : "Toutes"}
             </Button>
           ))}
         </div>
@@ -140,8 +148,8 @@ export default function AlertesPage() {
       <DataTable
         key={refreshKey}
         columns={[
-          { key: "severity", label: "Severite", render: (a: Alert) => (
-            <Badge variant={severityVariant[a.severity]}>{a.severity}</Badge>
+          { key: "severity", label: "Sévérité", render: (a: Alert) => (
+            <Badge variant={severityVariant[a.severity]}>{severityLabels[a.severity]}</Badge>
           )},
           { key: "title", label: "Titre", render: (a: Alert) => (
             <span className="font-medium">{a.title}</span>
