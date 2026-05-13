@@ -188,12 +188,12 @@ export async function acknowledgeAlert(id: string): Promise<void> {
 }
 
 export async function resolveAlert(id: string): Promise<void> {
-  const res = await fetchWithAuth(`${API_URL}/api/alerts/${id}/resolve`, { method: "PATCH" });
+  const res = await fetchWithAuth(`${API_URL}/api/alerts/${id}/resolve", { method: "PATCH" });
   if (!res.ok) throw new Error("Failed to resolve alert");
 }
 
 export async function markAlertFalsePositive(id: string): Promise<void> {
-  const res = await fetchWithAuth(`${API_URL}/api/alerts/${id}/false-positive`, { method: "PATCH" });
+  const res = await fetchWithAuth(`${API_URL}/api/alerts/${id}/false-positive", { method: "PATCH" });
   if (!res.ok) throw new Error("Failed to mark as false positive");
 }
 
@@ -240,12 +240,12 @@ export async function updateCamera(id: string, data: any): Promise<Camera> {
 // --- Camera stream actions ---
 
 export async function startStream(cameraId: string): Promise<void> {
-  const res = await fetchWithAuth(`${API_URL}/api/ingestion/${cameraId}/start`, { method: "POST", body: JSON.stringify({}) });
+  const res = await fetchWithAuth(`${API_URL}/api/ingestion/${cameraId}/start", { method: "POST", body: JSON.stringify({}) });
   if (!res.ok) throw new Error("Failed to start stream");
 }
 
 export async function stopStream(cameraId: string): Promise<void> {
-  const res = await fetchWithAuth(`${API_URL}/api/ingestion/${cameraId}/stop`, { method: "POST", body: JSON.stringify({}) });
+  const res = await fetchWithAuth(`${API_URL}/api/ingestion/${cameraId}/stop", { method: "POST", body: JSON.stringify({}) });
   if (!res.ok) throw new Error("Failed to stop stream");
 }
 
@@ -283,7 +283,7 @@ export async function updateCameraPrompt(cameraId: string, promptId: string, dat
 }
 
 export async function deleteCameraPrompt(cameraId: string, promptId: string): Promise<void> {
-  const res = await fetchWithAuth(`${API_URL}/api/cameras/${cameraId}/prompts/${promptId}`, { method: "DELETE" });
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/${cameraId}/prompts/${promptId}", { method: "DELETE" });
   if (!res.ok) throw new Error("Failed to delete prompt");
 }
 
@@ -302,7 +302,7 @@ export async function createUser(data: { email: string; password: string; firstN
 }
 
 export async function deleteUser(id: string): Promise<void> {
-  const res = await fetchWithAuth(`${API_URL}/api/users/${id}`, { method: "DELETE" });
+  const res = await fetchWithAuth(`${API_URL}/api/users/${id}", { method: "DELETE" });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     throw new Error(data.message || "Échec de suppression de l'utilisateur");
@@ -310,7 +310,7 @@ export async function deleteUser(id: string): Promise<void> {
 }
 
 export async function deleteCamera(id: string): Promise<void> {
-  const res = await fetchWithAuth(`${API_URL}/api/cameras/${id}`, { method: "DELETE" });
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/${id}", { method: "DELETE" });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     throw new Error(data.message || "Échec de suppression de la caméra");
@@ -318,7 +318,7 @@ export async function deleteCamera(id: string): Promise<void> {
 }
 
 export async function deleteSite(id: string): Promise<void> {
-  const res = await fetchWithAuth(`${API_URL}/api/sites/${id}`, { method: "DELETE" });
+  const res = await fetchWithAuth(`${API_URL}/api/sites/${id}", { method: "DELETE" });
   if (!res.ok) throw new Error("Failed to delete site");
 }
 
@@ -408,7 +408,7 @@ export async function getNotificationLogs(params?: {
 }
 
 export async function sendTestNotification(): Promise<{ success: boolean; message: string }> {
-  const res = await fetchWithAuth(`${API_URL}/api/notifications/test`, {
+  const res = await fetchWithAuth(`${API_URL}/api/notifications/test", {
     method: "POST",
     body: JSON.stringify({}),
   });

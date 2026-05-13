@@ -230,21 +230,15 @@ export default function ChatPage() {
                       <SelectPrimitive.Item value="" className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground">
                         <SelectPrimitive.ItemText>Toutes les caméras</SelectPrimitive.ItemText>
                       </SelectPrimitive.Item>
-                      {!camerasLoading && cameras.length > 0 ? (
-                        cameras.map((camera) => (
-                          <SelectPrimitive.Item
-                            key={camera.id}
-                            value={camera.id}
-                            className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                          >
-                            <SelectPrimitive.ItemText>{camera.name}</SelectPrimitive.ItemText>
-                          </SelectPrimitive.Item>
-                        ))
-                      : (
-                        <SelectPrimitive.Item className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none">
-                          <SelectPrimitive.ItemText>Chargement...</SelectPrimitive.ItemText>
+                      {cameras.map((camera) => (
+                        <SelectPrimitive.Item
+                          key={camera.id}
+                          value={camera.id}
+                          className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                        >
+                          <SelectPrimitive.ItemText>{camera.name}</SelectPrimitive.ItemText>
                         </SelectPrimitive.Item>
-                      )}
+                      ))}
                     </SelectPrimitive.Content>
                   </SelectPrimitive.Portal>
                 </SelectPrimitive.Root>

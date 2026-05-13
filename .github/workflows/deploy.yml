@@ -18,5 +18,4 @@ jobs:
           curl -fSs -X POST "${{ vars.COOLIFY_WEBHOOK_URL }}" \
             -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
             -H "Content-Type: application/json" \
-            -d '{"commit":"${{ github.sha }}","ref":"${{ github.ref }}")' \
-            || echo "::warning::Coolify webhook failed — manual deploy may be needed"
+            -d '{"commit":"${{ github.sha }}","ref":"${{ github.ref }}"}'
