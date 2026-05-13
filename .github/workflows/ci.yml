@@ -28,7 +28,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: pnpm --filter @repo/api prisma generate
+        run: pnpm --filter @repo/api run prisma:generate
 
       - name: Lint
         run: pnpm lint
@@ -50,7 +50,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: pnpm --filter @repo/api prisma generate
+        run: pnpm --filter @repo/api run prisma:generate
 
       - name: Type check
         run: pnpm check-types
@@ -72,7 +72,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: pnpm --filter @repo/api prisma generate
+        run: pnpm --filter @repo/api run prisma:generate
 
       - name: Build
         run: pnpm build

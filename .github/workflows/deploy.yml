@@ -12,52 +12,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Container Registry
-        if: vars.REGISTRY_URL != ''
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ vars.REGISTRY_URL }}
-          username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
-
-      - name: Build & Push API Image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: docker/api.Dockerfile
-          push: ${{ vars.REGISTRY_URL != '' }}
-          tags: ${{ vars.REGISTRY_URL }}/oversight-api:${{ github.sha }},${{ vars.REGISTRY_URL }}/oversight-api:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build & Push Dashboard Image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: docker/dashboard.Dockerfile
-          push: ${{ vars.REGISTRY_URL != '' }}
-          tags: ${{ vars.REGISTRY_URL }}/oversight-dashboard:${{ github.sha }},${{ vars.REGISTRY_URL }}/oversight-dashboard:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build & Push AI Preprocessor Image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./services/ai-preprocessor
-          file: ./services/ai-preprocessor/Dockerfile
-          push: ${{ vars.REGISTRY_URL != '' }}
-          tags: ${{ vars.REGISTRY_URL }}/oversight-ai-preprocessor:${{ github.sha }},${{ vars.REGISTRY_URL }}/oversight-ai-preprocessor:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
       - name: Trigger Coolify Deploy
         if: vars.COOLIFY_WEBHOOK_URL != ''
         run: |
           curl -fSs -X POST "${{ vars.COOLIFY_WEBHOOK_URL }}" \
             -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
             -H "Content-Type: application/json" \
-            -d '{"commit":"${{ github.sha }}","ref":"${{ github.ref }}"}' \
+            -d '{"commit":"${{ github.sha }}","ref":"${{ github.ref }}")' \
             || echo "::warning::Coolify webhook failed — manual deploy may be needed"
