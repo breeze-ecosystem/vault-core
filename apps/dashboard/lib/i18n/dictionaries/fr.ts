@@ -25,6 +25,7 @@ export const fr = {
     dashboard: "Vue d'ensemble",
     chat: "Chat IA",
     cameras: "Caméras",
+    sites: "Sites",
     alerts: "Alertes",
     users: "Utilisateurs",
     settings: "Paramètres",

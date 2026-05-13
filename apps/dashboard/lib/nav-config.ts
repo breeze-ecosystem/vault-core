@@ -6,6 +6,7 @@ import {
   Bell,
   Settings,
   MessageSquare,
+  MapPin,
   type LucideIcon,
 } from "lucide-react";
 import { hasMinRole, type Role } from "@repo/shared";
@@ -42,7 +43,12 @@ const navItems: NavItem[] = [
     icon: AlertTriangle,
     minRole: null,
   },
-
+  {
+    label: "Sites",
+    href: "/sites",
+    icon: MapPin,
+    minRole: null,
+  },
   {
     label: "Utilisateurs",
     href: "/utilisateurs",

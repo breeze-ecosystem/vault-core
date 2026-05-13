@@ -27,6 +27,7 @@ export const en: Dictionary = {
     dashboard: "Dashboard",
     chat: "AI Chat",
     cameras: "Cameras",
+    sites: "Sites",
     alerts: "Alerts",
     users: "Users",
     settings: "Settings",
