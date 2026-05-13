@@ -8,6 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
+const STORAGE_KEY = 'oversight-chat-messages';
+
+const WELCOME_MESSAGE = {
+  id: 'welcome',
+  role: 'assistant' as const,
+  content: "Bonjour ! Je suis votre assistant IA OVERSIGHT. Comment puis-je vous aider aujourd'hui ?",
+};
+
 export default function ChatPage() {
   const [messages, setMessages] = useState<
     Array<{
@@ -34,18 +42,29 @@ export default function ChatPage() {
   );
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const initialized = useRef(false);
 
   useEffect(() => {
     loadCameras();
-    setMessages([
-      {
-        id: 'welcome',
-        role: 'assistant',
-        content:
-          "Bonjour ! Je suis votre assistant IA OVERSIGHT. Comment puis-je vous aider aujourd'hui ?",
-      },
-    ]);
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed);
+          initialized.current = true;
+          return;
+        }
+      } catch {}
+    }
+    setMessages([WELCOME_MESSAGE]);
+    initialized.current = true;
   }, []);
+
+  useEffect(() => {
+    if (!initialized.current) return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+  }, [messages]);
 
   const loadCameras = async () => {
     setCamerasLoading(true);
@@ -123,14 +142,8 @@ export default function ChatPage() {
   };
 
   const clearChat = () => {
-    setMessages([
-      {
-        id: 'welcome',
-        role: 'assistant',
-        content:
-          "Bonjour ! Je suis votre assistant IA OVERSIGHT. Comment puis-je vous aider aujourd'hui ?",
-      },
-    ]);
+    localStorage.removeItem(STORAGE_KEY);
+    setMessages([WELCOME_MESSAGE]);
     setSelectedCameraId(undefined);
   };
 
