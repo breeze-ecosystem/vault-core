@@ -4,8 +4,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/lib/auth-context";
 import { Redirect } from "expo-router";
 
-function TabIcon({ name, focused }: { name: string; focused: boolean }) {
-  const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
+type TabName = "index" | "cameras" | "alerts" | "sites" | "settings";
+
+function TabIcon({ name, focused }: { name: TabName; focused: boolean }) {
+  const icons: Record<TabName, keyof typeof Ionicons.glyphMap> = {
     index: "stats-chart",
     cameras: "videocam",
     alerts: "notifications",
@@ -14,7 +16,7 @@ function TabIcon({ name, focused }: { name: string; focused: boolean }) {
   };
   return (
     <Ionicons
-      name={icons[name] ?? "help"}
+      name={icons[name]}
       size={22}
       color={focused ? "#2563eb" : "#888"}
     />
@@ -50,6 +52,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Accueil",
+          headerShown: false,
           tabBarIcon: ({ focused }) => <TabIcon name="index" focused={focused} />,
         }}
       />

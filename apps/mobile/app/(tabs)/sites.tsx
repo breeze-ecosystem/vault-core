@@ -6,13 +6,15 @@ import {
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { fetchSites, type SiteItem } from "@/lib/api";
-
-const statusColor = (isActive: boolean): string =>
-  isActive ? "#22c55e" : "#6b7280";
+import { siteStatusColor } from "@/lib/constants";
 
 export default function SitesScreen() {
+  const router = useRouter();
   const [sites, setSites] = useState<SiteItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -48,6 +50,10 @@ export default function SitesScreen() {
     loadSites();
   }, []);
 
+  function handleSitePress(site: SiteItem) {
+    router.push(`/(tabs)/cameras?siteId=${site.id}`);
+  }
+
   if (loading && sites.length === 0) {
     return (
       <View style={styles.centered}>
@@ -76,22 +82,25 @@ export default function SitesScreen() {
       {sites.map((site) => {
         const cameraCount = site._count?.cameras ?? site.cameras?.length ?? 0;
         return (
-          <View key={site.id} style={styles.card}>
+          <TouchableOpacity key={site.id} style={styles.card} onPress={() => handleSitePress(site)} activeOpacity={0.7}>
             <View style={styles.cardRow}>
-              <View style={[styles.statusDot, { backgroundColor: statusColor(site.isActive) }]} />
+              <View style={[styles.statusDot, { backgroundColor: siteStatusColor(site.isActive) }]} />
               <View style={styles.cardContent}>
                 <Text style={styles.siteName}>{site.name}</Text>
                 {site.city && <Text style={styles.siteLocation}>{site.city}{site.country ? `, ${site.country}` : ""}</Text>}
                 {site.address && <Text style={styles.siteAddress}>{site.address}</Text>}
               </View>
+              <Ionicons name="chevron-forward" size={20} color="#555" />
             </View>
             <View style={styles.cardFooter}>
-              <Text style={styles.cameraCount}>{cameraCount} caméra{cameraCount !== 1 ? "s" : ""}</Text>
+              <Text style={styles.cameraCount}>
+                <Ionicons name="videocam" size={12} color="#3b82f6" /> {cameraCount} caméra{cameraCount !== 1 ? "s" : ""}
+              </Text>
               <Text style={[styles.statusText, { color: site.isActive ? "#22c55e" : "#6b7280" }]}>
                 {site.isActive ? "Actif" : "Inactif"}
               </Text>
             </View>
-          </View>
+          </TouchableOpacity>
         );
       })}
 

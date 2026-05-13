@@ -1,14 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import type { AlertItem } from "@/lib/api";
-
-const severityColors: Record<string, string> = {
-  CRITICAL: "#dc2626",
-  HIGH: "#f97316",
-  MEDIUM: "#eab308",
-  LOW: "#3b82f6",
-  INFO: "#6b7280",
-};
+import { severityColors } from "@/lib/constants";
 
 interface AlertCardProps {
   alert: AlertItem;

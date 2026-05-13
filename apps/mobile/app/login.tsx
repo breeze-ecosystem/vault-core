@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/lib/auth-context";
@@ -16,6 +17,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
+  const passwordRef = useRef<TextInput>(null);
 
   async function handleLogin() {
     if (!email || !password) {
@@ -53,15 +55,22 @@ export default function LoginScreen() {
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
+          returnKeyType="next"
+          onSubmitEditing={() => passwordRef.current?.focus()}
+          accessibilityLabel="Adresse email"
         />
 
         <TextInput
+          ref={passwordRef}
           style={styles.input}
           placeholder="Mot de passe"
           placeholderTextColor="#888"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          returnKeyType="go"
+          onSubmitEditing={handleLogin}
+          accessibilityLabel="Mot de passe"
         />
 
         <TouchableOpacity
@@ -69,9 +78,11 @@ export default function LoginScreen() {
           onPress={handleLogin}
           disabled={loading}
         >
-          <Text style={styles.buttonText}>
-            {loading ? "Connexion..." : "Se connecter"}
-          </Text>
+          {loading ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Text style={styles.buttonText}>Se connecter</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>

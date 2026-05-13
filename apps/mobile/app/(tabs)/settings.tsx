@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import Constants from "expo-constants";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "expo-router";
 
@@ -44,11 +45,11 @@ export default function SettingsScreen() {
         <Text style={styles.sectionTitle}>Application</Text>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Version</Text>
-          <Text style={styles.infoValue}>1.0.0</Text>
+          <Text style={styles.infoValue}>{Constants.expoConfig?.version ?? "1.0.0"}</Text>
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Environnement</Text>
-          <Text style={styles.infoValue}>Production</Text>
+          <Text style={styles.infoValue}>{process.env.EXPO_PUBLIC_API_URL?.includes("production") ? "Production" : "Développement"}</Text>
         </View>
       </View>
 

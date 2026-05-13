@@ -1,20 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import type { CameraItem } from "@/lib/api";
-
-const statusColors: Record<string, string> = {
-  ONLINE: "#22c55e",
-  OFFLINE: "#dc2626",
-  MAINTENANCE: "#f97316",
-  DEGRADED: "#eab308",
-};
-
-const statusLabels: Record<string, string> = {
-  ONLINE: "En ligne",
-  OFFLINE: "Hors ligne",
-  MAINTENANCE: "Maintenance",
-  DEGRADED: "Degrade",
-};
+import { statusColors, statusLabels } from "@/lib/constants";
 
 interface CameraCardProps {
   camera: CameraItem;

@@ -124,3 +124,14 @@ export async function resolveAlert(id: string): Promise<AlertDetail> {
   if (!res.ok) throw new Error("Impossible de resoudre l'alerte");
   return res.json();
 }
+
+export async function markAlertFalsePositive(id: string): Promise<AlertDetail> {
+  const res = await fetchWithAuth(`${API_URL}/api/alerts/${id}/false-positive`, { method: "PATCH" });
+  if (!res.ok) throw new Error("Impossible de marquer comme faux positif");
+  return res.json();
+}
+
+export async function deleteAlert(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/alerts/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Impossible de supprimer l'alerte");
+}

@@ -55,9 +55,9 @@ export default function HomeScreen() {
     >
       <View style={styles.header}>
         <Text style={styles.greeting}>
-          Bonjour, {user?.firstName}
+          Bonjour, {user?.firstName ?? "Utilisateur"}
         </Text>
-        <Text style={styles.role}>{user?.role}</Text>
+        <Text style={styles.role}>{user?.role ?? ""}</Text>
       </View>
 
       {error && (

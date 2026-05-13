@@ -20,7 +20,7 @@ export function StatsCard({ title, value, subtitle, color }: StatsCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    width: "47%",
+    width: "48%",
     backgroundColor: "#111",
     padding: 14,
     borderRadius: 10,

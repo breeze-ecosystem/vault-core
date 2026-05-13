@@ -14,30 +14,15 @@ import {
   fetchAlertById,
   acknowledgeAlert,
   resolveAlert,
+  markAlertFalsePositive,
+  deleteAlert,
   type AlertDetail,
 } from "@/lib/api";
-
-const severityColors: Record<string, string> = {
-  CRITICAL: "#dc2626",
-  HIGH: "#f97316",
-  MEDIUM: "#eab308",
-  LOW: "#3b82f6",
-  INFO: "#6b7280",
-};
-
-const statusLabels: Record<string, string> = {
-  OPEN: "Ouverte",
-  ACKNOWLEDGED: "Prise en compte",
-  RESOLVED: "Résolue",
-  FALSE_POSITIVE: "Faux positif",
-};
-
-const statusColors: Record<string, string> = {
-  OPEN: "#f97316",
-  ACKNOWLEDGED: "#3b82f6",
-  RESOLVED: "#22c55e",
-  FALSE_POSITIVE: "#6b7280",
-};
+import {
+  severityColors,
+  alertStatusColors,
+  alertStatusLabels,
+} from "@/lib/constants";
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
@@ -99,11 +84,52 @@ export default function AlertDetailScreen() {
       const updated = await resolveAlert(alert.id);
       setAlert(updated);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Impossible de résoudre l'alerte";
+      const msg = e instanceof Error ? e.message : "Impossible de resoudre l'alerte";
       Alert.alert("Erreur", msg);
     } finally {
       setActionLoading(null);
     }
+  }
+
+  async function handleFalsePositive() {
+    if (!alert) return;
+    try {
+      setActionLoading("fp");
+      const updated = await markAlertFalsePositive(alert.id);
+      setAlert(updated);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Impossible de marquer comme faux positif";
+      Alert.alert("Erreur", msg);
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleDelete() {
+    if (!alert) return;
+    Alert.alert(
+      "Supprimer l'alerte",
+      "Êtes-vous sûr de vouloir supprimer cette alerte ?",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setActionLoading("delete");
+              await deleteAlert(alert.id);
+              router.back();
+            } catch (e) {
+              const msg = e instanceof Error ? e.message : "Impossible de supprimer l'alerte";
+              Alert.alert("Erreur", msg);
+            } finally {
+              setActionLoading(null);
+            }
+          },
+        },
+      ]
+    );
   }
 
   if (loading) {
@@ -129,9 +155,11 @@ export default function AlertDetailScreen() {
   }
 
   const sevColor = severityColors[alert.severity] ?? "#6b7280";
-  const statColor = statusColors[alert.status] ?? "#888";
+  const statColor = alertStatusColors[alert.status] ?? "#888";
   const canAcknowledge = alert.status === "OPEN";
   const canResolve = alert.status === "OPEN" || alert.status === "ACKNOWLEDGED";
+  const canMarkFP = alert.status === "OPEN" || alert.status === "ACKNOWLEDGED";
+  const canDelete = alert.status !== "RESOLVED" && alert.status !== "FALSE_POSITIVE";
 
   return (
     <>
@@ -150,7 +178,7 @@ export default function AlertDetailScreen() {
             </View>
             <View style={[styles.statusBadge, { backgroundColor: `${statColor}22`, borderColor: statColor }]}>
               <Text style={[styles.statusBadgeText, { color: statColor }]}>
-                {statusLabels[alert.status] ?? alert.status}
+                {alertStatusLabels[alert.status] ?? alert.status}
               </Text>
             </View>
           </View>
@@ -184,7 +212,7 @@ export default function AlertDetailScreen() {
           <Text style={styles.sectionLabel}>Détails</Text>
           <View style={styles.detailsCard}>
             <DetailRow label="Sévérité" value={alert.severity} valueColor={sevColor} />
-            <DetailRow label="Statut" value={statusLabels[alert.status] ?? alert.status} valueColor={statColor} />
+            <DetailRow label="Statut" value={alertStatusLabels[alert.status] ?? alert.status} valueColor={statColor} />
             <DetailRow label="Caméra" value={alert.camera?.name ?? "Inconnue"} />
             <DetailRow label="Créée le" value={formatDate(alert.createdAt)} />
             <DetailRow label="Dernière màj" value={formatDate(alert.updatedAt)} />
@@ -201,7 +229,7 @@ export default function AlertDetailScreen() {
         {alert.camera && (
           <TouchableOpacity
             style={styles.cameraLink}
-            onPress={() => router.push(`/(tabs)/cameras`)}
+            onPress={() => router.push(`/camera/${alert.camera?.id}`)}
             activeOpacity={0.7}
           >
             <View style={styles.cameraLinkContent}>
@@ -216,7 +244,7 @@ export default function AlertDetailScreen() {
         )}
 
         {/* Actions */}
-        {(canAcknowledge || canResolve) && (
+        {(canAcknowledge || canResolve || canMarkFP) && (
           <View style={styles.actionsSection}>
             {canAcknowledge && (
               <TouchableOpacity
@@ -243,6 +271,34 @@ export default function AlertDetailScreen() {
                   <ActivityIndicator color="#fff" size="small" />
                 ) : (
                   <Text style={styles.actionBtnText}>Résoudre</Text>
+                )}
+              </TouchableOpacity>
+            )}
+            {canMarkFP && (
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.fpBtn, actionLoading === "fp" && styles.actionBtnDisabled]}
+                onPress={handleFalsePositive}
+                disabled={actionLoading !== null}
+                activeOpacity={0.7}
+              >
+                {actionLoading === "fp" ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={styles.actionBtnText}>Faux positif</Text>
+                )}
+              </TouchableOpacity>
+            )}
+            {canDelete && (
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.deleteBtn, actionLoading === "delete" && styles.actionBtnDisabled]}
+                onPress={handleDelete}
+                disabled={actionLoading !== null}
+                activeOpacity={0.7}
+              >
+                {actionLoading === "delete" ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={styles.actionBtnText}>Supprimer</Text>
                 )}
               </TouchableOpacity>
             )}
@@ -457,6 +513,12 @@ const styles = StyleSheet.create({
   },
   resolveBtn: {
     backgroundColor: "#16a34a",
+  },
+  fpBtn: {
+    backgroundColor: "#6b7280",
+  },
+  deleteBtn: {
+    backgroundColor: "#dc2626",
   },
   actionBtnDisabled: {
     opacity: 0.6,
