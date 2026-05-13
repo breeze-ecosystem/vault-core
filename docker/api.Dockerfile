@@ -68,17 +68,19 @@ EXPOSE 4000
 # Entrypoint script: migrate DB → seed (optional) → start app
 COPY <<'EOF' /app/apps/api/docker-entrypoint.sh
 #!/bin/sh
-set -e
 
 echo "📦 Running database migration..."
-npx prisma migrate deploy 2>/dev/null || npx prisma db push --accept-data-loss
+npx prisma migrate deploy 2>&1 || {
+  echo "⚠️  migrate deploy failed, trying db push..."
+  npx prisma db push --accept-data-loss 2>&1 || echo "❌ DB migration failed, starting anyway..."
+}
 
 echo "🌱 Running database seed (if configured)..."
 if [ -n "$ADMIN_PASSWORD" ]; then
   if [ -f dist/prisma/seed.js ]; then
-    node dist/prisma/seed.js && echo "✅ Seed completed" || echo "⚠️  Seed skipped (compile error)"
+    node dist/prisma/seed.js 2>&1 && echo "✅ Seed completed" || echo "⚠️  Seed failed, continuing..."
   else
-    npx tsx prisma/seed.ts && echo "✅ Seed completed" || echo "⚠️  Seed skipped (tsx not found)"
+    npx tsx prisma/seed.ts 2>&1 && echo "✅ Seed completed" || echo "⚠️  Seed failed, continuing..."
   fi
 else
   echo "⚠️  Seed skipped (ADMIN_PASSWORD not set)"

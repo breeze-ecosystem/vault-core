@@ -18,7 +18,8 @@ export function getAccessToken(): string | null {
   // Note: In production, use async pattern with context/state
   try {
     return SecureStore.getItem(ACCESS_TOKEN_KEY);
-  } catch {
+  } catch (e) {
+    console.warn("[auth-storage] getAccessToken error:", e);
     return null;
   }
 }
@@ -36,7 +37,8 @@ export async function getUserAsync() {
   if (!raw) return null;
   try {
     return JSON.parse(raw);
-  } catch {
+  } catch (e) {
+    console.warn("[auth-storage] getUserAsync error:", e);
     return null;
   }
 }

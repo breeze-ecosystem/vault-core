@@ -22,8 +22,8 @@ export default function CamerasScreen() {
       setError(null);
       const result = await fetchCameras();
       setCameras(result.data);
-    } catch (e: any) {
-      setError(e.message || "Erreur de chargement");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur de chargement");
     } finally {
       setLoading(false);
     }
@@ -35,8 +35,8 @@ export default function CamerasScreen() {
       setError(null);
       const result = await fetchCameras();
       setCameras(result.data);
-    } catch (e: any) {
-      setError(e.message || "Erreur de chargement");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur de chargement");
     } finally {
       setRefreshing(false);
     }

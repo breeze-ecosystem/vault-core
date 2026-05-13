@@ -31,7 +31,8 @@ export default function LoginScreen() {
       } else {
         router.replace("/(tabs)");
       }
-    } catch {
+    } catch (e) {
+      console.warn("[login] error:", e);
       Alert.alert("Erreur", "Connexion impossible");
     } finally {
       setLoading(false);

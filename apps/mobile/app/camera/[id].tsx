@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import { Video } from "expo-av";
+import { Video, ResizeMode, type AVPlaybackStatus } from "expo-av";
 import { useLocalSearchParams } from "expo-router";
 import { fetchCameraById, fetchCameraAlerts, CameraItem, AlertItem } from "@/lib/api";
 
@@ -20,7 +20,7 @@ export default function CameraDetailScreen() {
   const [videoRef, setVideoRef] = useState<Video | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const loadCamera = async () => {
+  const loadCamera = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -30,25 +30,22 @@ export default function CameraDetailScreen() {
       ]);
       setCamera(cameraResult);
       setAlerts(alertsResult.data);
-    } catch (e: any) {
-      setError(e.message || "Erreur de chargement");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur de chargement");
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     loadCamera();
-  }, [id]);
+  }, [loadCamera]);
 
   const handleSnapshot = () => {
     Alert.alert(
       "Capture d'écran",
-      "La capture d'écran sera enregistrée dans votre galerie.",
-      [
-        { text: "Annuler", style: "cancel" },
-        { text: "OK", onPress: () => {} },
-      ]
+      "Cette fonctionnalité sera disponible prochainement.",
+      [{ text: "OK" }]
     );
   };
 
@@ -64,7 +61,13 @@ export default function CameraDetailScreen() {
     }
   };
 
-  const streamUrl = `${process.env.EXPO_PUBLIC_STREAM_URL || "http://localhost:1984"}/stream/${id}.m3u8`;
+  const onPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
+    if (status.isLoaded) {
+      setIsPlaying(status.isPlaying);
+    }
+  };
+
+  const streamUrl = `${process.env.EXPO_PUBLIC_STREAM_URL || "https://oversight-stream.digitsoftafrica.com"}/stream/${id}.m3u8`;
 
   if (loading && !camera) {
     return (
@@ -100,21 +103,18 @@ export default function CameraDetailScreen() {
         </View>
       </View>
 
-      {/* Video Player */}
       <View style={styles.videoContainer}>
         <Video
           ref={setVideoRef}
-          style={StyleSheet.absoluteFill}
+          style={styles.video}
           source={{ uri: streamUrl }}
           rate={1.0}
           volume={1.0}
           isMuted={false}
-          resizeMode="contain"
+          resizeMode={ResizeMode.CONTAIN}
           isLooping
           useNativeControls={false}
-          onPlaybackStatusUpdate={status => {
-            setIsPlaying(status.isPlaying);
-          }}
+          onPlaybackStatusUpdate={onPlaybackStatusUpdate}
         />
         {!isPlaying && (
           <TouchableOpacity onPress={togglePlay} style={styles.playOverlay}>
@@ -123,7 +123,6 @@ export default function CameraDetailScreen() {
         )}
       </View>
 
-      {/* Camera Info */}
       <View style={styles.infoSection}>
         <Text style={styles.sectionTitle}>Informations</Text>
         <View style={styles.infoRow}>
@@ -144,12 +143,10 @@ export default function CameraDetailScreen() {
         </View>
       </View>
 
-      {/* Snapshot Button */}
       <TouchableOpacity onPress={handleSnapshot} style={styles.snapshotBtn}>
         <Text style={styles.snapshotText}>📸 Capture d'écran</Text>
       </TouchableOpacity>
 
-      {/* Alerts Section */}
       <View style={styles.alertsSection}>
         <Text style={styles.sectionTitle}>Alertes récentes ({alerts.length})</Text>
         {alerts.length === 0 ? (
@@ -225,7 +222,8 @@ const styles = StyleSheet.create({
   statusText: { color: "#888", fontSize: 14, marginLeft: 6 },
 
   videoContainer: { height: 250, margin: 16, borderRadius: 10, overflow: "hidden", backgroundColor: "#000" },
-  playOverlay: { position: "absolute", ...StyleSheet.absoluteFillObject, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
+  video: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
+  playOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
   playText: { fontSize: 48, color: "#fff" },
 
   infoSection: { marginHorizontal: 16, marginTop: 24 },

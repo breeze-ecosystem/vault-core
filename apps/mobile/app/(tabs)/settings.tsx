@@ -48,7 +48,7 @@ export default function SettingsScreen() {
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Environnement</Text>
-          <Text style={styles.infoValue}>Developpement</Text>
+          <Text style={styles.infoValue}>Production</Text>
         </View>
       </View>
 

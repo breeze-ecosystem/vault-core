@@ -24,8 +24,8 @@ export default function HomeScreen() {
       setError(null);
       const data = await fetchDashboardStats();
       setStats(data);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur de chargement");
     } finally {
       setLoading(false);
     }
@@ -37,8 +37,8 @@ export default function HomeScreen() {
       setError(null);
       const data = await fetchDashboardStats();
       setStats(data);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur de chargement");
     } finally {
       setRefreshing(false);
     }

@@ -1,6 +1,6 @@
 import { fetchWithAuth } from "@/lib/auth-client";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:4000";
+const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://oversight-api.digitsoftafrica.com";
 
 export interface DashboardStats {
   cameras: {
@@ -24,12 +24,16 @@ export interface DashboardStats {
   recentAlerts: AlertItem[];
 }
 
+export type AlertSeverity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO";
+export type AlertStatus = "OPEN" | "ACKNOWLEDGED" | "RESOLVED" | "FALSE_POSITIVE";
+export type CameraStatus = "ONLINE" | "OFFLINE" | "MAINTENANCE" | "DEGRADED";
+
 export interface AlertItem {
   id: string;
   title: string;
   description: string | null;
-  severity: string;
-  status: string;
+  severity: AlertSeverity;
+  status: AlertStatus;
   cameraId: string;
   createdAt: string;
   camera?: { id: string; name: string };
@@ -37,7 +41,7 @@ export interface AlertItem {
 
 export interface AlertDetail extends AlertItem {
   snapshotUrl: string | null;
-  metadata: Record<string, any> | null;
+  metadata: Record<string, unknown> | null;
   acknowledgedBy: string | null;
   acknowledgedAt: string | null;
   resolvedBy: string | null;
@@ -48,7 +52,7 @@ export interface AlertDetail extends AlertItem {
 export interface CameraItem {
   id: string;
   name: string;
-  status: string;
+  status: CameraStatus;
   siteId: string;
   resolution: string | null;
   fps: number;

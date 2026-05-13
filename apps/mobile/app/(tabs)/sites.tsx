@@ -9,10 +9,8 @@ import {
 } from "react-native";
 import { fetchSites, type SiteItem } from "@/lib/api";
 
-const statusColors: Record<string, string> = {
-  true: "#22c55e",
-  false: "#6b7280",
-};
+const statusColor = (isActive: boolean): string =>
+  isActive ? "#22c55e" : "#6b7280";
 
 export default function SitesScreen() {
   const [sites, setSites] = useState<SiteItem[]>([]);
@@ -26,8 +24,8 @@ export default function SitesScreen() {
       setError(null);
       const result = await fetchSites();
       setSites(result.data);
-    } catch (e: any) {
-      setError(e.message || "Erreur de chargement");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur de chargement");
     } finally {
       setLoading(false);
     }
@@ -39,8 +37,8 @@ export default function SitesScreen() {
       setError(null);
       const result = await fetchSites();
       setSites(result.data);
-    } catch (e: any) {
-      setError(e.message || "Erreur de chargement");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur de chargement");
     } finally {
       setRefreshing(false);
     }
@@ -80,7 +78,7 @@ export default function SitesScreen() {
         return (
           <View key={site.id} style={styles.card}>
             <View style={styles.cardRow}>
-              <View style={[styles.statusDot, { backgroundColor: statusColors[String(site.isActive)] }]} />
+              <View style={[styles.statusDot, { backgroundColor: statusColor(site.isActive) }]} />
               <View style={styles.cardContent}>
                 <Text style={styles.siteName}>{site.name}</Text>
                 {site.city && <Text style={styles.siteLocation}>{site.city}{site.country ? `, ${site.country}` : ""}</Text>}

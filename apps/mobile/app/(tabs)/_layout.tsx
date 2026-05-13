@@ -1,20 +1,23 @@
 import { Tabs } from "expo-router";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/lib/auth-context";
 import { Redirect } from "expo-router";
 
 function TabIcon({ name, focused }: { name: string; focused: boolean }) {
-  const icons: Record<string, string> = {
-    index: "📊",
-    cameras: "📹",
-    alerts: "🔔",
-    sites: "📍",
-    settings: "⚙️",
+  const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
+    index: "stats-chart",
+    cameras: "videocam",
+    alerts: "notifications",
+    sites: "location",
+    settings: "settings",
   };
   return (
-    <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.5 }}>
-      {icons[name] ?? "📋"}
-    </Text>
+    <Ionicons
+      name={icons[name] ?? "help"}
+      size={22}
+      color={focused ? "#2563eb" : "#888"}
+    />
   );
 }
 

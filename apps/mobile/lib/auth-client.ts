@@ -38,7 +38,8 @@ export async function login(email: string, password: string): Promise<AuthResult
     await saveUser(data.user);
 
     return { accessToken: data.accessToken, user: data.user };
-  } catch {
+  } catch (e) {
+    console.warn("[auth] login error:", e);
     return { error: "Serveur indisponible" };
   }
 }
@@ -64,7 +65,8 @@ export async function refreshTokens(): Promise<AuthResult | null> {
     await saveUser(data.user);
 
     return { accessToken: data.accessToken, user: data.user };
-  } catch {
+  } catch (e) {
+    console.warn("[auth] refreshTokens error:", e);
     return null;
   }
 }
@@ -82,8 +84,8 @@ export async function logout() {
       },
       body: JSON.stringify({ refreshToken }),
     });
-  } catch {
-    // ignore
+  } catch (e) {
+    console.warn("[auth] logout error:", e);
   }
 
   await clearAuth();

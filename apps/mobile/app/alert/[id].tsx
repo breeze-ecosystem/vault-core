@@ -67,8 +67,8 @@ export default function AlertDetailScreen() {
       setError(null);
       const data = await fetchAlertById(id);
       setAlert(data);
-    } catch (e: any) {
-      setError(e.message || "Erreur de chargement");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur de chargement");
     } finally {
       setLoading(false);
     }
@@ -84,8 +84,9 @@ export default function AlertDetailScreen() {
       setActionLoading("ack");
       const updated = await acknowledgeAlert(alert.id);
       setAlert(updated);
-    } catch (e: any) {
-      Alert.alert("Erreur", e.message || "Impossible de prendre en compte l'alerte");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Impossible de prendre en compte l'alerte";
+      Alert.alert("Erreur", msg);
     } finally {
       setActionLoading(null);
     }
@@ -97,8 +98,9 @@ export default function AlertDetailScreen() {
       setActionLoading("resolve");
       const updated = await resolveAlert(alert.id);
       setAlert(updated);
-    } catch (e: any) {
-      Alert.alert("Erreur", e.message || "Impossible de résoudre l'alerte");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Impossible de résoudre l'alerte";
+      Alert.alert("Erreur", msg);
     } finally {
       setActionLoading(null);
     }
