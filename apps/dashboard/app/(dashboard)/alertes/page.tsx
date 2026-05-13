@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/table";
-import { fetchAlerts, acknowledgeAlert, resolveAlert, markAlertFalsePositive, type Alert } from "@/lib/api";
+import { fetchAlerts, acknowledgeAlert, resolveAlert, markAlertFalsePositive, deleteAlert, type Alert } from "@/lib/api";
 import { toast } from "@/components/ui/toast";
-import { AlertTriangle, CheckCircle, XCircle, Bell, BellOff } from "lucide-react";
+import { CheckCircle, XCircle, Trash2, Bell, BellOff } from "lucide-react";
 import { getAccessToken } from "@/lib/auth-client";
 import { io, Socket } from "socket.io-client";
 
@@ -22,7 +22,7 @@ const severityVariant: Record<string, "destructive" | "warning" | "default" | "s
 const statusLabels: Record<string, string> = {
   OPEN: "Ouverte",
   ACKNOWLEDGED: "Prise en compte",
-  RESOLVED: "Resolue",
+  RESOLVED: "Résolue",
   FALSE_POSITIVE: "Faux positif",
 };
 
@@ -83,7 +83,18 @@ export default function AlertesPage() {
       if (action === "ack") await acknowledgeAlert(id);
       else if (action === "resolve") await resolveAlert(id);
       else await markAlertFalsePositive(id);
-      toast(action === "ack" ? "Alerte prise en compte" : action === "resolve" ? "Alerte resolue" : "Marquee faux positif", "success");
+      toast(action === "ack" ? "Alerte prise en compte" : action === "resolve" ? "Alerte résolue" : "Marquée comme faux positif", "success");
+      setRefreshKey((k) => k + 1);
+    } catch (e: any) {
+      toast(e.message, "error");
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!window.confirm("Supprimer cette alerte définitivement ?")) return;
+    try {
+      await deleteAlert(id);
+      toast("Alerte supprimée", "success");
       setRefreshKey((k) => k + 1);
     } catch (e: any) {
       toast(e.message, "error");
@@ -96,12 +107,12 @@ export default function AlertesPage() {
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="flex items-center gap-1">
-          <span className="text-xs text-muted-foreground mr-1">Temps reel:</span>
+          <span className="text-xs text-muted-foreground mr-1">Temps réel:</span>
           <Badge variant={wsConnected ? "success" : "destructive"} className="text-xs">
             {wsConnected ? (
-              <><Bell className="mr-1 h-3 w-3" /> Connecte</>
+              <><Bell className="mr-1 h-3 w-3" /> Connecté</>
             ) : (
-              <><BellOff className="mr-1 h-3 w-3" /> Deconnecte</>
+              <><BellOff className="mr-1 h-3 w-3" /> Déconnecté</>
             )}
           </Badge>
         </div>
@@ -109,7 +120,7 @@ export default function AlertesPage() {
 
       <div className="mb-4 flex flex-wrap gap-2">
         <div className="flex gap-1">
-          <span className="self-center text-xs text-muted-foreground mr-1">Severite:</span>
+          <span className="self-center text-xs text-muted-foreground mr-1">Sévérité:</span>
           {["", "CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"].map((s) => (
             <Button key={s} variant={severityFilter === s ? "default" : "outline"} size="sm" onClick={() => setSeverityFilter(s)}>
               {s || "Toutes"}
@@ -149,7 +160,7 @@ export default function AlertesPage() {
               )}
               {(a.status === "OPEN" || a.status === "ACKNOWLEDGED") && (
                 <Button size="sm" variant="outline" onClick={() => handleAction(a.id, "resolve")}>
-                  <CheckCircle className="mr-1 h-3 w-3" /> Resoudre
+                  <CheckCircle className="mr-1 h-3 w-3" /> Résoudre
                 </Button>
               )}
               {a.status !== "FALSE_POSITIVE" && a.status !== "RESOLVED" && (
@@ -157,6 +168,9 @@ export default function AlertesPage() {
                   <XCircle className="mr-1 h-3 w-3" /> Faux positif
                 </Button>
               )}
+              <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => handleDelete(a.id)}>
+                <Trash2 className="mr-1 h-3 w-3" /> Supprimer
+              </Button>
             </div>
           )},
         ]}

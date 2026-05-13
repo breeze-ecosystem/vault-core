@@ -197,6 +197,11 @@ export async function markAlertFalsePositive(id: string): Promise<void> {
   if (!res.ok) throw new Error("Failed to mark as false positive");
 }
 
+export async function deleteAlert(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/alerts/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Échec de la suppression de l'alerte");
+}
+
 // --- Site actions ---
 
 export async function createSite(data: { name: string; address?: string; city?: string; country?: string }): Promise<Site> {

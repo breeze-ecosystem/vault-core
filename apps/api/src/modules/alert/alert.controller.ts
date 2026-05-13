@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
@@ -65,5 +66,11 @@ export class AlertController {
   async markFalsePositive(@Param("id") id: string, @Req() req: FastifyRequest) {
     const userId = (req as any).user.id;
     return this.alertService.markFalsePositive(id, userId);
+  }
+
+  @Delete(":id")
+  @Roles("ADMIN", "SUPER_ADMIN")
+  async delete(@Param("id") id: string) {
+    return this.alertService.delete(id);
   }
 }

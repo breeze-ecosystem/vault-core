@@ -90,4 +90,9 @@ export class AlertService {
       },
     });
   }
+
+  async delete(id: string) {
+    await this.findById(id);
+    return this.prisma.alert.delete({ where: { id } });
+  }
 }
