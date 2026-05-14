@@ -41,7 +41,8 @@
         {
           "microphonePermission": "Cette application utilise le microphone pour les flux audio des caméras."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "apiUrl": "https://oversight-api.digitsoftafrica.com/api",
