@@ -52,6 +52,9 @@ jobs:
       - name: Generate Prisma client
         run: pnpm --filter @repo/api run prisma:generate
 
+      - name: Build shared package
+        run: pnpm --filter @repo/shared run build
+
       - name: Type check
         run: pnpm check-types
 
