@@ -82,7 +82,7 @@ export default function CameraDetailScreen() {
     else if (status.error) { setVideoError(true); setIsPlaying(false); }
   };
 
-  const streamUrl = `${CFG_STREAM_URL}/stream/${id}.m3u8`;
+  const streamUrl = id ? `${CFG_STREAM_URL}/stream/${id}.m3u8` : null;
 
   if (loading && !camera) {
     return <View style={styles.centered}><ActivityIndicator color="#2563eb" size="large" /><Text style={styles.loadingText}>Chargement de la camera...</Text></View>;
