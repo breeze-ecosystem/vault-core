@@ -5,8 +5,9 @@ import {
   getRefreshTokenAsync,
   clearAuth,
 } from "./auth-storage";
+import { API_URL as CFG_URL } from "@/lib/config";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:4000";
+const API_BASE = CFG_URL.endsWith("/api") ? CFG_URL : `${CFG_URL}/api`;
 
 interface AuthResult {
   accessToken?: string;
@@ -22,7 +23,7 @@ interface AuthResult {
 
 export async function login(email: string, password: string): Promise<AuthResult> {
   try {
-    const res = await fetch(`${API_URL}/api/auth/login`, {
+    const res = await fetch(`${API_BASE}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -49,7 +50,7 @@ export async function refreshTokens(): Promise<AuthResult | null> {
   if (!refreshToken) return null;
 
   try {
-    const res = await fetch(`${API_URL}/api/auth/refresh`, {
+    const res = await fetch(`${API_BASE}/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken }),
@@ -76,7 +77,7 @@ export async function logout() {
   const refreshToken = await getRefreshTokenAsync();
 
   try {
-    await fetch(`${API_URL}/api/auth/logout`, {
+    await fetch(`${API_BASE}/auth/logout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -12,6 +12,7 @@ import {
   type CameraItem, type AlertItem,
 } from "@/lib/api";
 import { statusColors, statusLabels, severityColors } from "@/lib/constants";
+import { STREAM_URL as CFG_STREAM_URL } from "@/lib/config";
 
 export default function CameraDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -81,7 +82,7 @@ export default function CameraDetailScreen() {
     else if (status.error) { setVideoError(true); setIsPlaying(false); }
   };
 
-  const streamUrl = `${process.env.EXPO_PUBLIC_STREAM_URL || ""}/stream/${id}.m3u8`;
+  const streamUrl = `${CFG_STREAM_URL}/stream/${id}.m3u8`;
 
   if (loading && !camera) {
     return <View style={styles.centered}><ActivityIndicator color="#2563eb" size="large" /><Text style={styles.loadingText}>Chargement de la camera...</Text></View>;

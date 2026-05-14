@@ -1,6 +1,7 @@
 import { fetchWithAuth } from "@/lib/auth-client";
+import { API_URL as CFG_URL } from "@/lib/config";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://oversight-api.digitsoftafrica.com";
+const API_BASE = CFG_URL.endsWith("/api") ? CFG_URL : `${CFG_URL}/api`;
 
 export interface DashboardStats {
   cameras: {
@@ -124,7 +125,7 @@ export interface PaginatedResponse<T> {
 }
 
 export async function fetchDashboardStats(): Promise<DashboardStats> {
-  const res = await fetchWithAuth(`${API_URL}/api/dashboard/stats`);
+  const res = await fetchWithAuth(`${API_BASE}/dashboard/stats`);
   if (!res.ok) throw new Error("Impossible de charger les statistiques");
   return res.json();
 }
@@ -143,13 +144,13 @@ export async function fetchAlerts(params?: {
   if (params?.status) search.set("status", params.status);
   if (params?.cameraId) search.set("cameraId", params.cameraId);
   const qs = search.toString();
-  const res = await fetchWithAuth(`${API_URL}/api/alerts${qs ? `?${qs}` : ""}`);
+  const res = await fetchWithAuth(`${API_BASE}/alerts${qs ? `?${qs}` : ""}`);
   if (!res.ok) throw new Error("Impossible de charger les alertes");
   return res.json();
 }
 
 export async function fetchAlertById(id: string): Promise<AlertDetail> {
-  const res = await fetchWithAuth(`${API_URL}/api/alerts/${id}`);
+  const res = await fetchWithAuth(`${API_BASE}/alerts/${id}`);
   if (!res.ok) throw new Error("Impossible de charger les details de l'alerte");
   return res.json();
 }
@@ -166,13 +167,13 @@ export async function fetchCameras(params?: {
   if (params?.page) search.set("page", String(params.page));
   if (params?.limit) search.set("limit", String(params.limit));
   const qs = search.toString();
-  const res = await fetchWithAuth(`${API_URL}/api/cameras${qs ? `?${qs}` : ""}`);
+  const res = await fetchWithAuth(`${API_BASE}/cameras${qs ? `?${qs}` : ""}`);
   if (!res.ok) throw new Error("Impossible de charger les cameras");
   return res.json();
 }
 
 export async function fetchCameraById(id: string): Promise<CameraItem> {
-  const res = await fetchWithAuth(`${API_URL}/api/cameras/${id}`);
+  const res = await fetchWithAuth(`${API_BASE}/cameras/${id}`);
   if (!res.ok) throw new Error("Impossible de charger la camera");
   return res.json();
 }
@@ -192,36 +193,36 @@ export async function fetchSites(params?: {
   if (params?.page) search.set("page", String(params.page));
   if (params?.limit) search.set("limit", String(params.limit ?? 100));
   const qs = search.toString();
-  const res = await fetchWithAuth(`${API_URL}/api/sites${qs ? `?${qs}` : ""}`);
+  const res = await fetchWithAuth(`${API_BASE}/sites${qs ? `?${qs}` : ""}`);
   if (!res.ok) throw new Error("Impossible de charger les sites");
   return res.json();
 }
 
 export async function acknowledgeAlert(id: string): Promise<AlertDetail> {
-  const res = await fetchWithAuth(`${API_URL}/api/alerts/${id}/acknowledge`, { method: "PATCH" });
+  const res = await fetchWithAuth(`${API_BASE}/alerts/${id}/acknowledge`, { method: "PATCH" });
   if (!res.ok) throw new Error("Impossible de prendre en compte l'alerte");
   return res.json();
 }
 
 export async function resolveAlert(id: string): Promise<AlertDetail> {
-  const res = await fetchWithAuth(`${API_URL}/api/alerts/${id}/resolve`, { method: "PATCH" });
+  const res = await fetchWithAuth(`${API_BASE}/alerts/${id}/resolve`, { method: "PATCH" });
   if (!res.ok) throw new Error("Impossible de resoudre l'alerte");
   return res.json();
 }
 
 export async function markAlertFalsePositive(id: string): Promise<AlertDetail> {
-  const res = await fetchWithAuth(`${API_URL}/api/alerts/${id}/false-positive`, { method: "PATCH" });
+  const res = await fetchWithAuth(`${API_BASE}/alerts/${id}/false-positive`, { method: "PATCH" });
   if (!res.ok) throw new Error("Impossible de marquer comme faux positif");
   return res.json();
 }
 
 export async function deleteAlert(id: string): Promise<void> {
-  const res = await fetchWithAuth(`${API_URL}/api/alerts/${id}`, { method: "DELETE" });
+  const res = await fetchWithAuth(`${API_BASE}/alerts/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error("Impossible de supprimer l'alerte");
 }
 
 export async function sendChatMessage(dto: ChatMessageDto): Promise<ChatResponse> {
-  const res = await fetchWithAuth(`${API_URL}/api/chat`, {
+  const res = await fetchWithAuth(`${API_BASE}/chat`, {
     method: "POST",
     body: JSON.stringify(dto),
   });
@@ -230,13 +231,13 @@ export async function sendChatMessage(dto: ChatMessageDto): Promise<ChatResponse
 }
 
 export async function fetchChatCameras(): Promise<ChatCamera[]> {
-  const res = await fetchWithAuth(`${API_URL}/api/chat/cameras`);
+  const res = await fetchWithAuth(`${API_BASE}/chat/cameras`);
   if (!res.ok) throw new Error("Impossible de charger les cameras");
   return res.json();
 }
 
 export async function getNotificationSettings(): Promise<NotificationSetting[]> {
-  const res = await fetchWithAuth(`${API_URL}/api/notifications/settings`);
+  const res = await fetchWithAuth(`${API_BASE}/notifications/settings`);
   if (!res.ok) throw new Error("Impossible de charger les parametres");
   return res.json();
 }
@@ -244,7 +245,7 @@ export async function getNotificationSettings(): Promise<NotificationSetting[]> 
 export async function updateNotificationSettings(
   settings: { channel: NotificationChannel; enabled: boolean; config?: Record<string, unknown> }[]
 ): Promise<NotificationSetting[]> {
-  const res = await fetchWithAuth(`${API_URL}/api/notifications/settings`, {
+  const res = await fetchWithAuth(`${API_BASE}/notifications/settings`, {
     method: "PUT",
     body: JSON.stringify({ settings }),
   });
@@ -260,13 +261,13 @@ export async function getNotificationLogs(params?: {
   if (params?.page) search.set("page", String(params.page));
   if (params?.limit) search.set("limit", String(params.limit ?? 20));
   const qs = search.toString();
-  const res = await fetchWithAuth(`${API_URL}/api/notifications/logs${qs ? `?${qs}` : ""}`);
+  const res = await fetchWithAuth(`${API_BASE}/notifications/logs${qs ? `?${qs}` : ""}`);
   if (!res.ok) throw new Error("Impossible de charger l'historique");
   return res.json();
 }
 
 export async function sendTestNotification(): Promise<{ success: boolean; message: string }> {
-  const res = await fetchWithAuth(`${API_URL}/api/notifications/test`, { method: "POST" });
+  const res = await fetchWithAuth(`${API_BASE}/notifications/test`, { method: "POST" });
   if (!res.ok) throw new Error("Impossible d'envoyer la notification test");
   return res.json();
 }
@@ -277,7 +278,7 @@ export async function registerUser(data: {
   firstName: string;
   lastName: string;
 }): Promise<{ accessToken: string; user: { id: string; email: string; firstName: string; lastName: string; role: string } }> {
-  const res = await fetch(`${API_URL}/api/auth/register`, {
+  const res = await fetch(`${API_BASE}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -288,7 +289,7 @@ export async function registerUser(data: {
 }
 
 export async function updatePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
-  const res = await fetchWithAuth(`${API_URL}/api/users/${userId}/change-password`, {
+  const res = await fetchWithAuth(`${API_BASE}/users/${userId}/change-password`, {
     method: "POST",
     body: JSON.stringify({ currentPassword, newPassword }),
   });
@@ -299,17 +300,17 @@ export async function updatePassword(userId: string, currentPassword: string, ne
 }
 
 export async function startCameraIngestion(cameraId: string): Promise<void> {
-  const res = await fetchWithAuth(`${API_URL}/api/ingestion/${cameraId}/start`, { method: "POST" });
+  const res = await fetchWithAuth(`${API_BASE}/ingestion/${cameraId}/start`, { method: "POST" });
   if (!res.ok) throw new Error("Impossible de demarrer l'ingestion");
 }
 
 export async function stopCameraIngestion(cameraId: string): Promise<void> {
-  const res = await fetchWithAuth(`${API_URL}/api/ingestion/${cameraId}/stop`, { method: "POST" });
+  const res = await fetchWithAuth(`${API_BASE}/ingestion/${cameraId}/stop`, { method: "POST" });
   if (!res.ok) throw new Error("Impossible d'arreter l'ingestion");
 }
 
 export async function captureSnapshot(cameraId: string): Promise<{ image: string }> {
-  const res = await fetchWithAuth(`${API_URL}/api/ingestion/${cameraId}/snapshot`);
+  const res = await fetchWithAuth(`${API_BASE}/ingestion/${cameraId}/snapshot`);
   if (!res.ok) throw new Error("Impossible de capturer l'image");
   return res.json();
 }

@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { updatePassword } from "@/lib/api";
+import { API_URL } from "@/lib/config";
 
 export default function SettingsScreen() {
   const { user, logout } = useAuth();
@@ -16,7 +17,7 @@ export default function SettingsScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
 
-  const envLabel = process.env.EXPO_PUBLIC_API_URL?.includes("digitsoftafrica")
+  const envLabel = API_URL.includes("digitsoftafrica")
     ? "Production" : "Développement";
 
   async function handleLogout() {
