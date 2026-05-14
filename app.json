@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "ab677ee6-a3d8-46f5-a1a3-bf212bd69217"
+      }
+    },
+    "android": {
+      "package": "com.oversight.ai"
+    }
+  }
+}
