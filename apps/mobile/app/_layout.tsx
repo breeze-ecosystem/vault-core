@@ -14,9 +14,11 @@ export default function RootLayout() {
           }}
         >
           <Stack.Screen name="login" options={{ headerShown: false }} />
+          <Stack.Screen name="register" options={{ title: "Inscription", headerBackTitle: "Retour" }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="camera/[id]" options={{ title: "Caméra", headerBackTitle: "Retour" }} />
           <Stack.Screen name="alert/[id]" options={{ title: "Alerte", headerBackTitle: "Retour" }} />
+          <Stack.Screen name="notifications" options={{ title: "Notifications", headerBackTitle: "Paramètres" }} />
         </Stack>
       </AuthProvider>
     </ErrorBoundary>
