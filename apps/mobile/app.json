@@ -44,7 +44,7 @@
       ]
     ],
     "extra": {
-      "apiUrl": "https://nabiya-api.digitsofafrica.com/api/v1",
+      "apiUrl": "https://oversight-api.digitsofafrica.com/api/v1",
       "router": {},
       "eas": {
         "projectId": "ab677ee6-a3d8-46f5-a1a3-bf212bd69217"
