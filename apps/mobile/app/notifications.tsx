@@ -3,15 +3,15 @@ import {
   View, Text, ScrollView, StyleSheet, Switch, TextInput,
   TouchableOpacity, ActivityIndicator, Alert,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import {
   getNotificationSettings, updateNotificationSettings,
   getNotificationLogs, sendTestNotification,
-  type NotificationSetting, type NotificationLog,
+  type NotificationLog,
 } from "@/lib/api";
+import { colors } from "@/lib/theme";
+import { Mail, Link, Bell, BellOff } from "lucide-react-native";
 
 export default function NotificationsScreen() {
-  const [settings, setSettings] = useState<NotificationSetting[]>([]);
   const [logs, setLogs] = useState<{ data: NotificationLog[]; total: number }>({ data: [], total: 0 });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -26,11 +26,8 @@ export default function NotificationsScreen() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [s, l] = await Promise.all([
-        getNotificationSettings(),
-        getNotificationLogs({ limit: 20 }),
-      ]);
-      setSettings(s);
+      const l = await getNotificationLogs({ limit: 20 });
+      const s = await getNotificationSettings();
       setLogs(l);
 
       const email = s.find(x => x.channel === "EMAIL");
@@ -44,7 +41,6 @@ export default function NotificationsScreen() {
       const inApp = s.find(x => x.channel === "IN_APP");
       setInAppEnabled(inApp?.enabled ?? true);
     } catch {
-      setSettings([]);
       setLogs({ data: [], total: 0 });
     } finally {
       setLoading(false);
@@ -116,7 +112,7 @@ export default function NotificationsScreen() {
         <View style={styles.channelCard}>
           <View style={styles.channelHeader}>
             <View style={styles.channelInfo}>
-              <Ionicons name="mail-outline" size={20} color="#888" />
+              <Mail size={20} color={colors.textMuted} />
               <Text style={styles.channelName}>Email</Text>
             </View>
             <Switch
@@ -137,7 +133,7 @@ export default function NotificationsScreen() {
         <View style={styles.channelCard}>
           <View style={styles.channelHeader}>
             <View style={styles.channelInfo}>
-              <Ionicons name="link-outline" size={20} color="#888" />
+              <Link size={20} color={colors.textMuted} />
               <Text style={styles.channelName}>Webhook</Text>
             </View>
             <Switch
@@ -157,7 +153,7 @@ export default function NotificationsScreen() {
         <View style={styles.channelCard}>
           <View style={styles.channelHeader}>
             <View style={styles.channelInfo}>
-              <Ionicons name="notifications-outline" size={20} color="#888" />
+              <Bell size={20} color={colors.textMuted} />
               <Text style={styles.channelName}>In-App</Text>
             </View>
             <Switch
@@ -176,7 +172,7 @@ export default function NotificationsScreen() {
         <Text style={styles.sectionTitle}>Historique ({logs.total})</Text>
         {logs.data.length === 0 ? (
           <View style={styles.emptyLogs}>
-            <Ionicons name="notifications-off-outline" size={40} color="#333" />
+            <BellOff size={40} color={colors.border} />
             <Text style={styles.emptyLogsText}>Aucune notification envoyee</Text>
           </View>
         ) : (

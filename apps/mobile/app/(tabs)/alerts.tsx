@@ -2,7 +2,9 @@ import { useEffect, useState, useCallback } from "react";
 import { View, Text, ScrollView, StyleSheet, RefreshControl, ActivityIndicator, TouchableOpacity } from "react-native";
 import { fetchAlerts, type AlertItem, type AlertSeverity, type AlertStatus } from "@/lib/api";
 import { AlertCard } from "@/components/alert-card";
-import { severityColors, alertStatusColors, alertStatusLabels } from "@/lib/constants";
+import { severityColors, alertStatusColors } from "@/lib/constants";
+import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { Bell, Filter } from "lucide-react-native";
 
 const PAGE_SIZE = 20;
 
@@ -26,7 +28,7 @@ const STATUSES: { label: string; value: AlertStatus | "" }[] = [
 function FilterChip({ label, active, color, onPress }: { label: string; active: boolean; color?: string; onPress: () => void }) {
   return (
     <TouchableOpacity
-      style={[styles.chip, active && { backgroundColor: color ?? "#2563eb", borderColor: color ?? "#2563eb" }]}
+      style={[styles.chip, active && { backgroundColor: color ?? colors.primary, borderColor: color ?? colors.primary }]}
       onPress={onPress}
     >
       <Text style={[styles.chipText, active && { color: "#fff" }]}>{label}</Text>
@@ -51,8 +53,7 @@ export default function AlertsScreen() {
       else setLoading(true);
       setError(null);
       const result = await fetchAlerts({
-        limit: PAGE_SIZE,
-        page: pageNum,
+        limit: PAGE_SIZE, page: pageNum,
         severity: filterSeverity || undefined,
         status: filterStatus || undefined,
       });
@@ -81,26 +82,33 @@ export default function AlertsScreen() {
     loadAlerts(page + 1, true);
   };
 
-  const handleFilterSeverity = (sev: AlertSeverity | "") => {
-    setFilterSeverity(prev => prev === sev ? "" : sev);
-  };
-  const handleFilterStatus = (st: AlertStatus | "") => {
-    setFilterStatus(prev => prev === st ? "" : st);
-  };
+  const handleFilterSeverity = (sev: AlertSeverity | "") => setFilterSeverity(prev => prev === sev ? "" : sev);
+  const handleFilterStatus = (st: AlertStatus | "") => setFilterStatus(prev => prev === st ? "" : st);
 
   if (loading && alerts.length === 0) {
-    return <View style={styles.centered}><ActivityIndicator color="#2563eb" size="large" /><Text style={styles.loadingText}>Chargement des alertes...</Text></View>;
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator color={colors.primary} size="large" />
+        <Text style={styles.loadingText}>Chargement des alertes...</Text>
+      </View>
+    );
   }
 
   return (
-    <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshAlerts} tintColor="#2563eb" />}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scroll}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshAlerts} tintColor={colors.primary} />}
+    >
       <View style={styles.header}>
+        <Bell size={20} color={colors.warning} />
         <Text style={styles.title}>Alertes</Text>
-        <Text style={styles.subtitle}>{alerts.length}{total > alerts.length ? ` / ${total}` : ""} alerte{alerts.length !== 1 ? "s" : ""}</Text>
+        <Text style={styles.count}>{alerts.length}{total > alerts.length ? ` / ${total}` : ""}</Text>
       </View>
 
       <View style={styles.filters}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
+        <Filter size={14} color={colors.textMuted} />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {SEVERITIES.map(s => (
             <FilterChip
               key={s.value} label={s.label}
@@ -110,50 +118,74 @@ export default function AlertsScreen() {
             />
           ))}
         </ScrollView>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
-          {STATUSES.map(s => (
-            <FilterChip
-              key={s.value} label={s.label}
-              active={filterStatus === s.value}
-              color={s.value ? alertStatusColors[s.value] : undefined}
-              onPress={() => handleFilterStatus(s.value as AlertStatus | "")}
-            />
-          ))}
-        </ScrollView>
       </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
+        {STATUSES.map(s => (
+          <FilterChip
+            key={s.value} label={s.label}
+            active={filterStatus === s.value}
+            color={s.value ? alertStatusColors[s.value] : undefined}
+            onPress={() => handleFilterStatus(s.value as AlertStatus | "")}
+          />
+        ))}
+      </ScrollView>
 
-      {error && <View style={styles.errorBox}><Text style={styles.errorText}>{error}</Text></View>}
-      {alerts.map((alert) => <AlertCard key={alert.id} alert={alert} />)}
-      {!loading && !error && alerts.length === 0 && (
-        <View style={styles.empty}><Text style={styles.emptyText}>Aucune alerte</Text><Text style={styles.emptyHint}>Les alertes apparaitront ici quand elles seront detectees</Text></View>
+      {error && (
+        <View style={styles.errorBox}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
       )}
+
+      {alerts.map((alert) => (
+        <AlertCard key={alert.id} alert={alert} />
+      ))}
+
+      {!loading && !error && alerts.length === 0 && (
+        <View style={styles.empty}>
+          <Bell size={40} color={colors.border} />
+          <Text style={styles.emptyTitle}>Aucune alerte</Text>
+          <Text style={styles.emptyHint}>Les alertes apparaîtront ici quand elles seront détectées</Text>
+        </View>
+      )}
+
       {alerts.length < total && (
         <TouchableOpacity style={styles.loadMoreBtn} onPress={loadMore} disabled={loadingMore}>
           {loadingMore ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.loadMoreText}>Charger plus ({total - alerts.length} restantes)</Text>}
         </TouchableOpacity>
       )}
-      <View style={styles.spacer} />
+      <View style={{ height: 24 }} />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0a0a0a" },
-  centered: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#0a0a0a" },
-  loadingText: { color: "#888", marginTop: 12, fontSize: 14 },
-  header: { padding: 20, paddingBottom: 6 },
-  title: { fontSize: 22, fontWeight: "bold", color: "#ededed" },
-  subtitle: { fontSize: 14, color: "#888", marginTop: 2 },
-  filters: { paddingHorizontal: 20, paddingBottom: 10, gap: 6 },
-  filterRow: { marginBottom: 4 },
-  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: "#444", marginRight: 8, backgroundColor: "#111" },
-  chipText: { fontSize: 12, fontWeight: "600", color: "#aaa" },
-  errorBox: { marginHorizontal: 20, marginBottom: 12, padding: 12, borderRadius: 8, backgroundColor: "rgba(239,68,68,0.1)", borderWidth: 1, borderColor: "#ef4444" },
-  errorText: { color: "#ef4444", fontSize: 14 },
+  container: { flex: 1, backgroundColor: colors.bg },
+  centered: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.bg },
+  loadingText: { ...typography.caption, marginTop: spacing.md },
+  scroll: { padding: spacing.lg },
+  header: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginBottom: spacing.sm },
+  title: { ...typography.h2, flex: 1 },
+  count: { ...typography.caption, fontWeight: "600" },
+  filters: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginBottom: spacing.xs },
+  filterRow: { marginBottom: spacing.md },
+  chip: {
+    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16,
+    borderWidth: 1, borderColor: colors.borderLight, marginRight: 8,
+    backgroundColor: colors.elevated,
+  },
+  chipText: { fontSize: 12, fontWeight: "600", color: colors.textSecondary },
+  errorBox: {
+    padding: spacing.md, borderRadius: borderRadius.md,
+    backgroundColor: "rgba(239,68,68,0.1)", borderWidth: 1, borderColor: colors.destructive,
+    marginBottom: spacing.md,
+  },
+  errorText: { color: colors.destructive, fontSize: 13 },
   empty: { padding: 40, alignItems: "center" },
-  emptyText: { color: "#888", fontSize: 14 },
-  emptyHint: { color: "#666", fontSize: 12, marginTop: 4 },
-  loadMoreBtn: { margin: 20, padding: 12, borderRadius: 8, backgroundColor: "#2563eb", alignItems: "center" },
+  emptyTitle: { ...typography.body, color: colors.textSecondary, marginTop: spacing.md },
+  emptyHint: { ...typography.small, marginTop: spacing.xs, textAlign: "center" },
+  loadMoreBtn: {
+    padding: spacing.md, borderRadius: borderRadius.md,
+    backgroundColor: colors.primary, alignItems: "center", marginTop: spacing.sm,
+  },
   loadMoreText: { color: "#fff", fontSize: 14, fontWeight: "600" },
-  spacer: { height: 40 },
 });

@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from "react-native";
+import { colors, typography, spacing, borderRadius } from "@/lib/theme";
 
 interface StatsCardProps {
   title: string;
@@ -10,10 +11,12 @@ interface StatsCardProps {
 export function StatsCard({ title, value, subtitle, color }: StatsCardProps) {
   return (
     <View style={styles.card}>
-      <View style={[styles.indicator, { backgroundColor: color }]} />
+      <View style={styles.top}>
+        <View style={[styles.dot, { backgroundColor: color }]} />
+        <Text style={styles.subtitle}>{subtitle}</Text>
+      </View>
       <Text style={styles.value}>{value}</Text>
       <Text style={styles.title}>{title}</Text>
-      <Text style={styles.subtitle}>{subtitle}</Text>
     </View>
   );
 }
@@ -21,31 +24,34 @@ export function StatsCard({ title, value, subtitle, color }: StatsCardProps) {
 const styles = StyleSheet.create({
   card: {
     width: "48%",
-    backgroundColor: "#111",
-    padding: 14,
-    borderRadius: 10,
+    backgroundColor: colors.surface,
+    padding: spacing.lg,
+    borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: "#333",
+    borderColor: colors.border,
   },
-  indicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginBottom: 8,
+  top: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    marginBottom: spacing.sm,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   value: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#ededed",
+    ...typography.mono,
+    fontSize: 28,
   },
   title: {
-    fontSize: 13,
-    color: "#ededed",
+    ...typography.caption,
     marginTop: 2,
   },
   subtitle: {
-    fontSize: 11,
-    color: "#888",
-    marginTop: 2,
+    ...typography.small,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
 });

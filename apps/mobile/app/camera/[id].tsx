@@ -1,10 +1,9 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   View, Text, StyleSheet, ActivityIndicator, TouchableOpacity,
   Alert, ScrollView, RefreshControl,
 } from "react-native";
 import { Video, ResizeMode, type AVPlaybackStatus } from "expo-av";
-import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import {
   fetchCameraById, fetchCameraAlerts, captureSnapshot,
@@ -14,6 +13,8 @@ import {
 import { statusColors, statusLabels, severityColors } from "@/lib/constants";
 import { STREAM_URL as CFG_STREAM_URL } from "@/lib/config";
 
+import { Play, Pause, Camera, StopCircle } from "lucide-react-native";
+
 export default function CameraDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [camera, setCamera] = useState<CameraItem | null>(null);
@@ -21,7 +22,7 @@ export default function CameraDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [videoRef, setVideoRef] = useState<Video | null>(null);
+  const videoRef = useRef<Video | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const [snapshotLoading, setSnapshotLoading] = useState(false);
@@ -71,9 +72,9 @@ export default function CameraDetailScreen() {
   };
 
   const togglePlay = async () => {
-    if (videoRef) {
-      if (isPlaying) { await videoRef.pauseAsync(); setIsPlaying(false); }
-      else { setVideoError(false); await videoRef.playAsync(); setIsPlaying(true); }
+    if (videoRef.current) {
+      if (isPlaying) { await videoRef.current.pauseAsync(); setIsPlaying(false); }
+      else { setVideoError(false); await videoRef.current.playAsync(); setIsPlaying(true); }
     }
   };
 
@@ -104,13 +105,13 @@ export default function CameraDetailScreen() {
 
       <View style={styles.videoContainer}>
         {streamUrl ? (
-          <Video ref={setVideoRef} style={styles.video} source={{ uri: streamUrl }}
+          <Video ref={videoRef} style={styles.video} source={{ uri: streamUrl }}
             rate={1.0} volume={1.0} isMuted={false} resizeMode={ResizeMode.CONTAIN}
             isLooping useNativeControls={false} onPlaybackStatusUpdate={onPlaybackStatusUpdate} />
         ) : null}
         {!isPlaying && !videoError && (
           <TouchableOpacity onPress={togglePlay} style={styles.playOverlay} accessibilityLabel="Lire le flux">
-            <Ionicons name="play-circle" size={64} color="#fff" />
+            <Play size={64} color="#fff" fill="rgba(255,255,255,0.2)" />
           </TouchableOpacity>
         )}
         {videoError && (
@@ -121,18 +122,18 @@ export default function CameraDetailScreen() {
         )}
         {isPlaying && (
           <TouchableOpacity onPress={togglePlay} style={styles.pauseOverlay} accessibilityLabel="Mettre en pause">
-            <Ionicons name="pause" size={28} color="#fff" />
+            <Pause size={28} color="#fff" />
           </TouchableOpacity>
         )}
       </View>
 
       <View style={styles.actionsRow}>
         <TouchableOpacity onPress={handleSnapshot} style={styles.actionBtn} disabled={snapshotLoading}>
-          {snapshotLoading ? <ActivityIndicator color="#fff" size="small" /> : <Ionicons name="camera" size={20} color="#fff" />}
+          {snapshotLoading ? <ActivityIndicator color="#fff" size="small" /> : <Camera size={20} color="#fff" />}
           <Text style={styles.actionBtnText}>Capture</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleToggleIngestion} style={[styles.actionBtn, camera.isRecording ? styles.stopBtn : styles.startBtn]} disabled={ingestionLoading}>
-          {ingestionLoading ? <ActivityIndicator color="#fff" size="small" /> : <Ionicons name={camera.isRecording ? "stop-circle" : "play-circle"} size={20} color="#fff" />}
+          {ingestionLoading ? <ActivityIndicator color="#fff" size="small" /> : camera.isRecording ? <StopCircle size={20} color="#fff" /> : <Play size={20} color="#fff" />}
           <Text style={styles.actionBtnText}>{camera.isRecording ? "Arreter" : "Analyser"}</Text>
         </TouchableOpacity>
       </View>

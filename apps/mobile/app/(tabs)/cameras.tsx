@@ -3,6 +3,8 @@ import { View, Text, ScrollView, StyleSheet, RefreshControl, ActivityIndicator, 
 import { useLocalSearchParams } from "expo-router";
 import { fetchCameras, type CameraItem } from "@/lib/api";
 import { CameraCard } from "@/components/camera-card";
+import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { Camera } from "lucide-react-native";
 
 const PAGE_SIZE = 20;
 
@@ -52,43 +54,84 @@ export default function CamerasScreen() {
   };
 
   if (loading && cameras.length === 0) {
-    return <View style={styles.centered}><ActivityIndicator color="#2563eb" size="large" /><Text style={styles.loadingText}>Chargement des cameras...</Text></View>;
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator color={colors.primary} size="large" />
+        <Text style={styles.loadingText}>Chargement des caméras...</Text>
+      </View>
+    );
   }
 
   return (
-    <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshCameras} tintColor="#2563eb" />}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scroll}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshCameras} tintColor={colors.primary} />}
+    >
       <View style={styles.header}>
-        <Text style={styles.title}>Cameras</Text>
-        <Text style={styles.subtitle}>{cameras.length}{total > cameras.length ? ` / ${total}` : ""} camera{cameras.length !== 1 ? "s" : ""}</Text>
+        <Camera size={20} color={colors.primary} />
+        <Text style={styles.title}>Caméras</Text>
+        <Text style={styles.count}>
+          {cameras.length}{total > cameras.length ? ` / ${total}` : ""}
+        </Text>
       </View>
-      {error && <View style={styles.errorBox}><Text style={styles.errorText}>{error}</Text></View>}
-      {cameras.map((camera) => <CameraCard key={camera.id} camera={camera} />)}
-      {!loading && !error && cameras.length === 0 && (
-        <View style={styles.empty}><Text style={styles.emptyText}>Aucune camera configuree</Text><Text style={styles.emptyHint}>Ajoutez des cameras depuis le tableau de bord</Text></View>
+
+      {error && (
+        <View style={styles.errorBox}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
       )}
+
+      {cameras.map((camera) => (
+        <CameraCard key={camera.id} camera={camera} />
+      ))}
+
+      {!loading && !error && cameras.length === 0 && (
+        <View style={styles.empty}>
+          <Camera size={40} color={colors.border} />
+          <Text style={styles.emptyTitle}>Aucune caméra configurée</Text>
+          <Text style={styles.emptyHint}>Ajoutez des caméras depuis le tableau de bord</Text>
+        </View>
+      )}
+
       {cameras.length < total && (
         <TouchableOpacity style={styles.loadMoreBtn} onPress={loadMore} disabled={loadingMore}>
-          {loadingMore ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.loadMoreText}>Charger plus ({total - cameras.length} restantes)</Text>}
+          {loadingMore ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Text style={styles.loadMoreText}>Charger plus ({total - cameras.length} restantes)</Text>
+          )}
         </TouchableOpacity>
       )}
-      <View style={styles.spacer} />
+      <View style={{ height: 24 }} />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0a0a0a" },
-  centered: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#0a0a0a" },
-  loadingText: { color: "#888", marginTop: 12, fontSize: 14 },
-  header: { padding: 20, paddingBottom: 10 },
-  title: { fontSize: 22, fontWeight: "bold", color: "#ededed" },
-  subtitle: { fontSize: 14, color: "#888", marginTop: 2 },
-  errorBox: { marginHorizontal: 20, marginBottom: 12, padding: 12, borderRadius: 8, backgroundColor: "rgba(239,68,68,0.1)", borderWidth: 1, borderColor: "#ef4444" },
-  errorText: { color: "#ef4444", fontSize: 14 },
+  container: { flex: 1, backgroundColor: colors.bg },
+  centered: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.bg },
+  loadingText: { ...typography.caption, marginTop: spacing.md },
+  scroll: { padding: spacing.lg },
+  header: {
+    flexDirection: "row", alignItems: "center", gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  title: { ...typography.h2, flex: 1 },
+  count: { ...typography.caption, fontWeight: "600" },
+  errorBox: {
+    padding: spacing.md, borderRadius: borderRadius.md,
+    backgroundColor: "rgba(239,68,68,0.1)",
+    borderWidth: 1, borderColor: colors.destructive,
+    marginBottom: spacing.md,
+  },
+  errorText: { color: colors.destructive, fontSize: 13 },
   empty: { padding: 40, alignItems: "center" },
-  emptyText: { color: "#888", fontSize: 14 },
-  emptyHint: { color: "#666", fontSize: 12, marginTop: 4 },
-  loadMoreBtn: { margin: 20, padding: 12, borderRadius: 8, backgroundColor: "#2563eb", alignItems: "center" },
+  emptyTitle: { ...typography.body, color: colors.textSecondary, marginTop: spacing.md },
+  emptyHint: { ...typography.small, marginTop: spacing.xs, textAlign: "center" },
+  loadMoreBtn: {
+    padding: spacing.md, borderRadius: borderRadius.md,
+    backgroundColor: colors.primary, alignItems: "center", marginTop: spacing.sm,
+  },
   loadMoreText: { color: "#fff", fontSize: 14, fontWeight: "600" },
-  spacer: { height: 40 },
 });

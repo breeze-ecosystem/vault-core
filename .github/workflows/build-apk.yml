@@ -44,6 +44,9 @@ jobs:
       - name: Prebuild Android project
         working-directory: apps/mobile
         run: npx expo prebuild --platform android --clean
+        env:
+          EXPO_PUBLIC_API_URL: https://oversight-api.digitsoftafrica.com/api
+          EXPO_PUBLIC_STREAM_URL: https://oversight-stream.digitsoftafrica.com
 
       - name: Build release APK
         working-directory: apps/mobile/android

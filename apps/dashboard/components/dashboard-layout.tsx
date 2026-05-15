@@ -1,20 +1,26 @@
 "use client";
 
-import { SidebarProvider, useSidebar } from "@/components/sidebar-provider";
-import { Sidebar, MobileSidebar } from "@/components/sidebar";
-import { Header } from "@/components/header";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { SidebarProvider } from "./sidebar-provider";
+import { Sidebar } from "./sidebar";
+import { Header } from "./header";
+import { useSidebar } from "./sidebar-provider";
+import { cn } from "@/lib/utils";
 
-function DashboardInner({ children }: { children: React.ReactNode }) {
+function DashboardShell({ children }: { children: React.ReactNode }) {
   const { isCollapsed } = useSidebar();
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="relative min-h-screen bg-background bg-grid">
+      <div className="absolute inset-0 bg-scan pointer-events-none" />
       <Sidebar />
-      <MobileSidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div
+        className={cn(
+          "relative flex flex-col transition-all duration-300",
+          isCollapsed ? "ml-16" : "ml-60"
+        )}
+      >
         <Header />
-        <main className="flex-1 overflow-auto p-3 sm:p-6">{children}</main>
+        <main className="flex-1 p-6 pt-4">{children}</main>
       </div>
     </div>
   );
@@ -22,10 +28,8 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <TooltipProvider>
-      <SidebarProvider>
-        <DashboardInner>{children}</DashboardInner>
-      </SidebarProvider>
-    </TooltipProvider>
+    <SidebarProvider>
+      <DashboardShell>{children}</DashboardShell>
+    </SidebarProvider>
   );
 }

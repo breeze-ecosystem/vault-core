@@ -5,9 +5,7 @@ import {
   getRefreshTokenAsync,
   clearAuth,
 } from "./auth-storage";
-import { API_URL as CFG_URL } from "@/lib/config";
-
-const API_BASE = CFG_URL.endsWith("/api") ? CFG_URL : `${CFG_URL}/api`;
+import { API_URL as API_BASE } from "@/lib/config";
 
 interface AuthResult {
   accessToken?: string;
@@ -19,6 +17,15 @@ interface AuthResult {
     role: string;
   };
   error?: string;
+}
+
+export function isTokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.exp * 1000 < Date.now();
+  } catch {
+    return true;
+  }
 }
 
 export async function login(email: string, password: string): Promise<AuthResult> {

@@ -2,20 +2,40 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import type { AlertItem } from "@/lib/api";
 import { severityColors } from "@/lib/constants";
+import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { AlertTriangle, AlertCircle, Info, OctagonAlert } from "lucide-react-native";
 
 interface AlertCardProps {
   alert: AlertItem;
 }
 
+const severityIcons: Record<string, React.ReactNode> = {
+  CRITICAL: <OctagonAlert size={16} color="#fff" />,
+  HIGH: <AlertTriangle size={16} color="#fff" />,
+  MEDIUM: <AlertCircle size={16} color="#fff" />,
+  LOW: <AlertCircle size={16} color={colors.text} />,
+  INFO: <Info size={16} color={colors.text} />,
+};
+
 export function AlertCard({ alert }: AlertCardProps) {
   const router = useRouter();
-  const color = severityColors[alert.severity] ?? "#6b7280";
+  const color = severityColors[alert.severity] ?? colors.textMuted;
 
   return (
-    <TouchableOpacity style={styles.card} onPress={() => router.push(`/alert/${alert.id}`)} activeOpacity={0.7}>
-      <View style={styles.header}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => router.push(`/alert/${alert.id}`)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.row}>
         <View style={[styles.badge, { backgroundColor: color }]}>
-          <Text style={styles.badgeText}>{alert.severity}</Text>
+          {severityIcons[alert.severity] ?? <AlertCircle size={16} color="#fff" />}
+        </View>
+        <View style={styles.content}>
+          <Text style={styles.title} numberOfLines={2}>{alert.title}</Text>
+          <Text style={styles.camera}>
+            {alert.camera?.name ?? "Caméra inconnue"}
+          </Text>
         </View>
         <Text style={styles.time}>
           {new Date(alert.createdAt).toLocaleDateString("fr-FR", {
@@ -26,53 +46,44 @@ export function AlertCard({ alert }: AlertCardProps) {
           })}
         </Text>
       </View>
-      <Text style={styles.title} numberOfLines={2}>
-        {alert.title}
-      </Text>
-      <Text style={styles.camera}>
-        {alert.camera?.name ?? "Camera inconnue"}
-      </Text>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#111",
-    padding: 14,
-    borderRadius: 10,
+    backgroundColor: colors.surface,
+    padding: spacing.lg,
+    borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: "#333",
-    marginBottom: 10,
+    borderColor: colors.border,
+    marginBottom: spacing.md,
   },
-  header: {
+  row: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    gap: spacing.md,
   },
   badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  badgeText: {
-    color: "#fff",
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  time: {
-    fontSize: 12,
-    color: "#888",
+  content: {
+    flex: 1,
   },
   title: {
-    fontSize: 14,
+    ...typography.body,
     fontWeight: "500",
-    color: "#ededed",
   },
   camera: {
-    fontSize: 12,
-    color: "#888",
-    marginTop: 4,
+    ...typography.small,
+    marginTop: 2,
+  },
+  time: {
+    ...typography.small,
+    fontSize: 10,
   },
 });

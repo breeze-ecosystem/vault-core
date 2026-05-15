@@ -47,12 +47,12 @@
       "expo-font"
     ],
     "extra": {
-      "apiUrl": "https://oversight-api.digitsoftafrica.com/api",
-      "streamUrl": "https://oversight-stream.digitsoftafrica.com",
       "router": {},
       "eas": {
         "projectId": "ab677ee6-a3d8-46f5-a1a3-bf212bd69217"
-      }
+      },
+      "apiUrl": "https://oversight-api.digitsoftafrica.com/api",
+      "streamUrl": "https://oversight-stream.digitsoftafrica.com"
     },
     "owner": "jmasto"
   }

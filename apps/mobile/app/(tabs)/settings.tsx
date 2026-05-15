@@ -3,9 +3,10 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert, TextInput, ScrollView,
 import Constants from "expo-constants";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { updatePassword } from "@/lib/api";
 import { API_URL } from "@/lib/config";
+import { colors } from "@/lib/theme";
+import { Bell, ChevronRight, Lock, ChevronUp, ChevronDown } from "lucide-react-native";
 
 export default function SettingsScreen() {
   const { user, logout } = useAuth();
@@ -50,7 +51,8 @@ export default function SettingsScreen() {
     }
     setPasswordLoading(true);
     try {
-      await updatePassword(user!.id, currentPassword, newPassword);
+      if (!user?.id) return;
+      await updatePassword(user.id, currentPassword, newPassword);
       Alert.alert("Succes", "Mot de passe modifie avec succes");
       setShowPasswordForm(false);
       setCurrentPassword("");
@@ -103,17 +105,17 @@ export default function SettingsScreen() {
         <Text style={styles.sectionTitle}>Parametres</Text>
         <TouchableOpacity style={styles.menuItem} onPress={() => router.push("/notifications")}>
           <View style={styles.menuItemLeft}>
-            <Ionicons name="notifications-outline" size={22} color="#888" />
+            <Bell size={22} color={colors.textMuted} />
             <Text style={styles.menuItemLabel}>Notifications</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#555" />
+          <ChevronRight size={20} color="#555" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem} onPress={() => setShowPasswordForm(!showPasswordForm)}>
           <View style={styles.menuItemLeft}>
-            <Ionicons name="lock-closed-outline" size={22} color="#888" />
+            <Lock size={22} color={colors.textMuted} />
             <Text style={styles.menuItemLabel}>Changer le mot de passe</Text>
           </View>
-          <Ionicons name={showPasswordForm ? "chevron-up" : "chevron-down"} size={20} color="#555" />
+          {showPasswordForm ? <ChevronUp size={20} color="#555" /> : <ChevronDown size={20} color="#555" />}
         </TouchableOpacity>
 
         {showPasswordForm && (
@@ -152,27 +154,27 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0a0a0a" },
+  container: { flex: 1, backgroundColor: colors.bg },
   section: { marginBottom: 30, paddingHorizontal: 20, paddingTop: 20 },
-  sectionTitle: { fontSize: 16, fontWeight: "600", color: "#888", textTransform: "uppercase", marginBottom: 12, letterSpacing: 0.5 },
-  profileCard: { flexDirection: "row", alignItems: "center", backgroundColor: "#111", padding: 16, borderRadius: 12, borderWidth: 1, borderColor: "#333" },
-  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: "#2563eb", alignItems: "center", justifyContent: "center", marginRight: 14 },
+  sectionTitle: { fontSize: 16, fontWeight: "600", color: colors.textMuted, textTransform: "uppercase", marginBottom: 12, letterSpacing: 0.5 },
+  profileCard: { flexDirection: "row", alignItems: "center", backgroundColor: colors.surface, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: colors.border },
+  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", marginRight: 14 },
   avatarText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
   profileInfo: { flex: 1 },
-  profileName: { fontSize: 16, fontWeight: "600", color: "#ededed" },
-  profileEmail: { fontSize: 13, color: "#888", marginTop: 2 },
-  profileRole: { fontSize: 12, color: "#2563eb", marginTop: 4, fontWeight: "500" },
-  infoRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#222" },
-  infoLabel: { fontSize: 15, color: "#ededed" },
-  infoValue: { fontSize: 15, color: "#888" },
-  menuItem: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: "#222" },
+  profileName: { fontSize: 16, fontWeight: "600", color: colors.text },
+  profileEmail: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
+  profileRole: { fontSize: 12, color: colors.primary, marginTop: 4, fontWeight: "500" },
+  infoRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border },
+  infoLabel: { fontSize: 15, color: colors.text },
+  infoValue: { fontSize: 15, color: colors.textMuted },
+  menuItem: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.border },
   menuItemLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
-  menuItemLabel: { fontSize: 16, color: "#ededed" },
+  menuItemLabel: { fontSize: 16, color: colors.text },
   passwordForm: { marginTop: 12, gap: 10 },
-  input: { padding: 12, borderRadius: 8, borderWidth: 1, borderColor: "#333", backgroundColor: "#0a0a0a", color: "#ededed", fontSize: 15 },
-  savePwdBtn: { padding: 12, borderRadius: 8, backgroundColor: "#2563eb", alignItems: "center" },
+  input: { padding: 12, borderRadius: 8, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.bg, color: colors.text, fontSize: 15 },
+  savePwdBtn: { padding: 12, borderRadius: 8, backgroundColor: colors.primary, alignItems: "center" },
   savePwdBtnDisabled: { opacity: 0.7 },
   savePwdText: { color: "#fff", fontSize: 15, fontWeight: "600" },
-  logoutButton: { backgroundColor: "#dc2626", padding: 14, borderRadius: 8, alignItems: "center", marginHorizontal: 20 },
+  logoutButton: { backgroundColor: colors.destructive, padding: 14, borderRadius: 8, alignItems: "center", marginHorizontal: 20 },
   logoutText: { color: "#fff", fontSize: 16, fontWeight: "600" },
 });

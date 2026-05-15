@@ -10,6 +10,8 @@ import { useAuth } from "@/lib/auth-context";
 import { fetchDashboardStats, type DashboardStats } from "@/lib/api";
 import { StatsCard } from "@/components/stats-card";
 import { AlertCard } from "@/components/alert-card";
+import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { Shield, Activity } from "lucide-react-native";
 
 export default function HomeScreen() {
   const { user } = useAuth();
@@ -44,89 +46,136 @@ export default function HomeScreen() {
     }
   }
 
-  useEffect(() => {
-    loadStats();
-  }, []);
+  useEffect(() => { loadStats(); }, []);
 
   return (
-    <ScrollView
-      style={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshStats} tintColor="#2563eb" />}
-    >
-      <View style={styles.header}>
-        <Text style={styles.greeting}>
-          Bonjour, {user?.firstName ?? "Utilisateur"}
-        </Text>
-        <Text style={styles.role}>{user?.role ?? ""}</Text>
-      </View>
-
-      {error && (
-        <View style={styles.errorBox}>
-          <Text style={styles.errorText}>{error}</Text>
+    <View style={styles.container}>
+      <View style={styles.headerBar}>
+        <View>
+          <Text style={styles.greeting}>
+            Bonjour, {user?.firstName ?? "Utilisateur"}
+          </Text>
+          <Text style={styles.role}>{user?.role ?? ""}</Text>
         </View>
-      )}
-
-      <View style={styles.statsGrid}>
-        <StatsCard
-          title="Cameras"
-          value={stats ? `${stats.cameras.online}/${stats.cameras.total}` : "—"}
-          subtitle="en ligne"
-          color="#22c55e"
-        />
-        <StatsCard
-          title="Alertes"
-          value={stats ? String(stats.alerts.open) : "—"}
-          subtitle="actives"
-          color="#f97316"
-        />
-        <StatsCard
-          title="Sites"
-          value={stats ? String(stats.sites.active) : "—"}
-          subtitle="actifs"
-          color="#3b82f6"
-        />
-        <StatsCard
-          title="Utilisateurs"
-          value={stats ? String(stats.users.total) : "—"}
-          subtitle="total"
-          color="#a855f7"
-        />
+        <View style={styles.logoWrap}>
+          <Shield size={20} color={colors.primary} />
+        </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Alertes recentes</Text>
-        {stats?.recentAlerts.map((alert) => (
-          <AlertCard key={alert.id} alert={alert} />
-        ))}
-        {stats && stats.recentAlerts.length === 0 && (
-          <Text style={styles.emptyText}>Aucune alerte recente</Text>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={refreshStats} tintColor={colors.primary} />
+        }
+      >
+        {error && (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
         )}
-      </View>
-    </ScrollView>
+
+        {loading && !refreshing ? (
+          <View style={styles.loadingGrid}>
+            {[1, 2, 3, 4].map((i) => (
+              <View key={i} style={styles.skeleton} />
+            ))}
+          </View>
+        ) : (
+          <>
+            <View style={styles.statsGrid}>
+              <StatsCard
+                title="Caméras"
+                value={stats ? `${stats.cameras.online}/${stats.cameras.total}` : "—"}
+                subtitle="en ligne"
+                color={colors.success}
+              />
+              <StatsCard
+                title="Alertes"
+                value={stats ? String(stats.alerts.open) : "—"}
+                subtitle="actives"
+                color={colors.warning}
+              />
+              <StatsCard
+                title="Sites"
+                value={stats ? String(stats.sites.active) : "—"}
+                subtitle="actifs"
+                color={colors.primary}
+              />
+              <StatsCard
+                title="Utilisateurs"
+                value={stats ? String(stats.users.total) : "—"}
+                subtitle="total"
+                color={colors.info}
+              />
+            </View>
+
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Activity size={16} color={colors.primary} />
+                <Text style={styles.sectionTitle}>Alertes récentes</Text>
+              </View>
+              {stats?.recentAlerts.map((alert) => (
+                <AlertCard key={alert.id} alert={alert} />
+              ))}
+              {stats && stats.recentAlerts.length === 0 && (
+                <View style={styles.empty}>
+                  <Text style={styles.emptyText}>Aucune alerte récente</Text>
+                </View>
+              )}
+            </View>
+          </>
+        )}
+        <View style={{ height: 24 }} />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0a0a0a" },
-  header: { padding: 20, paddingBottom: 10 },
-  greeting: { fontSize: 22, fontWeight: "bold", color: "#ededed" },
-  role: { fontSize: 13, color: "#888", marginTop: 2 },
-  errorBox: {
-    marginHorizontal: 20,
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: "rgba(239,68,68,0.1)",
-    borderWidth: 1,
-    borderColor: "#ef4444",
-  },
-  errorText: { color: "#ef4444", fontSize: 14 },
-  statsGrid: {
+  container: { flex: 1, backgroundColor: colors.bg },
+  headerBar: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    padding: 12,
-    gap: 10,
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.md,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  section: { padding: 20, paddingTop: 10 },
-  sectionTitle: { fontSize: 18, fontWeight: "600", color: "#ededed", marginBottom: 12 },
-  emptyText: { color: "#888", fontSize: 14, textAlign: "center", paddingVertical: 20 },
+  greeting: { ...typography.h2, fontSize: 20 },
+  role: { ...typography.caption, marginTop: 2, textTransform: "capitalize" },
+  logoWrap: {
+    width: 36, height: 36, borderRadius: 10,
+    backgroundColor: "rgba(6,182,212,0.1)",
+    alignItems: "center", justifyContent: "center",
+    borderWidth: 1, borderColor: "rgba(6,182,212,0.2)",
+  },
+  scroll: { padding: spacing.lg, paddingTop: spacing.md },
+  errorBox: {
+    padding: spacing.md, borderRadius: borderRadius.md,
+    backgroundColor: "rgba(239,68,68,0.1)",
+    borderWidth: 1, borderColor: colors.destructive,
+    marginBottom: spacing.md,
+  },
+  errorText: { color: colors.destructive, fontSize: 13 },
+  loadingGrid: {
+    flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: spacing.xl,
+  },
+  skeleton: {
+    width: "48%", height: 100, borderRadius: borderRadius.lg,
+    backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border,
+  },
+  statsGrid: {
+    flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: spacing.xl,
+  },
+  section: { marginBottom: spacing.md },
+  sectionHeader: {
+    flexDirection: "row", alignItems: "center", gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  sectionTitle: { ...typography.label, fontSize: 12, color: colors.textSecondary },
+  empty: { padding: 40, alignItems: "center" },
+  emptyText: { ...typography.caption },
 });

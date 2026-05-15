@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import {
   View, Text, TextInput, TouchableOpacity, FlatList,
-  StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform,
+  StyleSheet, ActivityIndicator, KeyboardAvoidingView,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { sendChatMessage, fetchChatCameras, type ChatCamera, type ChatResponse } from "@/lib/api";
+import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { Bot, User, Trash2, ChevronUp, ChevronDown, Send } from "lucide-react-native";
 
 interface Message {
   id: string;
@@ -25,22 +26,18 @@ export default function ChatScreen() {
   const [cameras, setCameras] = useState<ChatCamera[]>([]);
   const [selectedCameraId, setSelectedCameraId] = useState<string | undefined>();
   const [camerasOpen, setCamerasOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
-    fetchChatCameras().then(setCameras).catch(() => {});
+    fetchChatCameras().then(setCameras).catch((err) => console.warn("Failed to load cameras:", err));
   }, []);
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
-
     const userMsg: Message = { id: Date.now().toString(), role: "user", content: input.trim() };
     setMessages(prev => [...prev, userMsg]);
     setInput("");
     setLoading(true);
-    setError(null);
-
     const history = messages.slice(-6).map(m => m.content);
 
     try {
@@ -49,13 +46,11 @@ export default function ChatScreen() {
         cameraId: selectedCameraId,
         history,
       });
-
       let cameraName: string | undefined;
       if (res.camerasQueried.length > 0) {
         const cam = cameras.find(c => c.id === res.camerasQueried[0]);
         cameraName = cam?.name ?? res.camerasQueried[0];
       }
-
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: "assistant",
@@ -81,15 +76,17 @@ export default function ChatScreen() {
       content: "Bonjour ! Je suis votre assistant IA OVERSIGHT. Posez-moi une question sur vos caméras ou sites de surveillance.",
     }]);
     setSelectedCameraId(undefined);
-    setError(null);
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={90}>
+    <KeyboardAvoidingView style={styles.container} behavior={process.env.EXPO_OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={90}>
       <View style={styles.header}>
-        <Text style={styles.title}>Chat IA</Text>
+        <View style={styles.headerLeft}>
+          <Bot size={20} color={colors.primary} />
+          <Text style={styles.title}>Chat IA</Text>
+        </View>
         <TouchableOpacity onPress={clearChat} style={styles.clearBtn}>
-          <Ionicons name="trash-outline" size={18} color="#888" />
+          <Trash2 size={18} color={colors.textMuted} />
         </TouchableOpacity>
       </View>
 
@@ -102,16 +99,28 @@ export default function ChatScreen() {
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
         renderItem={({ item }) => (
           <View style={[styles.messageRow, item.role === "user" ? styles.userRow : styles.assistantRow]}>
+            {item.role === "assistant" && (
+              <View style={styles.avatarBot}>
+                <Bot size={14} color={colors.primary} />
+              </View>
+            )}
             <View style={[styles.messageBubble, item.role === "user" ? styles.userBubble : styles.assistantBubble]}>
-              <Text style={[styles.messageText, item.role === "user" ? styles.userText : styles.assistantText]}>{item.content}</Text>
+              <Text style={[styles.messageText, item.role === "user" ? styles.userText : styles.assistantText]}>
+                {item.content}
+              </Text>
               {item.cameraName && <Text style={styles.cameraRef}>Caméra : {item.cameraName}</Text>}
               {item.snapshotIncluded && <Text style={styles.snapshotRef}>Image analysée</Text>}
             </View>
+            {item.role === "user" && (
+              <View style={styles.avatarUser}>
+                <User size={14} color="#fff" />
+              </View>
+            )}
           </View>
         )}
         ListFooterComponent={loading ? (
           <View style={styles.typingIndicator}>
-            <ActivityIndicator color="#888" size="small" />
+            <ActivityIndicator color={colors.primary} size="small" />
             <Text style={styles.typingText}>L'IA réfléchit...</Text>
           </View>
         ) : null}
@@ -120,9 +129,9 @@ export default function ChatScreen() {
       <View style={styles.inputBar}>
         <TouchableOpacity style={styles.cameraSelector} onPress={() => setCamerasOpen(!camerasOpen)}>
           <Text style={styles.cameraSelectorText} numberOfLines={1}>
-            {selectedCameraId ? cameras.find(c => c.id === selectedCameraId)?.name ?? "Caméra" : "Toutes"}
+            {selectedCameraId ? cameras.find(c => c.id === selectedCameraId)?.name ?? "Caméra" : "Toutes les caméras"}
           </Text>
-          <Ionicons name={camerasOpen ? "chevron-up" : "chevron-down"} size={14} color="#888" />
+          {camerasOpen ? <ChevronUp size={14} color={colors.textMuted} /> : <ChevronDown size={14} color={colors.textMuted} />}
         </TouchableOpacity>
         {camerasOpen && (
           <View style={styles.cameraDropdown}>
@@ -140,15 +149,18 @@ export default function ChatScreen() {
           <TextInput
             style={styles.input}
             placeholder="Posez une question..."
-            placeholderTextColor="#666"
+            placeholderTextColor={colors.textMuted}
             value={input}
             onChangeText={setInput}
             returnKeyType="send"
             onSubmitEditing={sendMessage}
-            multiline={false}
           />
-          <TouchableOpacity style={[styles.sendBtn, (!input.trim() || loading) && styles.sendBtnDisabled]} onPress={sendMessage} disabled={!input.trim() || loading}>
-            <Ionicons name="send" size={20} color="#fff" />
+          <TouchableOpacity
+            style={[styles.sendBtn, (!input.trim() || loading) && styles.sendBtnDisabled]}
+            onPress={sendMessage}
+            disabled={!input.trim() || loading}
+          >
+            <Send size={20} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
@@ -157,34 +169,64 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0a0a0a" },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: "#222" },
-  title: { fontSize: 20, fontWeight: "bold", color: "#ededed" },
-  clearBtn: { padding: 8 },
+  container: { flex: 1, backgroundColor: colors.bg },
+  header: {
+    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
+    padding: spacing.lg, borderBottomWidth: 1, borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  headerLeft: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  title: { ...typography.h3 },
+  clearBtn: { padding: spacing.xs },
   messageList: { flex: 1 },
-  messageListContent: { padding: 16, paddingBottom: 8 },
-  messageRow: { marginBottom: 12 },
-  userRow: { alignItems: "flex-end" },
-  assistantRow: { alignItems: "flex-start" },
-  messageBubble: { maxWidth: "85%", padding: 12, borderRadius: 12 },
-  userBubble: { backgroundColor: "#2563eb", borderBottomRightRadius: 4 },
-  assistantBubble: { backgroundColor: "#1a1a2e", borderBottomLeftRadius: 4, borderWidth: 1, borderColor: "#333" },
+  messageListContent: { padding: spacing.lg, paddingBottom: spacing.sm },
+  messageRow: { flexDirection: "row", marginBottom: spacing.md, gap: spacing.sm },
+  userRow: { justifyContent: "flex-end" },
+  assistantRow: { justifyContent: "flex-start" },
+  avatarBot: {
+    width: 28, height: 28, borderRadius: 8,
+    backgroundColor: "rgba(6,182,212,0.1)",
+    alignItems: "center", justifyContent: "center",
+    alignSelf: "flex-end",
+  },
+  avatarUser: {
+    width: 28, height: 28, borderRadius: 8,
+    backgroundColor: colors.primary,
+    alignItems: "center", justifyContent: "center",
+    alignSelf: "flex-end",
+  },
+  messageBubble: { maxWidth: "80%", padding: spacing.md, borderRadius: borderRadius.lg },
+  userBubble: { backgroundColor: colors.primary, borderBottomRightRadius: 4 },
+  assistantBubble: { backgroundColor: colors.surface, borderBottomLeftRadius: 4, borderWidth: 1, borderColor: colors.border },
   messageText: { fontSize: 15, lineHeight: 21 },
   userText: { color: "#fff" },
-  assistantText: { color: "#e0e0e0" },
-  cameraRef: { marginTop: 6, fontSize: 12, color: "#888", fontStyle: "italic" },
-  snapshotRef: { marginTop: 2, fontSize: 11, color: "#666", fontStyle: "italic" },
-  typingIndicator: { flexDirection: "row", alignItems: "center", paddingVertical: 8, paddingLeft: 4, gap: 8 },
-  typingText: { color: "#888", fontSize: 13, fontStyle: "italic" },
-  inputBar: { borderTopWidth: 1, borderTopColor: "#222", padding: 12, paddingBottom: 24, backgroundColor: "#111" },
-  cameraSelector: { flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 8, paddingHorizontal: 4 },
-  cameraSelectorText: { color: "#888", fontSize: 13, fontWeight: "500", maxWidth: 180 },
-  cameraDropdown: { backgroundColor: "#1a1a2e", borderRadius: 8, borderWidth: 1, borderColor: "#333", marginBottom: 8 },
-  cameraOption: { padding: 10, borderBottomWidth: 1, borderBottomColor: "#222" },
-  cameraOptionText: { color: "#aaa", fontSize: 14 },
-  cameraOptionActive: { color: "#2563eb", fontWeight: "600" },
-  inputRow: { flexDirection: "row", gap: 8 },
-  input: { flex: 1, backgroundColor: "#0a0a0a", borderRadius: 8, paddingHorizontal: 14, paddingVertical: 10, color: "#ededed", fontSize: 15, borderWidth: 1, borderColor: "#333" },
-  sendBtn: { backgroundColor: "#2563eb", borderRadius: 8, width: 44, alignItems: "center", justifyContent: "center" },
+  assistantText: { color: colors.text },
+  cameraRef: { marginTop: spacing.sm, fontSize: 12, color: colors.textMuted, fontStyle: "italic" },
+  snapshotRef: { marginTop: 2, fontSize: 11, color: colors.textMuted, fontStyle: "italic" },
+  typingIndicator: { flexDirection: "row", alignItems: "center", paddingVertical: spacing.sm, gap: spacing.sm },
+  typingText: { ...typography.caption, fontStyle: "italic" },
+  inputBar: {
+    borderTopWidth: 1, borderTopColor: colors.border,
+    padding: spacing.md, paddingBottom: 24, backgroundColor: colors.surface,
+  },
+  cameraSelector: { flexDirection: "row", alignItems: "center", gap: 4, marginBottom: spacing.sm },
+  cameraSelectorText: { ...typography.caption, maxWidth: 200 },
+  cameraDropdown: {
+    backgroundColor: colors.elevated, borderRadius: borderRadius.md,
+    borderWidth: 1, borderColor: colors.border, marginBottom: spacing.sm,
+  },
+  cameraOption: { padding: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
+  cameraOptionText: { ...typography.caption, fontSize: 14 },
+  cameraOptionActive: { color: colors.primary, fontWeight: "600" },
+  inputRow: { flexDirection: "row", gap: spacing.sm },
+  input: {
+    flex: 1, backgroundColor: colors.bg, borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md, paddingVertical: 10, color: colors.text,
+    fontSize: 15, borderWidth: 1, borderColor: colors.border,
+  },
+  sendBtn: {
+    backgroundColor: colors.primary, borderRadius: borderRadius.md,
+    width: 44, alignItems: "center", justifyContent: "center",
+  },
   sendBtnDisabled: { opacity: 0.5 },
 });

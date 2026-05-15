@@ -1,19 +1,17 @@
 import { useState, useRef } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  ActivityIndicator,
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  Alert, ActivityIndicator, KeyboardAvoidingView,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/lib/auth-context";
+import { Shield, Eye, EyeOff } from "lucide-react-native";
+import { colors, typography, spacing, borderRadius } from "@/lib/theme";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
@@ -24,7 +22,6 @@ export default function LoginScreen() {
       Alert.alert("Erreur", "Veuillez remplir tous les champs");
       return;
     }
-
     setLoading(true);
     try {
       const result = await login(email, password);
@@ -33,46 +30,68 @@ export default function LoginScreen() {
       } else {
         router.replace("/(tabs)");
       }
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Connexion impossible";
-      console.warn("[login] error:", msg);
-      Alert.alert("Erreur", msg);
+    } catch {
+      Alert.alert("Erreur", "Connexion impossible");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.form}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={process.env.EXPO_OS === "ios" ? "padding" : undefined}
+    >
+      <View style={styles.header}>
+        <View style={styles.logoWrap}>
+          <Shield size={28} color={colors.primary} />
+        </View>
         <Text style={styles.title}>OVERSIGHT AI</Text>
-        <Text style={styles.subtitle}>Connexion</Text>
+        <Text style={styles.subtitle}>Plateforme de surveillance intelligente</Text>
+      </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#888"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          returnKeyType="next"
-          onSubmitEditing={() => passwordRef.current?.focus()}
-          accessibilityLabel="Adresse email"
-        />
+      <View style={styles.form}>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>EMAIL</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="vous@exemple.com"
+            placeholderTextColor={colors.textMuted}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            returnKeyType="next"
+            onSubmitEditing={() => passwordRef.current?.focus()}
+          />
+        </View>
 
-        <TextInput
-          ref={passwordRef}
-          style={styles.input}
-          placeholder="Mot de passe"
-          placeholderTextColor="#888"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          returnKeyType="go"
-          onSubmitEditing={handleLogin}
-          accessibilityLabel="Mot de passe"
-        />
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>MOT DE PASSE</Text>
+          <View style={styles.passwordWrap}>
+            <TextInput
+              ref={passwordRef}
+              style={styles.passwordInput}
+              placeholder="••••••••"
+              placeholderTextColor={colors.textMuted}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              returnKeyType="go"
+              onSubmitEditing={handleLogin}
+            />
+            <TouchableOpacity
+              style={styles.eyeBtn}
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? (
+                <EyeOff size={18} color={colors.textMuted} />
+              ) : (
+                <Eye size={18} color={colors.textMuted} />
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
 
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
@@ -85,77 +104,101 @@ export default function LoginScreen() {
             <Text style={styles.buttonText}>Se connecter</Text>
           )}
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.linkBtn} onPress={() => router.push("/register")}>
-          <Text style={styles.linkText}>Pas de compte ? Creer un compte</Text>
-        </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.bg,
     justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#0a0a0a",
-    padding: 16,
+    padding: spacing.xl,
   },
-  form: {
-    width: "100%",
-    maxWidth: 400,
-    padding: 24,
-    borderRadius: 8,
+  header: {
+    alignItems: "center",
+    marginBottom: 32,
+  },
+  logoWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: "rgba(6,182,212,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#333",
-    backgroundColor: "#111",
+    borderColor: "rgba(6,182,212,0.2)",
   },
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#ededed",
-    textAlign: "center",
+    ...typography.h1,
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 14,
-    color: "#888",
-    textAlign: "center",
-    marginBottom: 24,
+    ...typography.caption,
+  },
+  form: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  inputGroup: {
+    marginBottom: spacing.lg,
+  },
+  label: {
+    ...typography.label,
+    marginBottom: spacing.sm,
   },
   input: {
-    width: "100%",
-    padding: 10,
-    borderRadius: 4,
+    height: 44,
+    backgroundColor: colors.bg,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: "#333",
-    backgroundColor: "#0a0a0a",
-    color: "#ededed",
-    fontSize: 16,
-    marginBottom: 16,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+    color: colors.text,
+    fontSize: 15,
   },
-  button: {
-    width: "100%",
-    padding: 12,
-    borderRadius: 4,
-    backgroundColor: "#2563eb",
+  passwordWrap: {
+    position: "relative",
+    flexDirection: "row",
     alignItems: "center",
   },
+  passwordInput: {
+    flex: 1,
+    height: 44,
+    backgroundColor: colors.bg,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+    color: colors.text,
+    fontSize: 15,
+    paddingRight: 44,
+  },
+  eyeBtn: {
+    position: "absolute",
+    right: 12,
+    height: 44,
+    justifyContent: "center",
+  },
+  button: {
+    height: 44,
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.md,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: spacing.xs,
+  },
   buttonDisabled: {
-    opacity: 0.7,
+    opacity: 0.6,
   },
   buttonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600",
-  },
-  linkBtn: {
-    marginTop: 16,
-    alignItems: "center",
-  },
-  linkText: {
-    color: "#2563eb",
-    fontSize: 14,
   },
 });

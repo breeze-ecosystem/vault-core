@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { View, Text, ScrollView, StyleSheet, RefreshControl, ActivityIndicator, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { fetchSites, type SiteItem } from "@/lib/api";
 import { siteStatusColor } from "@/lib/constants";
+import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { MapPin, ChevronRight, Camera } from "lucide-react-native";
 
 const PAGE_SIZE = 20;
 
@@ -36,28 +37,37 @@ export default function SitesScreen() {
   }, []);
 
   useEffect(() => { loadSites(); }, [loadSites]);
-
-  const refreshSites = async () => {
-    setRefreshing(true);
-    await loadSites(1);
-    setRefreshing(false);
-  };
-
-  const loadMore = () => {
-    if (loadingMore || sites.length >= total) return;
-    loadSites(page + 1, true);
-  };
-
-  function handleSitePress(site: SiteItem) { router.push(`/(tabs)/cameras?siteId=${site.id}`); }
+  const refreshSites = async () => { setRefreshing(true); await loadSites(1); setRefreshing(false); };
+  const loadMore = () => { if (loadingMore || sites.length >= total) return; loadSites(page + 1, true); };
+  const handleSitePress = (site: SiteItem) => router.push(`/(tabs)/cameras?siteId=${site.id}`);
 
   if (loading && sites.length === 0) {
-    return <View style={styles.centered}><ActivityIndicator color="#2563eb" size="large" /><Text style={styles.loadingText}>Chargement des sites...</Text></View>;
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator color={colors.primary} size="large" />
+        <Text style={styles.loadingText}>Chargement des sites...</Text>
+      </View>
+    );
   }
 
   return (
-    <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshSites} tintColor="#2563eb" />}>
-      <View style={styles.header}><Text style={styles.title}>Sites</Text><Text style={styles.subtitle}>{sites.length}{total > sites.length ? ` / ${total}` : ""} site{sites.length !== 1 ? "s" : ""}</Text></View>
-      {error && <View style={styles.errorBox}><Text style={styles.errorText}>{error}</Text></View>}
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scroll}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshSites} tintColor={colors.primary} />}
+    >
+      <View style={styles.header}>
+        <MapPin size={20} color={colors.primary} />
+        <Text style={styles.title}>Sites</Text>
+        <Text style={styles.count}>{sites.length}{total > sites.length ? ` / ${total}` : ""}</Text>
+      </View>
+
+      {error && (
+        <View style={styles.errorBox}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
+
       {sites.map((site) => {
         const cameraCount = site._count?.cameras ?? site.cameras?.length ?? 0;
         return (
@@ -66,54 +76,81 @@ export default function SitesScreen() {
               <View style={[styles.statusDot, { backgroundColor: siteStatusColor(site.isActive) }]} />
               <View style={styles.cardContent}>
                 <Text style={styles.siteName}>{site.name}</Text>
-                {site.city && <Text style={styles.siteLocation}>{site.city}{site.country ? `, ${site.country}` : ""}</Text>}
-                {site.address && <Text style={styles.siteAddress}>{site.address}</Text>}
+                {(site.city || site.country) && (
+                  <Text style={styles.siteLocation}>
+                    {[site.city, site.country].filter(Boolean).join(", ")}
+                  </Text>
+                )}
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#555" />
+              <ChevronRight size={18} color={colors.textMuted} />
             </View>
             <View style={styles.cardFooter}>
-              <Text style={styles.cameraCount}><Ionicons name="videocam" size={12} color="#3b82f6" /> {cameraCount} caméra{cameraCount !== 1 ? "s" : ""}</Text>
-              <Text style={[styles.statusText, { color: site.isActive ? "#22c55e" : "#6b7280" }]}>{site.isActive ? "Actif" : "Inactif"}</Text>
+              <View style={styles.metaItem}>
+                <Camera size={12} color={colors.primary} />
+                <Text style={styles.metaText}> {cameraCount} caméra{cameraCount !== 1 ? "s" : ""}</Text>
+              </View>
+              <Text style={[styles.statusText, { color: site.isActive ? colors.success : colors.textMuted }]}>
+                {site.isActive ? "Actif" : "Inactif"}
+              </Text>
             </View>
           </TouchableOpacity>
         );
       })}
+
       {!loading && !error && sites.length === 0 && (
-        <View style={styles.empty}><Text style={styles.emptyText}>Aucun site configure</Text><Text style={styles.emptyHint}>Ajoutez des sites depuis le tableau de bord</Text></View>
+        <View style={styles.empty}>
+          <MapPin size={40} color={colors.border} />
+          <Text style={styles.emptyTitle}>Aucun site configuré</Text>
+          <Text style={styles.emptyHint}>Ajoutez des sites depuis le tableau de bord</Text>
+        </View>
       )}
+
       {sites.length < total && (
         <TouchableOpacity style={styles.loadMoreBtn} onPress={loadMore} disabled={loadingMore}>
           {loadingMore ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.loadMoreText}>Charger plus ({total - sites.length} restants)</Text>}
         </TouchableOpacity>
       )}
-      <View style={styles.spacer} />
+      <View style={{ height: 24 }} />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0a0a0a" },
-  centered: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#0a0a0a" },
-  loadingText: { color: "#888", marginTop: 12, fontSize: 14 },
-  header: { padding: 20, paddingBottom: 10 },
-  title: { fontSize: 22, fontWeight: "bold", color: "#ededed" },
-  subtitle: { fontSize: 14, color: "#888", marginTop: 2 },
-  errorBox: { marginHorizontal: 20, marginBottom: 12, padding: 12, borderRadius: 8, backgroundColor: "rgba(239,68,68,0.1)", borderWidth: 1, borderColor: "#ef4444" },
-  errorText: { color: "#ef4444", fontSize: 14 },
-  card: { backgroundColor: "#111", padding: 14, borderRadius: 10, borderWidth: 1, borderColor: "#333", marginHorizontal: 20, marginBottom: 10 },
-  cardRow: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
-  statusDot: { width: 10, height: 10, borderRadius: 5, marginTop: 4 },
+  container: { flex: 1, backgroundColor: colors.bg },
+  centered: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.bg },
+  loadingText: { ...typography.caption, marginTop: spacing.md },
+  scroll: { padding: spacing.lg },
+  header: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginBottom: spacing.lg },
+  title: { ...typography.h2, flex: 1 },
+  count: { ...typography.caption, fontWeight: "600" },
+  errorBox: {
+    padding: spacing.md, borderRadius: borderRadius.md,
+    backgroundColor: "rgba(239,68,68,0.1)", borderWidth: 1, borderColor: colors.destructive,
+    marginBottom: spacing.md,
+  },
+  errorText: { color: colors.destructive, fontSize: 13 },
+  card: {
+    backgroundColor: colors.surface, padding: spacing.lg, borderRadius: borderRadius.lg,
+    borderWidth: 1, borderColor: colors.border, marginBottom: spacing.md,
+  },
+  cardRow: { flexDirection: "row", alignItems: "flex-start", gap: spacing.md },
+  statusDot: { width: 8, height: 8, borderRadius: 4, marginTop: 5 },
   cardContent: { flex: 1 },
-  siteName: { fontSize: 16, fontWeight: "600", color: "#ededed" },
-  siteLocation: { fontSize: 13, color: "#888", marginTop: 2 },
-  siteAddress: { fontSize: 12, color: "#666", marginTop: 1 },
-  cardFooter: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: "#222" },
-  cameraCount: { fontSize: 13, color: "#3b82f6", fontWeight: "500" },
-  statusText: { fontSize: 13, fontWeight: "600" },
+  siteName: { ...typography.body, fontWeight: "600" },
+  siteLocation: { ...typography.small, marginTop: 2 },
+  cardFooter: {
+    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
+    marginTop: spacing.md, paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.border,
+  },
+  metaItem: { flexDirection: "row", alignItems: "center" },
+  metaText: { ...typography.small, color: colors.primary, fontWeight: "500" },
+  statusText: { ...typography.small, fontWeight: "600" },
   empty: { padding: 40, alignItems: "center" },
-  emptyText: { color: "#888", fontSize: 14 },
-  emptyHint: { color: "#666", fontSize: 12, marginTop: 4 },
-  loadMoreBtn: { margin: 20, padding: 12, borderRadius: 8, backgroundColor: "#2563eb", alignItems: "center" },
+  emptyTitle: { ...typography.body, color: colors.textSecondary, marginTop: spacing.md },
+  emptyHint: { ...typography.small, marginTop: spacing.xs, textAlign: "center" },
+  loadMoreBtn: {
+    padding: spacing.md, borderRadius: borderRadius.md,
+    backgroundColor: colors.primary, alignItems: "center", marginTop: spacing.sm,
+  },
   loadMoreText: { color: "#fff", fontSize: 14, fontWeight: "600" },
-  spacer: { height: 40 },
 });

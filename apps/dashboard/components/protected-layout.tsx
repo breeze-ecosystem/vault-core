@@ -1,8 +1,9 @@
 "use client";
 
-import { useAuth } from "@/lib/auth-context";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/use-auth";
+import { Loader2 } from "lucide-react";
 
 export function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -10,14 +11,17 @@ export function ProtectedLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push("/login");
+      router.replace("/login");
     }
   }, [isLoading, isAuthenticated, router]);
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="text-center animate-fade-in">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+          <p className="mt-3 text-sm text-muted-foreground">Chargement...</p>
+        </div>
       </div>
     );
   }

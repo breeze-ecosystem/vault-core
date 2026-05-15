@@ -3,7 +3,7 @@ import {
   getUserAsync,
   getAccessTokenAsync,
 } from "@/lib/auth-storage";
-import { login as apiLogin, refreshTokens, logout as apiLogout } from "@/lib/auth-client";
+import { login as apiLogin, refreshTokens, logout as apiLogout, isTokenExpired } from "@/lib/auth-client";
 
 interface User {
   id: string;
@@ -35,20 +35,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     async function init() {
-      const stored = await getUserAsync();
-      if (stored) {
-        setUser(stored);
-        setIsLoading(false);
-        return;
-      }
-      const token = await getAccessTokenAsync();
-      if (token) {
-        const refreshed = await refreshTokens();
-        if (refreshed?.user) {
-          setUser(refreshed.user as User);
+      try {
+        const token = await getAccessTokenAsync();
+        if (!token) {
+          setIsLoading(false);
+          return;
         }
+
+        const storedUser = await getUserAsync();
+        const expired = isTokenExpired(token);
+
+        if (expired) {
+          const refreshed = await refreshTokens();
+          if (refreshed?.user) {
+            setUser(refreshed.user as User);
+          }
+        } else if (storedUser) {
+          setUser(storedUser);
+        }
+      } catch {
+        console.warn("[auth] init error");
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }
     init();
   }, []);

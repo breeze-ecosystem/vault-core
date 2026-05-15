@@ -1,20 +1,43 @@
 import { Stack } from "expo-router";
+import { View, Text, StyleSheet } from "react-native";
 import { AuthProvider } from "@/lib/auth-context";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { IS_CONFIG_VALID } from "@/lib/config";
+import { Shield } from "lucide-react-native";
+import { colors } from "@/lib/theme";
+
+function ConfigErrorScreen() {
+  return (
+    <View style={styles.configError}>
+      <Shield size={40} color={colors.destructive} />
+      <Text style={styles.configErrorTitle}>Erreur de configuration</Text>
+      <Text style={styles.configErrorMessage}>
+        Les variables d'environnement EXPO_PUBLIC_API_URL et EXPO_PUBLIC_STREAM_URL
+        doivent être définies dans le fichier .env, eas.json ou app.json extra.
+      </Text>
+    </View>
+  );
+}
 
 export default function RootLayout() {
+  if (!IS_CONFIG_VALID) {
+    return <ConfigErrorScreen />;
+  }
+
   return (
     <ErrorBoundary>
       <AuthProvider>
         <Stack
           screenOptions={{
-            headerStyle: { backgroundColor: "#0a0a0a" },
-            headerTintColor: "#ededed",
-            contentStyle: { backgroundColor: "#0a0a0a" },
+            headerStyle: { backgroundColor: colors.surface },
+            headerTintColor: colors.text,
+            headerShadowVisible: false,
+            contentStyle: { backgroundColor: colors.bg },
+            animation: "slide_from_right",
+            animationDuration: 250,
           }}
         >
           <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen name="register" options={{ title: "Inscription", headerBackTitle: "Retour" }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="camera/[id]" options={{ title: "Caméra", headerBackTitle: "Retour" }} />
           <Stack.Screen name="alert/[id]" options={{ title: "Alerte", headerBackTitle: "Retour" }} />
@@ -24,3 +47,18 @@ export default function RootLayout() {
     </ErrorBoundary>
   );
 }
+
+const styles = StyleSheet.create({
+  configError: {
+    flex: 1, justifyContent: "center", alignItems: "center",
+    backgroundColor: colors.bg, padding: 24,
+  },
+  configErrorTitle: {
+    fontSize: 20, fontWeight: "700", color: colors.destructive,
+    marginTop: 16, marginBottom: 12,
+  },
+  configErrorMessage: {
+    fontSize: 14, color: colors.textSecondary, textAlign: "center",
+    lineHeight: 20,
+  },
+});

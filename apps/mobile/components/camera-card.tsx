@@ -2,6 +2,8 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import type { CameraItem } from "@/lib/api";
 import { statusColors, statusLabels } from "@/lib/constants";
+import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { Camera } from "lucide-react-native";
 
 interface CameraCardProps {
   camera: CameraItem;
@@ -9,27 +11,35 @@ interface CameraCardProps {
 
 export function CameraCard({ camera }: CameraCardProps) {
   const router = useRouter();
-  const color = statusColors[camera.status] ?? "#6b7280";
+  const color = statusColors[camera.status] ?? colors.textMuted;
   const label = statusLabels[camera.status] ?? camera.status;
 
   return (
-    <TouchableOpacity style={styles.card} onPress={() => router.push(`/camera/${camera.id}`)} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => router.push(`/camera/${camera.id}`)}
+      activeOpacity={0.7}
+    >
       <View style={styles.row}>
-        <View style={[styles.statusDot, { backgroundColor: color }]} />
-        <Text style={styles.name} numberOfLines={1}>
-          {camera.name}
-        </Text>
-      </View>
-      <View style={styles.details}>
-        <Text style={styles.detail}>
-          {camera.site?.name ?? "Site inconnu"}
-        </Text>
-        <Text style={[styles.statusBadge, { color }]}>
-          {label}
-        </Text>
+        <View style={styles.iconWrap}>
+          <Camera size={18} color={colors.primary} />
+        </View>
+        <View style={styles.content}>
+          <Text style={styles.name} numberOfLines={1}>{camera.name}</Text>
+          <Text style={styles.site}>
+            {camera.site?.name ?? "Site inconnu"}
+          </Text>
+        </View>
+        <View style={styles.statusWrap}>
+          <View style={[styles.statusDot, { backgroundColor: color }]} />
+          <Text style={[styles.statusText, { color }]}>{label}</Text>
+        </View>
       </View>
       {camera.resolution && (
-        <Text style={styles.resolution}>{camera.resolution} · {camera.fps} fps</Text>
+        <View style={styles.footer}>
+          <Text style={styles.resolution}>{camera.resolution}</Text>
+          <Text style={styles.fps}>{camera.fps} fps</Text>
+        </View>
       )}
     </TouchableOpacity>
   );
@@ -37,46 +47,65 @@ export function CameraCard({ camera }: CameraCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#111",
-    padding: 14,
-    borderRadius: 10,
+    backgroundColor: colors.surface,
+    padding: spacing.lg,
+    borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: "#333",
-    marginBottom: 10,
+    borderColor: colors.border,
+    marginBottom: spacing.md,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: spacing.md,
   },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  iconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "rgba(6,182,212,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  name: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#ededed",
+  content: {
     flex: 1,
   },
-  details: {
+  name: {
+    ...typography.body,
+    fontWeight: "500",
+  },
+  site: {
+    ...typography.small,
+    marginTop: 2,
+  },
+  statusWrap: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 6,
+    gap: 4,
   },
-  detail: {
-    fontSize: 13,
-    color: "#888",
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
-  statusBadge: {
-    fontSize: 13,
+  statusText: {
+    ...typography.small,
     fontWeight: "600",
   },
+  footer: {
+    flexDirection: "row",
+    gap: spacing.md,
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
   resolution: {
-    fontSize: 12,
-    color: "#666",
-    marginTop: 4,
+    ...typography.small,
+    fontSize: 11,
+  },
+  fps: {
+    ...typography.small,
+    fontSize: 11,
   },
 });

@@ -1,4 +1,7 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://oversight-api.digitsoftafrica.com";
+if (!process.env.NEXT_PUBLIC_API_URL) {
+  console.error("NEXT_PUBLIC_API_URL is not defined. Set it in .env or .env.local");
+}
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 interface AuthResult {
   accessToken?: string;

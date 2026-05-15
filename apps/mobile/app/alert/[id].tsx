@@ -10,7 +10,6 @@ import {
   Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import {
   fetchAlertById,
   acknowledgeAlert,
@@ -24,6 +23,8 @@ import {
   alertStatusColors,
   alertStatusLabels,
 } from "@/lib/constants";
+import { colors } from "@/lib/theme";
+import { Video, ChevronRight } from "lucide-react-native";
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
@@ -234,12 +235,12 @@ export default function AlertDetailScreen() {
             activeOpacity={0.7}
           >
             <View style={styles.cameraLinkContent}>
-              <Ionicons name="videocam" size={24} color="#888" style={styles.cameraLinkIcon} />
+              <Video size={24} color={colors.textMuted} style={styles.cameraLinkIcon} />
               <View style={styles.cameraLinkText}>
                 <Text style={styles.cameraLinkTitle}>{alert.camera.name}</Text>
                 <Text style={styles.cameraLinkSub}>Voir la caméra</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#555" />
+              <ChevronRight size={20} color="#555" />
             </View>
           </TouchableOpacity>
         )}
