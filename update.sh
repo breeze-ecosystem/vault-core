@@ -20,8 +20,8 @@ readonly HISTORY_FILE="${BACKUP_DIR}/update_history.log"
 readonly MIN_DISK_GB=2
 readonly HEALTH_TIMEOUT=180          # 3 minutes
 readonly HEALTH_INTERVAL=5           # vérification toutes les 5 s
-readonly API_HEALTH_URL="http://localhost:8080/api/health"
-readonly DASHBOARD_URL="http://localhost:3000"
+readonly API_HEALTH_URL="http://localhost:4000/api/health"
+readonly DASHBOARD_URL="http://localhost:3100"
 
 # ---------------------------------------------------------------------------
 # Couleurs
