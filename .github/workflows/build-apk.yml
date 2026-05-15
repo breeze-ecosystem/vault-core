@@ -45,13 +45,13 @@ jobs:
         working-directory: apps/mobile
         run: npx expo prebuild --platform android --clean
 
-      - name: Build debug APK
+      - name: Build release APK
         working-directory: apps/mobile/android
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleRelease --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: oversight-app-debug
-          path: apps/mobile/android/app/build/outputs/apk/debug/*.apk
+          name: oversight-app-release
+          path: apps/mobile/android/app/build/outputs/apk/release/*.apk
           retention-days: 7
