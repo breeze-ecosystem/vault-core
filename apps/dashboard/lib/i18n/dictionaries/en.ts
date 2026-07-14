@@ -133,4 +133,33 @@ export const en: Dictionary = {
     detailDescription: "Credential details and access levels",
     credentialDetails: "Credential details",
   },
+  doors: {
+    title: "Door Surveillance",
+    state: {
+      locked: "Locked",
+      unlocked: "Unlocked",
+      "held-open": "Held Open (Abnormal)",
+      forced: "Forced",
+      unsecured: "Unsecured",
+      desynchronized: "Desynchronized",
+    },
+    lastChanged: "{seconds}s ago",
+    emergency: {
+      lockdown: "Emergency Lockdown",
+      unlock: "Emergency Unlock",
+      clear: "Restore Normal Mode",
+      confirmLockdown: "Confirm emergency lockdown?",
+      confirmUnlock: "Confirm emergency unlock?",
+    },
+    alertConfig: {
+      title: "Alert Configuration",
+      heldOpenThreshold: "Held-open threshold (seconds)",
+    },
+    filters: {
+      allZones: "All Zones",
+      searchPlaceholder: "Search doors...",
+    },
+    noDoors: "No doors configured",
+    connectionLost: "Connection lost — reconnecting...",
+  },
 };

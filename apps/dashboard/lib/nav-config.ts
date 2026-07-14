@@ -8,6 +8,7 @@ import {
   MessageSquare,
   MapPin,
   Key,
+  DoorOpen,
   type LucideIcon,
 } from "lucide-react";
 import { hasMinRole, type Role } from "@repo/shared";
@@ -37,6 +38,12 @@ const navItems: NavItem[] = [
     href: "/acces",
     icon: Key,
     minRole: "ADMIN" as Role,
+  },
+  {
+    label: "Portes",
+    href: "/portes",
+    icon: DoorOpen,
+    minRole: null,
   },
   {
     label: "Caméras",

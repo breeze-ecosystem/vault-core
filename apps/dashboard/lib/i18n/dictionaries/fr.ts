@@ -131,6 +131,35 @@ export const fr = {
     detailDescription: "Détails et niveaux d'accès du justificatif",
     credentialDetails: "Détails du justificatif",
   },
+  doors: {
+    title: "Surveillance des portes",
+    state: {
+      locked: "Verrouillée",
+      unlocked: "Déverrouillée",
+      "held-open": "Ouverte (anormale)",
+      forced: "Forcée",
+      unsecured: "Non sécurisée",
+      desynchronized: "Désynchronisée",
+    },
+    lastChanged: "il y a {seconds}s",
+    emergency: {
+      lockdown: "Verrouillage d'urgence",
+      unlock: "Déverrouillage d'urgence",
+      clear: "Rétablir le mode normal",
+      confirmLockdown: "Confirmer le verrouillage d'urgence ?",
+      confirmUnlock: "Confirmer le déverrouillage d'urgence ?",
+    },
+    alertConfig: {
+      title: "Configuration d'alerte",
+      heldOpenThreshold: "Seuil porte ouverte (secondes)",
+    },
+    filters: {
+      allZones: "Toutes les zones",
+      searchPlaceholder: "Rechercher une porte...",
+    },
+    noDoors: "Aucune porte configurée",
+    connectionLost: "Connexion perdue — reconnexion en cours...",
+  },
 };
 
 export type Dictionary = typeof fr;

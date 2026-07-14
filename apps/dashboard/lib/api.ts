@@ -659,3 +659,83 @@ export async function fetchDoors(): Promise<DoorDto[]> {
   if (!res.ok) throw new Error("Échec du chargement des portes");
   return res.json();
 }
+
+// ─── Door Monitoring Types ───
+
+export interface DoorStateDto {
+  doorId: string;
+  name: string;
+  zoneId: string;
+  zoneName?: string;
+  state: "locked" | "unlocked" | "held-open" | "forced" | "unsecured" | "desynchronized";
+  lastChanged: string;
+  controllerId?: string;
+}
+
+export interface DoorAlertConfigDto {
+  heldOpenThresholdMs: number;
+}
+
+// ─── Door State API Functions ───
+
+export async function fetchAllDoorStates(siteId?: string): Promise<DoorStateDto[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/doors/states`);
+  if (!res.ok) throw new Error("Échec du chargement de l'état des portes");
+  return res.json();
+}
+
+export async function fetchDoorState(doorId: string): Promise<DoorStateDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/doors/${doorId}/state`);
+  if (!res.ok) throw new Error("Échec du chargement de l'état de la porte");
+  return res.json();
+}
+
+export async function fetchDoorStateHistory(
+  doorId: string,
+  from: string,
+  to: string,
+): Promise<{ time: string; state: string }[]> {
+  const params = new URLSearchParams({ from, to });
+  const res = await fetchWithAuth(`${API_URL}/api/doors/${doorId}/history?${params.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement de l'historique");
+  return res.json();
+}
+
+// ─── Emergency Controls ───
+
+export async function lockdownZone(zoneId: string, reason?: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/doors/zones/${zoneId}/lockdown`, {
+    method: "POST",
+    body: JSON.stringify({ reason }),
+  });
+  if (!res.ok) throw new Error("Échec du verrouillage d'urgence");
+}
+
+export async function emergencyUnlockZone(zoneId: string, reason?: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/doors/zones/${zoneId}/emergency-unlock`, {
+    method: "POST",
+    body: JSON.stringify({ reason }),
+  });
+  if (!res.ok) throw new Error("Échec du déverrouillage d'urgence");
+}
+
+export async function clearEmergencyOverride(zoneId: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/doors/zones/${zoneId}/clear-emergency`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) throw new Error("Échec de la restauration du mode normal");
+}
+
+// ─── Alert Config ───
+
+export async function updateDoorAlertConfig(
+  doorId: string,
+  config: Partial<DoorAlertConfigDto>,
+): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/doors/${doorId}/alert-config`, {
+    method: "PATCH",
+    body: JSON.stringify(config),
+  });
+  if (!res.ok) throw new Error("Échec de la configuration d'alerte");
+}
