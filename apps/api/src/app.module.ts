@@ -23,6 +23,7 @@ import { SupervisionModule } from './modules/supervision/supervision.module';
 import { MqttModule } from './mqtt/mqtt.module';
 import { AccessModule } from './modules/access/access.module';
 import { DoorModule } from './modules/door/door.module';
+import { CorrelationModule } from './modules/correlation/correlation.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -62,6 +63,7 @@ import { IngestionService } from './modules/ingestion/ingestion.service';
     MqttModule,
     AccessModule,
     DoorModule,
+    CorrelationModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

@@ -80,3 +80,11 @@ export type {
   EmergencyOverrideEvent,
   DoorAlertConfig,
 } from "./types/door.types";
+
+// Types - Correlation (Video-Event Timeline & Tailgating)
+export type {
+  TimelineEntry,
+  PaginatedTimelineResponse,
+  CorrelationJob,
+  TailgatingJob,
+} from "./types/correlation.types";
