@@ -1,6 +1,7 @@
 import { MiddlewareConsumer, Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import configuration from './config/configuration';
 import { validationSchema } from './config/validation';
 import { PrismaModule } from './modules/prisma/prisma.module';
@@ -19,6 +20,8 @@ import { NotificationModule } from './modules/notification/notification.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { SupervisionModule } from './modules/supervision/supervision.module';
+import { MqttModule } from './mqtt/mqtt.module';
+import { AccessModule } from './modules/access/access.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -34,6 +37,10 @@ import { IngestionService } from './modules/ingestion/ingestion.service';
         allowUnknown: true,
         abortEarly: true,
       },
+    }),
+    EventEmitterModule.forRoot({
+      wildcard: true,
+      delimiter: '.',
     }),
     PrismaModule,
     AuthModule,
@@ -51,6 +58,8 @@ import { IngestionService } from './modules/ingestion/ingestion.service';
     NotificationsModule,
     ChatModule,
     SupervisionModule,
+    MqttModule,
+    AccessModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

@@ -48,4 +48,10 @@ export default () => ({
   },
 
   trustProxy: process.env.TRUST_PROXY === 'true' || process.env.NODE_ENV === 'production',
+
+  mqtt: {
+    brokerUrl: process.env.MQTT_BROKER_URL || 'mqtt://localhost:1883',
+    username: process.env.MQTT_USERNAME || '',
+    password: process.env.MQTT_PASSWORD || '',
+  },
 });

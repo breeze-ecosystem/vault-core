@@ -19,6 +19,10 @@ import { QueueService } from "./queue.service";
     BullModule.registerQueue(
       { name: "frame-processing" },
       { name: "notification" },
+      { name: "access-events" },
+      { name: "door-alerts" },
+      { name: "video-correlation" },
+      { name: "audit-write" },
     ),
   ],
   providers: [QueueService],
