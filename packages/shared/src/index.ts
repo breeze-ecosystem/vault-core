@@ -212,3 +212,17 @@ export type {
   CreateRetentionPolicyInput as CreateRetentionPolicyDto,
   UpdateRetentionPolicyInput as UpdateRetentionPolicyDto,
 } from "./types/governance.types";
+
+// Schemas - Analytics
+export { analyticsQuerySchema } from "./schemas/analytics.schema";
+export type { AnalyticsQueryParams } from "./schemas/analytics.schema";
+
+// Types - Analytics
+export type {
+  ZoneAnalyticsDto,
+  SiteAnalyticsDto,
+  IntrusionEventDto,
+  LoiteringEventDto,
+  AbnormalActivityDto,
+  AnalyticsTrendPoint,
+} from "./types/analytics.types";

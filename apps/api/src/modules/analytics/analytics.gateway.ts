@@ -1,11 +1,31 @@
 import { Logger } from '@nestjs/common';
-import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { Server } from 'socket.io';
+import {
+  WebSocketGateway,
+  WebSocketServer,
+  SubscribeMessage,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+} from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({ namespace: '/ws/analytics', cors: true })
-export class AnalyticsGateway {
+export class AnalyticsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(AnalyticsGateway.name);
 
   @WebSocketServer()
   server!: Server;
+
+  handleConnection(client: Socket) {
+    this.logger.log(`Analytics WS client connected: ${client.id}`);
+  }
+
+  handleDisconnect(client: Socket) {
+    this.logger.log(`Analytics WS client disconnected: ${client.id}`);
+  }
+
+  @SubscribeMessage('subscribe:site')
+  handleSubscribeSite(client: Socket, siteId: string) {
+    client.join(`analytics:${siteId}`);
+    this.logger.log(`Client ${client.id} subscribed to analytics for site ${siteId}`);
+  }
 }
