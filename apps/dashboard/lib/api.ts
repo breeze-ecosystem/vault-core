@@ -813,3 +813,104 @@ export async function fetchEventVideo(
   if (!res.ok) throw new Error("Échec du chargement de la vidéo");
   return res.json();
 }
+
+// ─── Audit Types ───
+
+export interface AuditEntryDto {
+  time: string;
+  entity: string;
+  entityId: string;
+  action: string;
+  userId?: string;
+  userName?: string;
+  siteId?: string;
+  changes?: Record<string, unknown>;
+  ipAddress?: string;
+  hash: string;
+  previousHash?: string;
+}
+
+export interface ChainVerificationResultDto {
+  verified: boolean;
+  totalEntries: number;
+  tamperedIndices: number[];
+  genesisHash: string | null;
+  latestHash: string | null;
+}
+
+export interface AuditStatsDto {
+  totalEntries: number;
+  byEntity: Record<string, number>;
+  byAction: Record<string, number>;
+  byHour: { hour: string; count: number }[];
+}
+
+// ─── Audit API Functions ───
+
+export async function fetchAuditLogs(params: {
+  entity?: string;
+  entityId?: string;
+  userId?: string;
+  siteId?: string;
+  action?: string;
+  from?: string;
+  to?: string;
+  page?: number;
+  limit?: number;
+}): Promise<{ data: AuditEntryDto[]; total: number; page: number; limit: number }> {
+  const searchParams = new URLSearchParams();
+  if (params.entity) searchParams.set("entity", params.entity);
+  if (params.entityId) searchParams.set("entityId", params.entityId);
+  if (params.userId) searchParams.set("userId", params.userId);
+  if (params.siteId) searchParams.set("siteId", params.siteId);
+  if (params.action) searchParams.set("action", params.action);
+  if (params.from) searchParams.set("from", params.from);
+  if (params.to) searchParams.set("to", params.to);
+  if (params.page) searchParams.set("page", String(params.page));
+  if (params.limit) searchParams.set("limit", String(params.limit));
+
+  const res = await fetchWithAuth(`${API_URL}/api/audit/logs?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des journaux d'audit");
+  return res.json();
+}
+
+export async function verifyAuditChain(
+  entity: string,
+  entityId: string,
+): Promise<ChainVerificationResultDto> {
+  const params = new URLSearchParams({ entity, entityId });
+  const res = await fetchWithAuth(
+    `${API_URL}/api/audit/verify?${params.toString()}`,
+  );
+  if (!res.ok) throw new Error("Échec de la vérification de la chaîne de hachage");
+  return res.json();
+}
+
+export async function exportAuditLog(params: {
+  entity?: string;
+  userId?: string;
+  action?: string;
+  from?: string;
+  to?: string;
+  format?: "json" | "csv";
+}): Promise<Blob> {
+  const searchParams = new URLSearchParams();
+  if (params.entity) searchParams.set("entity", params.entity);
+  if (params.userId) searchParams.set("userId", params.userId);
+  if (params.action) searchParams.set("action", params.action);
+  if (params.from) searchParams.set("from", params.from);
+  if (params.to) searchParams.set("to", params.to);
+  if (params.format) searchParams.set("format", params.format);
+
+  const res = await fetchWithAuth(
+    `${API_URL}/api/audit/export?${searchParams.toString()}`,
+  );
+  if (!res.ok) throw new Error("Échec de l'export des journaux d'audit");
+  return res.blob();
+}
+
+export async function fetchAuditStats(): Promise<AuditStatsDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/audit/stats`);
+  if (!res.ok) throw new Error("Échec du chargement des statistiques d'audit");
+  return res.json();
+}

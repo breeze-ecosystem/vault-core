@@ -208,4 +208,52 @@ export const en: Dictionary = {
       previousState: "Previous state",
     },
   },
+  audit: {
+    title: "Audit & Compliance",
+    description: "Complete operation traceability with cryptographic integrity verification",
+    tabs: {
+      logs: "Audit Log",
+      verify: "Verification",
+      export: "Export",
+    },
+    stats: {
+      total: "Total entries",
+      today: "Today",
+      thisWeek: "This week",
+    },
+    table: {
+      timestamp: "Timestamp",
+      entity: "Entity",
+      entityId: "Entity ID",
+      action: "Action",
+      user: "User",
+      ip: "IP Address",
+      details: "Details",
+    },
+    actions: {
+      CREATE: "Creation",
+      UPDATE: "Update",
+      DELETE: "Deletion",
+      CREATE_FAILED: "Creation failed",
+      UPDATE_FAILED: "Update failed",
+      DELETE_FAILED: "Deletion failed",
+    },
+    verify: {
+      title: "Hash Chain Verification",
+      instruction:
+        "Select an entity and ID to verify its audit chain integrity.",
+      button: "Verify integrity",
+      verified: "Hash chain verified — {count} intact entries",
+      tampered: "INTEGRITY COMPROMISED — {count} altered entries",
+      genesisHash: "Genesis hash",
+      latestHash: "Latest hash",
+    },
+    export: {
+      title: "Export audit logs",
+      format: "Format",
+      button: "Export",
+      downloading: "Downloading...",
+    },
+    noEntries: "No audit entries found",
+  },
 };

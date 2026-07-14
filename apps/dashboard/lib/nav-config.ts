@@ -10,6 +10,7 @@ import {
   Key,
   DoorOpen,
   Clock,
+  Shield,
   type LucideIcon,
 } from "lucide-react";
 import { hasMinRole, type Role } from "@repo/shared";
@@ -51,6 +52,12 @@ const navItems: NavItem[] = [
     href: "/chronologie",
     icon: Clock,
     minRole: null,
+  },
+  {
+    label: "Audit",
+    href: "/audit",
+    icon: Shield,
+    minRole: "ADMIN" as Role,
   },
   {
     label: "Caméras",

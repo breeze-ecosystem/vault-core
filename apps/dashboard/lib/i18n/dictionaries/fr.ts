@@ -206,6 +206,54 @@ export const fr = {
       previousState: "État précédent",
     },
   },
+  audit: {
+    title: "Audit & Conformité",
+    description: "Traçabilité complète des opérations avec vérification d'intégrité cryptographique",
+    tabs: {
+      logs: "Journal d'audit",
+      verify: "Vérification",
+      export: "Export",
+    },
+    stats: {
+      total: "Total entrées",
+      today: "Aujourd'hui",
+      thisWeek: "Cette semaine",
+    },
+    table: {
+      timestamp: "Horodatage",
+      entity: "Entité",
+      entityId: "ID Entité",
+      action: "Action",
+      user: "Utilisateur",
+      ip: "Adresse IP",
+      details: "Détails",
+    },
+    actions: {
+      CREATE: "Création",
+      UPDATE: "Modification",
+      DELETE: "Suppression",
+      CREATE_FAILED: "Échec création",
+      UPDATE_FAILED: "Échec modification",
+      DELETE_FAILED: "Échec suppression",
+    },
+    verify: {
+      title: "Vérification de la chaîne de hachage",
+      instruction:
+        "Sélectionnez une entité et un ID pour vérifier l'intégrité de sa chaîne d'audit.",
+      button: "Vérifier l'intégrité",
+      verified: "Chaîne de hachage vérifiée — {count} entrées intactes",
+      tampered: "INTÉGRITÉ COMPROMISE — {count} entrées altérées",
+      genesisHash: "Hash de genèse",
+      latestHash: "Dernier hash",
+    },
+    export: {
+      title: "Export des journaux d'audit",
+      format: "Format",
+      button: "Exporter",
+      downloading: "Téléchargement en cours...",
+    },
+    noEntries: "Aucune entrée d'audit trouvée",
+  },
 };
 
 export type Dictionary = typeof fr;
