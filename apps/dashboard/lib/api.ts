@@ -1753,3 +1753,79 @@ export async function fetchAnalyticsTrends(
   if (!res.ok) throw new Error("Échec du chargement des tendances");
   return res.json();
 }
+
+// ─── Risk Scoring Types ───
+
+export interface RiskFactors {
+  deniedAttempts: number;
+  openDoorAnomalies: number;
+  anomalyEvents: number;
+  activeIncidents: number;
+  failedReaders: number;
+  hoursSinceLastEvent: number;
+}
+
+export interface RiskScoreDto {
+  zoneId: string;
+  siteId: string;
+  zoneName: string;
+  siteName: string;
+  score: number;
+  smoothedScore: number;
+  riskLevel: "low" | "moderate" | "elevated" | "critical";
+  factors: RiskFactors;
+  timestamp: string;
+}
+
+export interface RiskTrendPoint {
+  timestamp: string;
+  score: number;
+  smoothedScore: number;
+  riskLevel: string;
+}
+
+export interface SiteRiskSummary {
+  siteId: string;
+  siteName: string;
+  averageScore: number;
+  maxScore: number;
+  zoneCount: number;
+  criticalZones: number;
+  elevatedZones: number;
+  lastUpdated: string;
+}
+
+// ─── Risk Scoring API Functions ───
+
+export async function fetchRiskScores(siteId?: string): Promise<RiskScoreDto[]> {
+  const params = siteId ? `?siteId=${siteId}` : "";
+  const res = await fetchWithAuth(`${API_URL}/api/risk/scores${params}`);
+  if (!res.ok) throw new Error("Échec du chargement des scores de risque");
+  return res.json();
+}
+
+export async function fetchZoneRiskScore(zoneId: string): Promise<RiskScoreDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/risk/scores/${zoneId}`);
+  if (!res.ok) throw new Error("Échec du chargement du score de risque");
+  return res.json();
+}
+
+export async function fetchZoneRiskHistory(
+  zoneId: string,
+  from?: string,
+  to?: string,
+): Promise<RiskTrendPoint[]> {
+  const params = new URLSearchParams();
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
+  const qs = params.toString() ? `?${params.toString()}` : "";
+  const res = await fetchWithAuth(`${API_URL}/api/risk/scores/${zoneId}/history${qs}`);
+  if (!res.ok) throw new Error("Échec du chargement de l'historique de risque");
+  return res.json();
+}
+
+export async function fetchSiteRiskSummaries(): Promise<SiteRiskSummary[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/risk/summary`);
+  if (!res.ok) throw new Error("Échec du chargement des résumés de risque");
+  return res.json();
+}

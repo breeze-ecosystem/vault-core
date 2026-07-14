@@ -14,6 +14,7 @@ import {
   Car,
   Monitor,
   BarChart3,
+  Gauge,
   type LucideIcon,
 } from "lucide-react";
 import { hasMinRole, type Role } from "@repo/shared";
@@ -67,6 +68,12 @@ const navItems: NavItem[] = [
     href: "/cameras",
     icon: Video,
     minRole: null,
+  },
+  {
+    label: "Risques",
+    href: "/risque",
+    icon: Gauge,
+    minRole: "SUPERVISOR" as Role,
   },
   {
     label: "Analytique",
