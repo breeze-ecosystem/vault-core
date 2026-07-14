@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/table";
 import {
   fetchIncidents,
+  downloadIncidentReport,
   type IncidentDto,
 } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n/context";
-import { Plus } from "lucide-react";
+import { Plus, Download, Paperclip } from "lucide-react";
 
 const severityColors: Record<string, string> = {
   CRITICAL: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
@@ -114,6 +115,16 @@ export default function IncidentsPage() {
       ),
     },
     {
+      key: "evidence",
+      label: "Preuves",
+      render: (item: IncidentDto) => (
+        <span className="text-sm text-muted-foreground flex items-center gap-1">
+          <Paperclip className="h-3 w-3" />
+          {item._count?.evidence ?? 0}
+        </span>
+      ),
+    },
+    {
       key: "actions",
       label: "Actions",
       render: (item: IncidentDto) => (
@@ -128,6 +139,18 @@ export default function IncidentsPage() {
           >
             Détails
           </Button>
+          {(item.status === "resolved" || item.status === "closed") && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={(e) => {
+                e.stopPropagation();
+                downloadIncidentReport(item.id);
+              }}
+            >
+              <Download className="h-3.5 w-3.5" />
+            </Button>
+          )}
         </div>
       ),
     },

@@ -16,9 +16,14 @@ import {
   assignIncident,
   addIncidentComment,
   fetchUsers,
+  fetchIncidentEvidence,
+  addIncidentEvidence,
+  removeIncidentEvidence,
+  downloadIncidentReport,
   type IncidentDto,
   type IncidentCommentDto,
   type IncidentHistoryDto,
+  type IncidentEvidenceDto,
   type DashboardUser,
 } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n/context";
@@ -31,6 +36,16 @@ import {
   UserCheck,
   Send,
   Loader2,
+  Paperclip,
+  Plus,
+  Trash2,
+  Download,
+  Video,
+  Camera,
+  FileText,
+  Key,
+  File,
+  X,
 } from "lucide-react";
 
 const severityColors: Record<string, string> = {
@@ -114,21 +129,39 @@ export default function IncidentDetailPage() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assignUserId, setAssignUserId] = useState("");
 
+  // Evidence state
+  const [evidenceList, setEvidenceList] = useState<IncidentEvidenceDto[]>([]);
+  const [evidenceLoading, setEvidenceLoading] = useState(true);
+  const [showEvidenceModal, setShowEvidenceModal] = useState(false);
+  const [evidenceForm, setEvidenceForm] = useState<{
+    type: "video_clip" | "snapshot" | "access_event" | "document" | "note";
+    url: string;
+    eventType: string;
+    eventId: string;
+    description: string;
+  }>({ type: "snapshot", url: "", eventType: "", eventId: "", description: "" });
+  const [addingEvidence, setAddingEvidence] = useState(false);
+  const [downloadingReport, setDownloadingReport] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+
   useEffect(() => {
     async function load() {
       try {
-        const [incidentData, commentsData, historyData] = await Promise.all([
+        const [incidentData, commentsData, historyData, evidenceData] = await Promise.all([
           fetchIncident(id),
           fetchIncidentComments(id),
           fetchIncidentHistory(id),
+          fetchIncidentEvidence(id),
         ]);
         setIncident(incidentData);
         setComments(commentsData);
         setHistory(historyData);
+        setEvidenceList(evidenceData);
       } catch (e: any) {
         setError(e.message);
       } finally {
         setLoading(false);
+        setEvidenceLoading(false);
       }
     }
     load();
@@ -184,6 +217,51 @@ export default function IncidentDetailPage() {
     fetchUsers({ limit: 100 }).then((res) => setUsers(res.data)).catch(() => {});
     setShowAssignModal(true);
   }
+
+  // ── Evidence Handlers ──
+
+  async function handleAddEvidence() {
+    setAddingEvidence(true);
+    try {
+      const newEvidence = await addIncidentEvidence(id, evidenceForm);
+      setEvidenceList((prev) => [newEvidence, ...prev]);
+      setShowEvidenceModal(false);
+      setEvidenceForm({ type: "snapshot", url: "", eventType: "", eventId: "", description: "" });
+    } catch (e: any) {
+      alert(e.message);
+    } finally {
+      setAddingEvidence(false);
+    }
+  }
+
+  async function handleRemoveEvidence(evidenceId: string) {
+    try {
+      await removeIncidentEvidence(id, evidenceId);
+      setEvidenceList((prev) => prev.filter((e) => e.id !== evidenceId));
+      setShowDeleteConfirm(null);
+    } catch (e: any) {
+      alert(e.message);
+    }
+  }
+
+  async function handleDownloadReport() {
+    setDownloadingReport(true);
+    try {
+      await downloadIncidentReport(id);
+    } catch (e: any) {
+      alert(e.message);
+    } finally {
+      setDownloadingReport(false);
+    }
+  }
+
+  const evidenceTypeIcons: Record<string, any> = {
+    video_clip: Video,
+    snapshot: Camera,
+    access_event: Key,
+    document: FileText,
+    note: File,
+  };
 
   if (loading) {
     return (
@@ -367,6 +445,86 @@ export default function IncidentDetailPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Evidence Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Paperclip className="h-4 w-4" />
+                {t("incidents.evidence.title")} ({evidenceList.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {evidenceLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : evidenceList.length === 0 ? (
+                <p className="text-sm text-muted-foreground">{t("incidents.evidence.noEvidence")}</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {evidenceList.map((ev) => {
+                    const Icon = evidenceTypeIcons[ev.type] || File;
+                    return (
+                      <div key={ev.id} className="rounded-lg border bg-card p-3 text-card-foreground shadow-sm">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-2">
+                            <Icon className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-xs font-medium uppercase text-muted-foreground">
+                              {t(`incidents.evidence.types.${ev.type}`)}
+                            </span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                            onClick={() => setShowDeleteConfirm(ev.id)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                        {ev.description && (
+                          <p className="text-sm mt-1">{ev.description}</p>
+                        )}
+                        {ev.url && (
+                          <p className="text-xs text-muted-foreground mt-1 truncate">
+                            {ev.type === "snapshot" || ev.type === "video_clip" ? (
+                              <a href={ev.url} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
+                                {ev.url}
+                              </a>
+                            ) : (
+                              ev.url
+                            )}
+                          </p>
+                        )}
+                        {ev.eventId && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {t("incidents.evidence.eventId")}: {ev.eventId}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                          <span>{ev.uploaderName || t("incidents.evidence.uploader")}</span>
+                          <span>•</span>
+                          <span>{new Date(ev.createdAt).toLocaleString("fr")}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <Separator />
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => setShowEvidenceModal(true)}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                {t("incidents.evidence.add")}
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Sidebar */}
@@ -438,6 +596,30 @@ export default function IncidentDetailPage() {
             </CardContent>
           </Card>
 
+          {/* Closure Report */}
+          {(incident.status === "resolved" || incident.status === "closed") && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">{t("incidents.report.title")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  className="w-full"
+                  variant="default"
+                  onClick={handleDownloadReport}
+                  disabled={downloadingReport}
+                >
+                  {downloadingReport ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="mr-2 h-4 w-4" />
+                  )}
+                  {downloadingReport ? t("incidents.report.generating") : t("incidents.report.download")}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Assignment History */}
           {history && history.assignments.length > 0 && (
             <Card>
@@ -491,6 +673,96 @@ export default function IncidentDetailPage() {
               </Button>
               <Button onClick={handleAssign} disabled={!assignUserId}>
                 {t("incidents.assign")}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Evidence Modal */}
+      {showEvidenceModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="rounded-lg bg-background p-6 w-96 shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">{t("incidents.evidence.add")}</h3>
+              <Button variant="ghost" size="sm" onClick={() => setShowEvidenceModal(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium">{t("incidents.evidence.type")}</label>
+                <select
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1"
+                  value={evidenceForm.type}
+                  onChange={(e) => setEvidenceForm({ ...evidenceForm, type: e.target.value as any })}
+                >
+                  <option value="video_clip">{t("incidents.evidence.types.video_clip")}</option>
+                  <option value="snapshot">{t("incidents.evidence.types.snapshot")}</option>
+                  <option value="access_event">{t("incidents.evidence.types.access_event")}</option>
+                  <option value="document">{t("incidents.evidence.types.document")}</option>
+                  <option value="note">{t("incidents.evidence.types.note")}</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">{t("incidents.evidence.url")}</label>
+                <input
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1"
+                  value={evidenceForm.url}
+                  onChange={(e) => setEvidenceForm({ ...evidenceForm, url: e.target.value })}
+                  placeholder="https://..."
+                />
+              </div>
+              {evidenceForm.type === "access_event" && (
+                <div>
+                  <label className="text-sm font-medium">{t("incidents.evidence.eventId")}</label>
+                  <input
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1"
+                    value={evidenceForm.eventId}
+                    onChange={(e) => setEvidenceForm({ ...evidenceForm, eventId: e.target.value })}
+                  />
+                </div>
+              )}
+              <div>
+                <label className="text-sm font-medium">{t("incidents.evidence.description")}</label>
+                <textarea
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1"
+                  value={evidenceForm.description}
+                  onChange={(e) => setEvidenceForm({ ...evidenceForm, description: e.target.value })}
+                  rows={2}
+                />
+              </div>
+              <Button
+                className="w-full"
+                onClick={handleAddEvidence}
+                disabled={addingEvidence}
+              >
+                {addingEvidence ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Plus className="mr-2 h-4 w-4" />
+                )}
+                Ajouter
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Evidence Confirmation */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="rounded-lg bg-background p-6 w-80 shadow-lg">
+            <h3 className="text-lg font-semibold mb-2">{t("incidents.evidence.deleteConfirm")}</h3>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={() => setShowDeleteConfirm(null)}>
+                Annuler
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => handleRemoveEvidence(showDeleteConfirm)}
+              >
+                {t("common.delete")}
               </Button>
             </div>
           </div>

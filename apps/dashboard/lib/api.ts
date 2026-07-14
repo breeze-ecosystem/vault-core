@@ -939,7 +939,7 @@ export interface IncidentDto {
     lastName: string;
     email: string;
   } | null;
-  _count?: { comments: number };
+  _count?: { comments: number; evidence?: number };
 }
 
 export interface IncidentCommentDto {
@@ -1069,4 +1069,65 @@ export async function fetchIncidentHistory(id: string): Promise<IncidentHistoryD
   const res = await fetchWithAuth(`${API_URL}/api/incidents/${id}/history`);
   if (!res.ok) throw new Error("Échec du chargement de l'historique");
   return res.json();
+}
+
+// ─── Incident Evidence Types & API Functions ───
+
+export interface IncidentEvidenceDto {
+  id: string;
+  incidentId: string;
+  type: string;
+  url?: string | null;
+  eventType?: string | null;
+  eventId?: string | null;
+  description?: string | null;
+  uploadedById: string;
+  uploaderName?: string | null;
+  createdAt: string;
+}
+
+export async function fetchIncidentEvidence(incidentId: string): Promise<IncidentEvidenceDto[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/incidents/${incidentId}/evidence`);
+  if (!res.ok) throw new Error("Échec du chargement des preuves");
+  return res.json();
+}
+
+export async function addIncidentEvidence(
+  incidentId: string,
+  data: {
+    type: "video_clip" | "snapshot" | "access_event" | "document" | "note";
+    url?: string;
+    eventType?: string;
+    eventId?: string;
+    description?: string;
+  },
+): Promise<IncidentEvidenceDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/incidents/${incidentId}/evidence`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de l'ajout de la preuve");
+  }
+  return res.json();
+}
+
+export async function removeIncidentEvidence(incidentId: string, evidenceId: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/incidents/${incidentId}/evidence/${evidenceId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Échec de la suppression de la preuve");
+}
+
+export async function downloadIncidentReport(incidentId: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/incidents/${incidentId}/report`);
+  if (!res.ok) throw new Error("Erreur lors du téléchargement du rapport");
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `incident-${incidentId.substring(0, 8)}.pdf`;
+  a.click();
+  window.URL.revokeObjectURL(url);
 }

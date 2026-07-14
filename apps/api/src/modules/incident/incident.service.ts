@@ -125,7 +125,7 @@ export class IncidentService {
         where,
         include: {
           assignedTo: { select: { id: true, firstName: true, lastName: true, email: true } },
-          _count: { select: { comments: true } },
+          _count: { select: { comments: true, evidence: true } },
         },
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * limit,
@@ -153,7 +153,7 @@ export class IncidentService {
           },
           orderBy: { assignedAt: "desc" },
         },
-        _count: { select: { comments: true } },
+        _count: { select: { comments: true, evidence: true } },
       },
     });
 
