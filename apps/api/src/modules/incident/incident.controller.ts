@@ -3,20 +3,24 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
   Req,
+  Res,
 } from "@nestjs/common";
-import type { FastifyRequest } from "fastify";
+import type { FastifyRequest, FastifyReply } from "fastify";
 import { IncidentService } from "./incident.service";
 import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
 import { Roles } from "../../common/decorators/roles.decorator";
+import { Audited } from "../../common/decorators/audited.decorator";
 import {
   createIncidentSchema,
   updateIncidentStatusSchema,
   assignIncidentSchema,
   addCommentSchema,
+  addEvidenceSchema,
 } from "@repo/shared";
 
 @Controller("incidents")
@@ -108,5 +112,53 @@ export class IncidentController {
     ]);
 
     return { assignments: assignmentHistory, statusChanges: statusHistory };
+  }
+
+  // ── Evidence Endpoints ──
+
+  @Post(":id/evidence")
+  @Roles("ADMIN", "SUPERVISOR", "OPERATOR")
+  @Audited({ entity: "incident_evidence", action: "CREATE" })
+  async addEvidence(
+    @Param("id") id: string,
+    @Body(new ZodValidationPipe(addEvidenceSchema)) body: any,
+    @Req() req: FastifyRequest,
+  ) {
+    const user = (req as any).user;
+    return this.incidentService.addEvidence(id, body, user.id);
+  }
+
+  @Delete(":id/evidence/:evidenceId")
+  @Roles("ADMIN", "SUPERVISOR")
+  @Audited({ entity: "incident_evidence", action: "DELETE" })
+  async removeEvidence(
+    @Param("id") id: string,
+    @Param("evidenceId") evidenceId: string,
+  ) {
+    await this.incidentService.removeEvidence(id, evidenceId);
+    return { success: true };
+  }
+
+  @Get(":id/evidence")
+  @Roles("ADMIN", "SUPERVISOR", "OPERATOR")
+  async getEvidence(@Param("id") id: string) {
+    return this.incidentService.getEvidence(id);
+  }
+
+  @Get(":id/report")
+  @Roles("ADMIN", "SUPERVISOR")
+  async downloadReport(
+    @Param("id") id: string,
+    @Res() res: FastifyReply,
+  ) {
+    const pdfBuffer = await this.incidentService.generateClosureReport(id);
+
+    res.header("Content-Type", "application/pdf");
+    res.header(
+      "Content-Disposition",
+      `attachment; filename="incident-${id.substring(0, 8)}.pdf"`,
+    );
+    res.header("Content-Length", String(pdfBuffer.length));
+    return res.send(pdfBuffer);
   }
 }

@@ -88,6 +88,27 @@ export interface IncidentHistoryEntry {
   metadata?: any;
 }
 
+export interface IncidentEvidenceDto {
+  id: string;
+  incidentId: string;
+  type: string;
+  url?: string | null;
+  eventType?: string | null;
+  eventId?: string | null;
+  description?: string | null;
+  uploadedById: string;
+  uploaderName?: string | null;
+  createdAt: string;
+}
+
+export interface AddEvidenceInput {
+  type: "video_clip" | "snapshot" | "access_event" | "document" | "note";
+  url?: string;
+  eventType?: string;
+  eventId?: string;
+  description?: string;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;

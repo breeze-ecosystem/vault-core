@@ -112,6 +112,7 @@ export {
   assignIncidentSchema,
   addCommentSchema,
   queryIncidentSchema,
+  addEvidenceSchema,
 } from "./schemas/incident.schema";
 export type {
   CreateIncidentInput,
@@ -119,6 +120,7 @@ export type {
   AssignIncidentInput,
   AddCommentInput,
   QueryIncidentInput,
+  AddEvidenceInput,
 } from "./schemas/incident.schema";
 
 // Types - Incident
@@ -126,6 +128,8 @@ export type {
   IncidentDto,
   IncidentCommentDto,
   IncidentAssignmentDto,
+  IncidentEvidenceDto,
+  AddEvidenceInput as AddEvidenceDto,
   CreateIncidentInput as CreateIncidentDto,
   UpdateIncidentStatusInput as UpdateIncidentStatusDto,
   AssignIncidentInput as AssignIncidentDto,

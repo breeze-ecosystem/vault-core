@@ -32,8 +32,17 @@ export const queryIncidentSchema = z.object({
   limit: z.coerce.number().int().positive().max(100).optional().default(20),
 });
 
+export const addEvidenceSchema = z.object({
+  type: z.enum(["video_clip", "snapshot", "access_event", "document", "note"]),
+  url: z.string().optional(),
+  eventType: z.string().optional(),
+  eventId: z.string().optional(),
+  description: z.string().optional(),
+});
+
 export type CreateIncidentInput = z.infer<typeof createIncidentSchema>;
 export type UpdateIncidentStatusInput = z.infer<typeof updateIncidentStatusSchema>;
 export type AssignIncidentInput = z.infer<typeof assignIncidentSchema>;
 export type AddCommentInput = z.infer<typeof addCommentSchema>;
 export type QueryIncidentInput = z.infer<typeof queryIncidentSchema>;
+export type AddEvidenceInput = z.infer<typeof addEvidenceSchema>;

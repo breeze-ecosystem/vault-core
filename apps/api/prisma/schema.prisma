@@ -202,6 +202,7 @@ model Incident {
   comments        IncidentComment[]
   assignments     IncidentAssignment[]
   escalations     IncidentEscalation[]
+  evidence        IncidentEvidence[]
 
   @@index([siteId, status])
   @@index([assignedToId])
@@ -247,6 +248,25 @@ model IncidentEscalation {
 
   incident  Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
   notifyUser User?    @relation(fields: [notifyUserId], references: [id])
+
+  @@index([incidentId])
+}
+
+// ─── Incident Evidence Model ───
+
+model IncidentEvidence {
+  id           String   @id @default(uuid())
+  incidentId   String
+  type         String   // 'video_clip', 'snapshot', 'access_event', 'document', 'note'
+  url          String?  // URL to video clip, snapshot image, or document
+  eventType    String?  // 'access_granted', 'door_forced', 'tailgating', etc.
+  eventId      String?  // ID of the referenced event in TimescaleDB hypertable
+  description  String?
+  uploadedById String
+  createdAt    DateTime @default(now())
+
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  uploadedBy User     @relation(fields: [uploadedById], references: [id])
 
   @@index([incidentId])
 }
@@ -316,6 +336,7 @@ model User {
   incidentAssignmentsBy   IncidentAssignment[] @relation("AssignmentBy")
   incidentAssignmentsTo   IncidentAssignment[] @relation("AssignmentTo")
   incidentEscalations     IncidentEscalation[]
+  uploadedEvidence        IncidentEvidence[]
 }
 
 model Alert {
