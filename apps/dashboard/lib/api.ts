@@ -914,3 +914,159 @@ export async function fetchAuditStats(): Promise<AuditStatsDto> {
   if (!res.ok) throw new Error("Échec du chargement des statistiques d'audit");
   return res.json();
 }
+
+// ─── Incident Types ───
+
+export interface IncidentDto {
+  id: string;
+  title: string;
+  description?: string | null;
+  severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO";
+  status: string;
+  siteId: string;
+  sourceType?: string | null;
+  sourceId?: string | null;
+  assignedToId?: string | null;
+  assignedAt?: string | null;
+  slaMinutes: number;
+  escalationChain: any[];
+  closedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  assignedTo?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  } | null;
+  _count?: { comments: number };
+}
+
+export interface IncidentCommentDto {
+  id: string;
+  incidentId: string;
+  userId: string;
+  text: string;
+  createdAt: string;
+  user?: { firstName: string; lastName: string };
+}
+
+export interface IncidentHistoryDto {
+  assignments: Array<{
+    id: string;
+    assignedById: string;
+    assignedToId: string;
+    assignedAt: string;
+    note?: string | null;
+    assignedBy?: { firstName: string; lastName: string };
+    assignedTo?: { firstName: string; lastName: string };
+  }>;
+  statusChanges: Array<{
+    time: string;
+    status: string;
+    previous_status?: string | null;
+    triggered_by?: string | null;
+    metadata?: any;
+  }>;
+}
+
+// ─── Incident API Functions ───
+
+export async function fetchIncidents(params?: {
+  status?: string;
+  severity?: string;
+  assignedTo?: string;
+  page?: number;
+  limit?: number;
+}): Promise<{ data: IncidentDto[]; total: number; page: number; limit: number }> {
+  const searchParams = new URLSearchParams();
+  if (params?.status) searchParams.set("status", params.status);
+  if (params?.severity) searchParams.set("severity", params.severity);
+  if (params?.assignedTo) searchParams.set("assignedTo", params.assignedTo);
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+
+  const res = await fetchWithAuth(`${API_URL}/api/incidents?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des incidents");
+  return res.json();
+}
+
+export async function fetchIncident(id: string): Promise<IncidentDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/incidents/${id}`);
+  if (!res.ok) throw new Error("Échec du chargement de l'incident");
+  return res.json();
+}
+
+export async function createIncident(data: {
+  title: string;
+  severity: string;
+  siteId: string;
+  description?: string;
+  sourceType?: string;
+  sourceId?: string;
+}): Promise<IncidentDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/incidents`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de création de l'incident");
+  }
+  return res.json();
+}
+
+export async function updateIncidentStatus(
+  id: string,
+  status: string,
+  reason?: string,
+): Promise<IncidentDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/incidents/${id}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status, reason }),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de la mise à jour du statut");
+  }
+  return res.json();
+}
+
+export async function assignIncident(
+  id: string,
+  userId: string,
+  note?: string,
+): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/incidents/${id}/assign`, {
+    method: "POST",
+    body: JSON.stringify({ userId, note }),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de l'assignation de l'incident");
+  }
+}
+
+export async function addIncidentComment(id: string, text: string): Promise<IncidentCommentDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/incidents/${id}/comments`, {
+    method: "POST",
+    body: JSON.stringify({ text }),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de l'ajout du commentaire");
+  }
+  return res.json();
+}
+
+export async function fetchIncidentComments(id: string): Promise<IncidentCommentDto[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/incidents/${id}/comments`);
+  if (!res.ok) throw new Error("Échec du chargement des commentaires");
+  return res.json();
+}
+
+export async function fetchIncidentHistory(id: string): Promise<IncidentHistoryDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/incidents/${id}/history`);
+  if (!res.ok) throw new Error("Échec du chargement de l'historique");
+  return res.json();
+}

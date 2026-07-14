@@ -72,6 +72,12 @@ const navItems: NavItem[] = [
     minRole: null,
   },
   {
+    label: "Incidents",
+    href: "/incidents",
+    icon: AlertTriangle,
+    minRole: null,
+  },
+  {
     label: "Sites",
     href: "/sites",
     icon: MapPin,
