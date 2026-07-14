@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-07-14T12:52:46.664Z"
-last_activity: 2026-07-14 — Roadmap created, 3-phase structure established with 60 requirements mapped
+status: building
+stopped_at: Plan 01-02 completed
+last_updated: "2026-07-14T15:39:44.559Z"
+last_activity: 2026-07-14 — Phase 1 Plan 02 (Door Monitoring & Emergency Response) completed — 2 commits
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -26,25 +26,26 @@ See: .planning/PROJECT.md (updated 2026-07-14)
 ## Current Position
 
 Phase: 1 of 3 (Unified Security)
-Plan: TBD (not yet planned)
-Status: Ready to plan
-Last activity: 2026-07-14 — Roadmap created, 3-phase structure established with 60 requirements mapped
+Plan: 02/04 completed (Door Monitoring & Emergency Response)
+Status: Building — Plan 02 completed, ready for Plan 03 (Video-Event Timeline & Tailgating Detection)
+Last activity: 2026-07-14 — Door state machine + dashboard + emergency controls
 
-Progress: [███░░░░░░░] 25%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
-- Average duration: N/A
-- Total execution time: 0 hours
+- Total plans completed: 2
+- Average duration: ~8min
+- Total execution time: ~16min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-unified-security P01 | ~8min | 2 tasks | 13 files |
+| 01-unified-security P02 | ~8min | 2 tasks | 15 files |
 
 *Updated after each plan completion*
 
@@ -61,6 +62,12 @@ Recent decisions affecting current work:
 - [Init]: No hardware manufacturing — software platform only; integrate with standard protocols (Wiegand, OSDP, ONVIF)
 - [Init]: PostgreSQL extensions (TimescaleDB, pgvector, pgcrypto) over separate databases — per research recommendation
 - [Init]: MQTT.js for door controller communication — native protocol of access control panels
+- [P02]: Door state machine uses event-sourced enum (never booleans) with strictly defined VALID_TRANSITIONS graph (D-04)
+- [P02]: Sequence number validation discards out-of-order MQTT messages before state processing (D-05)
+- [P02]: 500ms settling timeout prevents false alarms from state flickering (D-06)
+- [P02]: Alert config stored as JSON on Door.alertConfig with per-door heldOpenThresholdMs 30-300s (D-07)
+- [P02]: Emergency override keys in Redis read by AccessService.evaluateAccess() — no TTL, cleared manually (D-11)
+- [P02]: 60s cooldown per door+state prevents duplicate alerts via Redis key door:alert:cooldown:{doorId}:{state}
 
 ### Pending Todos
 
@@ -81,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-14T12:52:46.550Z
-Stopped at: Phase 1 context gathered
+Last session: 2026-07-14T15:38:25.000Z
+Stopped at: Phase 1 Plan 02 completed — Door Monitoring & Emergency Response
 Resume file: None

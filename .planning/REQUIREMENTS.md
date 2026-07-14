@@ -14,17 +14,17 @@ Requirements for the complete physical security intelligence platform, organized
 - [x] **ACC-03**: System enforces zone-based access rules (who can enter which zone, when)
 - [x] **ACC-04**: System enforces anti-passback rules (prevents reuse of credentials before exit)
 - [x] **ACC-05**: User can use mobile credentials (wallet-based, QR) for access at readers
-- [ ] **ACC-06**: Operator can trigger emergency unlock or lockdown per zone
+- [x] **ACC-06**: Operator can trigger emergency unlock or lockdown per zone
 - [ ] **ACC-07**: System correlates every access event (grant/deny) with video clip from nearest camera
 
 ### Door Management (DOOR)
 
-- [ ] **DOOR-01**: System monitors door state in real time (locked, unlocked, held open, forced, unsecured, desynchronized)
-- [ ] **DOOR-02**: System generates alert when door is held open beyond configurable threshold
-- [ ] **DOOR-03**: System generates alert when door is forced open without valid access
-- [ ] **DOOR-04**: System generates alert when door is unsecured (unlocked outside schedule)
-- [ ] **DOOR-05**: System detects and alerts on door desynchronization (controller state mismatch)
-- [ ] **DOOR-06**: Operator can view door status dashboard with all door states per site in real time
+- [x] **DOOR-01**: System monitors door state in real time (locked, unlocked, held open, forced, unsecured, desynchronized)
+- [x] **DOOR-02**: System generates alert when door is held open beyond configurable threshold
+- [x] **DOOR-03**: System generates alert when door is forced open without valid access
+- [x] **DOOR-04**: System generates alert when door is unsecured (unlocked outside schedule)
+- [x] **DOOR-05**: System detects and alerts on door desynchronization (controller state mismatch)
+- [x] **DOOR-06**: Operator can view door status dashboard with all door states per site in real time
 
 ### Video Event Correlation (VEC)
 
