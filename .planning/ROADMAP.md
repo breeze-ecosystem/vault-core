@@ -42,13 +42,21 @@ Plans:
 **Depends on**: Phase 1
 **Requirements**: INC-01, INC-02, INC-03, INC-04, INC-05, INC-06, VIST-01, VIST-02, VIST-03, VIST-04, VIST-05, ANPR-01, ANPR-02, ANPR-03, ANPR-04, ANPR-05, AI-01, AI-02, AI-03, EQPT-01, EQPT-02, EQPT-03, AUDT-04, AUDT-05
 **Success Criteria** (what must be TRUE):
-  1. Operator can create, triage, assign, and close incidents with full lifecycle tracking, attached evidence (video + access events), and AI-generated summaries including recommended actions
-  2. Operator can query the system in natural language (e.g., "show forcings after midnight on Site A") and receive relevant events with video clips
-  3. Host can pre-register visitors with time-limited credentials, and security can process check-in/check-out with full activity logging correlated to video
-  4. System automatically recognizes vehicle plates in real time, checks against allowlist/blocklist, and generates access events with plate image and confidence score
-  5. System monitors camera, reader, and door controller health with alerts for degradation, and all data is encrypted at rest/in transit with configurable retention policies
-**Plans**: TBD
+   1. Operator can create, triage, assign, and close incidents with full lifecycle tracking, attached evidence (video + access events), and AI-generated summaries including recommended actions
+   2. Operator can query the system in natural language (e.g., "show forcings after midnight on Site A") and receive relevant events with video clips
+   3. Host can pre-register visitors with time-limited credentials, and security can process check-in/check-out with full activity logging correlated to video
+   4. System automatically recognizes vehicle plates in real time, checks against allowlist/blocklist, and generates access events with plate image and confidence score
+   5. System monitors camera, reader, and door controller health with alerts for degradation, and all data is encrypted at rest/in transit with configurable retention policies
+**Plans**: 6 plans
 **UI hint**: yes
+
+Plans:
+- [ ] 02-01-PLAN.md — Incident Management Core: lifecycle, assignment, SLA, auto-triage, dashboard
+- [ ] 02-02-PLAN.md — Incident Evidence & Closure Reports: evidence attachment, PDF closure report
+- [ ] 02-03-PLAN.md — Visitor Management: pre-registration, QR credentials, check-in/out, zone restrictions
+- [ ] 02-04-PLAN.md — ANPR/LPR Vehicle Recognition: PaddleOCR, allowlist/blocklist, vehicle events
+- [ ] 02-05-PLAN.md — AI Natural Language Features: NL query, incident summaries, assistant
+- [ ] 02-06-PLAN.md — Equipment Health & Data Governance: health monitoring, encryption, retention
 
 ### Phase 3: Intelligent Platform
 **Goal**: Security leaders can view analytics dashboards with intrusion and behavior detection, monitor per-zone risk scores, detect recurring patterns, predict equipment failures, enforce multi-site data isolation, and automate maintenance workflows with unified ticket tracking
@@ -69,5 +77,5 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Unified Security | 4/4 | Complete | 2026-07-14 |
-| 2. Operational AI | 0/0 | Not started | - |
+| 2. Operational AI | 0/6 | Planning | - |
 | 3. Intelligent Platform | 0/0 | Not started | - |
