@@ -90,6 +90,12 @@ const navItems: NavItem[] = [
     minRole: "ADMIN" as Role,
   },
   {
+    label: "Visiteurs",
+    href: "/visiteurs",
+    icon: Users,
+    minRole: null,
+  },
+  {
     label: "Notifications",
     href: "/notifications",
     icon: Bell,

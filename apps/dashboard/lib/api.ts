@@ -1120,6 +1120,146 @@ export async function removeIncidentEvidence(incidentId: string, evidenceId: str
   if (!res.ok) throw new Error("Échec de la suppression de la preuve");
 }
 
+// ─── Visitor Types ───
+
+export interface VisitorDto {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+  photoUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface VisitDto {
+  id: string;
+  visitorId: string;
+  hostUserId: string;
+  hostName?: string;
+  purpose?: string;
+  validFrom: string;
+  validUntil: string;
+  credentialId?: string;
+  checkedInAt?: string;
+  checkedOutAt?: string;
+  status: string;
+  zoneRestrictions?: string[];
+  createdAt: string;
+  updatedAt: string;
+  visitor?: VisitorDto;
+}
+
+// ─── Visitor API Functions ───
+
+export async function preregisterVisitor(data: {
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+  hostUserId: string;
+  purpose?: string;
+  validFrom: string;
+  validUntil: string;
+  zoneIds?: string[];
+}): Promise<{ visit: VisitDto; qrCode: string }> {
+  const res = await fetchWithAuth(`${API_URL}/api/visitors/preregister`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de la pré-inscription du visiteur");
+  }
+  return res.json();
+}
+
+export async function checkInVisit(visitId: string): Promise<VisitDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/visitors/visits/${visitId}/check-in`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de l'enregistrement d'arrivée");
+  }
+  return res.json();
+}
+
+export async function checkOutVisit(visitId: string): Promise<VisitDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/visitors/visits/${visitId}/check-out`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de l'enregistrement de départ");
+  }
+  return res.json();
+}
+
+export async function cancelVisit(visitId: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/visitors/visits/${visitId}/cancel`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de l'annulation de la visite");
+  }
+}
+
+export async function fetchVisits(params?: {
+  status?: string;
+  hostUserId?: string;
+  from?: string;
+  to?: string;
+  page?: number;
+  limit?: number;
+}): Promise<{ data: VisitDto[]; total: number; page: number; limit: number }> {
+  const searchParams = new URLSearchParams();
+  if (params?.status) searchParams.set("status", params.status);
+  if (params?.hostUserId) searchParams.set("hostUserId", params.hostUserId);
+  if (params?.from) searchParams.set("from", params.from);
+  if (params?.to) searchParams.set("to", params.to);
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+
+  const res = await fetchWithAuth(`${API_URL}/api/visitors/visits?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des visites");
+  return res.json();
+}
+
+export async function fetchVisit(id: string): Promise<VisitDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/visitors/visits/${id}`);
+  if (!res.ok) throw new Error("Échec du chargement de la visite");
+  return res.json();
+}
+
+export async function fetchVisitors(params?: {
+  search?: string;
+  page?: number;
+  limit?: number;
+}): Promise<{ data: VisitorDto[]; total: number; page: number; limit: number }> {
+  const searchParams = new URLSearchParams();
+  if (params?.search) searchParams.set("search", params.search);
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+
+  const res = await fetchWithAuth(`${API_URL}/api/visitors?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des visiteurs");
+  return res.json();
+}
+
+export async function fetchVisitor(id: string): Promise<VisitorDto & { visits: VisitDto[] }> {
+  const res = await fetchWithAuth(`${API_URL}/api/visitors/${id}`);
+  if (!res.ok) throw new Error("Échec du chargement du visiteur");
+  return res.json();
+}
+
 export async function downloadIncidentReport(incidentId: string): Promise<void> {
   const res = await fetchWithAuth(`${API_URL}/api/incidents/${incidentId}/report`);
   if (!res.ok) throw new Error("Erreur lors du téléchargement du rapport");
