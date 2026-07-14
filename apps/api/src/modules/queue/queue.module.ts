@@ -25,6 +25,7 @@ import { QueueService } from "./queue.service";
       { name: "audit-write" },
       { name: "incident-alerts" },
       { name: "anpr-processing" },
+      { name: "ai-summaries" },
     ),
   ],
   providers: [QueueService],

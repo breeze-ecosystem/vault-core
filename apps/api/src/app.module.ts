@@ -28,6 +28,7 @@ import { CorrelationModule } from './modules/correlation/correlation.module';
 import { IncidentModule } from './modules/incident/incident.module';
 import { VisitorModule } from './modules/visitor/visitor.module';
 import { AnprModule } from './modules/anpr/anpr.module';
+import { AiModule } from './modules/ai/ai.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -73,6 +74,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     IncidentModule,
     VisitorModule,
     AnprModule,
+    AiModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

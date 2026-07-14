@@ -20,6 +20,12 @@ export default () => ({
   aiPreprocessorUrl: process.env.AI_PREPROCESSOR_URL || 'http://localhost:8000',
   ollamaBaseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
 
+  ai: {
+    ollamaModel: process.env.OLLAMA_MODEL || 'moondream',
+    embeddingModel: process.env.OLLAMA_EMBEDDING_MODEL || 'nomic-embed-text',
+    summaryModel: process.env.OLLAMA_SUMMARY_MODEL || 'moondream',
+  },
+
   qdrantUrl: process.env.QDRANT_URL || 'http://localhost:6333',
 
   fcm: {

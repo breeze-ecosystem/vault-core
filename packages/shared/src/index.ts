@@ -167,3 +167,16 @@ export type { CreateVehicleListEntryInput, VehicleEventQueryInput } from "./sche
 
 // Types - Vehicle
 export type { VehicleListEntryDto, VehicleEventDto } from "./types/vehicle.types";
+
+// Schemas - AI
+export { aiQuerySchema, aiAssistantSchema, aiSummarizeSchema } from "./schemas/ai.schema";
+export type { AIQueryInput, AIAssistantInput, AISummarizeInput } from "./schemas/ai.schema";
+
+// Types - AI
+export type {
+  AIQueryResult,
+  AIQuerySpec,
+  IncidentSummaryDto,
+  AssistantResponse,
+  TimelineEntry as AITimelineEntry,
+} from "./types/ai.types";
