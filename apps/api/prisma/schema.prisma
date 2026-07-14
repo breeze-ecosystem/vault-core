@@ -316,6 +316,26 @@ model Visit {
   @@index([credentialId])
 }
 
+// ─── ANPR/Vehicle Models ───
+
+model VehicleList {
+  id          String   @id @default(uuid())
+  type        String   // 'allowlist' or 'blocklist'
+  plate       String
+  siteId      String
+  description String?
+  isActive    Boolean  @default(true)
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@unique([type, plate, siteId])
+  @@index([type, siteId])
+  @@index([plate])
+}
+
 // ─── Existing Models ───
 
 model Site {
@@ -383,6 +403,7 @@ model User {
   incidentEscalations     IncidentEscalation[]
   uploadedEvidence        IncidentEvidence[]
   hostedVisits            Visit[]              @relation("VisitHost")
+  vehicleListEntries      VehicleList[]
 }
 
 model Alert {

@@ -156,3 +156,14 @@ export type {
   VisitorDto,
   VisitDto,
 } from "./types/visitor.types";
+
+// Constants - Vehicle
+export { VEHICLE_LIST_TYPES, VEHICLE_DECISIONS, VEHICLE_DECISION_REASONS } from "./constants/vehicle-constants";
+export type { VehicleListType, VehicleDecision } from "./constants/vehicle-constants";
+
+// Schemas - Vehicle
+export { createVehicleListEntrySchema, updateVehicleListEntrySchema, vehicleEventQuerySchema } from "./schemas/vehicle.schema";
+export type { CreateVehicleListEntryInput, VehicleEventQueryInput } from "./schemas/vehicle.schema";
+
+// Types - Vehicle
+export type { VehicleListEntryDto, VehicleEventDto } from "./types/vehicle.types";

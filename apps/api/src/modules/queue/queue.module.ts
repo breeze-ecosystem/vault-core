@@ -24,6 +24,7 @@ import { QueueService } from "./queue.service";
       { name: "video-correlation" },
       { name: "audit-write" },
       { name: "incident-alerts" },
+      { name: "anpr-processing" },
     ),
   ],
   providers: [QueueService],
