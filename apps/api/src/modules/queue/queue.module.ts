@@ -26,6 +26,8 @@ import { QueueService } from "./queue.service";
       { name: "incident-alerts" },
       { name: "anpr-processing" },
       { name: "ai-summaries" },
+      { name: "equipment-health" },
+      { name: "retention-pruning" },
     ),
   ],
   providers: [QueueService],

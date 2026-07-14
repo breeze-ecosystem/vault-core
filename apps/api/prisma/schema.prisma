@@ -336,6 +336,21 @@ model VehicleList {
   @@index([plate])
 }
 
+// ─── Phase 2: Equipment Health & Governance Models ───
+
+model RetentionPolicy {
+  id            String   @id @default(uuid())
+  eventType     String   @unique
+  tableType     String   // 'timescaledb' or 'prisma'
+  retentionDays Int
+  enabled       Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([eventType])
+  @@index([enabled])
+}
+
 // ─── Existing Models ───
 
 model Site {

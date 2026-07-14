@@ -180,3 +180,35 @@ export type {
   AssistantResponse,
   TimelineEntry as AITimelineEntry,
 } from "./types/ai.types";
+
+// Constants - Equipment
+export { EQUIPMENT_STATUS } from "./constants/equipment-status";
+export type { EquipmentStatus } from "./constants/equipment-status";
+
+// Schemas - Equipment
+export { equipmentQuerySchema } from "./schemas/equipment.schema";
+export type { EquipmentQueryInput } from "./schemas/equipment.schema";
+
+// Types - Equipment
+export type {
+  CameraHealthDto,
+  ReaderHealthDto,
+  ControllerHealthDto,
+} from "./types/equipment.types";
+
+// Schemas - Governance
+export {
+  createRetentionPolicySchema,
+  updateRetentionPolicySchema,
+} from "./schemas/governance.schema";
+export type {
+  CreateRetentionPolicyInput as CreateRetentionPolicyInput,
+  UpdateRetentionPolicyInput as UpdateRetentionPolicyInput,
+} from "./schemas/governance.schema";
+
+// Types - Governance
+export type {
+  RetentionPolicyDto,
+  CreateRetentionPolicyInput as CreateRetentionPolicyDto,
+  UpdateRetentionPolicyInput as UpdateRetentionPolicyDto,
+} from "./types/governance.types";

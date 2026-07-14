@@ -29,6 +29,8 @@ import { IncidentModule } from './modules/incident/incident.module';
 import { VisitorModule } from './modules/visitor/visitor.module';
 import { AnprModule } from './modules/anpr/anpr.module';
 import { AiModule } from './modules/ai/ai.module';
+import { EquipmentModule } from './modules/equipment/equipment.module';
+import { GovernanceModule } from './modules/governance/governance.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -75,6 +77,8 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     VisitorModule,
     AnprModule,
     AiModule,
+    EquipmentModule,
+    GovernanceModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
