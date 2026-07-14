@@ -100,3 +100,35 @@ export type {
   AuditExportParams,
   AuditStats,
 } from "./types/audit.types";
+
+// Constants - Incident
+export { INCIDENT_STATUS } from "./constants/incident-status";
+export type { IncidentStatus } from "./constants/incident-status";
+
+// Schemas - Incident
+export {
+  createIncidentSchema,
+  updateIncidentStatusSchema,
+  assignIncidentSchema,
+  addCommentSchema,
+  queryIncidentSchema,
+} from "./schemas/incident.schema";
+export type {
+  CreateIncidentInput,
+  UpdateIncidentStatusInput,
+  AssignIncidentInput,
+  AddCommentInput,
+  QueryIncidentInput,
+} from "./schemas/incident.schema";
+
+// Types - Incident
+export type {
+  IncidentDto,
+  IncidentCommentDto,
+  IncidentAssignmentDto,
+  CreateIncidentInput as CreateIncidentDto,
+  UpdateIncidentStatusInput as UpdateIncidentStatusDto,
+  AssignIncidentInput as AssignIncidentDto,
+  AddCommentInput as AddCommentDto,
+  IncidentHistoryEntry,
+} from "./types/incident.types";
