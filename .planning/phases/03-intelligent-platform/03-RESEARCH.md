@@ -987,22 +987,22 @@ export async function fetchRiskScores(siteId?: string): Promise<RiskScoreDto[]> 
 
 **If this table is empty:** No assumptions were made.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Risk scoring formula calibration**
+1. **Risk scoring formula calibration** — RESOLVED
    - What we know: Weighted formula with factors for denied attempts, door anomalies, anomaly events, active incidents, failed readers, and recency bonus.
    - What's unclear: The optimal weights for each factor. The research recommends starting with equal weights and adjusting based on operator feedback.
-   - Recommendation: Make weights configurable via environment variables or a Prisma model so they can be tuned without code changes.
+   - Resolution: Plans 03-02 implements configurable weights in RiskService (via environment variables), allowing operators to tune without code changes per the recommendation.
 
-2. **Continuous aggregate refresh lag vs. real-time requirements**
+2. **Continuous aggregate refresh lag vs. real-time requirements** — RESOLVED
    - What we know: Continuous aggregates refresh on a schedule (hourly by default). Risk scores should be near-real-time.
    - What's unclear: Whether 5-min risk score cron + continuous aggregate lag is acceptable for the analytics dashboard, or if we need real-time fallback queries.
-   - Recommendation: Use continuous aggregates for historical trend charts (accepting up to 1-min lag) and raw event queries with LIMIT for "last hour" real-time charts.
+   - Resolution: Plan 03-01 uses continuous aggregates for historical trend charts (accepting up to 1-min lag) and raw event queries with LIMIT for "last hour" real-time charts, exactly per the recommendation.
 
-3. **RLS policy creation order**
+3. **RLS policy creation order** — RESOLVED
    - What we know: RLS policies must be created per table. Tables created after policies won't have protection.
    - What's unclear: Whether to create RLS policies in the same migration that creates new tables, or in a separate migration at the end.
-   - Recommendation: Create RLS policies in the new `018_rls_policies.sql` migration that applies to ALL tables (existing and new). New tables added in future phases should create RLS policies in their own migration.
+   - Resolution: Plan 03-05 creates RLS policies in a dedicated `019_rls_policies.sql` migration that applies to ALL tables (existing and new), per the recommendation. Future phases will create RLS in their own migrations.
 
 ## Validation Architecture
 
