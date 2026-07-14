@@ -1967,3 +1967,135 @@ export async function triggerPatternDetection(): Promise<void> {
   });
   if (!res.ok) throw new Error("Échec du déclenchement de la détection");
 }
+
+// ─── Maintenance Types (Plan 03-05) ───
+
+export interface MaintenanceTicketDto {
+  id: string;
+  title: string;
+  description?: string;
+  severity: string;
+  status: string;
+  siteId: string;
+  assignedToId?: string;
+  assignedToName?: string;
+  deviceType?: string;
+  deviceId?: string;
+  deviceName?: string;
+  createdAt: string;
+  updatedAt: string;
+  closedAt?: string;
+}
+
+export interface UnifiedIncidentDto {
+  id: string;
+  title: string;
+  description?: string;
+  severity: string;
+  status: string;
+  ticketType: "SECURITY_INCIDENT" | "MAINTENANCE_TICKET";
+  siteId: string;
+  siteName?: string;
+  assignedToName?: string;
+  deviceType?: string;
+  deviceName?: string;
+  createdAt: string;
+}
+
+// ─── Maintenance API Functions ───
+
+export async function fetchMaintenanceTickets(params?: {
+  siteId?: string;
+  deviceType?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+}): Promise<{ data: MaintenanceTicketDto[]; total: number; page: number; limit: number }> {
+  const searchParams = new URLSearchParams();
+  if (params?.siteId) searchParams.set("siteId", params.siteId);
+  if (params?.deviceType) searchParams.set("deviceType", params.deviceType);
+  if (params?.status) searchParams.set("status", params.status);
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+
+  const res = await fetchWithAuth(`${API_URL}/api/maintenance/tickets?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des tickets de maintenance");
+  return res.json();
+}
+
+export async function fetchMaintenanceTicket(id: string): Promise<MaintenanceTicketDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/maintenance/tickets/${id}`);
+  if (!res.ok) throw new Error("Échec du chargement du ticket");
+  return res.json();
+}
+
+export async function createMaintenanceTicket(data: {
+  title: string;
+  severity: string;
+  siteId: string;
+  deviceType: string;
+  deviceId: string;
+  deviceName?: string;
+  description?: string;
+}): Promise<MaintenanceTicketDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/maintenance/tickets`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de création du ticket");
+  }
+  return res.json();
+}
+
+export async function updateMaintenanceTicketStatus(
+  id: string,
+  status: string,
+): Promise<MaintenanceTicketDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/maintenance/tickets/${id}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de la mise à jour du statut");
+  }
+  return res.json();
+}
+
+export async function assignMaintenanceTicket(
+  id: string,
+  userId: string,
+): Promise<MaintenanceTicketDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/maintenance/tickets/${id}/assign`, {
+    method: "POST",
+    body: JSON.stringify({ userId }),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de l'assignation du ticket");
+  }
+  return res.json();
+}
+
+export async function fetchUnifiedIncidents(params?: {
+  siteId?: string;
+  ticketType?: string;
+  status?: string;
+  severity?: string;
+  page?: number;
+  limit?: number;
+}): Promise<{ data: UnifiedIncidentDto[]; total: number; page: number; limit: number }> {
+  const searchParams = new URLSearchParams();
+  if (params?.siteId) searchParams.set("siteId", params.siteId);
+  if (params?.ticketType) searchParams.set("ticketType", params.ticketType);
+  if (params?.status) searchParams.set("status", params.status);
+  if (params?.severity) searchParams.set("severity", params.severity);
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+
+  const res = await fetchWithAuth(`${API_URL}/api/maintenance/unified?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement de la vue unifiée");
+  return res.json();
+}

@@ -640,6 +640,53 @@ export const fr = {
       "door-repeated-denied": "Accès refusé répété",
     },
   },
+  maintenance: {
+    title: "Maintenance",
+    filters: {
+      all: "Tous",
+      securityIncidents: "Incidents de sécurité",
+      maintenanceTickets: "Tickets de maintenance",
+      deviceType: "Type d'équipement",
+      status: "Statut",
+    },
+    summary: {
+      openTickets: "Tickets ouverts",
+      openIncidents: "Incidents ouverts",
+      autoCreatedToday: "Créés automatiquement aujourd'hui",
+      unassigned: "Non assignés",
+    },
+    table: {
+      type: "Type",
+      title: "Titre",
+      severity: "Sévérité",
+      status: "Statut",
+      device: "Équipement",
+      assignedTo: "Assigné à",
+      createdAt: "Créé le",
+    },
+    type: {
+      SECURITY_INCIDENT: "Incident",
+      MAINTENANCE_TICKET: "Maintenance",
+    },
+    statuses: {
+      open: "Ouvert",
+      in_progress: "En cours",
+      resolved: "Résolu",
+      closed: "Fermé",
+    },
+    deviceTypes: {
+      camera: "Caméra",
+      reader: "Lecteur",
+      controller: "Contrôleur",
+    },
+    actions: {
+      assign: "Assigner",
+      changeStatus: "Changer le statut",
+    },
+    autoCreated: "Ticket créé automatiquement suite à une alerte équipement",
+    noData: "Aucun ticket de maintenance ou incident trouvé",
+    noTickets: "Aucun ticket de maintenance",
+  },
   audit: {
     title: "Audit & Conformité",
     description: "Traçabilité complète des opérations avec vérification d'intégrité cryptographique",

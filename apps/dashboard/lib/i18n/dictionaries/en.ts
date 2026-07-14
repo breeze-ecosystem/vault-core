@@ -642,6 +642,53 @@ export const en: Dictionary = {
       "door-repeated-denied": "Repeated denied access",
     },
   },
+  maintenance: {
+    title: "Maintenance",
+    filters: {
+      all: "All",
+      securityIncidents: "Security Incidents",
+      maintenanceTickets: "Maintenance Tickets",
+      deviceType: "Device Type",
+      status: "Status",
+    },
+    summary: {
+      openTickets: "Open Tickets",
+      openIncidents: "Open Incidents",
+      autoCreatedToday: "Auto-created Today",
+      unassigned: "Unassigned",
+    },
+    table: {
+      type: "Type",
+      title: "Title",
+      severity: "Severity",
+      status: "Status",
+      device: "Device",
+      assignedTo: "Assigned To",
+      createdAt: "Created At",
+    },
+    type: {
+      SECURITY_INCIDENT: "Incident",
+      MAINTENANCE_TICKET: "Maintenance",
+    },
+    statuses: {
+      open: "Open",
+      in_progress: "In Progress",
+      resolved: "Resolved",
+      closed: "Closed",
+    },
+    deviceTypes: {
+      camera: "Camera",
+      reader: "Reader",
+      controller: "Controller",
+    },
+    actions: {
+      assign: "Assign",
+      changeStatus: "Change Status",
+    },
+    autoCreated: "Ticket auto-created from equipment alert",
+    noData: "No maintenance tickets or incidents found",
+    noTickets: "No maintenance tickets",
+  },
   audit: {
     title: "Audit & Compliance",
     description: "Complete operation traceability with cryptographic integrity verification",

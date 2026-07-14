@@ -16,6 +16,7 @@ import {
   BarChart3,
   Gauge,
   Repeat,
+  Wrench,
   type LucideIcon,
 } from "lucide-react";
 import { hasMinRole, type Role } from "@repo/shared";
@@ -128,6 +129,12 @@ const navItems: NavItem[] = [
     label: "Équipement",
     href: "/equipement",
     icon: Monitor,
+    minRole: null,
+  },
+  {
+    label: "Maintenance",
+    href: "/maintenance",
+    icon: Wrench,
     minRole: null,
   },
   {
