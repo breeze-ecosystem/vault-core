@@ -15,6 +15,7 @@ import {
   Monitor,
   BarChart3,
   Gauge,
+  Repeat,
   type LucideIcon,
 } from "lucide-react";
 import { hasMinRole, type Role } from "@repo/shared";
@@ -73,6 +74,12 @@ const navItems: NavItem[] = [
     label: "Risques",
     href: "/risque",
     icon: Gauge,
+    minRole: "SUPERVISOR" as Role,
+  },
+  {
+    label: "Schémas",
+    href: "/schemas",
+    icon: Repeat,
     minRole: "SUPERVISOR" as Role,
   },
   {

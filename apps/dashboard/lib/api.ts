@@ -1829,3 +1829,65 @@ export async function fetchSiteRiskSummaries(): Promise<SiteRiskSummary[]> {
   if (!res.ok) throw new Error("Échec du chargement des résumés de risque");
   return res.json();
 }
+
+// ─── Recurring Pattern Types ───
+
+export interface DetectedPatternDto {
+  id: string;
+  time: string;
+  siteId: string;
+  patternId: string;
+  patternName: string;
+  deviceType: string;
+  deviceId: string;
+  occurrenceCount: number;
+  severity: string;
+  metadata?: any;
+  resolved: boolean;
+  resolvedAt?: string;
+}
+
+export interface PatternDefinition {
+  id: string;
+  name: string;
+  description: string;
+  deviceType: string;
+  severity: string;
+}
+
+// ─── Recurring Pattern API Functions ───
+
+export async function fetchDetectedPatterns(
+  params?: Record<string, string>,
+): Promise<{ data: DetectedPatternDto[]; total: number }> {
+  const searchParams = new URLSearchParams(params || {});
+  const qs = searchParams.toString() ? `?${searchParams.toString()}` : "";
+  const res = await fetchWithAuth(`${API_URL}/api/patterns${qs}`);
+  if (!res.ok) throw new Error("Échec du chargement des schémas récurrents");
+  return res.json();
+}
+
+export async function fetchPatternDefinitions(): Promise<PatternDefinition[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/patterns/definitions`);
+  if (!res.ok) throw new Error("Échec du chargement des définitions de schémas");
+  return res.json();
+}
+
+export async function resolvePattern(
+  patternId: string,
+  deviceId: string,
+): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/patterns/${patternId}/resolve`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ deviceId }),
+  });
+  if (!res.ok) throw new Error("Échec de la résolution du schéma");
+}
+
+export async function triggerPatternDetection(): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/patterns/detect`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error("Échec du déclenchement de la détection");
+}
