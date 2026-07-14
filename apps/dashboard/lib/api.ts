@@ -1374,3 +1374,73 @@ export async function deleteVehicleListEntry(id: string): Promise<void> {
   });
   if (!res.ok) throw new Error("Échec de la suppression de l'entrée");
 }
+
+// ─── AI Types ───
+
+export interface AIQueryResultDto {
+  query: string;
+  spec: { event_types: string[]; filters: Record<string, string>; query_summary: string };
+  results: any[];
+  summary: string;
+}
+
+export interface AssistantResponseDto {
+  answer: string;
+  sources: { type: string; time: string; summary: string }[];
+}
+
+export interface AIStatusDto {
+  ollamaConnected: boolean;
+  model: string;
+  embeddingModel: string;
+}
+
+export interface AIIncidentSummaryDto {
+  summary: string;
+  keyEvents: string[];
+  recommendedActions: string[];
+}
+
+// ─── AI API Functions ───
+
+export async function aiQuery(query: string): Promise<AIQueryResultDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/ai/query`, {
+    method: "POST",
+    body: JSON.stringify({ query }),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de la requête IA");
+  }
+  return res.json();
+}
+
+export async function aiSummarize(incidentId: string): Promise<AIIncidentSummaryDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/ai/summarize`, {
+    method: "POST",
+    body: JSON.stringify({ incidentId }),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de la génération du résumé");
+  }
+  return res.json();
+}
+
+export async function aiAssistant(question: string): Promise<AssistantResponseDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/ai/assistant`, {
+    method: "POST",
+    body: JSON.stringify({ question }),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de la requête à l'assistant");
+  }
+  return res.json();
+}
+
+export async function aiStatus(): Promise<AIStatusDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/ai/status`);
+  if (!res.ok) throw new Error("Échec de la vérification du statut IA");
+  return res.json();
+}

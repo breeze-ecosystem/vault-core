@@ -31,8 +31,8 @@ const navItems: NavItem[] = [
     minRole: null,
   },
   {
-    label: "Chat IA",
-    href: "/chat",
+    label: "Assistant IA",
+    href: "/ia",
     icon: MessageSquare,
     minRole: null,
   },
