@@ -2,6 +2,9 @@ import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { BullModule } from "@nestjs/bullmq";
 import Redis from "ioredis";
+import { AnprController } from "./anpr.controller";
+import { AnprService } from "./anpr.service";
+import { AnprProcessor } from "./anpr.processor";
 
 const RedisProvider = {
   provide: "REDIS",
@@ -21,8 +24,8 @@ const RedisProvider = {
   imports: [
     BullModule.registerQueue({ name: "anpr-processing" }),
   ],
-  controllers: [],
-  providers: [RedisProvider],
-  exports: [],
+  controllers: [AnprController],
+  providers: [AnprService, AnprProcessor, RedisProvider],
+  exports: [AnprService],
 })
 export class AnprModule {}
