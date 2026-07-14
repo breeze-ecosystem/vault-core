@@ -1625,32 +1625,37 @@ export class TailgatingProcessor {
 - [Access level evaluation caching specifics] — Cache TTL computation at schedule boundary boundaries, Redis key design — these are at the agent's discretion per D-10/D-11 [ASSUMED]
 - [TimescaleDB chunk interval: 1 day for access_events / door_state_log] — Appropriate for expected scale (100 events/sec), but exact chunk sizing may need tuning after production observation [ASSUMED]
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **TimescaleDB extension installation on existing PostgreSQL 16**
    - What we know: The project uses `postgres:16-alpine`. TimescaleDB extension requires the `timescaledb` package. The existing `ips-timescaledb` container proves TimescaleDB 2.16.1 works on PG16.
    - What's unclear: Whether the project's PostgreSQL container can install the extension in-place, or if we should switch the project's database to the existing TimescaleDB-enabled container.
-   - Recommendation: Add TimescaleDB installation to the Docker Compose healthcheck init or use a custom Dockerfile based on `timescale/timescaledb:2.18-pg16`. The planner should add a `checkpoint:human-verify` task for this decision.
+    - Recommendation: Add TimescaleDB installation to the Docker Compose healthcheck init or use a custom Dockerfile based on `timescale/timescaledb:2.18-pg16`. The planner should add a `checkpoint:human-verify` task for this decision.
+    - **RESOLVED:** Use a separate `timescale/timescaledb:2.18-pg16` container alongside existing `postgres:16-alpine` for time-series data. Existing Prisma-managed tables stay on the original PG16 container. This avoids migration risk and keeps separation clean. docker-compose.yml updated in Wave 0.
 
 2. **BullMQ version upgrade (5.30.0 → 5.80.2)**
    - What we know: The project currently uses BullMQ 5.30.0. The latest is 5.80.2 (major feature additions including job dependencies and rate limiters).
    - What's unclear: Whether the API currently uses any BullMQ v5.30.0 APIs that were removed or changed in 5.80.2.
-   - Recommendation: Include in Phase 1 Wave 0 (infrastructure setup) — upgrade BullMQ across all packages, verify existing frame-processing and notification queues still work.
+    - Recommendation: Include in Phase 1 Wave 0 (infrastructure setup) — upgrade BullMQ across all packages, verify existing frame-processing and notification queues still work.
+    - **RESOLVED:** Stay on BullMQ 5.30.0 for Phase 1. The existing queue infrastructure works reliably and the upgrade risk (API breaking changes) outweighs the feature gain for this phase. Re-evaluate in Phase 2 planning if job dependencies/rate limiters are needed.
 
 3. **MQTT broker Mosquitto vs EMQX**
    - What we know: Mosquitto is the most widely deployed MQTT broker (lightweight, battle-tested). EMQX offers clustering and a management dashboard but is heavier.
    - What's unclear: Whether clustering is needed in Phase 1 (single Docker host = Mosquitto is sufficient).
-   - Recommendation: Start with Mosquitto 2.0 in Docker Compose. Defer EMQX evaluation to Phase 3 (multi-site). Phase 1 is single-deployment only.
+    - Recommendation: Start with Mosquitto 2.0 in Docker Compose. Defer EMQX evaluation to Phase 3 (multi-site). Phase 1 is single-deployment only.
+    - **RESOLVED:** Use Mosquitto 2.0 as docker-compose service. Add to `docker-compose.yml`. Single-host deployment with QoS 1 and retained messages. EMQX deferred to Phase 3+.
 
 4. **Existing AuditLog migration path**
    - What we know: The existing `AuditLog` Prisma model (schema.prisma line 162) stores historical audit entries without hash chains. The new audit_log hypertable with pgcrypto triggers replaces this.
    - What's unclear: Whether to (a) keep both tables with the old one frozen, (b) migrate existing data to the new hypertable, or (c) start fresh with the new table only.
-   - Recommendation: Option (a) — keep the existing Prisma `AuditLog` table for historical reference (read-only), all new audit writes go to the new `audit_log` hypertable. Update `AuditService` to query the hypertable for new entries and fall back to the Prisma table for historical data.
+    - Recommendation: Option (a) — keep the existing Prisma `AuditLog` table for historical reference (read-only), all new audit writes go to the new `audit_log` hypertable. Update `AuditService` to query the hypertable for new entries and fall back to the Prisma table for historical data.
+    - **RESOLVED:** Option (a) — freeze existing Prisma AuditLog table (read-only for historical queries). New audit_log hypertable handles all new writes. AuditService queries both, merging results by timestamp. No data migration needed.
 
 5. **Protocol adapter scope for Phase 1**
    - What we know: D-02 requires a protocol adapter abstraction. Phase 1 needs at least one real controller protocol working (Wiegand is the Phase 1 minimum per CONTEXT.md).
    - What's unclear: Whether a real Wiegand controller or a simulator is available for testing. The MQTT message format from real controllers varies by manufacturer.
-   - Recommendation: The planner should include a spike task during planning to create and test a Wiegand protocol adapter against either a real controller or a documented MQTT topic/payload schema. If no real controller is available, implement against a well-documented reference and create a simulator for testing.
+    - Recommendation: The planner should include a spike task during planning to create and test a Wiegand protocol adapter against either a real controller or a documented MQTT topic/payload schema. If no real controller is available, implement against a well-documented reference and create a simulator for testing.
+    - **RESOLVED:** Implement Wiegand protocol adapter as the first adapter. Create a WiegandSimulator class for testing that emits structured MQTT messages on `site/{id}/reader/{id}/{event}` topics. Real controller integration is P1 stretch goal if hardware is available; simulator suffices for development and testing. Additional adapters (OSDP, HID) deferred to Phase 2+.
 
 ## Metadata
 
