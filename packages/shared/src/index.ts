@@ -15,6 +15,13 @@ export type { AlertSeverity } from "./constants/alert-severity";
 export { ALERT_STATUS } from "./constants/alert-status";
 export type { AlertStatus } from "./constants/alert-status";
 
+// Constants - Access Control
+export { CREDENTIAL_TYPES } from "./constants/credential-types";
+export type { CredentialType } from "./constants/credential-types";
+
+export { DOOR_STATES } from "./constants/door-states";
+export type { DoorState } from "./constants/door-states";
+
 // Schemas - Site
 export { createSiteSchema, updateSiteSchema } from "./schemas/site.schema";
 export type { CreateSiteInput, UpdateSiteInput } from "./schemas/site.schema";
@@ -27,5 +34,37 @@ export type { CreateCameraInput, UpdateCameraInput } from "./schemas/camera.sche
 export { createAlertSchema, updateAlertSchema } from "./schemas/alert.schema";
 export type { CreateAlertInput, UpdateAlertInput } from "./schemas/alert.schema";
 
+// Schemas - Access Control
+export {
+  createCredentialSchema,
+  updateCredentialSchema,
+  createAccessLevelSchema,
+  createScheduleSchema,
+  updateScheduleSchema,
+  createZoneSchema,
+  createDoorSchema,
+  createCameraDoorMapSchema,
+} from "./schemas/access.schema";
+export type {
+  CreateCredentialInput,
+  UpdateCredentialInput,
+  CreateAccessLevelInput,
+  CreateScheduleInput,
+  UpdateScheduleInput,
+  CreateZoneInput,
+  CreateDoorInput,
+  CreateCameraDoorMapInput,
+} from "./schemas/access.schema";
+
 // Types
 export type { TokenPayload, AuthResponse } from "./types/auth.types";
+
+// Types - Access Control
+export type {
+  AccessDecision,
+  CredentialDto,
+  AccessLevelDto,
+  ScheduleEntry,
+  DoorStateEvent,
+  BadgeReadEvent,
+} from "./types/access.types";
