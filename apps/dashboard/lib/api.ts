@@ -1629,3 +1629,127 @@ export async function testDecrypt(value: string): Promise<{ decrypted: string }>
   if (!res.ok) throw new Error("Échec du test de déchiffrement");
   return res.json();
 }
+
+// ─── Security Analytics Types ───
+
+export interface ZoneAnalyticsDto {
+  zoneId: string; siteId: string; zoneName: string; bucket: string;
+  deniedCount: number; grantedCount: number; doorAnomalyCount: number;
+  unsecuredCount: number; activeDoors: number;
+}
+
+export interface SiteAnalyticsDto {
+  siteId: string; siteName: string; bucket: string;
+  totalDenied: number; totalGranted: number; doorsWithAnomalies: number;
+  doorsUnsecured: number; incidentsCreated: number;
+}
+
+export interface IntrusionEventDto {
+  id: string; zoneId: string; siteId: string; doorId?: string;
+  detectedAt: string; cameraId?: string; snapshotUrl?: string;
+  confidence: number; status: string;
+}
+
+export interface LoiteringEventDto {
+  id: string; zoneId: string; siteId: string; startedAt: string;
+  durationSeconds: number; doorId?: string; maxConfidence?: number; cameraId?: string; status: string;
+}
+
+export interface AbnormalActivityDto {
+  zoneId: string; siteId: string; metric: string;
+  currentValue: number; baselineMean: number; deviation: number;
+  severity: 'LOW' | 'MEDIUM' | 'HIGH'; detectedAt: string;
+}
+
+export interface AnalyticsTrendPoint { bucket: string; value: number; metric: string; }
+
+// ─── Security Analytics API Functions ───
+
+export async function fetchZoneAnalytics(params?: {
+  siteId?: string; zoneId?: string; from?: string; to?: string; granularity?: string;
+}): Promise<ZoneAnalyticsDto[]> {
+  const searchParams = new URLSearchParams();
+  if (params?.siteId) searchParams.set("siteId", params.siteId);
+  if (params?.zoneId) searchParams.set("zoneId", params.zoneId);
+  if (params?.from) searchParams.set("from", params.from);
+  if (params?.to) searchParams.set("to", params.to);
+  if (params?.granularity) searchParams.set("granularity", params.granularity);
+
+  const res = await fetchWithAuth(`${API_URL}/api/analytics/zones?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des analyses de sécurité");
+  return res.json();
+}
+
+export async function fetchSiteAnalytics(params?: {
+  siteId?: string; from?: string; to?: string;
+}): Promise<SiteAnalyticsDto[]> {
+  const searchParams = new URLSearchParams();
+  if (params?.siteId) searchParams.set("siteId", params.siteId);
+  if (params?.from) searchParams.set("from", params.from);
+  if (params?.to) searchParams.set("to", params.to);
+
+  const res = await fetchWithAuth(`${API_URL}/api/analytics/sites?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des analyses de sécurité");
+  return res.json();
+}
+
+export async function fetchIntrusionEvents(params?: {
+  siteId?: string; from?: string; to?: string;
+}): Promise<IntrusionEventDto[]> {
+  const searchParams = new URLSearchParams();
+  if (params?.siteId) searchParams.set("siteId", params.siteId);
+  if (params?.from) searchParams.set("from", params.from);
+  if (params?.to) searchParams.set("to", params.to);
+
+  const res = await fetchWithAuth(`${API_URL}/api/analytics/intrusions?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des intrusions");
+  return res.json();
+}
+
+export async function fetchLoiteringEvents(params?: {
+  siteId?: string; from?: string; to?: string;
+}): Promise<LoiteringEventDto[]> {
+  const searchParams = new URLSearchParams();
+  if (params?.siteId) searchParams.set("siteId", params.siteId);
+  if (params?.from) searchParams.set("from", params.from);
+  if (params?.to) searchParams.set("to", params.to);
+
+  const res = await fetchWithAuth(`${API_URL}/api/analytics/loitering?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des flâneries");
+  return res.json();
+}
+
+export async function fetchUnusualAbsence(params?: {
+  siteId?: string; zoneId?: string;
+}): Promise<AbnormalActivityDto[]> {
+  const searchParams = new URLSearchParams();
+  if (params?.siteId) searchParams.set("siteId", params.siteId);
+  if (params?.zoneId) searchParams.set("zoneId", params.zoneId);
+
+  const res = await fetchWithAuth(`${API_URL}/api/analytics/absence?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des absences");
+  return res.json();
+}
+
+export async function fetchAbnormalActivity(params?: {
+  siteId?: string; zoneId?: string;
+}): Promise<AbnormalActivityDto[]> {
+  const searchParams = new URLSearchParams();
+  if (params?.siteId) searchParams.set("siteId", params.siteId);
+  if (params?.zoneId) searchParams.set("zoneId", params.zoneId);
+
+  const res = await fetchWithAuth(`${API_URL}/api/analytics/abnormal?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des anomalies");
+  return res.json();
+}
+
+export async function fetchAnalyticsTrends(
+  siteId: string, metric: string, granularity?: string,
+): Promise<AnalyticsTrendPoint[]> {
+  const searchParams = new URLSearchParams({ siteId, metric });
+  if (granularity) searchParams.set("granularity", granularity);
+
+  const res = await fetchWithAuth(`${API_URL}/api/analytics/trends?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des tendances");
+  return res.json();
+}

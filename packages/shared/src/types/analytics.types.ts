@@ -39,6 +39,7 @@ export interface LoiteringEventDto {
   siteId: string;
   startedAt: string;
   durationSeconds: number;
+  doorId?: string;
   maxConfidence: number;
   cameraId?: string;
   status: string;

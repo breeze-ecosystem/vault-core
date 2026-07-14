@@ -13,6 +13,7 @@ import {
   Shield,
   Car,
   Monitor,
+  BarChart3,
   type LucideIcon,
 } from "lucide-react";
 import { hasMinRole, type Role } from "@repo/shared";
@@ -66,6 +67,12 @@ const navItems: NavItem[] = [
     href: "/cameras",
     icon: Video,
     minRole: null,
+  },
+  {
+    label: "Analytique",
+    href: "/analytique",
+    icon: BarChart3,
+    minRole: "SUPERVISOR" as Role,
   },
   {
     label: "Alertes",
