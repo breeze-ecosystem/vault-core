@@ -9,11 +9,11 @@ Requirements for the complete physical security intelligence platform, organized
 
 ### Access Control (ACC)
 
-- [ ] **ACC-01**: Admin can create and manage user credentials (badges, PIN, mobile credentials, QR codes)
-- [ ] **ACC-02**: Admin can define access levels with time-based schedules per zone
-- [ ] **ACC-03**: System enforces zone-based access rules (who can enter which zone, when)
-- [ ] **ACC-04**: System enforces anti-passback rules (prevents reuse of credentials before exit)
-- [ ] **ACC-05**: User can use mobile credentials (wallet-based, QR) for access at readers
+- [x] **ACC-01**: Admin can create and manage user credentials (badges, PIN, mobile credentials, QR codes)
+- [x] **ACC-02**: Admin can define access levels with time-based schedules per zone
+- [x] **ACC-03**: System enforces zone-based access rules (who can enter which zone, when)
+- [x] **ACC-04**: System enforces anti-passback rules (prevents reuse of credentials before exit)
+- [x] **ACC-05**: User can use mobile credentials (wallet-based, QR) for access at readers
 - [ ] **ACC-06**: Operator can trigger emergency unlock or lockdown per zone
 - [ ] **ACC-07**: System correlates every access event (grant/deny) with video clip from nearest camera
 
