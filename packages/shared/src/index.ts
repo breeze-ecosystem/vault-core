@@ -136,3 +136,23 @@ export type {
   AddCommentInput as AddCommentDto,
   IncidentHistoryEntry,
 } from "./types/incident.types";
+
+// Schemas - Visitor
+export {
+  preregisterSchema,
+  checkInSchema,
+  checkOutSchema,
+  visitorQuerySchema,
+} from "./schemas/visitor.schema";
+export type {
+  PreregisterInput,
+  CheckInInput,
+  CheckOutInput,
+  VisitorQueryInput,
+} from "./schemas/visitor.schema";
+
+// Types - Visitor
+export type {
+  VisitorDto,
+  VisitDto,
+} from "./types/visitor.types";

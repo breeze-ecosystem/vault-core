@@ -87,6 +87,7 @@ model Credential {
 
   user         User          @relation(fields: [userId], references: [id])
   accessLevels AccessLevel[]
+  visits       Visit[]
 
   @@index([userId])
   @@index([type, badgeNumber])
@@ -271,6 +272,50 @@ model IncidentEvidence {
   @@index([incidentId])
 }
 
+// ─── Phase 2: Visitor Management Models ───
+
+model Visitor {
+  id        String   @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String?
+  phone     String?
+  company   String?
+  photoUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  visits Visit[]
+
+  @@index([email])
+  @@index([lastName, firstName])
+}
+
+model Visit {
+  id              String    @id @default(uuid())
+  visitorId       String
+  hostUserId      String
+  purpose         String?
+  validFrom       DateTime
+  validUntil      DateTime
+  credentialId    String
+  checkedInAt     DateTime?
+  checkedOutAt    DateTime?
+  status          String    @default("scheduled")
+  zoneRestrictions Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  visitor    Visitor    @relation(fields: [visitorId], references: [id])
+  host       User       @relation("VisitHost", fields: [hostUserId], references: [id])
+  credential Credential @relation(fields: [credentialId], references: [id])
+
+  @@index([visitorId])
+  @@index([hostUserId])
+  @@index([status])
+  @@index([credentialId])
+}
+
 // ─── Existing Models ───
 
 model Site {
@@ -337,6 +382,7 @@ model User {
   incidentAssignmentsTo   IncidentAssignment[] @relation("AssignmentTo")
   incidentEscalations     IncidentEscalation[]
   uploadedEvidence        IncidentEvidence[]
+  hostedVisits            Visit[]              @relation("VisitHost")
 }
 
 model Alert {
