@@ -739,3 +739,77 @@ export async function updateDoorAlertConfig(
   });
   if (!res.ok) throw new Error("Échec de la configuration d'alerte");
 }
+
+// ─── Timeline Types ───
+
+export interface TimelineEntryDto {
+  eventId: string;
+  eventType: "access" | "door";
+  timestamp: string;
+  doorId: string;
+  doorName?: string;
+  zoneId?: string;
+  summary: string;
+  detail?: string;
+  videoThumbnailUrl?: string;
+  snapshotUrl?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface TimelineSearchParams {
+  siteId: string;
+  from?: string;
+  to?: string;
+  credentialId?: string;
+  userId?: string;
+  doorId?: string;
+  zoneId?: string;
+  decision?: "granted" | "denied";
+  page?: number;
+  limit?: number;
+}
+
+// ─── Timeline API Functions ───
+
+export async function fetchTimeline(
+  siteId: string,
+  params?: { from?: string; to?: string; limit?: number },
+): Promise<{ data: TimelineEntryDto[] }> {
+  const searchParams = new URLSearchParams();
+  searchParams.set("siteId", siteId);
+  if (params?.from) searchParams.set("from", params.from);
+  if (params?.to) searchParams.set("to", params.to);
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+
+  const res = await fetchWithAuth(`${API_URL}/api/timeline/events?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement de la chronologie");
+  return res.json();
+}
+
+export async function searchTimeline(
+  params: TimelineSearchParams,
+): Promise<{ data: TimelineEntryDto[]; total: number; page: number; limit: number }> {
+  const searchParams = new URLSearchParams();
+  searchParams.set("siteId", params.siteId);
+  if (params.from) searchParams.set("from", params.from);
+  if (params.to) searchParams.set("to", params.to);
+  if (params.credentialId) searchParams.set("credentialId", params.credentialId);
+  if (params.userId) searchParams.set("userId", params.userId);
+  if (params.doorId) searchParams.set("doorId", params.doorId);
+  if (params.zoneId) searchParams.set("zoneId", params.zoneId);
+  if (params.decision) searchParams.set("decision", params.decision);
+  if (params.page) searchParams.set("page", String(params.page));
+  if (params.limit) searchParams.set("limit", String(params.limit));
+
+  const res = await fetchWithAuth(`${API_URL}/api/timeline/search?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec de la recherche dans la chronologie");
+  return res.json();
+}
+
+export async function fetchEventVideo(
+  eventId: string,
+): Promise<{ cameraId: string; snapshotUrl?: string; thumbnailUrl?: string; timestamp: string }> {
+  const res = await fetchWithAuth(`${API_URL}/api/timeline/events/${eventId}/video`);
+  if (!res.ok) throw new Error("Échec du chargement de la vidéo");
+  return res.json();
+}

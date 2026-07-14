@@ -9,6 +9,7 @@ import {
   MapPin,
   Key,
   DoorOpen,
+  Clock,
   type LucideIcon,
 } from "lucide-react";
 import { hasMinRole, type Role } from "@repo/shared";
@@ -43,6 +44,12 @@ const navItems: NavItem[] = [
     label: "Portes",
     href: "/portes",
     icon: DoorOpen,
+    minRole: null,
+  },
+  {
+    label: "Chronologie",
+    href: "/chronologie",
+    icon: Clock,
     minRole: null,
   },
   {
