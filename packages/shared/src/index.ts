@@ -226,3 +226,15 @@ export type {
   AbnormalActivityDto,
   AnalyticsTrendPoint,
 } from "./types/analytics.types";
+
+// Schemas - Risk
+export { riskQuerySchema } from "./schemas/risk.schema";
+export type { RiskQueryParams } from "./schemas/risk.schema";
+
+// Types - Risk
+export type {
+  RiskScoreDto,
+  RiskFactors,
+  RiskTrendPoint,
+  SiteRiskSummary,
+} from "./types/risk.types";
