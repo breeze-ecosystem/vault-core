@@ -4,6 +4,7 @@ import { Cron } from "@nestjs/schedule";
 import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import Redis from "ioredis";
 import { PrismaService } from "../prisma/prisma.service";
+import { EquipmentPredictor } from "./equipment.predictor";
 
 @Injectable()
 export class EquipmentService {
@@ -14,6 +15,7 @@ export class EquipmentService {
     private readonly config: ConfigService,
     private readonly eventEmitter: EventEmitter2,
     @Inject("REDIS_EQUIPMENT") private readonly redis: Redis,
+    private readonly predictor: EquipmentPredictor,
   ) {}
 
   /**
@@ -323,5 +325,211 @@ export class EquipmentService {
     } catch {
       // Redis not available — skip debounce
     }
+  }
+
+  // ──────────────────────────────────────────────
+  // Predictive Health Methods (Plan 03-04)
+  // ──────────────────────────────────────────────
+
+  /**
+   * Hourly cron — computes predictions for all devices.
+   */
+  @Cron("0 * * * *")
+  async computePredictions(): Promise<void> {
+    try {
+      await this.predictor.computeAllPredictions();
+      this.logger.log("Predictive health cycle complete");
+    } catch (err: any) {
+      this.logger.error(`Predictive health cycle failed: ${err.message}`);
+    }
+  }
+
+  /**
+   * Get predictions with optional filters.
+   */
+  async getPredictions(params?: {
+    siteId?: string;
+    deviceType?: string;
+    metric?: string;
+    triggeredAlert?: boolean;
+  }): Promise<any[]> {
+    let query = `
+      SELECT p.time, p.site_id, p.device_type, p.device_id, p.metric,
+             p.current_value, p.failure_threshold, p.slope,
+             p.hours_to_failure, p.confidence, p.data_points, p.triggered_alert,
+             p.time AS id
+    `;
+    const conditions: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    if (params?.siteId) {
+      conditions.push(`p.site_id = $${paramIndex}::uuid`);
+      values.push(params.siteId);
+      paramIndex++;
+    }
+    if (params?.deviceType) {
+      conditions.push(`p.device_type = $${paramIndex}`);
+      values.push(params.deviceType);
+      paramIndex++;
+    }
+    if (params?.metric) {
+      conditions.push(`p.metric = $${paramIndex}`);
+      values.push(params.metric);
+      paramIndex++;
+    }
+    if (params?.triggeredAlert !== undefined) {
+      conditions.push(`p.triggered_alert = $${paramIndex}`);
+      values.push(params.triggeredAlert);
+      paramIndex++;
+    }
+
+    // Join with device tables to get device name
+    query += `, COALESCE(c.name, r.name, ctrl.name) AS device_name
+      FROM predictions p
+      LEFT JOIN "Camera" c ON p.device_type = 'camera' AND p.device_id = c.id
+      LEFT JOIN "Door" r ON p.device_type = 'reader' AND p.device_id = r.id
+      LEFT JOIN "Controller" ctrl ON p.device_type = 'controller' AND p.device_id = ctrl.id
+    `;
+
+    if (conditions.length > 0) {
+      query += ` WHERE ${conditions.join(" AND ")}`;
+    }
+
+    query += " ORDER BY p.time DESC LIMIT 200";
+
+    const rows = await this.prisma.$queryRawUnsafe<any[]>(query, ...values);
+
+    return rows.map((row: any) => ({
+      id: row.id,
+      time: row.time?.toISOString?.() ?? row.time,
+      siteId: row.site_id,
+      deviceType: row.device_type,
+      deviceId: row.device_id,
+      deviceName: row.device_name ?? null,
+      metric: row.metric,
+      currentValue: row.current_value,
+      failureThreshold: row.failure_threshold,
+      slope: row.slope,
+      hoursToFailure: row.hours_to_failure,
+      confidence: row.confidence,
+      dataPoints: row.data_points,
+      triggeredAlert: row.triggered_alert,
+    }));
+  }
+
+  /**
+   * Get camera-to-door associations with status (orphans, mismatches).
+   */
+  async getCameraDoorAssociations(siteId?: string): Promise<any[]> {
+    const associations: any[] = [];
+
+    // Get all CameraDoorMap entries with camera and door details
+    const siteFilter = siteId
+      ? `AND c.site_id = $1::uuid AND d.site_id = $1::uuid`
+      : "";
+
+    // Mapped associations
+    const mapped = await this.prisma.$queryRawUnsafe<any[]>(
+      `SELECT
+         c.id AS camera_id, c.name AS camera_name,
+         d.id AS door_id, d.name AS door_name,
+         d.zone_id AS door_zone_id,
+         cdm.angle, cdm.priority,
+         CASE
+           WHEN c.site_id != d.site_id THEN 'zone_mismatch'
+           ELSE 'mapped'
+         END AS status
+       FROM "CameraDoorMap" cdm
+       JOIN "Camera" c ON cdm.camera_id = c.id
+       JOIN "Door" d ON cdm.door_id = d.id
+       WHERE 1=1 ${siteFilter}
+       ORDER BY c.name`,
+      ...(siteId ? [siteId] : []),
+    );
+    associations.push(...mapped);
+
+    // Orphan cameras — cameras with no CameraDoorMap entry
+    const orphanCameras = await this.prisma.$queryRawUnsafe<any[]>(
+      `SELECT c.id AS camera_id, c.name AS camera_name,
+              NULL AS door_id, NULL AS door_name, NULL AS door_zone_id,
+              NULL AS angle, 0 AS priority,
+              'orphan_camera' AS status
+       FROM "Camera" c
+       WHERE c.id NOT IN (SELECT camera_id FROM "CameraDoorMap")
+       ${siteId ? `AND c.site_id = $1::uuid` : ""}
+       ORDER BY c.name`,
+      ...(siteId ? [siteId] : []),
+    );
+    associations.push(...orphanCameras);
+
+    // Orphan doors — doors with no CameraDoorMap entry
+    const orphanDoors = await this.prisma.$queryRawUnsafe<any[]>(
+      `SELECT NULL AS camera_id, NULL AS camera_name,
+              d.id AS door_id, d.name AS door_name,
+              d.zone_id AS door_zone_id, NULL AS angle, 0 AS priority,
+              'orphan_door' AS status
+       FROM "Door" d
+       WHERE d.id NOT IN (SELECT door_id FROM "CameraDoorMap")
+       ${siteId ? `AND d.site_id = $1::uuid` : ""}
+       ORDER BY d.name`,
+      ...(siteId ? [siteId] : []),
+    );
+    associations.push(...orphanDoors);
+
+    return associations;
+  }
+
+  /**
+   * Get predictive health summary stats for dashboard.
+   */
+  async getPredictiveHealthSummary(siteId?: string): Promise<{
+    totalPredictions: number;
+    criticalPredictions: number;
+    byDeviceType: { camera: number; reader: number; controller: number };
+  }> {
+    const siteFilter = siteId ? `WHERE site_id = $1::uuid` : "";
+
+    const total = await this.prisma.$queryRawUnsafe<
+      Array<{ total: bigint }>
+    >(
+      `SELECT COUNT(*) AS total FROM predictions ${siteFilter}`,
+      ...(siteId ? [siteId] : []),
+    );
+
+    const critical = await this.prisma.$queryRawUnsafe<
+      Array<{ total: bigint }>
+    >(
+      `SELECT COUNT(*) AS total FROM predictions
+       WHERE hours_to_failure IS NOT NULL AND hours_to_failure <= 72
+       ${siteId ? "AND site_id = $1::uuid" : ""}`,
+      ...(siteId ? [siteId] : []),
+    );
+
+    const byDevice = await this.prisma.$queryRawUnsafe<
+      Array<{ device_type: string; count: bigint }>
+    >(
+      `SELECT device_type, COUNT(*) AS count FROM predictions
+       ${siteFilter}
+       GROUP BY device_type`,
+      ...(siteId ? [siteId] : []),
+    );
+
+    const byDeviceType: { camera: number; reader: number; controller: number } = {
+      camera: 0,
+      reader: 0,
+      controller: 0,
+    };
+    for (const row of byDevice) {
+      if (row.device_type === "camera") byDeviceType.camera = Number(row.count);
+      else if (row.device_type === "reader") byDeviceType.reader = Number(row.count);
+      else if (row.device_type === "controller") byDeviceType.controller = Number(row.count);
+    }
+
+    return {
+      totalPredictions: Number(total[0]?.total ?? 0),
+      criticalPredictions: Number(critical[0]?.total ?? 0),
+      byDeviceType,
+    };
   }
 }

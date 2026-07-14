@@ -4,6 +4,7 @@ import { BullModule } from "@nestjs/bullmq";
 import Redis from "ioredis";
 import { EquipmentController } from "./equipment.controller";
 import { EquipmentService } from "./equipment.service";
+import { EquipmentPredictor } from "./equipment.predictor";
 
 const RedisProvider = {
   provide: "REDIS_EQUIPMENT",
@@ -21,10 +22,13 @@ const RedisProvider = {
 
 @Module({
   imports: [
-    BullModule.registerQueue({ name: "equipment-health" }),
+    BullModule.registerQueue(
+      { name: "equipment-health" },
+      { name: "predictive-health" },
+    ),
   ],
   controllers: [EquipmentController],
-  providers: [EquipmentService, RedisProvider],
-  exports: [EquipmentService],
+  providers: [EquipmentService, EquipmentPredictor, RedisProvider],
+  exports: [EquipmentService, EquipmentPredictor],
 })
 export class EquipmentModule {}

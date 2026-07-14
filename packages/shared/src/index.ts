@@ -194,6 +194,8 @@ export type {
   CameraHealthDto,
   ReaderHealthDto,
   ControllerHealthDto,
+  PredictionDto,
+  CameraDoorAssociationDto,
 } from "./types/equipment.types";
 
 // Schemas - Governance
