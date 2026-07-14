@@ -126,16 +126,132 @@ Deferred to future releases. Tracked but not in current roadmap.
 
 ## Traceability
 
-Which phases cover which requirements. Filled during roadmap creation.
+Which phases cover which requirements.
+
+### Access Control (ACC)
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (Pending roadmap) | — | — |
+| ACC-01: Admin manages credentials (badges, PIN, mobile, QR) | Phase 1 | Pending |
+| ACC-02: Admin defines access levels with time-based schedules | Phase 1 | Pending |
+| ACC-03: System enforces zone-based access rules | Phase 1 | Pending |
+| ACC-04: System enforces anti-passback rules | Phase 1 | Pending |
+| ACC-05: User uses mobile credentials at readers | Phase 1 | Pending |
+| ACC-06: Operator triggers emergency unlock/lockdown per zone | Phase 1 | Pending |
+| ACC-07: System correlates access events with video clips | Phase 1 | Pending |
+
+### Door Management (DOOR)
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| DOOR-01: System monitors door state in real time | Phase 1 | Pending |
+| DOOR-02: System alerts on door held open | Phase 1 | Pending |
+| DOOR-03: System alerts on door forced open | Phase 1 | Pending |
+| DOOR-04: System alerts on door unsecured | Phase 1 | Pending |
+| DOOR-05: System alerts on door desynchronization | Phase 1 | Pending |
+| DOOR-06: Operator views door status dashboard | Phase 1 | Pending |
+
+### Video Event Correlation (VEC)
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| VEC-01: System links access events to video timestamps | Phase 1 | Pending |
+| VEC-02: Operator views unified timeline (access + door + video) | Phase 1 | Pending |
+| VEC-03: Operator clicks event to view associated video clip | Phase 1 | Pending |
+| VEC-04: System provides real-time event stream with thumbnails | Phase 1 | Pending |
+| VEC-05: Operator searches events by time, credential, user, door, zone | Phase 1 | Pending |
+
+### Incident Management (INC)
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| INC-01: Operator creates/auto-triages incidents from alerts | Phase 2 | Pending |
+| INC-02: Operator assigns incidents with escalation chains and SLAs | Phase 2 | Pending |
+| INC-03: Operator attaches evidence (video, events, snapshots) to incidents | Phase 2 | Pending |
+| INC-04: Operator adds comments and status updates to incidents | Phase 2 | Pending |
+| INC-05: System tracks full incident lifecycle (open → closed) | Phase 2 | Pending |
+| INC-06: System generates closure reports with timeline and evidence | Phase 2 | Pending |
+
+### Visitor Management (VIST)
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| VIST-01: Host pre-registers visitors with details and duration | Phase 2 | Pending |
+| VIST-02: Visitor receives QR-code/temporary badge credential | Phase 2 | Pending |
+| VIST-03: Security processes visitor check-in/check-out | Phase 2 | Pending |
+| VIST-04: Admin defines zone restrictions for visitors | Phase 2 | Pending |
+| VIST-05: System logs visitor activity correlated with video | Phase 2 | Pending |
+
+### ANPR / LPR Vehicles (ANPR)
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| ANPR-01: System captures and recognizes plates in real time | Phase 2 | Pending |
+| ANPR-02: Admin manages vehicle allowlists and blocklists | Phase 2 | Pending |
+| ANPR-03: System generates access events on plate recognition | Phase 2 | Pending |
+| ANPR-04: System logs vehicle events (plate image, confidence, timestamp) | Phase 2 | Pending |
+| ANPR-05: Operator searches vehicle event history | Phase 2 | Pending |
+
+### Security Analytics (ANLY)
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| ANLY-01: System detects intrusion into forbidden zones | Phase 3 | Pending |
+| ANLY-02: System detects loitering behavior | Phase 3 | Pending |
+| ANLY-03: System detects unusual absence | Phase 3 | Pending |
+| ANLY-04: System detects abnormal activity vs historical baseline | Phase 3 | Pending |
+| ANLY-05: Admin views per-site security metrics dashboard | Phase 3 | Pending |
+
+### Equipment Health (EQPT)
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| EQPT-01: System monitors camera health | Phase 2 | Pending |
+| EQPT-02: System monitors access reader health | Phase 2 | Pending |
+| EQPT-03: System monitors door controller health | Phase 2 | Pending |
+| EQPT-04: System alerts on equipment degradation (predictive) | Phase 3 | Pending |
+| EQPT-05: System visualizes camera-to-door associations | Phase 3 | Pending |
+
+### Audit & Compliance (AUDT)
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| AUDT-01: System maintains immutable audit log with hash-chain | Phase 1 | Pending |
+| AUDT-02: Admin can export audit reports with filters | Phase 1 | Pending |
+| AUDT-03: System enforces fine-grained roles across modules | Phase 1 | Pending |
+| AUDT-04: System encrypts data at rest and in transit | Phase 2 | Pending |
+| AUDT-05: Admin configures data retention policies with auto-pruning | Phase 2 | Pending |
+| AUDT-06: System supports multi-site isolation | Phase 3 | Pending |
+
+### AI Features (AI)
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| AI-01: Operator queries system in natural language | Phase 2 | Pending |
+| AI-02: System auto-generates incident summaries | Phase 2 | Pending |
+| AI-03: AI assistant answers questions about building state | Phase 2 | Pending |
+| AI-04: System detects tailgating/piggybacking via AI pipeline | Phase 1 | Pending |
+
+### Risk & Intelligence (RSK)
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| RSK-01: System computes per-zone risk scores | Phase 3 | Pending |
+| RSK-02: System detects recurring situations and surfaces patterns | Phase 3 | Pending |
+| RSK-03: Admin views executive dashboard with multi-site risk overview | Phase 3 | Pending |
+
+### Maintenance Workflows (WFL)
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| WFL-01: System auto-creates maintenance tickets on equipment degradation | Phase 3 | Pending |
+| WFL-02: System routes equipment issues to maintenance team | Phase 3 | Pending |
+| WFL-03: Operator tracks maintenance tickets alongside incidents | Phase 3 | Pending |
 
 **Coverage:**
-- v1 requirements: 48 total
-- Mapped to phases: 0
-- Unmapped: 48 ⚠️
+- v1 requirements: 60 total
+- Mapped to phases: 60
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-07-14*
