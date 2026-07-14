@@ -31,6 +31,7 @@ import { AnprModule } from './modules/anpr/anpr.module';
 import { AiModule } from './modules/ai/ai.module';
 import { EquipmentModule } from './modules/equipment/equipment.module';
 import { GovernanceModule } from './modules/governance/governance.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -79,6 +80,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     AiModule,
     EquipmentModule,
     GovernanceModule,
+    AnalyticsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
