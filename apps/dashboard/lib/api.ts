@@ -1445,6 +1445,82 @@ export async function aiStatus(): Promise<AIStatusDto> {
   return res.json();
 }
 
+// ─── Predictive Health Types (Plan 03-04) ───
+
+export interface PredictionDto {
+  id: string;
+  time: string;
+  siteId: string;
+  deviceType: string;
+  deviceId: string;
+  deviceName?: string;
+  metric: string;
+  currentValue: number;
+  failureThreshold: number;
+  slope: number;
+  hoursToFailure: number | null;
+  confidence: "high" | "medium" | "low";
+  dataPoints: number;
+  triggeredAlert: boolean;
+}
+
+export interface CameraDoorAssociationDto {
+  cameraId: string;
+  cameraName: string;
+  doorId?: string;
+  doorName?: string;
+  doorZoneId?: string;
+  angle?: string;
+  priority: number;
+  status: "mapped" | "orphan_camera" | "orphan_door" | "zone_mismatch";
+}
+
+export interface PredictiveSummaryDto {
+  totalPredictions: number;
+  criticalPredictions: number;
+  byDeviceType: { camera: number; reader: number; controller: number };
+}
+
+// ─── Predictive Health API Functions (Plan 03-04) ───
+
+export async function fetchPredictions(params?: {
+  siteId?: string;
+  deviceType?: string;
+  metric?: string;
+  triggeredAlert?: string;
+}): Promise<PredictionDto[]> {
+  const searchParams = new URLSearchParams();
+  if (params?.siteId) searchParams.set("siteId", params.siteId);
+  if (params?.deviceType) searchParams.set("deviceType", params.deviceType);
+  if (params?.metric) searchParams.set("metric", params.metric);
+  if (params?.triggeredAlert) searchParams.set("triggeredAlert", params.triggeredAlert);
+  const qs = searchParams.toString() ? `?${searchParams.toString()}` : "";
+  const res = await fetchWithAuth(`${API_URL}/api/equipment/predictions${qs}`);
+  if (!res.ok) throw new Error("Échec du chargement des prédictions");
+  return res.json();
+}
+
+export async function fetchPredictiveSummary(siteId?: string): Promise<PredictiveSummaryDto> {
+  const params = siteId ? `?siteId=${siteId}` : "";
+  const res = await fetchWithAuth(`${API_URL}/api/equipment/predictions/summary${params}`);
+  if (!res.ok) throw new Error("Échec du chargement du résumé prédictif");
+  return res.json();
+}
+
+export async function fetchCameraDoorAssociations(siteId?: string): Promise<CameraDoorAssociationDto[]> {
+  const params = siteId ? `?siteId=${siteId}` : "";
+  const res = await fetchWithAuth(`${API_URL}/api/equipment/camera-door-map${params}`);
+  if (!res.ok) throw new Error("Échec du chargement de la cartographie caméra-porte");
+  return res.json();
+}
+
+export async function triggerPredictionCycle(): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/equipment/predictions/run`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error("Échec du déclenchement de l'analyse prédictive");
+}
+
 // ─── Equipment Health Types ───
 
 export interface CameraHealthDto {
