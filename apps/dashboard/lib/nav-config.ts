@@ -7,6 +7,7 @@ import {
   Settings,
   MessageSquare,
   MapPin,
+  Key,
   type LucideIcon,
 } from "lucide-react";
 import { hasMinRole, type Role } from "@repo/shared";
@@ -30,6 +31,12 @@ const navItems: NavItem[] = [
     href: "/chat",
     icon: MessageSquare,
     minRole: null,
+  },
+  {
+    label: "Accès",
+    href: "/acces",
+    icon: Key,
+    minRole: "ADMIN" as Role,
   },
   {
     label: "Caméras",

@@ -466,3 +466,196 @@ export async function sendChatMessage(dto: ChatMessageDto): Promise<ChatResponse
   }
   return res.json();
 }
+
+// ─── Access Control Types ───
+
+export interface CredentialDto {
+  id: string;
+  userId: string;
+  type: "BADGE" | "PIN" | "MOBILE" | "QR";
+  badgeNumber?: string | null;
+  pinHash?: string | null;
+  mobileWalletId?: string | null;
+  qrSeed?: string | null;
+  isActive: boolean;
+  validFrom?: string | null;
+  validUntil?: string | null;
+  maxUses?: number | null;
+  useCount: number;
+  createdAt: string;
+  updatedAt: string;
+  user?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  accessLevels?: AccessLevelDto[];
+}
+
+export interface AccessLevelDto {
+  id: string;
+  credentialId: string;
+  zoneId: string;
+  scheduleId: string;
+  priority: number;
+  zone?: ZoneDto;
+  schedule?: ScheduleDto;
+}
+
+export interface ScheduleDto {
+  id: string;
+  name: string;
+  zoneId: string;
+  entries: ScheduleEntry[];
+  holidayOverride?: string | null;
+}
+
+export interface ScheduleEntry {
+  dayOfWeek: number;
+  startHour: number;
+  startMinute: number;
+  endHour: number;
+  endMinute: number;
+}
+
+export interface ZoneDto {
+  id: string;
+  name: string;
+  siteId: string;
+  description?: string | null;
+}
+
+export interface DoorDto {
+  id: string;
+  name: string;
+  siteId: string;
+  zoneId: string;
+  controllerId?: string | null;
+  alertConfig: Record<string, unknown>;
+}
+
+// ─── Access Control API Functions ───
+
+export async function fetchCredentials(params?: {
+  type?: string;
+  userId?: string;
+  isActive?: boolean;
+  page?: number;
+  limit?: number;
+}): Promise<{ data: CredentialDto[]; total: number; page: number; limit: number }> {
+  const searchParams = new URLSearchParams();
+  if (params?.type) searchParams.set("type", params.type);
+  if (params?.userId) searchParams.set("userId", params.userId);
+  if (params?.isActive !== undefined) searchParams.set("isActive", String(params.isActive));
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+
+  const res = await fetchWithAuth(`${API_URL}/api/access/credentials?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des justificatifs d'accès");
+  return res.json();
+}
+
+export async function fetchCredential(id: string): Promise<CredentialDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/credentials/${id}`);
+  if (!res.ok) throw new Error("Échec du chargement du justificatif");
+  return res.json();
+}
+
+export async function createCredential(data: {
+  userId: string;
+  type: string;
+  badgeNumber?: string;
+  pinHash?: string;
+  qrSeed?: string;
+  validFrom?: string;
+  validUntil?: string;
+  maxUses?: number;
+}): Promise<CredentialDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/credentials`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de création du justificatif");
+  }
+  return res.json();
+}
+
+export async function updateCredential(
+  id: string,
+  data: Record<string, unknown>,
+): Promise<CredentialDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/credentials/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour du justificatif");
+  return res.json();
+}
+
+export async function deactivateCredential(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/credentials/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Échec de la désactivation du justificatif");
+}
+
+export async function generateCredentialQr(id: string): Promise<{ qrDataUrl: string }> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/credentials/${id}/qr`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error("Échec de la génération du QR code");
+  return res.json();
+}
+
+export async function fetchAccessLevels(credentialId: string): Promise<AccessLevelDto[]> {
+  const res = await fetchWithAuth(
+    `${API_URL}/api/access/levels?credentialId=${credentialId}`,
+  );
+  if (!res.ok) throw new Error("Échec du chargement des niveaux d'accès");
+  return res.json();
+}
+
+export async function createAccessLevel(data: {
+  credentialId: string;
+  zoneId: string;
+  scheduleId: string;
+  priority?: number;
+}): Promise<AccessLevelDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/levels`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de création du niveau d'accès");
+  }
+  return res.json();
+}
+
+export async function deleteAccessLevel(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/levels/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Échec de suppression du niveau d'accès");
+}
+
+export async function fetchZones(): Promise<ZoneDto[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/zones`);
+  if (!res.ok) throw new Error("Échec du chargement des zones");
+  return res.json();
+}
+
+export async function fetchSchedules(): Promise<ScheduleDto[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/schedules`);
+  if (!res.ok) throw new Error("Échec du chargement des plannings");
+  return res.json();
+}
+
+export async function fetchDoors(): Promise<DoorDto[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/doors`);
+  if (!res.ok) throw new Error("Échec du chargement des portes");
+  return res.json();
+}
