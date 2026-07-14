@@ -1444,3 +1444,188 @@ export async function aiStatus(): Promise<AIStatusDto> {
   if (!res.ok) throw new Error("Échec de la vérification du statut IA");
   return res.json();
 }
+
+// ─── Equipment Health Types ───
+
+export interface CameraHealthDto {
+  id: string;
+  name: string;
+  status: string;
+  siteId: string;
+  siteName?: string;
+  lastHeartbeat?: string | null;
+  isRecording: boolean;
+  fps?: number;
+  latestHealth?: { status: string; time: string } | null;
+}
+
+export interface ReaderHealthDto {
+  reader_id: string;
+  site_id: string;
+  status: string;
+  failed_reads?: number;
+  response_time_ms?: number;
+  last_connected?: string;
+  firmware_version?: string;
+  time?: string;
+}
+
+export interface ControllerHealthDto {
+  controller_id: string;
+  site_id: string;
+  battery_level?: number;
+  connection_stability?: string;
+  firmware_version?: string;
+  cpu_load?: number;
+  memory_usage?: number;
+  time?: string;
+}
+
+// ─── Equipment Health API Functions ───
+
+export async function fetchCameraHealth(): Promise<CameraHealthDto[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/equipment/cameras`);
+  if (!res.ok) throw new Error("Échec du chargement de la santé des caméras");
+  return res.json();
+}
+
+export async function fetchCameraHealthHistory(
+  cameraId: string,
+  from?: string,
+  to?: string,
+): Promise<any[]> {
+  const params = new URLSearchParams();
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
+  const res = await fetchWithAuth(
+    `${API_URL}/api/equipment/cameras/${cameraId}/history?${params.toString()}`,
+  );
+  if (!res.ok) throw new Error("Échec du chargement de l'historique de la caméra");
+  return res.json();
+}
+
+export async function fetchReaderHealth(): Promise<ReaderHealthDto[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/equipment/readers`);
+  if (!res.ok) throw new Error("Échec du chargement de la santé des lecteurs");
+  return res.json();
+}
+
+export async function fetchReaderHealthHistory(
+  readerId: string,
+  from?: string,
+  to?: string,
+): Promise<any[]> {
+  const params = new URLSearchParams();
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
+  const res = await fetchWithAuth(
+    `${API_URL}/api/equipment/readers/${readerId}/history?${params.toString()}`,
+  );
+  if (!res.ok) throw new Error("Échec du chargement de l'historique du lecteur");
+  return res.json();
+}
+
+export async function fetchControllerHealth(): Promise<ControllerHealthDto[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/equipment/controllers`);
+  if (!res.ok) throw new Error("Échec du chargement de la santé des contrôleurs");
+  return res.json();
+}
+
+export async function fetchControllerHealthHistory(
+  controllerId: string,
+  from?: string,
+  to?: string,
+): Promise<any[]> {
+  const params = new URLSearchParams();
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
+  const res = await fetchWithAuth(
+    `${API_URL}/api/equipment/controllers/${controllerId}/history?${params.toString()}`,
+  );
+  if (!res.ok) throw new Error("Échec du chargement de l'historique du contrôleur");
+  return res.json();
+}
+
+// ─── Governance Types ───
+
+export interface RetentionPolicyDto {
+  id: string;
+  eventType: string;
+  tableType: string;
+  retentionDays: number;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GovernanceStatusDto {
+  encryptionConfigured: boolean;
+}
+
+// ─── Governance API Functions ───
+
+export async function fetchRetentionPolicies(): Promise<RetentionPolicyDto[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/governance/retention-policies`);
+  if (!res.ok) throw new Error("Échec du chargement des politiques de rétention");
+  return res.json();
+}
+
+export async function createRetentionPolicy(data: {
+  eventType: string;
+  tableType: string;
+  retentionDays: number;
+  enabled?: boolean;
+}): Promise<RetentionPolicyDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/governance/retention-policies`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de création de la politique");
+  }
+  return res.json();
+}
+
+export async function updateRetentionPolicy(
+  id: string,
+  data: { retentionDays?: number; enabled?: boolean },
+): Promise<RetentionPolicyDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/governance/retention-policies/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour de la politique");
+  return res.json();
+}
+
+export async function deleteRetentionPolicy(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/governance/retention-policies/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Échec de la suppression de la politique");
+}
+
+export async function fetchGovernanceStatus(): Promise<GovernanceStatusDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/governance/status`);
+  if (!res.ok) return { encryptionConfigured: false };
+  return res.json();
+}
+
+export async function testEncrypt(value: string): Promise<{ encrypted: string }> {
+  const res = await fetchWithAuth(`${API_URL}/api/governance/encrypt`, {
+    method: "POST",
+    body: JSON.stringify({ value }),
+  });
+  if (!res.ok) throw new Error("Échec du test de chiffrement");
+  return res.json();
+}
+
+export async function testDecrypt(value: string): Promise<{ decrypted: string }> {
+  const res = await fetchWithAuth(`${API_URL}/api/governance/decrypt`, {
+    method: "POST",
+    body: JSON.stringify({ value }),
+  });
+  if (!res.ok) throw new Error("Échec du test de déchiffrement");
+  return res.json();
+}
