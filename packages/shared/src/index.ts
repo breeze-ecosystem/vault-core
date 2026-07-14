@@ -88,3 +88,15 @@ export type {
   CorrelationJob,
   TailgatingJob,
 } from "./types/correlation.types";
+
+// Schemas - Audit
+export { auditQuerySchema, auditVerifySchema, auditExportSchema } from "./schemas/audit.schema";
+export type { AuditQueryInput, AuditVerifyInput, AuditExportInput } from "./schemas/audit.schema";
+
+// Types - Audit
+export type {
+  AuditEntry,
+  ChainVerificationResult,
+  AuditExportParams,
+  AuditStats,
+} from "./types/audit.types";

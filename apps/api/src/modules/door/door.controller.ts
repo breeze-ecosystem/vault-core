@@ -12,6 +12,7 @@ import type { FastifyRequest } from "fastify";
 import { DoorService } from "./door.service";
 import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
 import { Roles } from "../../common/decorators/roles.decorator";
+import { Audited } from "../../common/decorators/audited.decorator";
 import {
   updateAlertConfigSchema,
   emergencyOverrideSchema,
@@ -67,6 +68,7 @@ export class DoorController {
    * Triggers emergency lockdown for a zone.
    */
   @Post("zones/:zoneId/lockdown")
+  @Audited({ entity: "zone_emergency", action: "CREATE" })
   @Roles("ADMIN", "SUPERVISOR")
   async lockdownZone(
     @Param("zoneId") zoneId: string,
@@ -89,6 +91,7 @@ export class DoorController {
    * Triggers emergency unlock for a zone.
    */
   @Post("zones/:zoneId/emergency-unlock")
+  @Audited({ entity: "zone_emergency", action: "CREATE" })
   @Roles("ADMIN", "SUPERVISOR")
   async emergencyUnlockZone(
     @Param("zoneId") zoneId: string,
@@ -145,6 +148,7 @@ export class DoorController {
    * Updates door metadata (name, zone, controllerId).
    */
   @Patch(":id")
+  @Audited({ entity: "door", action: "UPDATE", captureChanges: true })
   @Roles("ADMIN")
   async updateDoor(
     @Param("id") id: string,

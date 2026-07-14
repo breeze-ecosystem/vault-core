@@ -1,6 +1,6 @@
 import { MiddlewareConsumer, Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import configuration from './config/configuration';
 import { validationSchema } from './config/validation';
@@ -28,6 +28,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { IngestionService } from './modules/ingestion/ingestion.service';
+import { AuditInterceptor } from './modules/audit/audit.interceptor';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { IngestionService } from './modules/ingestion/ingestion.service';
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
+    { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
 })
 export class AppModule implements OnModuleInit {

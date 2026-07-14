@@ -13,6 +13,7 @@ import type { FastifyRequest } from "fastify";
 import { AccessService } from "./access.service";
 import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
 import { Roles } from "../../common/decorators/roles.decorator";
+import { Audited } from "../../common/decorators/audited.decorator";
 import {
   createCredentialSchema,
   updateCredentialSchema,
@@ -31,6 +32,7 @@ export class AccessController {
   // ── Credentials ──
 
   @Post("credentials")
+  @Audited({ entity: "credential", action: "CREATE", captureChanges: true })
   @Roles("ADMIN", "SUPER_ADMIN")
   async createCredential(@Body(new ZodValidationPipe(createCredentialSchema)) body: any) {
     return this.accessService.createCredential(body);
@@ -64,6 +66,7 @@ export class AccessController {
   }
 
   @Patch("credentials/:id")
+  @Audited({ entity: "credential", action: "UPDATE", captureChanges: true })
   @Roles("ADMIN", "SUPER_ADMIN")
   async updateCredential(
     @Param("id") id: string,
@@ -73,6 +76,7 @@ export class AccessController {
   }
 
   @Delete("credentials/:id")
+  @Audited({ entity: "credential", action: "DELETE" })
   @Roles("ADMIN", "SUPER_ADMIN")
   async deactivateCredential(@Param("id") id: string) {
     return this.accessService.deactivateCredential(id);
@@ -87,6 +91,7 @@ export class AccessController {
   // ── Access Levels ──
 
   @Post("levels")
+  @Audited({ entity: "access_level", action: "CREATE" })
   @Roles("ADMIN", "SUPER_ADMIN")
   async createAccessLevel(@Body(new ZodValidationPipe(createAccessLevelSchema)) body: any) {
     return this.accessService.createAccessLevel(body);
@@ -102,6 +107,7 @@ export class AccessController {
   }
 
   @Delete("levels/:id")
+  @Audited({ entity: "access_level", action: "DELETE" })
   @Roles("ADMIN", "SUPER_ADMIN")
   async removeAccessLevel(@Param("id") id: string) {
     return this.accessService.removeAccessLevel(id);
@@ -110,6 +116,7 @@ export class AccessController {
   // ── Schedules ──
 
   @Post("schedules")
+  @Audited({ entity: "schedule", action: "CREATE" })
   @Roles("ADMIN", "SUPER_ADMIN")
   async createSchedule(@Body(new ZodValidationPipe(createScheduleSchema)) body: any) {
     return this.accessService.createSchedule(body);
@@ -122,6 +129,7 @@ export class AccessController {
   }
 
   @Patch("schedules/:id")
+  @Audited({ entity: "schedule", action: "UPDATE" })
   @Roles("ADMIN", "SUPER_ADMIN")
   async updateSchedule(
     @Param("id") id: string,
@@ -139,6 +147,7 @@ export class AccessController {
   // ── Zones ──
 
   @Post("zones")
+  @Audited({ entity: "zone", action: "CREATE" })
   @Roles("ADMIN", "SUPER_ADMIN")
   async createZone(@Body(new ZodValidationPipe(createZoneSchema)) body: any) {
     return this.accessService.createZone(body);
@@ -154,6 +163,7 @@ export class AccessController {
   // ── Doors ──
 
   @Post("doors")
+  @Audited({ entity: "door", action: "CREATE" })
   @Roles("ADMIN", "SUPER_ADMIN")
   async registerDoor(@Body(new ZodValidationPipe(createDoorSchema)) body: any) {
     return this.accessService.registerDoor(body);
@@ -169,12 +179,14 @@ export class AccessController {
   // ── Camera-Door Mapping ──
 
   @Post("camera-door-map")
+  @Audited({ entity: "camera_door_map", action: "CREATE" })
   @Roles("ADMIN", "SUPER_ADMIN")
   async mapCameraToDoor(@Body(new ZodValidationPipe(createCameraDoorMapSchema)) body: any) {
     return this.accessService.mapCameraToDoor(body);
   }
 
   @Delete("camera-door-map/:id")
+  @Audited({ entity: "camera_door_map", action: "DELETE" })
   @Roles("ADMIN", "SUPER_ADMIN")
   async removeCameraDoorMap(@Param("id") id: string) {
     return this.accessService.removeCameraDoorMap(id);

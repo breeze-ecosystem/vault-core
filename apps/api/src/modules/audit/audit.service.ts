@@ -1,7 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
-import { FastifyRequest } from 'fastify';
+import { Injectable, Logger } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import type { FastifyRequest } from "fastify";
+import type {
+  AuditEntry,
+  ChainVerificationResult,
+  AuditStats,
+} from "@repo/shared";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 
 export interface AuditLogParams {
   userId?: string;
@@ -18,162 +24,358 @@ export interface AuditLogFilters {
   action?: string;
   from?: string;
   to?: string;
+  siteId?: string;
+  entityId?: string;
 }
 
 @Injectable()
 export class AuditService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(AuditService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    @InjectQueue("audit-write") private auditQueue: Queue,
+  ) {}
 
   /**
-   * Create an audit log entry.
-   * Extracts IP and user-agent from request if provided.
+   * Create an audit log entry (backward-compatible signature).
+   * Now writes to TimescaleDB audit_log hypertable via async queue.
    */
   async log(params: AuditLogParams) {
     const ipAddress = params.request
       ? this.extractIpAddress(params.request)
       : undefined;
     const userAgent = params.request
-      ? (params.request.headers['user-agent'] as string) || undefined
+      ? (params.request.headers["user-agent"] as string) || undefined
       : undefined;
+    const timestamp = new Date().toISOString();
+    const content = [
+      params.entity,
+      params.entityId || "unknown",
+      params.action,
+      params.userId || "system",
+      "",
+      JSON.stringify(params.changes || {}),
+      ipAddress || "",
+      timestamp,
+    ].join("|");
 
     try {
-      return await this.prisma.auditLog.create({
-        data: {
-          userId: params.userId,
-          action: params.action,
-          entity: params.entity,
-          entityId: params.entityId,
-          changes: params.changes ? (params.changes as any) : undefined,
-          ipAddress,
-          userAgent,
-        },
+      await this.auditQueue.add("write-audit", {
+        entity: params.entity,
+        entityId: params.entityId || "unknown",
+        action: params.action,
+        userId: params.userId,
+        siteId: null,
+        changes: (params.changes || null) as Record<string, unknown> | null,
+        ipAddress,
+        userAgent,
+        timestamp,
+        content,
       });
     } catch {
       // Don't fail the request if audit logging fails
-      return null;
     }
   }
 
   /**
-   * Get paginated audit logs with filters.
+   * Get paginated audit logs from the hypertable.
    */
   async getLogs(
     filters: AuditLogFilters,
     page: number = 1,
     limit: number = 50,
   ) {
-    const where: Prisma.AuditLogWhereInput = {};
+    return this.queryAuditLog({ ...filters, page, limit });
+  }
 
-    if (filters.userId) where.userId = filters.userId;
-    if (filters.entity) where.entity = filters.entity;
-    if (filters.action) where.action = filters.action;
-    if (filters.from || filters.to) {
-      where.createdAt = {};
-      if (filters.from) (where.createdAt as any).gte = new Date(filters.from);
-      if (filters.to) (where.createdAt as any).lte = new Date(filters.to);
+  /**
+   * Query audit log with filters (used by controller /audit/logs).
+   */
+  async queryAuditLog(filters: {
+    entity?: string;
+    entityId?: string;
+    userId?: string;
+    siteId?: string;
+    action?: string;
+    from?: string;
+    to?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const pageNum = filters.page ?? 1;
+    const limitNum = Math.min(filters.limit ?? 50, 100);
+    const offset = (pageNum - 1) * limitNum;
+
+    const conditions: string[] = [];
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    if (filters.entity) {
+      conditions.push(`entity = $${paramIndex++}`);
+      params.push(filters.entity);
+    }
+    if (filters.entityId) {
+      conditions.push(`entity_id = $${paramIndex++}::uuid`);
+      params.push(filters.entityId);
+    }
+    if (filters.userId) {
+      conditions.push(`user_id = $${paramIndex++}::uuid`);
+      params.push(filters.userId);
+    }
+    if (filters.siteId) {
+      conditions.push(`site_id = $${paramIndex++}::uuid`);
+      params.push(filters.siteId);
+    }
+    if (filters.action) {
+      conditions.push(`action = $${paramIndex++}`);
+      params.push(filters.action);
+    }
+    if (filters.from) {
+      conditions.push(`time >= $${paramIndex++}::timestamptz`);
+      params.push(filters.from);
+    }
+    if (filters.to) {
+      conditions.push(`time <= $${paramIndex++}::timestamptz`);
+      params.push(filters.to);
     }
 
-    const skip = (page - 1) * limit;
+    const whereClause =
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-    const [items, total] = await Promise.all([
-      this.prisma.auditLog.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        take: limit,
-        skip,
-        include: {
-          user: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-            },
-          },
-        },
-      }),
-      this.prisma.auditLog.count({ where }),
+    const countParams = [...params];
+    const countParamIdx = paramIndex;
+
+    const dataParams = [...params, limitNum, offset];
+    const limitParamIdx = paramIndex;
+    const offsetParamIdx = paramIndex + 1;
+
+    const dataQuery = `
+      SELECT time, entity, entity_id AS "entityId", action,
+             user_id AS "userId", site_id AS "siteId",
+             changes, ip_address AS "ipAddress",
+             previous_hash AS "previousHash", hash, content
+      FROM audit_log
+      ${whereClause}
+      ORDER BY time DESC
+      LIMIT $${limitParamIdx} OFFSET $${offsetParamIdx}
+    `;
+
+    const countQuery = `
+      SELECT COUNT(*)::int AS total
+      FROM audit_log
+      ${whereClause}
+    `;
+
+    const [items, countResult] = await Promise.all([
+      this.prisma.$queryRawUnsafe(dataQuery, ...dataParams) as Promise<
+        AuditEntry[]
+      >,
+      this.prisma.$queryRawUnsafe(countQuery, ...countParams) as Promise<
+        { total: number }[]
+      >,
     ]);
 
+    const total = countResult[0]?.total ?? 0;
+
     return {
-      items,
+      data: items,
       total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      page: pageNum,
+      limit: limitNum,
     };
   }
 
   /**
-   * Get aggregated audit log statistics.
+   * Verify the cryptographic hash chain for a given entity.
+   * D-17: Walks per-entity chain and detects any tampering.
    */
-  async getStats(filters?: { from?: string; to?: string }) {
-    const fromDate = filters?.from
-      ? new Date(filters.from)
-      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const toDate = filters?.to ? new Date(filters.to) : new Date();
+  async verifyChain(
+    entity: string,
+    entityId: string,
+  ): Promise<ChainVerificationResult> {
+    const entries = (await this.prisma.$queryRawUnsafe(
+      `SELECT time, hash, previous_hash AS "previousHash", content
+       FROM audit_log
+       WHERE entity = $1 AND entity_id = $2::uuid
+       ORDER BY time ASC`,
+      entity,
+      entityId,
+    )) as { time: string; hash: string; previousHash: string | null; content: string }[];
 
-    // Actions per day
-    const actionsPerDay = await this.prisma.$queryRaw`
-      SELECT DATE("createdAt") as date, COUNT(*) as count
-      FROM "AuditLog"
-      WHERE "createdAt" >= ${fromDate} AND "createdAt" <= ${toDate}
-      GROUP BY DATE("createdAt")
-      ORDER BY date DESC
-      LIMIT 30
-    `;
+    const tampered: number[] = [];
+    const crypto = await import("crypto");
 
-    // Top users by action count
-    const topUsers = await this.prisma.$queryRaw`
-      SELECT u.id, u.email, u."firstName", u."lastName", COUNT(a.id) as action_count
-      FROM "AuditLog" a
-      LEFT JOIN "User" u ON a."userId" = u.id
-      WHERE a."createdAt" >= ${fromDate} AND a."createdAt" <= ${toDate}
-      GROUP BY u.id, u.email, u."firstName", u."lastName"
-      ORDER BY action_count DESC
-      LIMIT 10
-    `;
+    for (let i = 0; i < entries.length; i++) {
+      const expectedInput =
+        (i === 0 ? "genesis" : entries[i - 1].hash) + entries[i].content;
+      const expectedHash = crypto
+        .createHash("sha256")
+        .update(expectedInput)
+        .digest("hex");
 
-    // Action type distribution
-    const actionDistribution = await this.prisma.$queryRaw`
-      SELECT action, COUNT(*) as count
-      FROM "AuditLog"
-      WHERE "createdAt" >= ${fromDate} AND "createdAt" <= ${toDate}
-      GROUP BY action
-      ORDER BY count DESC
-    `;
-
-    // Entity distribution
-    const entityDistribution = await this.prisma.$queryRaw`
-      SELECT entity, COUNT(*) as count
-      FROM "AuditLog"
-      WHERE "createdAt" >= ${fromDate} AND "createdAt" <= ${toDate}
-      GROUP BY entity
-      ORDER BY count DESC
-    `;
-
-    // Total count
-    const total = await this.prisma.auditLog.count({
-      where: {
-        createdAt: { gte: fromDate, lte: toDate },
-      },
-    });
+      if (entries[i].hash !== expectedHash) {
+        tampered.push(i);
+      }
+      if (
+        i > 0 &&
+        entries[i].previousHash !== entries[i - 1].hash
+      ) {
+        if (!tampered.includes(i)) tampered.push(i);
+      }
+    }
 
     return {
-      total,
-      actionsPerDay,
-      topUsers,
-      actionDistribution,
-      entityDistribution,
+      verified: tampered.length === 0,
+      totalEntries: entries.length,
+      tamperedIndices: tampered,
+      genesisHash: entries[0]?.hash ?? null,
+      latestHash: entries[entries.length - 1]?.hash ?? null,
+    };
+  }
+
+  /**
+   * Export filtered audit log as JSON or CSV.
+   * AUDT-02: Returns filtered audit data as downloadable content.
+   */
+  async exportAuditLog(filters: {
+    entity?: string;
+    entityId?: string;
+    userId?: string;
+    siteId?: string;
+    action?: string;
+    from?: string;
+    to?: string;
+    format?: "json" | "csv";
+  }): Promise<{ data: AuditEntry[]; headers: string[]; text: string }> {
+    const result = await this.queryAuditLog({
+      ...filters,
+      page: 1,
+      limit: 10000,
+    });
+    const items = result.data as AuditEntry[];
+
+    const headers = [
+      "time",
+      "entity",
+      "entityId",
+      "action",
+      "userId",
+      "siteId",
+      "changes",
+      "ipAddress",
+      "hash",
+      "previousHash",
+    ];
+
+    if (filters.format === "csv") {
+      const csvRows = [headers.join(",")];
+      for (const item of items) {
+        csvRows.push(
+          [
+            item.time,
+            item.entity,
+            item.entityId,
+            item.action,
+            item.userId ?? "",
+            item.siteId ?? "",
+            item.changes ? JSON.stringify(item.changes).replace(/"/g, '""') : "",
+            item.ipAddress ?? "",
+            item.hash,
+            item.previousHash ?? "",
+          ]
+            .map((v) => `"${v}"`)
+            .join(","),
+        );
+      }
+      return { data: items, headers, text: csvRows.join("\n") };
+    }
+
+    return { data: items, headers, text: JSON.stringify(items, null, 2) };
+  }
+
+  /**
+   * Get aggregated audit log statistics (backward-compatible signature).
+   */
+  async getStats(filters?: { from?: string; to?: string }) {
+    return this.getAuditStats(filters?.from, filters?.to);
+  }
+
+  /**
+   * Get aggregated audit statistics from the hypertable.
+   */
+  async getAuditStats(
+    from?: string,
+    to?: string,
+  ): Promise<AuditStats> {
+    const fromDate = from ?? new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const toDate = to ?? new Date().toISOString();
+
+    const [totalResult] = (await this.prisma.$queryRawUnsafe(
+      `SELECT COUNT(*)::int AS total
+       FROM audit_log
+       WHERE time >= $1::timestamptz AND time <= $2::timestamptz`,
+      fromDate,
+      toDate,
+    )) as { total: number }[];
+
+    const byEntity = (await this.prisma.$queryRawUnsafe(
+      `SELECT entity, COUNT(*)::int AS count
+       FROM audit_log
+       WHERE time >= $1::timestamptz AND time <= $2::timestamptz
+       GROUP BY entity
+       ORDER BY count DESC`,
+      fromDate,
+      toDate,
+    )) as { entity: string; count: number }[];
+
+    const byAction = (await this.prisma.$queryRawUnsafe(
+      `SELECT action, COUNT(*)::int AS count
+       FROM audit_log
+       WHERE time >= $1::timestamptz AND time <= $2::timestamptz
+       GROUP BY action
+       ORDER BY count DESC`,
+      fromDate,
+      toDate,
+    )) as { action: string; count: number }[];
+
+    const byHour = (await this.prisma.$queryRawUnsafe(
+      `SELECT time_bucket('1 hour', time) AS hour, COUNT(*)::int AS count
+       FROM audit_log
+       WHERE time >= $1::timestamptz AND time <= $2::timestamptz
+       GROUP BY hour
+       ORDER BY hour DESC
+       LIMIT 168`,
+      fromDate,
+      toDate,
+    )) as { hour: string; count: number }[];
+
+    const byEntityMap: Record<string, number> = {};
+    for (const row of byEntity) {
+      byEntityMap[row.entity] = row.count;
+    }
+    const byActionMap: Record<string, number> = {};
+    for (const row of byAction) {
+      byActionMap[row.action] = row.count;
+    }
+
+    return {
+      totalEntries: totalResult?.total ?? 0,
+      byEntity: byEntityMap,
+      byAction: byActionMap,
+      byHour: byHour.map((r) => ({
+        hour: r.hour,
+        count: r.count,
+      })),
     };
   }
 
   private extractIpAddress(request: FastifyRequest): string | undefined {
-    const forwarded = request.headers['x-forwarded-for'];
+    const forwarded = request.headers["x-forwarded-for"];
     const xff = Array.isArray(forwarded) ? forwarded[0] : forwarded;
     return (
-      xff?.split(',')[0]?.trim() ||
-      (request.headers['x-real-ip'] as string) ||
+      xff?.split(",")[0]?.trim() ||
+      (request.headers["x-real-ip"] as string) ||
       request.ip ||
       undefined
     );
