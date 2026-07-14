@@ -26,8 +26,14 @@ Oversight Hub evolves from a video surveillance platform into a unified physical
   2. Operator views real-time door status dashboard showing all door states (locked, unlocked, held open, forced, unsecured, desynchronized) and can trigger emergency unlock or lockdown per zone
   3. System generates alerts when doors are held open, forced, unsecured, desynchronized, or tailgating is detected beyond configurable thresholds
   4. Operator can click any access event in the unified timeline and immediately view the associated video clip, with search by time, credential, user, door, or zone
-  5. Auditor can verify hash-chained audit log integrity with fine-grained role enforcement (admin, supervisor, operator, viewer, auditor) and export filtered reports
-**Plans**: TBD
+   5. Auditor can verify hash-chained audit log integrity with fine-grained role enforcement (admin, supervisor, operator, viewer, auditor) and export filtered reports
+**Plans**: 4 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Infrastructure Foundation & Credential Management (ACC-01 through ACC-05)
+- [ ] 01-02-PLAN.md — Door Monitoring & Emergency Response (ACC-06, DOOR-01 through DOOR-06)
+- [ ] 01-03-PLAN.md — Video-Event Timeline & Tailgating Detection (ACC-07, VEC-01 through VEC-05, AI-04)
+- [ ] 01-04-PLAN.md — Audit & Compliance (AUDT-01 through AUDT-03)
 **UI hint**: yes
 
 ### Phase 2: Operational AI
@@ -62,6 +68,6 @@ Oversight Hub evolves from a video surveillance platform into a unified physical
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Unified Security | 0/0 | Not started | - |
+| 1. Unified Security | 0/4 | Planned | - |
 | 2. Operational AI | 0/0 | Not started | - |
 | 3. Intelligent Platform | 0/0 | Not started | - |
