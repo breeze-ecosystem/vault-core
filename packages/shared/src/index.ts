@@ -238,3 +238,13 @@ export type {
   RiskTrendPoint,
   SiteRiskSummary,
 } from "./types/risk.types";
+
+// Schemas - Patterns
+export { patternsQuerySchema } from "./schemas/patterns.schema";
+export type { PatternsQueryParams } from "./schemas/patterns.schema";
+
+// Types - Patterns
+export type {
+  DetectedPatternDto,
+  PatternDefinition,
+} from "./types/patterns.types";
