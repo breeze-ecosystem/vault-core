@@ -33,6 +33,7 @@ import { EquipmentModule } from './modules/equipment/equipment.module';
 import { GovernanceModule } from './modules/governance/governance.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { RiskModule } from './modules/risk/risk.module';
+import { PatternsModule } from './modules/patterns/patterns.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -83,6 +84,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     GovernanceModule,
     AnalyticsModule,
     RiskModule,
+    PatternsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
