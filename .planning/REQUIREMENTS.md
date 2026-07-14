@@ -77,9 +77,9 @@ Requirements for the complete physical security intelligence platform, organized
 
 ### Audit & Compliance (AUDT)
 
-- [ ] **AUDT-01**: System maintains immutable audit log with cryptographic hash-chain integrity
-- [ ] **AUDT-02**: Admin can export audit reports filtered by time, user, event type, or site
-- [ ] **AUDT-03**: System enforces fine-grained roles (admin, supervisor, operator, viewer, auditor) across all modules
+- [x] **AUDT-01**: System maintains immutable audit log with cryptographic hash-chain integrity
+- [x] **AUDT-02**: Admin can export audit reports filtered by time, user, event type, or site
+- [x] **AUDT-03**: System enforces fine-grained roles (admin, supervisor, operator, viewer, auditor) across all modules
 - [ ] **AUDT-04**: System encrypts data at rest and in transit with configurable key management
 - [ ] **AUDT-05**: Admin can configure data retention policies per event type with auto-pruning
 - [ ] **AUDT-06**: System supports multi-site isolation (site-level data separation and permission scoping)

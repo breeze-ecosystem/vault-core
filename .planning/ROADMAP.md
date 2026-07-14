@@ -10,7 +10,7 @@ Oversight Hub evolves from a video surveillance platform into a unified physical
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: Unified Security** - Access control, door management, video-event correlation timeline, alerts, and audit infrastructure
+- [x] **Phase 1: Unified Security** - Access control, door management, video-event correlation timeline, alerts, and audit infrastructure
 - [ ] **Phase 2: Operational AI** - Incident management, visitor management, ANPR, AI search/summaries, equipment health, data governance
 - [ ] **Phase 3: Intelligent Platform** - Security analytics, risk scoring, recurring detection, predictive health, multi-site compliance, workflows
 
@@ -33,7 +33,7 @@ Plans:
 - [x] 01-01-PLAN.md — Infrastructure Foundation & Credential Management (ACC-01 through ACC-05)
 - [x] 01-02-PLAN.md — Door Monitoring & Emergency Response (ACC-06, DOOR-01 through DOOR-06)
 - [x] 01-03-PLAN.md — Video-Event Timeline & Tailgating Detection (ACC-07, VEC-01 through VEC-05, AI-04)
-- [ ] 01-04-PLAN.md — Audit & Compliance (AUDT-01 through AUDT-03)
+- [x] 01-04-PLAN.md — Audit & Compliance (AUDT-01 through AUDT-03)
 **UI hint**: yes
 
 ### Phase 2: Operational AI
@@ -68,6 +68,6 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Unified Security | 3/4 | In Progress|  |
+| 1. Unified Security | 4/4 | Complete | 2026-07-14 |
 | 2. Operational AI | 0/0 | Not started | - |
 | 3. Intelligent Platform | 0/0 | Not started | - |
