@@ -15,7 +15,7 @@ Requirements for the complete physical security intelligence platform, organized
 - [x] **ACC-04**: System enforces anti-passback rules (prevents reuse of credentials before exit)
 - [x] **ACC-05**: User can use mobile credentials (wallet-based, QR) for access at readers
 - [x] **ACC-06**: Operator can trigger emergency unlock or lockdown per zone
-- [ ] **ACC-07**: System correlates every access event (grant/deny) with video clip from nearest camera
+- [x] **ACC-07**: System correlates every access event (grant/deny) with video clip from nearest camera
 
 ### Door Management (DOOR)
 
@@ -28,11 +28,11 @@ Requirements for the complete physical security intelligence platform, organized
 
 ### Video Event Correlation (VEC)
 
-- [ ] **VEC-01**: System links each access event (badge, denied, alarm) to corresponding video timestamp
-- [ ] **VEC-02**: Operator can view unified timeline combining access events, door state changes, and video clips
-- [ ] **VEC-03**: Operator can click any event in the timeline and immediately view associated video clip
-- [ ] **VEC-04**: System provides real-time event stream with video thumbnails for active monitoring
-- [ ] **VEC-05**: Operator can search events by time range, credential, user, door, or zone
+- [x] **VEC-01**: System links each access event (badge, denied, alarm) to corresponding video timestamp
+- [x] **VEC-02**: Operator can view unified timeline combining access events, door state changes, and video clips
+- [x] **VEC-03**: Operator can click any event in the timeline and immediately view associated video clip
+- [x] **VEC-04**: System provides real-time event stream with video thumbnails for active monitoring
+- [x] **VEC-05**: Operator can search events by time range, credential, user, door, or zone
 
 ### Incident Management (INC)
 
@@ -89,7 +89,7 @@ Requirements for the complete physical security intelligence platform, organized
 - [ ] **AI-01**: Operator can query system in natural language ("show intrusions after 8pm on Site A")
 - [ ] **AI-02**: System auto-generates incident summary with time, location, persons involved, associated video, and recommended action
 - [ ] **AI-03**: AI assistant can answer operator questions about building state, recent events, and zone status
-- [ ] **AI-04**: System detects tailgating/piggybacking (multiple persons entering with single valid access) using existing camera AI pipeline
+- [x] **AI-04**: System detects tailgating/piggybacking (multiple persons entering with single valid access) using existing camera AI pipeline
 
 ### Risk & Intelligence (RSK)
 
