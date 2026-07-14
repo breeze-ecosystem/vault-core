@@ -68,3 +68,15 @@ export type {
   DoorStateEvent,
   BadgeReadEvent,
 } from "./types/access.types";
+
+// Schemas - Door Monitoring
+export { updateAlertConfigSchema, emergencyOverrideSchema } from "./schemas/door.schema";
+export type { UpdateAlertConfigInput, EmergencyOverrideInput } from "./schemas/door.schema";
+
+// Types - Door Monitoring
+export type {
+  DoorStateDto,
+  DoorAlertJob,
+  EmergencyOverrideEvent,
+  DoorAlertConfig,
+} from "./types/door.types";
