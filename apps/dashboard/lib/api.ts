@@ -1271,3 +1271,106 @@ export async function downloadIncidentReport(incidentId: string): Promise<void> 
   a.click();
   window.URL.revokeObjectURL(url);
 }
+
+// ─── ANPR/Vehicle Types ───
+
+export interface VehicleListEntryDto {
+  id: string;
+  type: "allowlist" | "blocklist";
+  plate: string;
+  siteId: string;
+  description?: string | null;
+  isActive: boolean;
+  createdById: string;
+  createdBy?: { firstName: string; lastName: string } | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface VehicleEventDto {
+  time: string;
+  siteId: string;
+  cameraId?: string | null;
+  plate: string;
+  confidence?: number | null;
+  imageUrl?: string | null;
+  decision: string;
+  reason?: string | null;
+}
+
+// ─── ANPR/Vehicle API Functions ───
+
+export async function evaluatePlate(frame: string, cameraId: string, siteId: string): Promise<{ plates: { plate: string; confidence: number; bbox: number[] }[] }> {
+  const res = await fetchWithAuth(`${API_URL}/api/anpr/evaluate`, {
+    method: "POST",
+    body: JSON.stringify({ imageBase64: frame, cameraId, siteId }),
+  });
+  if (!res.ok) throw new Error("Échec de l'analyse de la plaque");
+  return res.json();
+}
+
+export async function fetchVehicleEvents(params?: {
+  plate?: string;
+  siteId?: string;
+  from?: string;
+  to?: string;
+  decision?: string;
+  page?: number;
+  limit?: number;
+}): Promise<{ data: VehicleEventDto[]; total: number; page: number; limit: number }> {
+  const searchParams = new URLSearchParams();
+  if (params?.plate) searchParams.set("plate", params.plate);
+  if (params?.siteId) searchParams.set("siteId", params.siteId);
+  if (params?.from) searchParams.set("from", params.from);
+  if (params?.to) searchParams.set("to", params.to);
+  if (params?.decision) searchParams.set("decision", params.decision);
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+
+  const res = await fetchWithAuth(`${API_URL}/api/anpr/events?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des événements véhicules");
+  return res.json();
+}
+
+export async function fetchVehicleList(type?: string): Promise<VehicleListEntryDto[]> {
+  const params = type ? `?type=${type}` : "";
+  const res = await fetchWithAuth(`${API_URL}/api/vehicles/list${params}`);
+  if (!res.ok) throw new Error("Échec du chargement des listes véhicules");
+  return res.json();
+}
+
+export async function createVehicleListEntry(data: {
+  type: string;
+  plate: string;
+  siteId: string;
+  description?: string;
+}): Promise<VehicleListEntryDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/vehicles/list`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de l'ajout à la liste");
+  }
+  return res.json();
+}
+
+export async function updateVehicleListEntry(
+  id: string,
+  data: { description?: string; isActive?: boolean },
+): Promise<VehicleListEntryDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/vehicles/list/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Échec de la modification de l'entrée");
+  return res.json();
+}
+
+export async function deleteVehicleListEntry(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/vehicles/list/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Échec de la suppression de l'entrée");
+}

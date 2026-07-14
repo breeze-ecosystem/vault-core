@@ -11,6 +11,7 @@ import {
   DoorOpen,
   Clock,
   Shield,
+  Car,
   type LucideIcon,
 } from "lucide-react";
 import { hasMinRole, type Role } from "@repo/shared";
@@ -88,6 +89,12 @@ const navItems: NavItem[] = [
     href: "/utilisateurs",
     icon: Users,
     minRole: "ADMIN" as Role,
+  },
+  {
+    label: "Véhicules",
+    href: "/vehicules",
+    icon: Car,
+    minRole: null,
   },
   {
     label: "Visiteurs",
