@@ -2,6 +2,7 @@ import { MiddlewareConsumer, Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ScheduleModule } from '@nestjs/schedule';
 import configuration from './config/configuration';
 import { validationSchema } from './config/validation';
 import { PrismaModule } from './modules/prisma/prisma.module';
@@ -24,6 +25,7 @@ import { MqttModule } from './mqtt/mqtt.module';
 import { AccessModule } from './modules/access/access.module';
 import { DoorModule } from './modules/door/door.module';
 import { CorrelationModule } from './modules/correlation/correlation.module';
+import { IncidentModule } from './modules/incident/incident.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -45,6 +47,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
       wildcard: true,
       delimiter: '.',
     }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
     UserModule,
@@ -65,6 +68,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     AccessModule,
     DoorModule,
     CorrelationModule,
+    IncidentModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

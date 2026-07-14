@@ -177,6 +177,80 @@ model CameraDoorMap {
   @@index([doorId])
 }
 
+// ─── Phase 2: Incident Management Models ───
+
+model Incident {
+  id              String   @id @default(uuid())
+  title           String
+  description     String?
+  severity        AlertSeverity
+  status          String   @default("OPEN")
+  siteId          String
+  sourceType      String?
+  sourceId        String?
+  assignedToId    String?
+  assignedAt      DateTime?
+  escalationChain Json     @default("[]")
+  slaMinutes      Int      @default(30)
+  closedAt        DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  site            Site                  @relation(fields: [siteId], references: [id])
+  assignedTo      User?                 @relation("IncidentAssignee", fields: [assignedToId], references: [id])
+  alert           Alert?                @relation(fields: [sourceId], references: [id])
+  comments        IncidentComment[]
+  assignments     IncidentAssignment[]
+  escalations     IncidentEscalation[]
+
+  @@index([siteId, status])
+  @@index([assignedToId])
+  @@index([status])
+}
+
+model IncidentComment {
+  id         String   @id @default(uuid())
+  incidentId String
+  userId     String
+  text       String
+  createdAt  DateTime @default(now())
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@index([incidentId])
+}
+
+model IncidentAssignment {
+  id           String   @id @default(uuid())
+  incidentId   String
+  assignedById String
+  assignedToId String
+  assignedAt   DateTime @default(now())
+  note         String?
+
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  assignedBy User     @relation("AssignmentBy", fields: [assignedById], references: [id])
+  assignedTo User     @relation("AssignmentTo", fields: [assignedToId], references: [id])
+
+  @@index([incidentId])
+}
+
+model IncidentEscalation {
+  id           String    @id @default(uuid())
+  incidentId   String
+  level        Int       @default(1)
+  notifyUserId String?
+  slaMinutes   Int
+  notifiedAt   DateTime?
+  resolvedAt   DateTime?
+
+  incident  Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  notifyUser User?    @relation(fields: [notifyUserId], references: [id])
+
+  @@index([incidentId])
+}
+
 // ─── Existing Models ───
 
 model Site {
@@ -191,10 +265,11 @@ model Site {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  cameras Camera[]
-  users   User[]
-  zones   Zone[]
-  doors   Door[]
+  cameras   Camera[]
+  users     User[]
+  zones     Zone[]
+  doors     Door[]
+  incidents Incident[]
 }
 
 model Camera {
@@ -236,6 +311,11 @@ model User {
   pushTokens           MobilePushToken[]
   auditLogs            AuditLog[]
   notificationSettings NotificationSetting[]
+  assignedIncidents    Incident[]             @relation("IncidentAssignee")
+  incidentComments     IncidentComment[]
+  incidentAssignmentsBy   IncidentAssignment[] @relation("AssignmentBy")
+  incidentAssignmentsTo   IncidentAssignment[] @relation("AssignmentTo")
+  incidentEscalations     IncidentEscalation[]
 }
 
 model Alert {
@@ -256,6 +336,7 @@ model Alert {
 
   camera            Camera             @relation(fields: [cameraId], references: [id], onDelete: Cascade)
   notificationLogs  NotificationLog[]
+  incidents         Incident[]
 }
 
 model CameraPrompt {

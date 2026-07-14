@@ -23,6 +23,7 @@ import { QueueService } from "./queue.service";
       { name: "door-alerts" },
       { name: "video-correlation" },
       { name: "audit-write" },
+      { name: "incident-alerts" },
     ),
   ],
   providers: [QueueService],
