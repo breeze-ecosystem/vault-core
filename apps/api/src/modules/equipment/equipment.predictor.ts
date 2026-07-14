@@ -296,6 +296,7 @@ export class EquipmentPredictor {
           metric,
           hoursToFailure: result.hoursToFailure,
           confidence: result.confidence,
+          siteId,
           timestamp: new Date().toISOString(),
         });
       }

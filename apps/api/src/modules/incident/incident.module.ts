@@ -6,6 +6,7 @@ import { IncidentController } from "./incident.controller";
 import { IncidentService } from "./incident.service";
 import { IncidentGateway } from "./incident.gateway";
 import { IncidentProcessor } from "./incident.processor";
+import { IncidentStateMachine } from "./incident-state-machine";
 
 const RedisProvider = {
   provide: "REDIS_INCIDENT",
@@ -30,8 +31,9 @@ const RedisProvider = {
     IncidentService,
     IncidentGateway,
     IncidentProcessor,
+    IncidentStateMachine,
     RedisProvider,
   ],
-  exports: [IncidentService],
+  exports: [IncidentService, IncidentStateMachine],
 })
 export class IncidentModule {}

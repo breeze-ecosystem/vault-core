@@ -250,3 +250,13 @@ export type {
   DetectedPatternDto,
   PatternDefinition,
 } from "./types/patterns.types";
+
+// Schemas - Maintenance
+export { createMaintenanceTicketSchema, maintenanceQuerySchema } from "./schemas/maintenance.schema";
+export type { CreateMaintenanceTicketInput, MaintenanceQueryInput } from "./schemas/maintenance.schema";
+
+// Types - Maintenance
+export type {
+  MaintenanceTicketDto,
+  UnifiedIncidentDto,
+} from "./types/maintenance.types";

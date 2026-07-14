@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, OnModuleInit } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, OnModuleInit } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
@@ -34,6 +34,8 @@ import { GovernanceModule } from './modules/governance/governance.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { RiskModule } from './modules/risk/risk.module';
 import { PatternsModule } from './modules/patterns/patterns.module';
+import { MaintenanceModule } from './modules/maintenance/maintenance.module';
+import { SiteContextMiddleware } from './common/middleware/site-context.middleware';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -85,6 +87,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     AnalyticsModule,
     RiskModule,
     PatternsModule,
+    MaintenanceModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
@@ -93,7 +96,13 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
 })
-export class AppModule implements OnModuleInit {
+export class AppModule implements NestModule, OnModuleInit {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(SiteContextMiddleware)
+      .forRoutes('*');
+  }
+
   constructor(private ingestionService: IngestionService) {}
 
   async onModuleInit() {

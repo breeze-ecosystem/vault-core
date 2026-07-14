@@ -4,6 +4,8 @@ export const INCIDENT_STATUS = {
   INVESTIGATING: "investigating",
   RESOLVED: "resolved",
   CLOSED: "closed",
+  // Maintenance-specific:
+  IN_PROGRESS: "in_progress",
 } as const;
 
 export type IncidentStatus = (typeof INCIDENT_STATUS)[keyof typeof INCIDENT_STATUS];
