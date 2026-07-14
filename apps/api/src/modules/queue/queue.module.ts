@@ -28,6 +28,7 @@ import { QueueService } from "./queue.service";
       { name: "ai-summaries" },
       { name: "equipment-health" },
       { name: "retention-pruning" },
+      { name: "risk-scoring" },
     ),
   ],
   providers: [QueueService],
