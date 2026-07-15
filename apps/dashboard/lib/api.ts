@@ -355,6 +355,34 @@ export async function revokeInvite(orgId: string, inviteId: string): Promise<voi
   if (!res.ok) throw new Error("Failed to revoke invite");
 }
 
+export async function resendInvite(orgId: string, inviteId: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/organizations/${orgId}/invites/${inviteId}/resend`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error("Failed to resend invite");
+}
+
+export async function acceptInvite(data: {
+  token: string;
+  password?: string;
+  firstName?: string;
+  lastName?: string;
+}): Promise<{ success: boolean; message?: string; accessToken?: string; user?: any; organization?: any }> {
+  const res = await fetch(`${API_URL}/api/auth/accept-invite`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.message || "Échec de l'acceptation");
+  if (typeof window !== "undefined") {
+    if (result.accessToken) sessionStorage.setItem("accessToken", result.accessToken);
+    if (result.user) sessionStorage.setItem("user", JSON.stringify(result.user));
+    if (result.organization) sessionStorage.setItem("organization", JSON.stringify(result.organization));
+  }
+  return result;
+}
+
 export async function fetchCameraSnapshot(cameraId: string): Promise<string | null> {
   const res = await fetchWithAuth(`${API_URL}/api/ingestion/${cameraId}/snapshot`);
   if (!res.ok) throw new Error("Failed to fetch snapshot");
