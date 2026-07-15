@@ -64,4 +64,9 @@ export default () => ({
     username: process.env.MQTT_USERNAME || '',
     password: process.env.MQTT_PASSWORD || '',
   },
+
+  license: {
+    privateKeyPath: process.env.LICENSE_PRIVATE_KEY_PATH || '',
+    version: parseInt(process.env.LICENSE_VERSION || '1', 10),
+  },
 });

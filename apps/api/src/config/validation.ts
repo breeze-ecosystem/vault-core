@@ -33,4 +33,7 @@ export const validationSchema = Joi.object({
   RATE_LIMIT_TTL: Joi.number().default(60),
   RATE_LIMIT_MAX: Joi.number().default(100),
   RATE_LIMIT_AUTH_MAX: Joi.number().default(5),
+
+  // License signing key
+  LICENSE_PRIVATE_KEY_PATH: Joi.string().optional().allow(''),
 });

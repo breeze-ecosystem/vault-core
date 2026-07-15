@@ -74,6 +74,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    volumes:
+      - ./secrets/license-private.pem:/app/secrets/license-private.pem:ro
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-oversight}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-oversight}
       REDIS_HOST: redis
@@ -96,6 +98,7 @@ services:
       ADMIN_FIRST_NAME: ${ADMIN_FIRST_NAME:-Admin}
       ADMIN_LAST_NAME: ${ADMIN_LAST_NAME:-}
       COMPANY_NAME: ${COMPANY_NAME:-OVERSIGHT AI}
+      LICENSE_PRIVATE_KEY_PATH: /app/secrets/license-private.pem
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4000/api/health || exit 1"]
       interval: 15s
