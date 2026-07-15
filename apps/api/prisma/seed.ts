@@ -11,7 +11,7 @@ const ADMIN_FIRST    = process.env.ADMIN_FIRST_NAME || "Admin";
 const ADMIN_LAST     = process.env.ADMIN_LAST_NAME  || "OVERSIGHT";
 const COMPANY_NAME   = process.env.COMPANY_NAME || "OVERSIGHT";
 
-// ── Production seed: admin user + single default site ─────────────
+// ── Production seed: admin user + single default organization ─────
 async function seedProduction() {
   if (!ADMIN_PASSWORD) {
     throw new Error(
@@ -31,33 +31,46 @@ async function seedProduction() {
       password: adminPassword,
       firstName: ADMIN_FIRST,
       lastName: ADMIN_LAST,
+      isActive: true,
+    },
+  });
+
+  // Single default organization named after the company
+  const defaultOrg = await prisma.organization.upsert({
+    where: { id: "default" },
+    update: {},
+    create: {
+      id: "default",
+      name: `${COMPANY_NAME} – Default Organization`,
+      city: "Unknown",
+      country: "XX",
+      planTier: "FREE",
+    },
+  });
+
+  // Create OrganizationMember for admin
+  await prisma.organizationMember.upsert({
+    where: { userId_organizationId: { userId: admin.id, organizationId: defaultOrg.id } },
+    update: {},
+    create: {
+      userId: admin.id,
+      organizationId: defaultOrg.id,
       role: Role.ADMIN,
       isActive: true,
     },
   });
 
-  // Single default site named after the company
-  const defaultSite = await prisma.site.upsert({
-    where: { id: "default" },
-    update: {},
-    create: {
-      id: "default",
-      name: `${COMPANY_NAME} – Default Site`,
-      city: "Unknown",
-      country: "XX",
-    },
-  });
-
   console.log("✅ Production seed completed:");
-  console.log(`   Admin user : ${admin.email}`);
-  console.log(`   Default site: ${defaultSite.name}`);
+  console.log(`   Admin user        : ${admin.email}`);
+  console.log(`   Default org        : ${defaultOrg.name}`);
+  console.log(`   OrganizationMember : admin → ${defaultOrg.name} (role: ADMIN)`);
 }
 
 // ── Sample / dev seed: full test dataset ──────────────────────────
 async function seedSample() {
   const pw = ADMIN_PASSWORD || "admin123";
 
-  // ── Users ──
+  // ── Users (no global role — role lives in OrganizationMember) ──
   const adminPassword = await bcrypt.hash(pw, 10);
   const admin = await prisma.user.upsert({
     where: { email: "admin@oversight.local" },
@@ -67,7 +80,6 @@ async function seedSample() {
       password: adminPassword,
       firstName: "Admin",
       lastName: "OVERSIGHT",
-      role: Role.ADMIN,
       isActive: true,
     },
   });
@@ -81,7 +93,6 @@ async function seedSample() {
       password: supervisorPassword,
       firstName: "Cheikh",
       lastName: "Diop",
-      role: Role.SUPERVISOR,
       isActive: true,
     },
   });
@@ -95,62 +106,91 @@ async function seedSample() {
       password: viewerPassword,
       firstName: "Amadou",
       lastName: "Ba",
-      role: Role.VIEWER,
       isActive: true,
     },
   });
 
-  // ── Sites ──
-  const dakar = await prisma.site.upsert({
-    where: { id: "site-dakar" },
+  // ── Organizations ──
+  const dakar = await prisma.organization.upsert({
+    where: { id: "org-dakar" },
     update: {},
     create: {
-      id: "site-dakar",
-      name: "Site Dakar Plateau",
+      id: "org-dakar",
+      name: "Organisation Dakar Plateau",
       address: "Avenue L.S. Senghor",
       city: "Dakar",
       country: "SN",
       latitude: 14.6937,
       longitude: -17.4441,
+      planTier: "FREE",
     },
   });
 
-  const paris = await prisma.site.upsert({
-    where: { id: "site-paris" },
+  const paris = await prisma.organization.upsert({
+    where: { id: "org-paris" },
     update: {},
     create: {
-      id: "site-paris",
-      name: "Site Paris CDG",
+      id: "org-paris",
+      name: "Organisation Paris CDG",
       address: "Rue de la Paix",
       city: "Paris",
       country: "FR",
       latitude: 48.8566,
       longitude: 2.3522,
+      planTier: "PROFESSIONAL",
     },
   });
 
-  const lyon = await prisma.site.upsert({
-    where: { id: "site-lyon" },
+  const lyon = await prisma.organization.upsert({
+    where: { id: "org-lyon" },
     update: {},
     create: {
-      id: "site-lyon",
-      name: "Site Lyon Part-Dieu",
+      id: "org-lyon",
+      name: "Organisation Lyon Part-Dieu",
       address: "Bd Vivier Merle",
       city: "Lyon",
       country: "FR",
       latitude: 45.7609,
       longitude: 4.8596,
+      planTier: "FREE",
     },
+  });
+
+  // ── OrganizationMembers ──
+  await prisma.organizationMember.upsert({
+    where: { userId_organizationId: { userId: admin.id, organizationId: dakar.id } },
+    update: {},
+    create: { userId: admin.id, organizationId: dakar.id, role: Role.ADMIN, isActive: true },
+  });
+  await prisma.organizationMember.upsert({
+    where: { userId_organizationId: { userId: admin.id, organizationId: paris.id } },
+    update: {},
+    create: { userId: admin.id, organizationId: paris.id, role: Role.SUPERVISOR, isActive: true },
+  });
+  await prisma.organizationMember.upsert({
+    where: { userId_organizationId: { userId: supervisor.id, organizationId: dakar.id } },
+    update: {},
+    create: { userId: supervisor.id, organizationId: dakar.id, role: Role.SUPERVISOR, isActive: true },
+  });
+  await prisma.organizationMember.upsert({
+    where: { userId_organizationId: { userId: supervisor.id, organizationId: paris.id } },
+    update: {},
+    create: { userId: supervisor.id, organizationId: paris.id, role: Role.OPERATOR, isActive: true },
+  });
+  await prisma.organizationMember.upsert({
+    where: { userId_organizationId: { userId: viewer.id, organizationId: dakar.id } },
+    update: {},
+    create: { userId: viewer.id, organizationId: dakar.id, role: Role.VIEWER, isActive: true },
   });
 
   // ── Cameras (idempotent with upsert) ──
   const cameraSeeds = [
-    { id: "cam-dkr-001", name: "CAM-DKR-001 Entree Principale", rtspUrl: "rtsp://stream:554/dakar-entree",  siteId: dakar.id, status: "ONLINE" as const,      resolution: "1920x1080", fps: 25, captureInterval: 5 },
-    { id: "cam-dkr-002", name: "CAM-DKR-002 Parking",           rtspUrl: "rtsp://stream:554/dakar-parking", siteId: dakar.id, status: "ONLINE" as const,      resolution: "1920x1080", fps: 25, captureInterval: 5 },
-    { id: "cam-par-001", name: "CAM-PAR-001 Hall Accueil",      rtspUrl: "rtsp://stream:554/paris-hall",    siteId: paris.id, status: "ONLINE" as const,      resolution: "2560x1440", fps: 30, captureInterval: 10 },
-    { id: "cam-par-002", name: "CAM-PAR-002 Entrepot",          rtspUrl: "rtsp://stream:554/paris-entrepot",siteId: paris.id, status: "OFFLINE" as const,     resolution: "1920x1080", fps: 25, captureInterval: 5 },
-    { id: "cam-lyn-001", name: "CAM-LYN-001 Couloir A",         rtspUrl: "rtsp://stream:554/lyon-couloir",  siteId: lyon.id,  status: "MAINTENANCE" as const, resolution: "1280x720",  fps: 15, captureInterval: 5 },
-    { id: "cam-lyn-002", name: "CAM-LYN-002 Sortie Secours",    rtspUrl: "rtsp://stream:554/lyon-sortie",   siteId: lyon.id,  status: "DEGRADED" as const,    resolution: "1920x1080", fps: 10, captureInterval: 5 },
+    { id: "cam-dkr-001", name: "CAM-DKR-001 Entree Principale", rtspUrl: "rtsp://stream:554/dakar-entree",  organizationId: dakar.id, status: "ONLINE" as const,      resolution: "1920x1080", fps: 25, captureInterval: 5 },
+    { id: "cam-dkr-002", name: "CAM-DKR-002 Parking",           rtspUrl: "rtsp://stream:554/dakar-parking", organizationId: dakar.id, status: "ONLINE" as const,      resolution: "1920x1080", fps: 25, captureInterval: 5 },
+    { id: "cam-par-001", name: "CAM-PAR-001 Hall Accueil",      rtspUrl: "rtsp://stream:554/paris-hall",    organizationId: paris.id, status: "ONLINE" as const,      resolution: "2560x1440", fps: 30, captureInterval: 10 },
+    { id: "cam-par-002", name: "CAM-PAR-002 Entrepot",          rtspUrl: "rtsp://stream:554/paris-entrepot",organizationId: paris.id, status: "OFFLINE" as const,     resolution: "1920x1080", fps: 25, captureInterval: 5 },
+    { id: "cam-lyn-001", name: "CAM-LYN-001 Couloir A",         rtspUrl: "rtsp://stream:554/lyon-couloir",  organizationId: lyon.id,  status: "MAINTENANCE" as const, resolution: "1280x720",  fps: 15, captureInterval: 5 },
+    { id: "cam-lyn-002", name: "CAM-LYN-002 Sortie Secours",    rtspUrl: "rtsp://stream:554/lyon-sortie",   organizationId: lyon.id,  status: "DEGRADED" as const,    resolution: "1920x1080", fps: 10, captureInterval: 5 },
   ];
 
   const cameras: Awaited<ReturnType<typeof prisma.camera.upsert>>[] = [];
@@ -215,11 +255,12 @@ async function seedSample() {
   }
 
   console.log("✅ Sample seed completed:");
-  console.log(`   Users          : 3`);
-  console.log(`   Sites          : 3`);
-  console.log(`   Cameras        : ${cameras.length}`);
-  console.log(`   Camera Prompts : ${promptData.length}`);
-  console.log(`   Alerts         : ${alertTitles.length}`);
+  console.log(`   Users               : 3`);
+  console.log(`   Organizations       : 3`);
+  console.log(`   OrganizationMembers : 5`);
+  console.log(`   Cameras             : ${cameras.length}`);
+  console.log(`   Camera Prompts      : ${promptData.length}`);
+  console.log(`   Alerts              : ${alertTitles.length}`);
 }
 
 // ── Main dispatcher ───────────────────────────────────────────────
