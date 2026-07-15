@@ -3,22 +3,20 @@ import { View, Text } from "react-native";
 import { useAuth } from "@/lib/auth-context";
 import { Redirect } from "expo-router";
 import {
-  LayoutDashboard, Camera, Bell, MessageSquareText, MapPin, Settings,
+  LayoutDashboard, Camera, AlertTriangle, MoreHorizontal,
 } from "lucide-react-native";
-import { colors } from "@/lib/theme";
+import { colors } from "@repo/design";
 
-type TabName = "index" | "cameras" | "alerts" | "chat" | "sites" | "settings";
+type TabName = "index" | "cameras" | "incidents" | "more";
 
 function TabIcon({ name, focused }: { name: TabName; focused: boolean }) {
-  const size = 22;
-  const color = focused ? colors.primary : colors.textMuted;
+  const size = 24;
+  const color = focused ? colors.shared.primary : colors.dark.textMuted;
   const icons: Record<TabName, React.ReactNode> = {
     index: <LayoutDashboard size={size} color={color} />,
     cameras: <Camera size={size} color={color} />,
-    alerts: <Bell size={size} color={color} />,
-    chat: <MessageSquareText size={size} color={color} />,
-    sites: <MapPin size={size} color={color} />,
-    settings: <Settings size={size} color={color} />,
+    incidents: <AlertTriangle size={size} color={color} />,
+    more: <MoreHorizontal size={size} color={color} />,
   };
   return icons[name];
 }
@@ -28,8 +26,8 @@ export default function TabLayout() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.bg }}>
-        <Text style={{ color: colors.textSecondary }}>Chargement...</Text>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.dark.bg }}>
+        <Text style={{ color: colors.dark.textSecondary }}>Chargement...</Text>
       </View>
     );
   }
@@ -41,17 +39,17 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerStyle: { backgroundColor: colors.surface },
-        headerTintColor: colors.text,
-        headerShadowVisible: false,
+        headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopColor: colors.border,
+          backgroundColor: colors.dark.surface,
+          borderTopColor: colors.dark.border,
           borderTopWidth: 1,
-          paddingTop: 4,
+          height: 64,
+          paddingBottom: 10,
+          paddingTop: 10,
         },
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textMuted,
+        tabBarActiveTintColor: colors.shared.primary,
+        tabBarInactiveTintColor: colors.dark.textMuted,
         tabBarLabelStyle: { fontSize: 10, fontWeight: "600" },
       }}
     >
@@ -59,7 +57,6 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Accueil",
-          headerShown: false,
           tabBarIcon: ({ focused }) => <TabIcon name="index" focused={focused} />,
         }}
       />
@@ -71,31 +68,17 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="alerts"
+        name="incidents"
         options={{
-          title: "Alertes",
-          tabBarIcon: ({ focused }) => <TabIcon name="alerts" focused={focused} />,
+          title: "Incidents",
+          tabBarIcon: ({ focused }) => <TabIcon name="incidents" focused={focused} />,
         }}
       />
       <Tabs.Screen
-        name="chat"
+        name="more"
         options={{
-          title: "Chat IA",
-          tabBarIcon: ({ focused }) => <TabIcon name="chat" focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="sites"
-        options={{
-          title: "Sites",
-          tabBarIcon: ({ focused }) => <TabIcon name="sites" focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Paramètres",
-          tabBarIcon: ({ focused }) => <TabIcon name="settings" focused={focused} />,
+          title: "Plus",
+          tabBarIcon: ({ focused }) => <TabIcon name="more" focused={focused} />,
         }}
       />
     </Tabs>
