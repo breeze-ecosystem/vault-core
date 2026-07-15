@@ -2,11 +2,11 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
+  ForbiddenException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../prisma/prisma.service";
-import { Role } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 
@@ -23,8 +23,7 @@ export class AuthService {
     password: string;
     firstName: string;
     lastName: string;
-    role?: string;
-    siteId?: string;
+    organizationName: string;
   }) {
     const existing = await this.prisma.user.findUnique({
       where: { email: data.email },
@@ -35,27 +34,63 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(data.password, 10);
 
-    const user = await this.prisma.user.create({
-      data: {
-        email: data.email,
-        password: passwordHash,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        role: (data.role as Role) || "VIEWER",
-        siteId: data.siteId || undefined,
-      },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-      },
+    // Single transaction: Org + User + Member (D-08)
+    const result = await this.prisma.$transaction(async (tx) => {
+      const org = await tx.organization.create({
+        data: {
+          name: data.organizationName,
+          billingEmail: data.email,
+          planTier: "FREE",
+        },
+      });
+
+      const user = await tx.user.create({
+        data: {
+          email: data.email,
+          password: passwordHash,
+          firstName: data.firstName,
+          lastName: data.lastName,
+        },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+        },
+      });
+
+      const member = await tx.organizationMember.create({
+        data: {
+          userId: user.id,
+          organizationId: org.id,
+          role: "ADMIN",
+        },
+      });
+
+      return { org, user, member };
     });
 
-    const { accessToken, refreshToken } = await this.createTokens(user.id, user.email, user.role);
+    const { accessToken, refreshToken } = await this.createTokens(
+      result.user.id,
+      result.user.email,
+      result.org.id,
+      "ADMIN",
+    );
 
-    return { accessToken, refreshToken, user };
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        id: result.user.id,
+        email: result.user.email,
+        firstName: result.user.firstName,
+        lastName: result.user.lastName,
+      },
+      organization: {
+        id: result.org.id,
+        name: result.org.name,
+      },
+    };
   }
 
   async login(email: string, password: string) {
@@ -67,7 +102,6 @@ export class AuthService {
         password: true,
         firstName: true,
         lastName: true,
-        role: true,
         isActive: true,
       },
     });
@@ -81,7 +115,32 @@ export class AuthService {
       throw new UnauthorizedException("Invalid credentials");
     }
 
-    const { accessToken, refreshToken } = await this.createTokens(user.id, user.email, user.role);
+    // Resolve org context from OrganizationMember (D-06)
+    const membership = await this.prisma.organizationMember.findFirst({
+      where: { userId: user.id, isActive: true },
+      orderBy: { joinedAt: "asc" },
+    });
+
+    if (!membership) {
+      throw new UnauthorizedException("No organization membership");
+    }
+
+    // Fetch all active memberships for org switcher
+    const organizations = await this.prisma.organizationMember.findMany({
+      where: { userId: user.id, isActive: true },
+      include: {
+        organization: {
+          select: { id: true, name: true },
+        },
+      },
+    });
+
+    const { accessToken, refreshToken } = await this.createTokens(
+      user.id,
+      user.email,
+      membership.organizationId,
+      membership.role,
+    );
 
     return {
       accessToken,
@@ -91,8 +150,16 @@ export class AuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
       },
+      organization: {
+        id: membership.organizationId,
+        role: membership.role,
+      },
+      organizations: organizations.map((m) => ({
+        id: m.organization.id,
+        name: m.organization.name,
+        role: m.role,
+      })),
     };
   }
 
@@ -125,10 +192,21 @@ export class AuthService {
       data: { isRevoked: true },
     });
 
+    // Resolve org context from OrganizationMember (Pitfall 5 mitigation)
+    const membership = await this.prisma.organizationMember.findFirst({
+      where: { userId: storedToken.userId, isActive: true },
+      orderBy: { joinedAt: "asc" },
+    });
+
+    if (!membership) {
+      throw new UnauthorizedException("No organization membership");
+    }
+
     const { accessToken, refreshToken } = await this.createTokens(
       storedToken.user.id,
       storedToken.user.email,
-      storedToken.user.role
+      membership.organizationId,
+      membership.role,
     );
 
     return {
@@ -139,7 +217,10 @@ export class AuthService {
         email: storedToken.user.email,
         firstName: storedToken.user.firstName,
         lastName: storedToken.user.lastName,
-        role: storedToken.user.role,
+      },
+      organization: {
+        id: membership.organizationId,
+        role: membership.role,
       },
     };
   }
@@ -160,12 +241,69 @@ export class AuthService {
     return { message: "Logged out successfully" };
   }
 
-  private async createTokens(userId: string, email: string, role: Role) {
+  async switchOrg(userId: string, targetOrgId: string) {
+    const membership = await this.prisma.organizationMember.findUnique({
+      where: {
+        userId_organizationId: {
+          userId,
+          organizationId: targetOrgId,
+        },
+      },
+      select: { isActive: true, role: true },
+    });
+
+    if (!membership || !membership.isActive) {
+      throw new ForbiddenException("Not a member of this organization");
+    }
+
+    // Revoke all existing refresh tokens (Pitfall 5 mitigation)
+    await this.prisma.refreshToken.updateMany({
+      where: { userId, isRevoked: false },
+      data: { isRevoked: true },
+    });
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException("User not found");
+    }
+
+    const result = await this.createTokens(userId, user.email, targetOrgId, membership.role);
+
+    return {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      user: { id: userId, email: user.email },
+      organization: { id: targetOrgId, role: membership.role },
+    };
+  }
+
+  async getUserOrganizations(userId: string) {
+    const memberships = await this.prisma.organizationMember.findMany({
+      where: { userId, isActive: true },
+      include: {
+        organization: {
+          select: { id: true, name: true },
+        },
+      },
+    });
+
+    return memberships.map((m) => ({
+      id: m.organization.id,
+      name: m.organization.name,
+      role: m.role,
+    }));
+  }
+
+  private async createTokens(userId: string, email: string, orgId: string, role: string) {
     const accessSecret = this.config.get<string>("JWT_ACCESS_SECRET", "change-me-access-secret-in-prod");
     const refreshSecret = this.config.get<string>("JWT_REFRESH_SECRET", "change-me-refresh-secret-in-prod");
 
     const accessToken = this.jwt.sign(
-      { sub: userId, email, role },
+      { sub: userId, email, orgId, role },
       { secret: accessSecret, expiresIn: this.config.get("JWT_ACCESS_EXPIRY", "15m") }
     );
 
