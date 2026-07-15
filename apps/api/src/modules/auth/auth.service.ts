@@ -298,7 +298,7 @@ export class AuthService {
     }));
   }
 
-  private async createTokens(userId: string, email: string, orgId: string, role: string) {
+  async createTokens(userId: string, email: string, orgId: string, role: string) {
     const accessSecret = this.config.get<string>("JWT_ACCESS_SECRET", "change-me-access-secret-in-prod");
     const refreshSecret = this.config.get<string>("JWT_REFRESH_SECRET", "change-me-refresh-secret-in-prod");
 
