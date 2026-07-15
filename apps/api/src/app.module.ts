@@ -40,6 +40,8 @@ import { TenantContextMiddleware } from './common/middleware/tenant-context.midd
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { TenantIsolationGuard } from './common/guards/tenant-isolation.guard';
 import { RolesGuard } from './common/guards/roles.guard';
+import { FeatureGateGuard } from './common/guards/feature-gate.guard';
+import { FeatureGateModule } from './modules/feature-gate/feature-gate.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { IngestionService } from './modules/ingestion/ingestion.service';
 import { AuditInterceptor } from './modules/audit/audit.interceptor';
@@ -91,11 +93,13 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     RiskModule,
     PatternsModule,
     MaintenanceModule,
+    FeatureGateModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: TenantIsolationGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: FeatureGateGuard },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
