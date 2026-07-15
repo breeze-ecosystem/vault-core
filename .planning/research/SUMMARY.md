@@ -1,212 +1,266 @@
 # Project Research Summary
 
-**Project:** Oversight Hub — Physical Security Intelligence Platform
-**Domain:** Physical security — unified access control, video surveillance, incident management, and security analytics
-**Researched:** 2026-07-14
+**Project:** Oversight Hub — Commercial SaaS Physical Security Platform
+**Domain:** Multi-tenant SaaS — subscription billing, license management, premium UI, public marketing website
+**Researched:** 2026-07-15
 **Confidence:** HIGH
 
 ## Executive Summary
 
-Oversight Hub is a physical security intelligence platform that correlates access control events, video evidence, and AI analysis into a single operational pane of glass. The research confirms that experts in this domain build such platforms by layering time-series ingestion (MQTT), event correlation engines, and AI-assisted analysis on top of a single relational database — not by scattering data across specialized stores. The platform extends an existing NestJS + Next.js + Expo stack with PostgreSQL extensions (TimescaleDB, pgvector, pgcrypto), an MQTT ingestion layer for door controllers, and an on-premise ANPR Docker service.
+Oversight Hub v2.0 transforms a v1.0 single-tenant physical security prototype into a production-grade, multi-tenant, premium SaaS platform. The research across four dimensions (stack, features, architecture, pitfalls) converges on a clear finding: **multi-tenancy is the critical path.** Every other v2.0 capability — subscription billing, license management, per-tenant RBAC, AI feature deepening, analytics — depends on a clean, database-enforced tenant isolation layer. The recommended approach is foundation-first: introduce an `Organization` (tenant) model with Prisma Client Extensions for automatic query scoping and PostgreSQL Row-Level Security for defense-in-depth, before building anything else.
 
-The recommended approach is **foundation-first**: build the access event pipeline and door state machine first, since every downstream feature (incident management, visitor management, analytics, AI) depends on a reliable, ordered stream of physical access events. The MQTT ingestion layer is the critical path — get door controller communication right, with sequence numbering and state machine validation, before building anything on top. The AI differentiators (incident summaries, semantic search, natural language queries) are built on the same PostgreSQL instance using the existing Ollama deployment, requiring no new infrastructure — just new prompt templates and embedding pipelines.
+The recommended technology stack extends the existing NestJS + Next.js + Expo + Prisma + Redis + BullMQ foundation with lightweight, purpose-built additions: `nestjs-cls` for request-scoped tenant context, raw `stripe` SDK (v22) in a custom NestJS module (no community wrappers), `jose` for cryptographically-signed license tokens, Radix Themes + `motion` for the premium 2026 UI design system, and `next-intl` + `velite` + `next-seo` for the public marketing website. No framework rewrites. No new databases. Everything runs on the existing PostgreSQL 16, Redis 7, and Docker Compose deployment with Caddy reverse proxy.
 
-The key risks are: (1) Prisma migrations silently destroying TimescaleDB hypertable configuration, requiring a strict separation between Prisma-managed reference tables and SQL-managed time-series tables; (2) MQTT message ordering causing false door alerts, mitigated by controller-side sequence numbers and a server-side state machine; and (3) unbounded audit log growth, solved by making the audit log a TimescaleDB hypertable with retention policies from day one. These are all architectural decisions that must be made before Phase 1 execution begins — retrofitting them after data accumulates is a multi-week rewrite.
+The key risks are: (1) confusing v1.0 `Site` (physical location) with v2.0 `Tenant` (billing entity) — they are different concepts and must be modeled as separate Prisma models with a clear 1:N relationship; (2) treating Stripe integration as just a checkout flow rather than a webhooks-first architecture where Stripe is the source of truth for subscription state; (3) attempting a page-by-page premium UI redesign without building the design system first, creating a "beautiful empty shell" where most of the product still has the old UI; and (4) the "self-hosted security product" trust paradox — the messaging must explicitly own the hybrid model rather than implying a fully managed cloud service. Each of these risks has a well-defined prevention strategy mapped to a specific roadmap phase.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The core insight: **extend PostgreSQL, don't add databases.** Three PostgreSQL extensions deliver time-series analytics, vector search, and cryptographic audit immutability without the operational burden of separate services (InfluxDB, Elasticsearch, immudb). Device communication uses MQTT (the native protocol of access control panels), not Kafka or raw WebSockets. ANPR uses a commercial Docker SDK (Plate Recognizer) rather than a custom ML model to achieve 95%+ accuracy out of the box.
+The v2.0 stack adds 10 new packages to the existing 70+ package monorepo — all verified for version compatibility with NestJS 10.x, Next.js 14.x, React 18.x, and Node.js 18+. The strategy is **extend, don't replace**: every addition layers onto existing infrastructure without introducing new databases, external services, or breaking changes.
 
 **Core technologies:**
-- **TimescaleDB 2.18+ (PG extension):** Hypertables for access events, door states, incident timelines, and analytics aggregations — automatic partitioning, continuous aggregates, and native compression within the existing PostgreSQL instance
-- **pgvector 0.8+ (PG extension):** Vector similarity search for natural language event queries and recurring pattern detection — HNSW indexes handle millions of vectors within the same Postgres connection
-- **pgcrypto (PG extension):** SHA-256 hash chains across audit entries for cryptographic tamper evidence — zero new infrastructure
-- **MQTT.js 5.15.2:** Standard protocol for Mercury, Axis, and HID door controllers — QoS 1 with retained messages for reliable device state
-- **Plate Recognizer SDK (Docker):** On-premise ANPR with sub-100ms inference, 90+ country support, GPU acceleration — no cloud dependency, no custom model training
-- **Apache ECharts 6.1.0 + React Flow 12.11.2:** Security analytics dashboards (heatmaps, scatter plots, 10K+ data points) and interactive site topology diagrams — purpose-built for the data volumes and interaction patterns of physical security
-- **Existing Ollama + BullMQ + FFmpeg:** Extend (don't replace) for AI summaries, embedding generation, incident escalation workflows, and video correlation
+
+- **Multi-Tenancy** — `nestjs-cls` 5.5.1 (request-scoped tenant context via AsyncLocalStorage) + Prisma Client Extensions (auto-inject `organizationId` into every query) + PostgreSQL RLS (database-level defense-in-depth). No separate databases, no schema-per-tenant, no connection pooling per tenant.
+- **Billing** — `stripe` 22.3.1 (primary: subscriptions, checkout, customer portal, webhooks) + `@paypal/paypal-server-sdk` 2.4.0 (secondary: international markets). No billing abstraction layer (no Paddle/Chargebee). Custom `StripeModule` (~20 lines) wraps the raw SDK.
+- **Licensing** — `jose` 5.10.0 (RS256-signed JWT license tokens, offline verification, self-validating). `uuid` 10.0.0 (already in stack, used for human-readable license key identifiers).
+- **Design System** — `@radix-ui/themes` 3.2.1 (pre-styled design system on existing Radix primitives) + `motion` 12.7.4 (framer-motion successor for page transitions, micro-interactions, scroll reveals) + Tailwind CSS 3.4.17 (layout, responsive design, custom utilities). Radix Themes replaces shadcn/ui as the component library while preserving accessibility.
+- **Marketing Website** — `next-intl` 4.2.1 (App Router-native i18n, locale routing, ICU messages) + `velite` 0.3.1 (type-safe MDX content layer for blog/changelog) + `next-seo` 6.12.0 (meta tags, OG, JSON-LD) + `next-sitemap` 4.2.3 (dynamic sitemap generation). The marketing site shares the same Next.js deployment via route groups (`app/(marketing)/` and `app/(dashboard)/`).
 
 ### Expected Features
 
-**Must have (table stakes — users expect these in any physical security platform):**
-- Access event journal with video correlation — every badge read, door unlock with linked video timestamp
-- Door state monitoring (locked/unlocked/held-open/forced) with alerts on illegal transitions
-- Basic zone-based access rules (who can enter which zone, when)
-- Incident creation, triage, assignment, and closure workflow
-- Immutable audit log with user attribution (hash-chained via pgcrypto)
-- Visitor check-in/check-out with temporary credentials
-- License plate allowlist/blocklist (if ANPR is offered)
+The feature landscape is organized into three tiers based on competitive analysis against Verkada, Brivo, Genetec, and Suprema.
 
-**Should have (competitive differentiators — what sets Oversight Hub apart):**
-- AI-powered incident summaries: auto-generated narratives combining access events, door states, and camera metadata
-- Natural language event search: "Who accessed the data center last weekend?" → returns events + video clips
-- Per-zone dynamic risk scoring based on recent events, anomalies, and incident density
-- Recurring situation detection: identify patterns (e.g., "door held open 3x this week at same time — misconfigured schedule")
-- AI security assistant: conversational interface for operators to query building state
-- Tailgating/piggybacking detection via existing camera AI pipeline
+**Must have (P1 — Launch-Blocking — Phase 1-2):**
 
-**Defer to v2+:**
-- ANPR/LPR pipeline — requires separate SDK license, Phase 3+
-- Visitor management with mobile credentials — depends on stable access control, Phase 3+
-- Full analytics dashboards — require data accumulation from prior phases, Phase 4+
-- AI assistant / natural language search — needs pgvector + embeddings pipeline first, Phase 4+
+- Multi-tenant architecture with PostgreSQL RLS enforcement — users expect data segregation
+- Tiered subscription plans (Stripe) with Checkout, Customer Portal, and webhook lifecycle management — standard SaaS pricing model
+- License management with JWT-based crypto-signed keys, activation, expiry, and grace periods — enterprise buyers expect feature gating
+- RBAC per tenant (refactored from global roles to `organizationId + role` compound scope) — admin at Org A ≠ admin at Org B
+- Invite-based onboarding with expiring tokens — physical security isn't self-serve signup
+- Immutable audit logs per tenant (hash-chained, per-tenant chain integrity) — SOC 2 requires 1+ year retention
+- Self-hosted Docker Compose deployment with setup wizard — unique differentiator vs cloud-only competitors
+- Premium Dashboard UI redesign (design system first, then high-traffic pages) — competitive visual differentiation
+- Public marketing website (SSG/ISR, pricing, blog, SEO) — commercial presence required for SaaS credibility
+- International branding with French-first i18n (English, Spanish, German, Arabic) — existing francophone user base
+- Feature gates per license tier — all premium features gated behind Enterprise tier
+
+**Should have (P2 — Competitive Differentiators — Phase 3-4):**
+
+- AI-correlated event timeline linking access, video, and AI analysis — operators see what happened without manual investigation
+- AI incident auto-summary generating narrative reports from correlated events — competitors require manual documentation
+- Natural language event search via pgvector semantic search ("Who accessed the data center last weekend?") — competes with Brivo Genius
+- AI security assistant with tool calling (query door states, execute lockdown, assess zone risk) — conversational interface for operators
+- Per-zone dynamic risk scoring computed from event patterns, anomalies, and incident density — no competitor offers this natively
+- Recurring situation detection identifying patterns across events ("door held open 3x this week at same time")
+- Anti-passback and tailgating detection (production-grade with video evidence attachment)
+- ANPR/LPR pipeline with vehicle correlation (Plate Recognizer SDK) — linked vehicle + access events
+- SSO/SAML/OIDC (Enterprise tier) — required for deals >$50K ARR
+- Security analytics dashboards (ECharts heatmaps, scatter plots, occupancy trends) — per-tenant scoping
+- Compliance reporting templates (SOC 2, ISO 27001) with automated retention policies
+
+**Defer to v2.1+ (P4):**
+
+- Unified command center (single dashboard with all real-time panels)
+- Guard-first mobile workflows (patrol-specific UX with offline queue)
+- Two-factor authentication (TOTP)
+- Dunning / failed payment handling (Stripe Smart Retries + custom logic)
+- Offline license activation for air-gapped deployments
+- Integrations marketplace (REST API + webhooks enable it, marketplace is v3.0)
 
 ### Architecture Approach
 
-The architecture extends the existing event-driven system with a layered **ingest → persist → correlate → respond** pattern. Two new ingestion paths feed into a single PostgreSQL instance: (1) MQTT for door controllers, badge readers, and ACS panels publishing to hierarchical topics; (2) Plate Recognizer REST API for vehicle plate recognition from camera frames. A NestJS MQTT custom transport routes events to domain services (Access Control, Door, ANPR, Incident Management), each enforcing business logic before writing to TimescaleDB hypertables. A Correlation Engine links access events to video timestamps via the existing FFmpeg pipeline. The AI Service uses the existing Ollama instance for both embedding generation (pgvector) and text generation (incident summaries, assistant responses). An Audit Service intercepts all mutation operations via NestJS interceptors and writes hash-chained entries to the audit log.
+The architecture layers v2.0 commercial capabilities **on top of** the existing 29 NestJS modules without modifying their internal logic. Three new NestJS modules (`TenantModule`, `BillingModule`, `LicenseModule`) provide cross-cutting infrastructure that is transparent to existing modules via Prisma Client Extensions.
+
+The tenant isolation pattern is defense-in-depth: (1) `TenantContextMiddleware` extracts `organizationId` from the JWT and sets it in a request-scoped `TenantService` + PostgreSQL session variable; (2) a Prisma Client Extension automatically injects `WHERE organizationId = $currentOrgId` into all queries; (3) PostgreSQL RLS policies enforce isolation at the database level — even a raw SQL query cannot cross tenant boundaries. Existing modules need zero code changes to become tenant-aware.
+
+The billing architecture is **webhooks-first**: Stripe is the source of truth for subscription state. The platform never polls Stripe — it reacts to webhook events processed asynchronously via BullMQ (acknowledge immediately, process in background). All webhook events are deduplicated by stored `stripeEventId`. The license system uses RS256-signed JWTs that are self-validating (offline verification possible) with a BullMQ repeatable job checking expiry every 6 hours.
 
 **Major components:**
-1. **MQTT Transport:** Custom NestJS transport subscribing to device topic patterns — routes to Access Control and Door services
-2. **Access Control Service:** Badge validation, zone rules engine, anti-passback logic, credential management — the central authorization layer
-3. **Door Service:** Door state machine with sequence-ordered transitions, timeout monitoring, and alert generation via BullMQ
-4. **Correlation Engine:** Links access events to video timestamps — powers "show video for this event" and evidence association
-5. **Incident Management Service:** Incident CRUD with SLA tracking, escalation chains, evidence bundling, and closure report generation
-6. **AI Service:** Generates embeddings (Ollama → pgvector), incident summaries (Ollama chat), and handles natural language queries (pgvector similarity search)
-7. **Analytics Service:** Queries TimescaleDB continuous aggregates, computes zone risk scores, detects recurring patterns via pgvector similarity
-8. **Audit Service:** NestJS interceptor that writes hash-chained entries to TimescaleDB-partitioned audit log — verifies chain integrity on read
-9. **ANPR Service:** Frame → Plate Recognizer API → plate data + allowlist/blocklist check → vehicle access event generation
-10. **Equipment Health Service:** Collects MQTT health/latency messages, stores in hypertable, triggers alerts on threshold violations
+
+1. **TenantModule** — Organization CRUD, request-scoped tenant context (`TenantService`), PostgreSQL RLS session variable (`SET config`), Prisma Client Extension for automatic query scoping
+2. **BillingModule** — Stripe Checkout sessions, Customer Portal sessions, webhook signature verification, async event processing via BullMQ (`billing` queue), subscription status sync, plan-to-feature mapping
+3. **LicenseModule** — JWT-based license key generation/validation (`jose` RS256), activation flow, domain binding, expiry monitoring, grace period enforcement (7-day warning → degraded mode → read-only)
+4. **Tenant-Aware Auth** — Extended JWT payload (`organizationId`, `permissions[]`, `role`), `OrganizationGuard` for resource ownership, `SUPER_ADMIN` platform-level role for cross-tenant management
+5. **Design System (`@repo/ui` expanded)** — Design tokens as TypeScript constants (colors, typography, spacing, shadows — consumed by both web and mobile), Radix Themes component library, shared Tailwind preset, `motion` animation patterns
+6. **Marketing Website (`apps/marketing/`)** — Separate Next.js app (not merged with Dashboard), SSG/ISR pages, Stripe Checkout integration on pricing page, `next-intl` i18n routing, `velite` content layer, SEO metadata
 
 ### Critical Pitfalls
 
-1. **Prisma + TimescaleDB Schema Mismanagement:** Prisma migrations will silently destroy hypertable configuration, chunk intervals, compression policies, and continuous aggregates. **Mitigation:** Never use `prisma migrate` for time-series tables. Maintain a separate SQL migration directory for TimescaleDB DDL. Use `$queryRaw` for all hypertable operations. Prisma models only for reference/lookup tables.
+1. **"Site != Tenant" Confusion (Pitfall #1):** v1.0 uses `User.siteId` as the scoping mechanism (one user → one site). Retrofitting multi-tenancy by renaming "site" to "tenant" or adding `tenantId` alongside `siteId` creates ambiguous ownership chains. **Prevention:** Introduce a first-class `Organization` (Tenant) model. Site stays as a physical-location concept under Tenant (`Tenant 1:N Site`). User belongs to Tenant, with site-level assignments through a join table. All current `siteId` references must be reconciled before adding `organizationId`.
 
-2. **Door State Machine Race Conditions:** MQTT doesn't guarantee message ordering at QoS 0/1. A "locked" message arriving before "unlocked" generates false forced-open alerts, destroying operator trust. **Mitigation:** Require monotonic sequence numbers in all controller messages. Door service discards out-of-sequence messages. Validate every transition against the state machine. Implement a 500ms settling timeout after state changes.
+2. **Billing Webhook Blindness (Pitfall #2):** Assuming Stripe "just works" after implementing checkout leads to subscription state drift — canceled customers keep access, paid customers get locked out, events are processed without idempotency. **Prevention:** Build the webhook handler FIRST, before the checkout flow. Handle all 15+ subscription lifecycle events. Store processed event IDs for deduplication. Use Stripe as the source of truth — the database mirrors, never leads.
 
-3. **Audit Log Unbounded Growth:** At 1K doors processing 100 events/second, the audit log accumulates 8.6M rows/day. Without partitioning and retention, queries time out, vacuum fails, and disks fill. **Mitigation:** Make `audit_log` a TimescaleDB hypertable with 7-day chunks and a 90-day retention policy. Export old chunks to compressed archives before dropping. Use per-entity hash chains (not global) so verification scales.
+3. **UI Redesign Without Design System (Pitfall #3):** A page-by-page premium redesign takes 4x longer than estimated, creates a half-beautiful/half-ugly product, and never finishes because scope keeps expanding. **Prevention:** Build the design system first (tokens, Radix Themes, Tailwind preset) — this gives instant uplift to every existing page without rewriting page logic. Then redesign the 3 most-used pages end-to-end. The remaining pages get visual uplift from the design system alone, with full redesigns deferred.
 
-4. **ANPR SDK Licensing and Throughput Mismatch:** Plate Recognizer has per-camera/per-lookup tiers. Exceeding limits results in silent API rejections and missed plates. **Mitigation:** Load test with expected camera count before purchasing. Monitor `/info` endpoint for usage tracking. Implement circuit breaker on 429 responses. Cache frequent plates (employee vehicles) in PostgreSQL.
+4. **Self-Hosted Trust Paradox (Pitfall #4):** The platform deploys on customer infrastructure (Docker Compose) but the SaaS billing model and premium branding set cloud-managed expectations. Security buyers detect this gap and distrust the product. **Prevention:** Explicitly own the hybrid model in all messaging: "Deploy on your infrastructure. We handle the intelligence." Invest heavily in deployment UX (one-command startup, health checks, automatic SSL, setup wizard). Separate "platform" (runs on customer infra) from "service" (AI models, updates, support).
 
-5. **Ollama Model Loading Latency on First Request:** Ollama unloads models after 5 minutes idle by default. Security operator queries after a quiet period incur 5-30 second loading delays, appearing as timeouts. **Mitigation:** Set `keep_alive: -1` (never unload) for the embedding model used on every access event. Set `keep_alive: "30m"` for the chat model to stay hot during a shift.
+5. **License Management as Afterthought (Pitfall #5):** Implementing license validation as a simple string comparison or client-side check leads to bypasses within days of launch. **Prevention:** Server-side enforcement on every authenticated request (or Redis-cached with 60-second TTL). License validation as a middleware/guard (`LicenseGuard`), not scattered across controllers. On-prem deployments use offline-verifiable JWT signatures. Always include grace periods — a security platform that hard-locks during a payment dispute is a liability.
 
 ## Implications for Roadmap
 
-Based on research, the suggested phase structure follows the dependency graph: foundation pipeline → operational features → specialized capabilities → analytics & AI.
+Based on combined research, the suggested phase structure follows the hard dependency graph: tenant foundation → monetization → premium experience → public presence → feature deepening → AI layer → enterprise features. Phases are ordered to minimize risk, maximize parallelization, and deliver market-ready increments.
 
-### Phase 1: Access Control Foundation
-**Rationale:** Every downstream feature — incident management, visitor management, analytics, AI — depends on a reliable, ordered stream of access events. The MQTT ingestion layer and door state machine are the critical path. Without these, nothing else works. This phase also establishes the TimescaleDB/Prisma separation pattern and audit log infrastructure that all subsequent phases depend on.
+### Phase 1: Commercial Foundation (Multi-Tenant Architecture)
+**Rationale:** Every v2.0 feature requires `organizationId` scoping. This is the critical path — retrofitting multi-tenancy after features are rebuilt is a near-rewrite (per PITFALLS #1 and #7).
 
-**Delivers:** MQTT transport layer, access event pipeline with video correlation, door state machine with alert generation, basic zone-based access rules, hash-chained audit log interceptor.
+**Delivers:** Organization model + migration, `TenantContextMiddleware` (replaces `SiteContextMiddleware`), Prisma Client Extension for automatic tenant filtering, PostgreSQL RLS policies on all tenant-scoped tables, extended JWT payload (`organizationId`, `permissions[]`), `OrganizationGuard`, tenant-aware `RolesGuard`, `SUPER_ADMIN` role, self-hosted deployment polish (setup wizard, health checks, upgrade path from v1.0).
 
-**Addresses:** Access event journal, door state monitoring, basic access rules, audit log.
+**Addresses:** Multi-tenant architecture, RBAC per tenant, immutable audit logs per tenant, feature gates infrastructure.
 
-**Avoids:** Pitfall 1 (Prisma+TimescaleDB separation from day one), Pitfall 2 (sequence numbers + state validation in door service), Pitfall 3 (audit log as hypertable with retention from the start).
+**Avoids:** Pitfall #1 (Site vs Tenant confusion), Pitfall #7 (shared database without guardrails), Pitfall #10 (real-time system degradation — establishes per-tenant isolation patterns).
 
-**Research flags:** Complex MQTT integration with door controller protocols — may need spike on controller message formats. TimescaleDB + Prisma coexistence pattern is novel — spike the migration strategy before full implementation.
+**Research flags:** Prisma Client Extension performance with tenant filtering (~1-5% overhead, needs benchmark). Existing `SiteContextMiddleware` → `TenantContextMiddleware` migration path (needs spike on backward compatibility). Need `--research-phase` for the middleware and RLS integration.
 
-### Phase 2: Incident Management + AI Summaries
-**Rationale:** Incident management depends on the access event pipeline from Phase 1. AI incident summaries are the highest-value differentiator with the lowest relative complexity — they use existing Ollama infrastructure and only require new prompt templates. Building these together creates an end-to-end operator workflow: event happens → incident created → AI summarizes → operator responds.
+### Phase 2: Monetization (Billing + Licensing)
+**Rationale:** Billing and licensing are tightly coupled — subscription state drives license generation. Both require the Organization model from Phase 1. Building them together ensures the subscription-to-license lifecycle is coherent.
 
-**Delivers:** Incident CRUD, SLA tracking with BullMQ timers, AI-generated incident summaries, evidence association (video clips + access events), incident closure reports (pdfmake), evidence export bundles (archiver).
+**Delivers:** Stripe SDK integration (custom `StripeModule`), Checkout flow (plan selection → Stripe-hosted payment), Customer Portal (self-service plan management), webhook endpoint + processor (BullMQ `billing` queue, all 15+ event types handled, idempotency), PayPal secondary integration, license key JWT generation, activation flow, expiry monitoring (BullMQ repeatable job), grace period enforcement, plan-to-feature mapping, feature gates (per-tenant plan limits enforced on create), invite-based onboarding with expiring tokens.
 
-**Uses:** BullMQ (existing), Ollama chat API (existing), pdfmake, archiver, TimescaleDB incident hypertable.
+**Addresses:** Tiered subscription plans, license management, invite-based onboarding, feature gates per tier.
 
-**Implements:** Incident Management Service, AI Service (summarization subset), Correlation Engine (evidence linking).
+**Avoids:** Pitfall #2 (billing webhook blindness — webhooks built first), Pitfall #5 (license afterthought — middleware-based enforcement from day one), Pitfall #6 (proration/upgrade confusion — preview invoice UI required before enabling plan changes).
 
-**Research flags:** Ollama prompt engineering for security incident summarization — quality depends on prompt structure. SLA escalation workflows — may need spike on BullMQ job dependency chains. Standard research-phase recommended.
+**Research flags:** Stripe webhook integration patterns are well-documented (HIGH confidence from Context7). PayPal Server SDK integration for subscriptions is less documented — needs spike. `--research-phase` recommended for PayPal subscription lifecycle edge cases.
 
-### Phase 3: ANPR + Visitor Management
-**Rationale:** ANPR requires a commercial SDK license and represents a separate value stream — it can be built independently of Phase 2. Visitor management depends on stable access control (Phase 1) and benefits from ANPR for vehicle-based visitor check-in. These two modules share credential generation patterns (TOTP, QR codes) and can be built in parallel sub-phases.
+### Phase 3: Premium Experience (Design System + Dashboard + Mobile UI)
+**Rationale:** The design system must be built before any page-level redesigns (PITFALLS #3). Applying it globally gives instant uplift to all existing pages with zero page rewrites. This phase is independent of billing/licensing (can partially overlap with Phase 2) but requires the tenant context from Phase 1 for proper org-switching UI.
 
-**Delivers:** ANPR ingestion pipeline (camera frame → Plate Recognizer → plate storage → allowlist/blocklist → vehicle access events), visitor check-in/check-out, TOTP credential generation, QR visitor passes, mobile badge scanning (NFC + camera).
+**Delivers:** Design tokens in `@repo/ui/tokens/` (TypeScript constants for web + mobile consumption), Radix Themes integration (replacing shadcn/ui incrementally), `motion` animation patterns (page transitions, staggered lists, scroll reveals), Tailwind preset shared across Dashboard + Marketing, 3 redesigned high-traffic pages (Overview dashboard, Camera grid, Alert list), remaining pages uplifted via design system alone, Mobile app redesign with shared tokens, `next-intl` replacing custom i18n provider, RTL layout support for Arabic.
 
-**Uses:** Plate Recognizer SDK (Docker), otplib, qrcode, react-native-vision-camera, react-native-nfc-manager.
+**Addresses:** Premium Dashboard UI redesign, Premium Mobile UI redesign, multi-language/i18n infrastructure.
 
-**Implements:** ANPR Service, Visitor Management module, mobile credential workflows.
+**Avoids:** Pitfall #3 (UI redesign without design system — design system foundation built before any page redesign), Pitfall #8 (international branding alienation — French-first i18n, existing user base respected).
 
-**Avoids:** Pitfall 4 (load test ANPR SDK before purchasing license, implement circuit breaker, cache frequent plates), Pitfall 8 (TOTP code replay prevention via Redis tracking and single-use QR passes).
+**Research flags:** `--research-phase` needed for Radix Themes + Tailwind coexistence patterns (how they interact, where one handles what). Motion animation performance on low-end devices (security dashboard might run on thin clients).
 
-**Research flags:** Needs a dedicated spike on Plate Recognizer SDK throughput with expected camera count. ANPR allowlist/blocklist schema design — involves partial plate matching and pattern expressions. Mobile NFC credential reading — platform-specific, needs device testing.
+### Phase 4: Public Presence (Marketing Website + International Branding)
+**Rationale:** The marketing site depends on Phase 2 (Stripe plan definitions for the pricing page) and Phase 3 (design system for brand consistency). It is otherwise independent of the platform — can be built as a standalone Next.js app that shares `@repo/ui` and Stripe configuration. This phase can be run in parallel with Phase 5 if team capacity allows.
 
-### Phase 4: Analytics + AI Assistant
-**Rationale:** Analytics dashboards require accumulated data from prior phases (access events, incidents, door states). The AI assistant and natural language search require the pgvector embedding pipeline to be populated with historical event data. Building these last ensures the data exists to make analytics meaningful and the AI assistant actually useful.
+**Delivers:** `apps/marketing/` Next.js app with route groups, SSG/ISR pages (Home, Features, Pricing, Blog, About, Contact), Stripe Checkout integration on pricing page, `velite` content layer (blog posts, changelog, case studies), `next-seo` metadata (OG, Twitter Cards, JSON-LD), `next-sitemap` dynamic sitemap, locale-specific routes (`/en/pricing`, `/fr/pricing`), Arabic RTL marketing pages, Caddy routing update (subdomain routing: `app.domain.com` → Dashboard, `domain.com` → Marketing).
 
-**Delivers:** Analytics dashboards (ECharts heatmaps, scatter plots, calendar views), per-zone dynamic risk scoring, recurring situation detection (pgvector similarity), natural language event search, AI security assistant (conversational interface), semantic event embeddings pipeline.
+**Addresses:** Public marketing website, international branding, multi-language content.
 
-**Uses:** ECharts 6.1.0 + React Flow 12.11.2, pgvector HNSW indexes, Ollama embedding API, TimescaleDB continuous aggregates.
+**Avoids:** Pitfall #4 (self-hosted trust paradox — messaging explicitly owns the hybrid model on the landing page), Pitfall #8 (branding alienation — French-first content, CFA franc pricing, Mobile Money integration).
 
-**Implements:** Analytics Service, AI Service (embeddings + assistant subsets).
+**Research flags:** Standard patterns — Next.js SSG/ISR, next-intl routing, velite collections are all well-documented. Skip research-phase.
 
-**Avoids:** Pitfall 5 (schedule periodic HNSW REINDEX, complement with recent-only sequential scan), Pitfall 6 (set `keep_alive: -1` for embedding model).
+### Phase 5: Feature Deepening (Core Security Modules)
+**Rationale:** With multi-tenant foundation, billing, and premium UI in place, deepen the core security features that were built as v1.0 prototypes. Each module must pass an audit before any implementation begins (PITFALLS #9). Feature work is parallelizable since each module is independently scoped.
 
-**Research flags:** Needs `research-phase` — pgvector embedding quality evaluation for security event search is domain-specific. Risk scoring algorithm design — no off-the-shelf solution, needs spike. AI assistant prompt engineering + tool calling — complex multi-turn interaction design. ECharts dashboard performance with large datasets — needs benchmark spike.
+**Delivers:** Incident management workflow rebuild (triage, SLA timers via BullMQ, escalation chains, evidence auto-bundle, closure report PDF), door state monitoring production-grade (state machine with MQTT sequence ordering, false alert prevention, timeout-based escalation), zone-based access rules deepened (schedule-based, holiday calendars, temporary overrides, per-user exceptions), visitor management deepened (host approval workflow, timed passes, QR/badge generation, check-in kiosk mode, expiration), mobile credential support (NFC, BLE, TOTP, QR passes), device health monitoring (equipment health hypertable, threshold-based alerts, predictive warnings, per-site health score), video evidence correlation hardened (tenant-isolated storage, correlation engine scoping), 24/7 alert delivery (SMS gateway, on-call schedules, escalation policies per tenant).
 
-### Phase 5: Compliance & Advanced Detection
-**Rationale:** Compliance reporting and retention automation are operational requirements that cap the feature set. Advanced detection features (tailgating, anti-passback) depend on all prior data pipelines being stable and populated. This phase formalizes the policies, reports, and advanced correlation logic that make the platform enterprise-ready.
+**Addresses:** Incident management (deepened), door state monitoring (production-grade), zone-based access rules (deepened), visitor management (deepened), mobile credentials, device health monitoring, real-time alerting (multi-tenant), video evidence correlation (multi-tenant).
 
-**Delivers:** Compliance report generation (SOC 2, ISO 27001 templates), automated retention policies with chunk archival, tailgating/piggybacking detection, anti-passback enforcement, site topology visualization (React Flow), equipment health monitoring dashboard.
+**Avoids:** Pitfall #9 (feature deepening without audit — each module scored before implementation starts; modules below 50% get rewritten, not deepened).
 
-**Uses:** pdfmake (compliance templates), TimescaleDB data retention policies, archiver (chunk export), React Flow (site topology).
+**Research flags:** Each module needs its own spike during planning. Door state machine race condition prevention is critical (PITFALLS #2 equivalent for multi-tenant). `--research-phase` recommended for incident management workflow (complex BullMQ SLA timer chains). Standard patterns for visitor management, credentials.
 
-**Implements:** Compliance reporting module, retention automation, advanced detection logic, topology visualization.
+### Phase 6: AI Intelligence Layer
+**Rationale:** AI features depend on accumulated event data from Phase 5 and share a common embeddings infrastructure (Ollama → pgvector). Building the embeddings pipeline first makes every subsequent AI feature faster. The shared infrastructure (pgvector HNSW indexes, text-to-embedding pipeline, structured-to-natural-language event representation) is built once and consumed by all AI features.
 
-**Research flags:** Standard patterns — compliance report templates are well-documented. Topology visualization with React Flow is well-established. Skip research-phase for most of this phase; spike only the tailgating detection ML approach.
+**Delivers:** pgvector embeddings pipeline (Ollama embedding API → pgvector HNSW indexes), structured event → natural language description conversion, AI-correlated event timeline (event linking engine + AI context enrichment), AI incident auto-summary (Ollama chat model + structured prompt templates), natural language event search (hybrid search: vector similarity + structured filters), AI security assistant (Ollama chat + tool calling: query door states, list alerts, get zone risk, execute lockdown), per-zone dynamic risk scoring (TimescaleDB continuous aggregates + weighted factor algorithm + ECharts gauge visualization), recurring situation detection (pgvector similarity search on event embeddings + cluster analysis on time-series patterns), anti-passback + tailgating detection hardened (configurable sensitivity, per-zone rules, automatic incident generation).
+
+**Addresses:** AI-correlated event timeline, AI incident auto-summary, natural language event search, AI security assistant, per-zone risk scoring, recurring situation detection, anti-passback + tailgating deepened.
+
+**Avoids:** Pitfall #5 equivalent for AI (Ollama model keep_alive settings to prevent loading latency on idle — embedding model set to `keep_alive: -1`, chat model set to `keep_alive: 30m`).
+
+**Research flags:** Every sub-phase in this phase is complex and under-documented. `--research-phase` strongly recommended for: pgvector embedding quality evaluation (which model, what event representation yields best search recall), AI assistant tool calling with Ollama (multi-turn conversation design, tool selection accuracy), risk scoring algorithm design (no off-the-shelf solution). Use `gsd-ai-integration-phase` for generating AI-SPEC.md for the assistant, summarizer, and search features.
+
+### Phase 7: Enterprise Grade (SSO, Analytics, Compliance, API)
+**Rationale:** Enterprise features are gated behind the license tier system from Phase 2 and require stable, accumulated data from Phases 5 and 6. SSO is the highest-value enterprise feature (required for deals >$50K ARR). Analytics dashboards need data to be meaningful. API versioning and webhooks enable third-party integrations.
+
+**Delivers:** SSO/SAML/OIDC integration (per-tenant IdP configuration, gated behind Enterprise tier), security analytics dashboards (ECharts: occupancy trends, event frequency, per-zone risk, calendar heatmaps — all per-tenant scoped), compliance reporting (SOC 2, ISO 27001 templates via pdfmake, exportable audit trails, retention policy automation, access review reports), API versioning (`/api/v1/` public endpoints vs VERSION_NEUTRAL internal endpoints), REST API with tenant-scoped API keys, webhook delivery for events, OpenAPI/Swagger docs per version, ANPR/LPR pipeline (Plate Recognizer Docker SDK, allowlist/blocklist, vehicle access event correlation).
+
+**Addresses:** SSO/SAML/OIDC, security analytics dashboards, compliance reporting, API + webhooks, ANPR/LPR pipeline.
+
+**Research flags:** `--research-phase` needed for SAML 2.0 library selection (`passport-saml` vs `openid-client` for OIDC). ANPR SDK throughput benchmark with expected camera counts. Compliance report templates follow regulatory standards — well-documented, skip research-phase for that sub-feature.
 
 ### Phase Ordering Rationale
 
-- **Phases are strictly dependency-ordered** per the dependency graph from FEATURES.md. Phase 1 builds the access event pipeline that everything else depends on. Phases 2 and 3 can be parallelized (different services, different data flows) but both require Phase 1. Phases 4 and 5 are sequential — they need accumulated data from earlier phases to be meaningful.
-- **Architecture patterns enforce grouping.** The MQTT transport, door state machine, and audit interceptor are foundational infrastructure — they belong together in Phase 1. Incident management and AI summaries share the same data sources (access events, door states) and belong together. ANPR and visitor management share credential generation patterns.
-- **Pitfall avoidance drives ordering.** The Prisma+TimescaleDB separation (Pitfall 1) must be established in Phase 1 — retrofitting it later is a rewrite. The audit log retention (Pitfall 3) must be designed in Phase 1 before data accumulates. Door state machine validation (Pitfall 2) must be correct before alerts go to operators — false alerts in Phase 2 would erode trust in the entire platform.
+- **Phase 1 must come first.** The dependency graph confirms multi-tenancy is required by every other feature. Building any feature without tenant scoping means rewriting it when Phase 1 lands. The Prisma Client Extension pattern means existing modules become tenant-aware without code changes — but the extension must exist first.
+
+- **Phase 2 depends on Phase 1.** Stripe subscriptions and license keys bind to Organizations. Checkout/Portal sessions require authenticated users with organization context. Phase 2 can start as soon as the Organization model and tenant-aware auth are stable.
+
+- **Phase 3 is partially parallelizable with Phase 2.** The design system has no backend dependencies. It can be built concurrently once design tokens are defined. However, the dashboard needs multi-tenant context (org-switching in UI) from Phase 1.
+
+- **Phase 4 depends on Phase 2 (Stripe plans) and Phase 3 (design system).** The marketing site's pricing page references Stripe Product/Price IDs. Brand consistency requires the shared design system. Otherwise fully independent — no API dependency.
+
+- **Phase 5 depends on Phase 1 (tenant scoping) and Phase 2 (feature gates).** Each deepened module must respect license tier limits (how many doors/cameras/sites per plan). Modules can be built in parallel since they operate on independent domain models. **Phase 5 and Phase 6 can overlap** — AI features can start building on the event data as soon as a module ships event data.
+
+- **Phase 6 depends on Phase 5 (accumulated event data).** AI features need historical data for embeddings, pattern detection, and risk scoring. The pgvector infrastructure can be built in parallel with Phase 5's later stages.
+
+- **Phase 7 depends on Phase 2 (Enterprise tier gating) and Phase 5/6 (data for analytics, stable APIs for integrations).** SSO can be built independently of analytics. Compliance reporting depends on audit log stability from Phase 1.
 
 ### Research Flags
 
-Phases likely needing deeper research during planning:
-- **Phase 1 (Access Control Foundation):** MQTT controller protocol mapping — different manufacturers have different topic schemas and payload formats. TimescaleDB+Prisma migration strategy needs a spike to validate the separation pattern. **Recommended:** `/gsd-plan-phase --research-phase 1`
-- **Phase 3 (ANPR + Visitor Management):** Plate Recognizer SDK throughput benchmark with realistic camera counts. NFC credential reading on mobile — platform-specific behavior. **Recommended:** `/gsd-plan-phase --research-phase 3` for ANPR sub-phase
-- **Phase 4 (Analytics + AI Assistant):** pgvector embedding quality for security event search. Risk scoring algorithm design. AI assistant tool calling and multi-turn conversation design. ECharts performance benchmarks. **Recommended:** `/gsd-plan-phase --research-phase 4`
+Phases likely needing deeper research during planning (`/gsd-plan-phase --research-phase`):
+- **Phase 1:** Prisma Client Extension + PostgreSQL RLS coexistence pattern — needs spike on migration ordering and performance overhead. TenantContextMiddleware migration from SiteContextMiddleware — backward compatibility spike. **Confidence: MEDIUM for migration path.**
+- **Phase 2:** PayPal subscription lifecycle — less documented than Stripe, needs spike on edge cases. License grace period state machine — complex state transitions. **Confidence: MEDIUM for PayPal edge cases.**
+- **Phase 5:** Door state machine race conditions under multi-tenant load — needs spike on message ordering with MQTT. Incident SLA escalation chains in BullMQ — needs spike on job dependency patterns. **Confidence: MEDIUM for concurrent state machine behavior.**
+- **Phase 6:** Every AI sub-feature needs research-phase — pgvector embedding quality, Ollama tool calling, risk scoring algorithm design. Use `gsd-ai-integration-phase` for AI-SPEC.md generation. **Confidence: MEDIUM (AI features are novel, under-documented).**
+- **Phase 7:** SAML 2.0 library selection and per-tenant IdP configuration — needs spike comparing `passport-saml` vs `openid-client`. ANPR SDK throughput benchmark. **Confidence: HIGH for SSO patterns, MEDIUM for ANPR performance.**
 
 Phases with standard patterns (skip or light research-phase):
-- **Phase 2 (Incident Management + AI Summaries):** CRUD with SLA tracking — well-documented patterns. Ollama summarization is prompt engineering, not novel architecture. Standard `discuss-phase` + `plan-phase` should suffice.
-- **Phase 5 (Compliance & Advanced Detection):** Compliance report templates follow regulatory standards. React Flow topology is well-documented. Only tailgating detection ML approach may need a targeted spike.
+- **Phase 3 (partial):** Radix Themes, motion animations, Tailwind preset — well-documented. Coexistence patterns need a spike but patterns are known.
+- **Phase 4:** Next.js SSG/ISR, next-intl routing, velite collections, next-seo — all well-documented. Skip research-phase entirely.
+- **Phase 2 (partial):** Stripe Checkout/Customer Portal/Webhooks — Stripe docs are excellent (HIGH confidence from Context7). Skip research-phase for Stripe integration.
+- **Phase 7 (partial):** ECharts analytics dashboards, compliance report templates — established patterns. Skip research-phase.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All library versions verified via npm registry. TimescaleDB, pgvector, pgcrypto docs from Context7 (633, 477, and core PG docs respectively). Plate Recognizer API and Ollama API verified against official docs. MQTT.js verified against published npm package. Community concerns flagged (prisma-extension-timescaledb — 2 stars, rejected for production). |
-| Features | HIGH | Competitor analysis across Verkada, Genetec, Suprema, Eagle Eye Cloud VMS. Industry reports from Genetec State of Physical Security, IFSEC Global, Security Industry Association. Regulatory requirements (SOC 2, ISO 27001, GDPR, OSHA) mapped to feature expectations. |
-| Architecture | HIGH | All patterns sourced from official TimescaleDB, pgvector, MQTT, and Ollama documentation (Context7 verified). MQTT topic naming from OASIS Standard. Trigger-based audit chains are well-established DBA patterns. Component boundaries clear and testable. Scale projections validated against TimescaleDB benchmarks. |
-| Pitfalls | HIGH | Prisma+TimescaleDB conflict verified against community extension issues and TimescaleDB docs. MQTT ordering from OASIS specification. Ollama keep_alive from official docs. Plate Recognizer licensing from official documentation. pgvector HNSW behavior from community consensus (MEDIUM confidence on staleness, but prevention strategy is conservative). Audit log growth is arithmetic certainty. |
+| Stack | HIGH | All 10 new packages verified for version compatibility with existing stack. Stripe SDK v22, jose v5, nestjs-cls v5, motion v12, Radix Themes v3, next-intl v4 all verified via Context7 (official docs with high snippet counts). Existing stack (NestJS, Next.js, Prisma, Redis, BullMQ, PostgreSQL 16, Docker Compose, Caddy) unchanged. |
+| Features | HIGH | Competitive analysis against Verkada, Brivo (Brivo Security Suite 2026 editions), Genetec, Suprema. Brivo feature comparison grid provides direct competitive benchmark. Stripe Billing docs (Context7 verified) cover subscription lifecycle. Feature prioritization mapped to competitor offerings and market expectations. |
+| Architecture | HIGH | All major patterns sourced from official documentation: Prisma Client Extensions (official blog), Stripe webhooks (official docs), PostgreSQL RLS (official PG docs), NestJS versioning (official docs). Architecture integrates with existing 29-module NestJS application without requiring module rewrites. Scalability projections validated against PostgreSQL/TimescaleDB benchmarks. |
+| Pitfalls | HIGH | Pitfalls sourced from known SaaS failure patterns, Stripe integration gotchas (verified against Stripe docs), multi-tenant security patterns (community consensus), and analysis of the existing codebase (29 NestJS modules, SiteContextMiddleware, Prisma schema). All 10 pitfalls have verified prevention strategies mapped to specific phases. |
 
-**Overall confidence:** HIGH — all major decisions backed by official documentation, verified package versions, and established domain patterns. The only MEDIUM-confidence findings are flagged explicitly (pgvector HNSW incremental freshness, community Prisma extension reliability) and have conservative prevention strategies.
+**Overall confidence:** HIGH — all stack decisions verified against official package docs (Context7), all architectural patterns backed by official documentation or established community practice, all feature decisions benchmarked against competitor analysis. The only medium-confidence areas are explicitly flagged: PayPal subscription edge cases, pgvector embedding quality for security events, and the migration path from SiteContextMiddleware to TenantContextMiddleware.
 
 ### Gaps to Address
 
-- **MQTT Controller Protocol Diversity:** Different manufacturers (Mercury, Axis, HID) use different topic schemas and payload formats. The research assumes a normalized topic structure (`site/{id}/{deviceType}/{id}/{eventType}`) but specific controller mappings need validation during Phase 1 spike. **Handle during:** Phase 1 plan-phase research spike — build a protocol adapter abstraction and validate with at least one real controller or simulator.
+- **Stripe Webhook Endpoint Testing:** Stripe webhook testing requires either the Stripe CLI (`stripe listen --forward-to`) or a publicly accessible endpoint. For a self-hosted Docker deployment behind Caddy, the local development webhook testing flow needs a documented pattern. **Handle during:** Phase 2 plan-phase — spike `stripe listen` with Docker network configuration.
 
-- **TimescaleDB + Prisma Migration Workflow:** The recommended approach (separate SQL migration directory, `$queryRaw` for all time-series operations) needs a concrete implementation spike. The migration ordering (Prisma first for reference tables, then TimescaleDB DDL) must be validated to ensure no cross-contamination. **Handle during:** Phase 1 plan-phase — spike the migration strategy before writing production code.
+- **PayPal Subscription Edge Cases:** The PayPal Server SDK v2 supports subscriptions, but the documentation coverage is thinner than Stripe's. Specific edge cases around PayPal subscription lifecycle (buyer disputes, funding source failures, recurring payment declines) need validation against PayPal's sandbox. **Handle during:** Phase 2 plan-phase research spike.
 
-- **Plate Recognizer SDK Throughput at Scale:** The SDK documentation specifies per-container throughput (~50 plates/sec CPU, 200+ GPU), but actual throughput depends on image resolution, region count, and hardware. A load test with realistic camera feeds is needed before committing to the license tier. **Handle during:** Phase 3 plan-phase research spike — benchmark with expected camera count and frame rate.
+- **pgvector Embedding Model Selection:** The choice between `nomic-embed-text` and `mxbai-embed-large` for security event embeddings significantly impacts search quality for natural language queries. An evaluation set of security-specific queries ("Who accessed the server room after hours?") needs to be built and tested against both models. **Handle during:** Phase 6 plan-phase — build evaluation benchmark before model commitment.
 
-- **pgvector Embedding Quality for Security Events:** The embedding model choice (nomic-embed-text vs mxbai-embed-large) and the text representation of security events (how structured event data is converted to searchable text) significantly impact search quality. This needs evaluation with real security event data. **Handle during:** Phase 4 plan-phase research — build an evaluation set of security queries and measure recall.
+- **Ollama Tool Calling Reliability:** Ollama's tool calling support is functional but less mature than OpenAI's. The AI security assistant requires reliable tool selection (querying door states, listing alerts, executing lockdowns). Multi-turn conversation context management with tools needs spike validation. **Handle during:** Phase 6 plan-phase — spike tool calling with real security scenarios, evaluate error rate.
 
-- **AI Assistant Tool Calling:** The conversational security assistant requires Ollama tool calling to query database state (door statuses, recent alerts, zone risks). Multi-turn conversation design and tool selection accuracy need spike validation. **Handle during:** Phase 4 plan-phase research — spike tool calling with Ollama and evaluate response quality.
+- **Site-to-Tenant Migration Path:** The existing codebase has `Site` as a first-class model with `siteId` on User, Camera, Door, Zone, etc. The migration to `Organization` (tenant) model with Site as a child entity needs a concrete migration script that (a) auto-creates `Organization` records for existing Sites during v1→v2 upgrade, and (b) maps all existing relationships correctly. **Handle during:** Phase 1 plan-phase — spike the migration script with a copy of production data.
+
+- **Radix Themes + Tailwind Coexistence:** Radix Themes uses its own CSS variable system, while Tailwind handles layout. The interaction between the two (how Tailwind classes affect Radix Themes components, how to theme Radix Themes via Tailwind CSS variables) needs a practical spike to validate the recommended approach. **Handle during:** Phase 3 plan-phase — build a component showcase page using both systems.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [Plate Recognizer Snapshot API Docs](https://docs.platerecognizer.com) — API surface, Docker deployment, GPU variants, licensing tiers, `/info` endpoint
-- [pgvector Context7 docs](/pgvector/pgvector) — 477 snippets: HNSW indexes, L2/cosine/ip distance, Prisma raw SQL patterns
-- [TimescaleDB Context7 docs](/timescale/timescaledb) — 633 snippets: hypertables, continuous aggregates, retention policies, compression
-- [MQTT.js Context7 docs](/mqttjs/mqtt.js) — 218 snippets: MQTT 3.1.1 + 5.0, QoS levels, retained messages, topic patterns
-- [Ollama API docs](https://docs.ollama.com) — `/api/embed`, `/api/chat`, model keep_alive behavior, multi-model deployment
-- [React Flow docs](https://reactflow.dev) — 3,601 snippets: interactive node graphs, custom nodes/edges, minimap, edge routing
-- [Apache ECharts docs](https://echarts.apache.org) — 32,156 snippets: heatmaps, scatter, calendar, gauge charts, large dataset handling
-- [react-native-vision-camera v5.1.0](https://github.com/mrousavy/react-native-vision-camera/releases/tag/v5.1.0) — QR/barcode scanning, `scanCodesInImage()`, Expo dev client compatibility
-- npm registry (`npm view`) — version verification for all 14 recommended packages
-- [Plate Recognizer Docker Hub](https://hub.docker.com/r/platerecognizer/alpr) — verified latest image, on-premise deployment, GPU variants
+- [Prisma Client Extensions — RLS Multi-Tenancy](https://github.com/prisma/web/blob/main/apps/blog/content/blog/client-extensions-preview-8t3w27xkrxxn/index.mdx) — official Prisma blog: recommended pattern for multi-tenant SaaS with Prisma Client Extensions + PostgreSQL RLS
+- [nestjs-cls Context7 docs](/papooch/nestjs-cls) — 430 snippets: AsyncLocalStorage, request-scoped providers, multi-tenancy patterns
+- [Stripe Node SDK Context7 docs](/stripe/stripe-node) — 213 snippets: subscription lifecycle, webhook verification, Checkout Sessions, Customer Portal
+- [PayPal Server SDK Context7 docs](/paypal/paypal-typescript-server-sdk) — 1,228 snippets: order creation, subscription management, webhook verification
+- [Motion (framer-motion successor) docs](https://motion.dev/docs/react-animation) — official docs: AnimatePresence, layout animations, variants, useAnimate
+- [Radix Themes Context7 docs](/websites/radix-ui_themes) — 981 snippets: pre-styled components, dark mode, CSS variable theming
+- [next-intl Context7 docs](/amannn/next-intl) — 942 snippets: defineRouting, middleware, ICU messages, App Router integration
+- [next-seo Context7 docs](/garmeeh/next-seo) — 618 snippets: DefaultSeo, JSON-LD, Open Graph, Twitter Cards
+- [Velite Context7 docs](/zce/velite) — 358 snippets: defineConfig with Zod, MDX support, type-safe output
+- [NestJS Guards & Interceptors Context7 docs](/nestjs/nest) — guard execution order, VersioningType.URI, VERSION_NEUTRAL
+- [PostgreSQL RLS Documentation](https://www.postgresql.org/docs/16/ddl-rowsecurity.html) — official PG docs: CREATE POLICY, session variables, USING expressions
+- Existing codebase analysis: Prisma schema (546 lines, 29 models), 29 NestJS modules, SiteContextMiddleware, JWT strategy, RolesGuard, Caddy routing, pnpm workspace structure
 
 ### Secondary (MEDIUM confidence)
-- MQTT topic naming conventions — OASIS Standard (well-established, but specific controller implementations vary)
-- PostgreSQL trigger-based audit hash chains — well-established DBA pattern, verified against pgcrypto docs
-- prisma-extension-timescaledb v0.8.0 — evaluated and rejected (2 GitHub stars, too immature for production)
-- pgvector HNSW index incremental staleness — community consensus (suboptimal without periodic rebuild)
+- [Brivo Security Suite Editions](https://www.brivo.com/platform/security-suite-editions/) — competitive benchmark: Standard/Professional/Enterprise tiers, feature comparison grid
+- [Brivo Security Suite Overview](https://www.brivo.com/platform/security-suite/) — platform capabilities: Brivo AI, Brivo Genius, Global View
+- [Verkada Pricing Page](https://www.verkada.com/pricing/) — hardware + license model, per-device licensing
+- Prisma Client Extension performance overhead (~1-5% per query) — estimated from community discussions; actual overhead depends on query complexity
+- RLS policy evaluation overhead on indexed columns — PostgreSQL official benchmarks show negligible overhead
+- Stripe webhook delivery latency (~300ms typical) — from Stripe documentation
 
-### Tertiary (LOW confidence)
-- None. All stack decisions backed by official documentation or verified package registries.
+### Tertiary (LOW confidence — pattern inference)
+- Brivo AI naming ("Brivo AI", "Brivo Genius") — indicates AI is now table-stakes branding for physical security platforms
+- Verkada "government-grade" tier — suggests federal/defense market, supports self-hosted strategy
+- pgvector HNSW index incremental staleness — community consensus, conservative prevention strategies applied
 
 ---
-*Research completed: 2026-07-14*
+*Research completed: 2026-07-15*
 *Ready for roadmap: yes*
