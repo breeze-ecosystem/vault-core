@@ -63,16 +63,18 @@ v1.0 delivered the unified physical security intelligence platform — access co
   3. A direct database query — even a raw SQL statement — cannot access data belonging to a different organization (PostgreSQL RLS enforced at database level)
   4. JWT tokens carry `organizationId` + scoped `permissions[]` so every API request is automatically tenant-scoped without per-endpoint changes
   5. Per-organization audit logs are independently hash-chained with cryptographic integrity verification — an auditor can verify that Organization A's log has not been tampered with
-**Plans**: 9 plans (5 waves)
+**Plans**: 11 plans (6 waves)
 
 Plans:
 - [ ] 04-01-PLAN.md — Prisma Schema Migration + Push + Seed (FND-01)
-- [ ] 04-02-PLAN.md — Shared Zod Schemas (FND-01, FND-05)
-- [ ] 04-03-PLAN.md — Tenant Isolation Core: Extension + Middleware + RLS (FND-01, FND-02)
-- [ ] 04-04-PLAN.md — Auth + Organization + Invite API Modules (FND-03, FND-04, FND-05)
+- [ ] 04-02-PLAN.md — Shared Zod Schemas + Env Vars (FND-01, FND-05)
+- [ ] 04-03a-PLAN.md — Tenant Isolation Core: Extension + Middleware + Worker Helper (FND-01, FND-02)
+- [ ] 04-03b-PLAN.md — Tenant Isolation Integration: Guard + Decorator + RLS Migration + AppModule Wiring (FND-01, FND-02)
+- [ ] 04-04a-PLAN.md — Auth + Organization API Modules (FND-03, FND-04)
+- [ ] 04-04b-PLAN.md — Invite Module: JWT Tokens + Resend Email + Accept Flow (FND-05)
 - [ ] 04-05-PLAN.md — Codebase Rename: 52-file siteId→organizationId (FND-01, FND-02)
 - [ ] 04-06-PLAN.md — Feature Gates Infrastructure (FND-07)
-- [ ] 04-07-PLAN.md — Hash-Chain Audit (FND-06)
+- [ ] 04-07-PLAN.md — Hash-Chain Audit Integrity (FND-06)
 - [ ] 04-08-PLAN.md — Dashboard Frontend: Org Switcher + Invites (FND-03, FND-04, FND-05)
 - [ ] 04-09-PLAN.md — Mobile Frontend: Org Switcher (FND-03, FND-05)
 
@@ -160,7 +162,7 @@ Plans:
 | 1. Unified Security | 4/4 | Complete | 2026-07-14 |
 | 2. Operational AI | 6/6 | Complete | 2026-07-14 |
 | 3. Intelligent Platform | 5/5 | Complete | 2026-07-14 |
-| 4. Commercial Foundation | 0/TBD | Not started | - |
+| 4. Commercial Foundation | 0/11 | Not started | - |
 | 5. Monetization | 0/TBD | Not started | - |
 | 6. Premium Experience | 0/TBD | Not started | - |
 | 7. Public Presence | 0/TBD | Not started | - |

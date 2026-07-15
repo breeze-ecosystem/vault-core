@@ -1190,7 +1190,7 @@ DROP FUNCTION create_tenant_policy;
 | A5 | The existing TimescaleDB `audit_log` hypertable supports column additions (previousHash, currentHash, organizationId) without requiring table recreation | Migration Strategy | May need to create a new hypertable and migrate data |
 | A6 | BullMQ job data serialization preserves `orgId` correctly when passing from HTTP context to worker | Common Pitfalls — Pitfall 2 | Workers could receive malformed `orgId`; verify with integration test |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `Credential`, `Alert`, `CameraPrompt` have `organizationId` added directly or rely on parent-model isolation?**
    - What we know: `Credential` belongs to `User` → `OrganizationMember` → `Organization`. `Alert` belongs to `Camera` → `Organization`. Parent-model isolation works but requires JOINs. Direct `organizationId` on these tables simplifies queries and RLS.
