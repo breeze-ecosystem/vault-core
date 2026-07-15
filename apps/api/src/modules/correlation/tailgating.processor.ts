@@ -6,6 +6,7 @@ import Redis from "ioredis";
 import { PrismaService } from "../prisma/prisma.service";
 import { AlertService } from "../alert/alert.service";
 import type { TailgatingJob } from "@repo/shared";
+import { withTenantContext } from "../../common/helpers/tenant-worker";
 
 /**
  * TailgatingProcessor — AI-04, D-20, D-21.
@@ -39,7 +40,12 @@ export class TailgatingProcessor extends WorkerHost {
   private async detect(data: TailgatingJob): Promise<any> {
     const { doorId, orgId, eventTimestamp } = data;
 
-    try {
+    if (!orgId) {
+      this.logger.warn(`Tailgating job missing orgId — skipping`);
+      return { skipped: true, reason: "missing-org-id" };
+    }
+    return withTenantContext(this.prisma, orgId, async () => {
+      try {
       // 1. Get cameras mapped to the door (D-14: CameraDoorMap)
       const cameraMaps = await this.prisma.cameraDoorMap.findMany({
         where: { doorId },
@@ -161,12 +167,13 @@ export class TailgatingProcessor extends WorkerHost {
       }
 
       return { detected: false, doorId, personCount: count };
-    } catch (err: any) {
-      this.logger.error(
-        `Tailgating detection error for door=${doorId}: ${err.message}`,
-        err.stack,
-      );
-      throw err;
-    }
+      } catch (err: any) {
+        this.logger.error(
+          `Tailgating detection error for door=${doorId}: ${err.message}`,
+          err.stack,
+        );
+        throw err;
+      }
+    });
   }
 }

@@ -16,6 +16,9 @@ export class AnalyticsGateway implements OnGatewayConnection, OnGatewayDisconnec
   server!: Server;
 
   handleConnection(client: Socket) {
+    const orgId = client.handshake.auth?.orgId;
+    client.data.orgId = orgId;
+    if (!orgId) client.disconnect();
     this.logger.log(`Analytics WS client connected: ${client.id}`);
   }
 

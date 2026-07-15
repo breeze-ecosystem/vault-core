@@ -2,6 +2,7 @@ import { Logger } from "@nestjs/common";
 import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Job } from "bullmq";
 import { PrismaService } from "../prisma/prisma.service";
+import { withTenantContext } from "../../common/helpers/tenant-worker";
 
 export interface PersistEventJob {
   time: Date;
@@ -36,17 +37,24 @@ export class AccessProcessor extends WorkerHost {
    * Never use Prisma model for time-series data.
    */
   private async persistEvent(data: PersistEventJob) {
-    try {
-      await this.prisma.$queryRaw`
+    const { orgId } = data;
+    if (!orgId) {
+      this.logger.warn(`Job missing orgId — skipping`);
+      return { skipped: true, reason: "missing-org-id" };
+    }
+    return withTenantContext(this.prisma, orgId, async () => {
+      try {
+        await this.prisma.$queryRaw`
         INSERT INTO access_events (time, organization_id, door_id, credential_id, user_id, decision, reason, sequence)
         VALUES (${data.time}, ${data.orgId}::uuid, ${data.doorId}::uuid,
                 ${data.credentialId}::uuid, ${data.userId}::uuid,
                 ${data.decision}::event_decision, ${data.reason}, ${data.sequence})
       `;
       this.logger.log(`Access event persisted: ${data.decision} for credential ${data.credentialId}`);
-    } catch (err: any) {
-      this.logger.error(`Failed to persist access event: ${err.message}`);
-      throw err;
-    }
+      } catch (err: any) {
+        this.logger.error(`Failed to persist access event: ${err.message}`);
+        throw err;
+      }
+    });
   }
 }

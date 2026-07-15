@@ -5,6 +5,7 @@ import Redis from "ioredis";
 import { PrismaService } from "../prisma/prisma.service";
 import { AlertService } from "../alert/alert.service";
 import { type DoorAlertJob, DOOR_STATES } from "@repo/shared";
+import { withTenantContext } from "../../common/helpers/tenant-worker";
 
 @Processor("door-alerts")
 export class DoorProcessor extends WorkerHost {
@@ -34,77 +35,88 @@ export class DoorProcessor extends WorkerHost {
   private async evaluateDoorAlert(data: DoorAlertJob) {
     const { doorId, orgId, state, reason, timestamp } = data;
 
-    // 60s cooldown: prevent duplicate alerts for same door+state
-    const cooldownKey = `door:alert:cooldown:${doorId}:${state}`;
-    const isOnCooldown = await this.redis.get(cooldownKey);
-    if (isOnCooldown) {
-      this.logger.debug(
-        `Alert cooldown active for door ${doorId} (${state}), skipping`,
-      );
-      return { skipped: true, reason: "cooldown" };
+    // Use tenant context for DB isolation
+    if (!orgId) {
+      this.logger.warn(`Job missing orgId — skipping`);
+      return { skipped: true, reason: "missing-org-id" };
     }
+    if (!orgId) {
+      this.logger.warn(`Job missing orgId — skipping`);
+      return { skipped: true, reason: "missing-org-id" };
+    }
+    return withTenantContext(this.prisma, orgId, async () => {
+      // 60s cooldown: prevent duplicate alerts for same door+state
+      const cooldownKey = `door:alert:cooldown:${doorId}:${state}`;
+      const isOnCooldown = await this.redis.get(cooldownKey);
+      if (isOnCooldown) {
+        this.logger.debug(
+          `Alert cooldown active for door ${doorId} (${state}), skipping`,
+        );
+        return { skipped: true, reason: "cooldown" };
+      }
 
-    // Set 60s cooldown
-    await this.redis.setex(cooldownKey, 60, "1");
+      // Set 60s cooldown
+      await this.redis.setex(cooldownKey, 60, "1");
 
-    try {
-      // Query CameraDoorMap for door's cameras, priority-sorted (D-14)
-      const cameraMaps = await this.prisma.cameraDoorMap.findMany({
-        where: { doorId },
-        orderBy: { priority: "desc" },
-        include: {
-          camera: {
-            select: {
-              id: true,
-              name: true,
-              lastSnapshotUrl: true,
+      try {
+        // Query CameraDoorMap for door's cameras, priority-sorted (D-14)
+        const cameraMaps = await this.prisma.cameraDoorMap.findMany({
+          where: { doorId },
+          orderBy: { priority: "desc" },
+          include: {
+            camera: {
+              select: {
+                id: true,
+                name: true,
+                lastSnapshotUrl: true,
+              },
             },
           },
-        },
-      });
+        });
 
-      const cameraId = cameraMaps[0]?.camera?.id ?? null;
-      const snapshotUrl = cameraMaps[0]?.camera?.lastSnapshotUrl ?? null;
+        const cameraId = cameraMaps[0]?.camera?.id ?? null;
+        const snapshotUrl = cameraMaps[0]?.camera?.lastSnapshotUrl ?? null;
 
-      // Determine severity based on state
-      const severity =
-        state === DOOR_STATES.FORCED || state === DOOR_STATES.DESYNCHRONIZED
-          ? "HIGH"
-          : "MEDIUM";
+        // Determine severity based on state
+        const severity =
+          state === DOOR_STATES.FORCED || state === DOOR_STATES.DESYNCHRONIZED
+            ? "HIGH"
+            : "MEDIUM";
 
-      // Build alert title from reason
-      const door = await this.prisma.door.findUnique({
-        where: { id: doorId },
-        select: { name: true },
-      });
-      const title = door
-        ? `${door.name}: ${reason}`
-        : `Door ${doorId}: ${reason}`;
+        // Build alert title from reason
+        const door = await this.prisma.door.findUnique({
+          where: { id: doorId },
+          select: { name: true },
+        });
+        const title = door
+          ? `${door.name}: ${reason}`
+          : `Door ${doorId}: ${reason}`;
 
-      await this.alertService.create({
-        title,
-        description: `Door alert: ${state} at ${new Date(timestamp).toISOString()}`,
-        severity: severity as any,
-        cameraId: cameraId ?? undefined,
-        snapshotUrl: snapshotUrl ?? undefined,
-        metadata: {
-          doorId,
-          state,
-          eventTimestamp: timestamp,
-          orgId,
-        } as any,
-      } as any);
+        await this.alertService.create({
+          title,
+          description: `Door alert: ${state} at ${new Date(timestamp).toISOString()}`,
+          severity: severity as any,
+          cameraId: cameraId ?? undefined,
+          snapshotUrl: snapshotUrl ?? undefined,
+          metadata: {
+            doorId,
+            state,
+            eventTimestamp: timestamp,
+            orgId,
+          } as any,
+        } as any);
 
-      this.logger.log(
-        `Alert created: door=${doorId}, state=${state}, reason=${reason}`,
-      );
+        this.logger.log(
+          `Alert created: door=${doorId}, state=${state}, reason=${reason}`,
+        );
 
-      return { created: true, doorId, state };
-    } catch (err: any) {
-      this.logger.error(
-        `Failed to create door alert for ${doorId}: ${err.message}`,
-      );
-      throw err;
-    }
+        return { created: true, doorId, state };
+      } catch (err: any) {
+        this.logger.error(
+          `Failed to create door alert for ${doorId}: ${err.message}`,
+        );
+        throw err;
+      }
+    });
   }
 }

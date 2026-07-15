@@ -4,6 +4,7 @@ import { Job } from "bullmq";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { PrismaService } from "../prisma/prisma.service";
 import type { CorrelationJob } from "@repo/shared";
+import { withTenantContext } from "../../common/helpers/tenant-worker";
 
 /**
  * CorrelationProcessor — D-13 async video correlation worker.
@@ -33,7 +34,12 @@ export class CorrelationProcessor extends WorkerHost {
   private async correlateVideo(data: CorrelationJob): Promise<any> {
     const { doorId, orgId, eventType, timestamp } = data;
 
-    try {
+    if (!orgId) {
+      this.logger.warn(`Correlation job missing orgId — skipping`);
+      return { skipped: true, reason: "missing-org-id" };
+    }
+    return withTenantContext(this.prisma, orgId, async () => {
+      try {
       // 1. Query CameraDoorMap for cameras mapped to this door (D-14), sorted by priority ASC
       const cameraMaps = await this.prisma.cameraDoorMap.findMany({
         where: { doorId },
@@ -112,12 +118,13 @@ export class CorrelationProcessor extends WorkerHost {
       );
 
       return { correlated: true, doorId, cameraId: camera.id };
-    } catch (err: any) {
-      this.logger.error(
-        `Correlation error for door=${doorId}: ${err.message}`,
-        err.stack,
-      );
-      throw err;
-    }
+      } catch (err: any) {
+        this.logger.error(
+          `Correlation error for door=${doorId}: ${err.message}`,
+          err.stack,
+        );
+        throw err;
+      }
+    });
   }
 }

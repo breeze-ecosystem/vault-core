@@ -3,6 +3,7 @@ import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Job } from "bullmq";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { PrismaService } from "../prisma/prisma.service";
+import { withTenantContext } from "../../common/helpers/tenant-worker";
 
 @Processor("incident-alerts")
 export class IncidentProcessor extends WorkerHost {
@@ -31,7 +32,7 @@ export class IncidentProcessor extends WorkerHost {
    * Follows Pattern 2 from RESEARCH.md.
    */
   private async handleAutoTriage(data: { alertId: string; severity: string; metadata?: any }) {
-    // Fetch alert with camera relation for site info
+    // Fetch alert with camera relation for org info
     const alert = await this.prisma.alert.findUnique({
       where: { id: data.alertId },
       include: {
@@ -44,8 +45,15 @@ export class IncidentProcessor extends WorkerHost {
       return { skipped: true, reason: "alert-not-found" };
     }
 
-    // Create incident from alert
-    const incident = await this.prisma.incident.create({
+    const orgId = alert.camera?.orgId;
+    if (!orgId) {
+      this.logger.warn(`Auto-triage: alert ${data.alertId} has no orgId`);
+      return { skipped: true, reason: "missing-org-id" };
+    }
+
+    return withTenantContext(this.prisma, orgId, async () => {
+      // Create incident from alert
+      const incident = await this.prisma.incident.create({
       data: {
         title: alert.title,
         description: alert.description,
@@ -94,6 +102,7 @@ export class IncidentProcessor extends WorkerHost {
 
     this.logger.log(`Auto-triaged alert ${alert.id} → incident ${incident.id}`);
     return { created: true, incidentId: incident.id };
+    });
   }
 
   /**
@@ -113,7 +122,12 @@ export class IncidentProcessor extends WorkerHost {
       return { skipped: true, reason: "already-resolved" };
     }
 
-    // Log escalation to incident_events
+    const orgId = incident.orgId;
+    if (!orgId) {
+      return { skipped: true, reason: "missing-org-id" };
+    }
+    return withTenantContext(this.prisma, orgId, async () => {
+      // Log escalation to incident_events
     try {
       await this.prisma.$queryRaw`
         INSERT INTO incident_events (time, incident_id, organization_id, status, previous_status, triggered_by, metadata)
@@ -143,5 +157,6 @@ export class IncidentProcessor extends WorkerHost {
 
     this.logger.warn(`SLA escalation level ${data.level} for incident ${incident.id}`);
     return { escalated: true, incidentId: incident.id, level: data.level };
+    });
   }
 }

@@ -17,6 +17,9 @@ export class VisitorGateway implements OnGatewayConnection, OnGatewayDisconnect 
   server!: Server;
 
   handleConnection(client: Socket) {
+    const orgId = client.handshake.auth?.orgId;
+    client.data.orgId = orgId;
+    if (!orgId) client.disconnect();
     this.logger.log(`Visitor WS client connected: ${client.id}`);
   }
 

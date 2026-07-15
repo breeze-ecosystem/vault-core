@@ -6,6 +6,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { InferenceService } from "./inference.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import { FrameJob } from "../queue/queue.service";
+import { withTenantContext } from "../../common/helpers/tenant-worker";
 
 @Processor("frame-processing")
 export class InferenceProcessor extends WorkerHost {
@@ -27,6 +28,13 @@ export class InferenceProcessor extends WorkerHost {
     this.logger.debug(`Processing frame for camera ${data.cameraId}`);
 
     if (data.prompts.length === 0) return;
+
+    const orgId = data.orgId;
+    if (!orgId) {
+      this.logger.warn(`Frame job missing orgId — skipping`);
+      return;
+    }
+    return withTenantContext(this.prisma, orgId, async () => {
 
     const result = await this.inference.analyzeFrame(data);
 
@@ -98,6 +106,7 @@ export class InferenceProcessor extends WorkerHost {
 
       this.logger.log(`Alert created: ${alert.id} - ${alert.title}`);
     }
+    });
   }
 
   private mapSeverity(promptText: string): "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO" {

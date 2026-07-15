@@ -3,6 +3,7 @@ import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Job } from "bullmq";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuditJobData } from "./audit.interceptor";
+import { withTenantContext } from "../../common/helpers/tenant-worker";
 
 @Processor("audit-write")
 export class AuditProcessor extends WorkerHost {
@@ -39,8 +40,13 @@ export class AuditProcessor extends WorkerHost {
       content,
     } = data;
 
-    try {
-      await this.prisma.$queryRaw`
+    if (!orgId) {
+      this.logger.warn(`Audit job missing orgId — skipping`);
+      return;
+    }
+    return withTenantContext(this.prisma, orgId, async () => {
+      try {
+        await this.prisma.$queryRaw`
         INSERT INTO audit_log (time, entity, entity_id, action, user_id, organization_id, changes, ip_address, content)
         VALUES (
           ${timestamp}::timestamptz,
@@ -57,9 +63,10 @@ export class AuditProcessor extends WorkerHost {
       this.logger.debug(
         `Audit entry written: ${action} on ${entity}/${entityId}`,
       );
-    } catch (err: any) {
-      this.logger.error(`Failed to write audit entry: ${err.message}`);
-      throw err;
-    }
+      } catch (err: any) {
+        this.logger.error(`Failed to write audit entry: ${err.message}`);
+        throw err;
+      }
+    });
   }
 }
