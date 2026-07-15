@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState, useCallback } from "rea
 import {
   getUserAsync,
   getAccessTokenAsync,
+  getOrganizationAsync,
+  getOrganizationsAsync,
 } from "@/lib/auth-storage";
 import { login as apiLogin, refreshTokens, logout as apiLogout, isTokenExpired, switchOrganization as apiSwitchOrg } from "@/lib/auth-client";
 
@@ -56,6 +58,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         const storedUser = await getUserAsync();
+        const storedOrg = await getOrganizationAsync();
+        const storedOrgs = await getOrganizationsAsync();
         const expired = isTokenExpired(token);
 
         if (expired) {
@@ -63,8 +67,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (refreshed?.user) {
             setUser(refreshed.user as User);
           }
-        } else if (storedUser) {
-          setUser(storedUser);
+          if (refreshed?.organization) {
+            setOrganization(refreshed.organization as Organization);
+          }
+        } else {
+          if (storedUser) setUser(storedUser);
+          if (storedOrg) setOrganization(storedOrg as Organization);
+          if (storedOrgs.length > 0) setOrganizations(storedOrgs);
         }
       } catch {
         console.warn("[auth] init error");
@@ -82,6 +91,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (result.organization) {
         setOrganization(result.organization as Organization);
       }
+      if (result.organizations) {
+        setOrganizations(result.organizations);
+      }
     }
     return { error: result.error };
   }, []);
@@ -93,6 +105,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (result.organization) {
         setOrganization(result.organization as Organization);
       }
+      if (result.organizations) {
+        setOrganizations(result.organizations);
+      }
     }
   }, []);
 
@@ -100,6 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await apiLogout();
     setUser(null);
     setOrganization(null);
+    setOrganizations([]);
   }, []);
 
   return (

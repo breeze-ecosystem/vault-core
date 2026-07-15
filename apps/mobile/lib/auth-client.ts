@@ -1,6 +1,8 @@
 import {
   saveTokens,
   saveUser,
+  saveOrganization,
+  saveOrganizations,
   getAccessTokenAsync,
   getRefreshTokenAsync,
   clearAuth,
@@ -9,6 +11,7 @@ import { API_URL as API_BASE } from "@/lib/config";
 
 interface AuthResult {
   accessToken?: string;
+  refreshToken?: string;
   user?: {
     id: string;
     email: string;
@@ -20,6 +23,7 @@ interface AuthResult {
     id: string;
     name: string;
   };
+  organizations?: Array<{ id: string; name: string; role: string }>;
   error?: string;
 }
 
@@ -75,6 +79,7 @@ export async function refreshTokens(): Promise<AuthResult | null> {
     const data = await res.json();
     await saveTokens(data.accessToken, data.refreshToken);
     await saveUser(data.user);
+    if (data.organization) await saveOrganization(data.organization);
 
     return { accessToken: data.accessToken, user: data.user, organization: data.organization };
   } catch (e) {
@@ -112,9 +117,12 @@ export async function switchOrganization(orgId: string): Promise<AuthResult> {
   });
   const data = await res.json();
   if (!res.ok) return { error: data.message || "Échec du changement d'organisation" };
-  await saveTokens(data.accessToken, data.refreshToken);
-  await saveUser(data.user);
-  return { accessToken: data.accessToken, user: data.user, organization: data.organization };
+    await saveTokens(data.accessToken, data.refreshToken);
+    await saveUser(data.user);
+    if (data.organization) await saveOrganization(data.organization);
+    if (data.organizations) await saveOrganizations(data.organizations);
+
+    return { accessToken: data.accessToken, user: data.user, organization: data.organization };
 }
 
 export async function fetchWithAuth(url: string, options: RequestInit = {}) {
