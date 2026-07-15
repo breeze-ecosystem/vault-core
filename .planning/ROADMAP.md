@@ -81,7 +81,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 04-03a-PLAN.md — Tenant Isolation Core: Extension + Middleware + Worker Helper (FND-01, FND-02)
-- [ ] 04-04a-PLAN.md — Auth + Organization API Modules (FND-03, FND-04)
+- [x] 04-04a-PLAN.md — Auth + Organization API Modules (FND-03, FND-04)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -207,7 +207,7 @@ Plans:
 | 1. Unified Security | 4/4 | Complete | 2026-07-14 |
 | 2. Operational AI | 6/6 | Complete | 2026-07-14 |
 | 3. Intelligent Platform | 5/5 | Complete | 2026-07-14 |
-| 4. Commercial Foundation | 0/11 | Not started | - |
+| 4. Commercial Foundation | 4/11 | In Progress|  |
 | 5. Monetization | 0/TBD | Not started | - |
 | 6. Premium Experience | 0/TBD | Not started | - |
 | 7. Public Presence | 0/TBD | Not started | - |
