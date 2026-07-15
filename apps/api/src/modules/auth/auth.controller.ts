@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
   Res,
   UseGuards,
@@ -16,7 +17,7 @@ import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { Public } from '../../common/decorators/public.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AuditService } from '../audit/audit.service';
-import { loginSchema, registerSchema, refreshSchema } from '@repo/shared';
+import { loginSchema, registerSchema, refreshSchema, switchOrgSchema } from '@repo/shared';
 import {
   LoginDto,
   RegisterDto,
@@ -35,7 +36,7 @@ export class AuthController {
 
   @Public()
   @Post('register')
-  @ApiOperation({ summary: 'Register a new user account' })
+  @ApiOperation({ summary: 'Register a new user account with organization creation' })
   @ApiBody({ type: RegisterDto })
   @ApiResponse({ status: 201, description: 'User registered successfully', type: AuthResponseDto })
   @ApiResponse({ status: 409, description: 'Email already registered' })
@@ -55,6 +56,7 @@ export class AuthController {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
       user: result.user,
+      organization: result.organization,
     };
   }
 
@@ -136,6 +138,62 @@ export class AuthController {
       refreshToken: result.refreshToken,
       user: result.user,
     };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('switch-org')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Switch active organization and re-issue tokens' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { organizationId: { type: 'string', format: 'uuid' } },
+    },
+  })
+  @ApiCookieAuth()
+  @ApiResponse({ status: 200, description: 'Organization switched, tokens re-issued' })
+  @ApiResponse({ status: 403, description: 'Not a member of this organization' })
+  async switchOrg(
+    @Req() req: FastifyRequest,
+    @Body(new ZodValidationPipe(switchOrgSchema)) body: any,
+    @Res({ passthrough: true }) res: FastifyReply,
+  ) {
+    const userId = (req as any).user.id;
+    const result = await this.authService.switchOrg(userId, body.organizationId);
+
+    res.setCookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      path: '/api/auth',
+      maxAge: 7 * 24 * 60 * 60,
+      sameSite: 'lax',
+    });
+
+    await this.auditService.log({
+      userId,
+      action: 'SWITCH_ORG',
+      entity: 'user',
+      entityId: userId,
+      request: req,
+    });
+
+    return {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      user: result.user,
+      organization: result.organization,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('organizations')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get all organizations for the current user' })
+  @ApiCookieAuth()
+  @ApiResponse({ status: 200, description: 'List of organizations with roles' })
+  async getOrganizations(@Req() req: FastifyRequest) {
+    const userId = (req as any).user.id;
+    return this.authService.getUserOrganizations(userId);
   }
 
   @UseGuards(JwtAuthGuard)
