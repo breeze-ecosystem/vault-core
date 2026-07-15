@@ -36,8 +36,9 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { RiskModule } from './modules/risk/risk.module';
 import { PatternsModule } from './modules/patterns/patterns.module';
 import { MaintenanceModule } from './modules/maintenance/maintenance.module';
-import { SiteContextMiddleware } from './common/middleware/site-context.middleware';
+import { TenantContextMiddleware } from './common/middleware/tenant-context.middleware';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { TenantIsolationGuard } from './common/guards/tenant-isolation.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { IngestionService } from './modules/ingestion/ingestion.service';
@@ -93,6 +94,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: TenantIsolationGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
@@ -101,7 +103,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
 export class AppModule implements NestModule, OnModuleInit {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(SiteContextMiddleware)
+      .apply(TenantContextMiddleware)
       .forRoutes('*');
   }
 
