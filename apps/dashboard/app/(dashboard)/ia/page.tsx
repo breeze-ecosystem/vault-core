@@ -237,10 +237,9 @@ export default function AiAssistantPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title={dict.title || "Assistant IA"}
-        description={
-          <StatusIndicator />
-        }
       />
+
+      <StatusIndicator />
 
       {/* Tab Navigation */}
       <div className="flex gap-2 border-b">

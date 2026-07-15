@@ -13,7 +13,7 @@ Oversight Hub evolves from a video surveillance platform into a unified physical
 
 - [x] **Phase 1: Unified Security** - Access control, door management, video-event correlation timeline, alerts, and audit infrastructure
 - [x] **Phase 2: Operational AI** - Incident management, visitor management, ANPR, AI search/summaries, equipment health, data governance (completed 2026-07-14)
-- [ ] **Phase 3: Intelligent Platform** - Security analytics, risk scoring, recurring detection, predictive health, multi-site compliance, workflows
+- [x] **Phase 3: Intelligent Platform** - Security analytics, risk scoring, recurring detection, predictive health, multi-site compliance, workflows (completed 2026-07-14)
 
 ## Phase Details
 
@@ -88,23 +88,23 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — Security Analytics: TimescaleDB aggregates, analytics module, recharts dashboard (ANLY-01-05)
+- [x] 03-01-PLAN.md — Security Analytics: TimescaleDB aggregates, analytics module, recharts dashboard (ANLY-01-05)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 03-02-PLAN.md — Dynamic Risk Scoring: risk_scores hypertable, scoring engine, executive risk dashboard (RSK-01, RSK-03)
+- [x] 03-02-PLAN.md — Dynamic Risk Scoring: risk_scores hypertable, scoring engine, executive risk dashboard (RSK-01, RSK-03)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 03-03-PLAN.md — Recurring Pattern Detection: detected_patterns hypertable, frequency analysis, patterns dashboard (RSK-02)
+- [x] 03-03-PLAN.md — Recurring Pattern Detection: detected_patterns hypertable, frequency analysis, patterns dashboard (RSK-02)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 03-04-PLAN.md — Predictive Equipment Health: linear regression predictor, camera-to-door viz, health dashboard (EQPT-04-05)
+- [x] 03-04-PLAN.md — Predictive Equipment Health: linear regression predictor, camera-to-door viz, health dashboard (EQPT-04-05)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 03-05-PLAN.md — Multi-Site Isolation & Maintenance Workflows: RLS policies, maintenance tickets, unified dashboard (AUDT-06, WFL-01-03)
+- [x] 03-05-PLAN.md — Multi-Site Isolation & Maintenance Workflows: RLS policies, maintenance tickets, unified dashboard (AUDT-06, WFL-01-03)
 
 ## Progress
 
@@ -112,4 +112,4 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Unified Security | 4/4 | Complete | 2026-07-14 |
 | 2. Operational AI | 6/6 | Complete   | 2026-07-14 |
-| 3. Intelligent Platform | 0/5 | Planned | - |
+| 3. Intelligent Platform | 5/5 | Complete   | 2026-07-14 |

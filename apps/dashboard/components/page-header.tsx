@@ -5,7 +5,7 @@ import { type LucideIcon } from "lucide-react";
 
 interface PageHeaderProps {
   title: string;
-  description: string;
+  description?: string;
   action?: {
     label: string;
     icon: LucideIcon;
@@ -18,7 +18,7 @@ export function PageHeader({ title, description, action }: PageHeaderProps) {
     <div className="flex items-center justify-between pb-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-        <p className="text-muted-foreground">{description}</p>
+        {description && <p className="text-muted-foreground">{description}</p>}
       </div>
       {action && (
         <Button onClick={action.onClick}>
