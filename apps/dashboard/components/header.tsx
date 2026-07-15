@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useAuth } from "@/lib/use-auth";
 import {
   DropdownMenu,
@@ -11,14 +12,26 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "./language-switcher";
-import { Bell, LogOut, Settings, User } from "lucide-react";
+import { Bell, LogOut, Settings, User, Building2, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function Header() {
-  const { user, logout } = useAuth();
+  const { user, organization, organizations, switchOrganization, logout } = useAuth();
+  const [switchingOrgId, setSwitchingOrgId] = useState<string | null>(null);
   const router = useRouter();
   const initials = `${user?.firstName?.charAt(0) ?? ""}${user?.lastName?.charAt(0) ?? ""}`;
+
+  const handleSwitchOrg = async (orgId: string) => {
+    if (orgId === organization?.id) return;
+    setSwitchingOrgId(orgId);
+    try {
+      await switchOrganization(orgId);
+    } catch {
+      setSwitchingOrgId(null);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b bg-background/80 backdrop-blur-xl px-6">
@@ -47,7 +60,9 @@ export function Header() {
               </Avatar>
               <div className="hidden text-left md:block">
                 <p className="text-xs font-medium leading-none">{user?.firstName} {user?.lastName}</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">{user?.role}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  {organization?.name ?? (user ? "Chargement..." : "")}
+                </p>
               </div>
             </Button>
           </DropdownMenuTrigger>
@@ -67,6 +82,39 @@ export function Header() {
               <Settings className="mr-2 h-4 w-4" />
               Paramètres
             </DropdownMenuItem>
+
+            {organizations.length > 1 && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Organisations</DropdownMenuLabel>
+                {organizations.map((org) => (
+                  <DropdownMenuItem
+                    key={org.id}
+                    onClick={() => handleSwitchOrg(org.id)}
+                    disabled={switchingOrgId === org.id}
+                    className="flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      {switchingOrgId === org.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                      ) : (
+                        <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      )}
+                      <span className={org.id === organization?.id ? "font-semibold" : ""}>
+                        {org.name}
+                        {org.id === organization?.id && (
+                          <span className="text-muted-foreground font-normal ml-1">(actuelle)</span>
+                        )}
+                      </span>
+                    </div>
+                    <Badge variant="outline" className="ml-2 shrink-0 text-[10px]">
+                      {org.role}
+                    </Badge>
+                  </DropdownMenuItem>
+                ))}
+              </>
+            )}
+
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive">
               <LogOut className="mr-2 h-4 w-4" />
