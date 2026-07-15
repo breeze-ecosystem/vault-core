@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma, Role } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -15,7 +15,6 @@ export class UserService {
         email: true,
         firstName: true,
         lastName: true,
-        role: true,
         isActive: true,
         createdAt: true,
       },
@@ -34,7 +33,6 @@ export class UserService {
         email: true,
         firstName: true,
         lastName: true,
-        role: true,
         isActive: true,
         createdAt: true,
       },
@@ -51,9 +49,8 @@ export class UserService {
   async create(data: {
     email: string;
     password: string;
-      firstName: string;
+    firstName: string;
     lastName: string;
-    role?: string;
   }) {
     const existing = await this.prisma.user.findUnique({
       where: { email: data.email },
@@ -70,14 +67,12 @@ export class UserService {
         password: passwordHash,
         firstName: data.firstName,
         lastName: data.lastName,
-        role: (data.role as Role) || 'VIEWER',
       },
       select: {
         id: true,
         email: true,
         firstName: true,
         lastName: true,
-        role: true,
         isActive: true,
       },
     });
@@ -86,13 +81,11 @@ export class UserService {
   async update(id: string, data: {
     firstName?: string;
     lastName?: string;
-    role?: string;
     isActive?: boolean;
   }) {
     const updateData: Prisma.UserUpdateInput = {};
     if (data.firstName !== undefined) updateData.firstName = data.firstName;
     if (data.lastName !== undefined) updateData.lastName = data.lastName;
-    if (data.role !== undefined) updateData.role = data.role as Role;
     if (data.isActive !== undefined) updateData.isActive = data.isActive;
 
     return this.prisma.user.update({
@@ -103,7 +96,6 @@ export class UserService {
         email: true,
         firstName: true,
         lastName: true,
-        role: true,
         isActive: true,
       },
     });
@@ -124,7 +116,6 @@ export class UserService {
         email: true,
         firstName: true,
         lastName: true,
-        role: true,
         isActive: true,
       },
     });

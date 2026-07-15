@@ -46,7 +46,7 @@ export class EquipmentService {
           `INSERT INTO camera_health (time, camera_id, organization_id, status, last_heartbeat)
            VALUES (NOW(), $1::uuid, $2::uuid, 'offline', $3::timestamptz)`,
           camera.id,
-          camera.orgId,
+          camera.organizationId,
           camera.lastHeartbeat?.toISOString() ?? null,
         );
 
@@ -64,7 +64,7 @@ export class EquipmentService {
             deviceType: "camera",
             deviceId: camera.id,
             status: "offline",
-            orgId: camera.orgId,
+            orgId: camera.organizationId,
             timestamp: new Date().toISOString(),
           });
           await this.setDebounce(debounceKey, 60);
@@ -213,7 +213,7 @@ export class EquipmentService {
           id: camera.id,
           name: camera.name,
           status: camera.status,
-          orgId: camera.orgId,
+          orgId: camera.organizationId,
           siteName: (camera.organization as any)?.name ?? null,
           lastHeartbeat: camera.lastHeartbeat?.toISOString() ?? null,
           isRecording: camera.isRecording,

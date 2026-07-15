@@ -72,7 +72,7 @@ export class NotificationService {
 
     // Push notifications via stored device tokens
     const tokens = await this.prisma.mobilePushToken.findMany({
-      where: { user: { role: { in: ["SUPER_ADMIN", "ADMIN", "SUPERVISOR"] } } },
+      where: { user: { isActive: true } },
     });
 
     if (tokens.length === 0) {

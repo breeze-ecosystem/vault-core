@@ -36,7 +36,7 @@ export class IncidentProcessor extends WorkerHost {
     const alert = await this.prisma.alert.findUnique({
       where: { id: data.alertId },
       include: {
-        camera: { select: { id: true, name: true, orgId: true } },
+        camera: { select: { id: true, name: true, organizationId: true } },
       },
     });
 
@@ -45,9 +45,9 @@ export class IncidentProcessor extends WorkerHost {
       return { skipped: true, reason: "alert-not-found" };
     }
 
-    const orgId = alert.camera?.orgId;
+    const orgId = alert.camera?.organizationId;
     if (!orgId) {
-      this.logger.warn(`Auto-triage: alert ${data.alertId} has no orgId`);
+      this.logger.warn(`Auto-triage: alert ${data.alertId} has no organizationId`);
       return { skipped: true, reason: "missing-org-id" };
     }
 
@@ -61,7 +61,7 @@ export class IncidentProcessor extends WorkerHost {
         status: "open",
         sourceType: "alert",
         sourceId: alert.id,
-        orgId: alert.camera.orgId,
+        organizationId: alert.camera.organizationId,
         slaMinutes: 30,
         escalationChain: [
           { level: 1, slaMinutes: 30, notifyRole: "SUPERVISOR" },
@@ -77,7 +77,7 @@ export class IncidentProcessor extends WorkerHost {
         VALUES (
           NOW(),
           ${incident.id}::uuid,
-          ${alert.camera.orgId}::uuid,
+          ${alert.camera.organizationId}::uuid,
           'open'::incident_status,
           NULL::incident_status,
           'auto-triage',
@@ -94,7 +94,7 @@ export class IncidentProcessor extends WorkerHost {
       title: incident.title,
       severity: incident.severity,
       status: incident.status,
-      orgId: incident.orgId,
+      organizationId: incident.organizationId,
       sourceType: "alert",
       sourceId: alert.id,
       createdAt: incident.createdAt.toISOString(),
@@ -111,7 +111,7 @@ export class IncidentProcessor extends WorkerHost {
   private async handleSlaEscalation(data: { incidentId: string; level: number; notifyUserId?: string }) {
     const incident = await this.prisma.incident.findUnique({
       where: { id: data.incidentId },
-      select: { id: true, status: true, orgId: true, title: true },
+      select: { id: true, status: true, organizationId: true, title: true },
     });
 
     if (!incident) {
@@ -122,7 +122,7 @@ export class IncidentProcessor extends WorkerHost {
       return { skipped: true, reason: "already-resolved" };
     }
 
-    const orgId = incident.orgId;
+    const orgId = incident.organizationId;
     if (!orgId) {
       return { skipped: true, reason: "missing-org-id" };
     }
@@ -134,7 +134,7 @@ export class IncidentProcessor extends WorkerHost {
         VALUES (
           NOW(),
           ${incident.id}::uuid,
-          ${incident.orgId}::uuid,
+          ${incident.organizationId}::uuid,
           ${incident.status}::incident_status,
           ${incident.status}::incident_status,
           'escalation',
@@ -149,7 +149,7 @@ export class IncidentProcessor extends WorkerHost {
     this.eventEmitter.emit("incident.escalated", {
       incidentId: incident.id,
       title: incident.title,
-      orgId: incident.orgId,
+      organizationId: incident.organizationId,
       level: data.level,
       notifyUserId: data.notifyUserId,
       triggeredAt: new Date().toISOString(),

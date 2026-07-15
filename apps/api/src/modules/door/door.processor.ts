@@ -33,7 +33,7 @@ export class DoorProcessor extends WorkerHost {
    * Create alert via existing AlertService with 60s cooldown deduplication.
    */
   private async evaluateDoorAlert(data: DoorAlertJob) {
-    const { doorId, orgId, state, reason, timestamp } = data;
+    const { doorId, organizationId: orgId, state, reason, timestamp } = data;
 
     // Use tenant context for DB isolation
     if (!orgId) {
@@ -102,7 +102,7 @@ export class DoorProcessor extends WorkerHost {
             doorId,
             state,
             eventTimestamp: timestamp,
-            orgId,
+            organizationId: orgId,
           } as any,
         } as any);
 

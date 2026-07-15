@@ -73,7 +73,7 @@ export class IngestionService implements OnModuleDestroy {
 
         await this.queueService.enqueueFrame({
           cameraId: camera.id,
-          orgId: camera.orgId,
+          orgId: camera.organizationId,
           snapshotBuffer: snapshot,
           timestamp: new Date().toISOString(),
           prompts: camera.prompts.map((p) => ({

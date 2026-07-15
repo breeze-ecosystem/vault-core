@@ -257,20 +257,24 @@ export class NotificationsService {
 
     const alert = await this.prisma.alert.findUnique({
       where: { id: alertId },
-      include: { camera: { select: { orgId: true } } },
+      include: { camera: { select: { organizationId: true } } },
     });
     if (!alert) return;
 
-    const users = await this.prisma.user.findMany({
+    // Find users via OrganizationMember for the alert's org
+    const members = await this.prisma.organizationMember.findMany({
       where: {
-        OR: [
-          { orgId: alert.camera.orgId },
-          { role: 'SUPER_ADMIN' },
-        ],
+        organizationId: alert.camera.organizationId,
         isActive: true,
       },
-      select: { id: true, email: true },
+      include: {
+        user: { select: { id: true, email: true, isActive: true } },
+      },
     });
+
+    const users = members
+      .filter((m) => m.user.isActive)
+      .map((m) => ({ id: m.user.id, email: m.user.email }));
 
     if (users.length === 0) {
       this.logger.debug(`No users to notify for alert ${alertId}`);

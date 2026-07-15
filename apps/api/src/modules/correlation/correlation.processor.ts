@@ -32,7 +32,7 @@ export class CorrelationProcessor extends WorkerHost {
   }
 
   private async correlateVideo(data: CorrelationJob): Promise<any> {
-    const { doorId, orgId, eventType, timestamp } = data;
+    const { doorId, organizationId: orgId, eventType, timestamp } = data;
 
     if (!orgId) {
       this.logger.warn(`Correlation job missing orgId — skipping`);
@@ -104,7 +104,7 @@ export class CorrelationProcessor extends WorkerHost {
       // 4. Emit correlation.ready for real-time Socket.IO push (VEC-04)
       this.eventEmitter.emit("correlation.ready", {
         doorId,
-        orgId,
+        organizationId: orgId,
         eventType,
         cameraId: camera.id,
         cameraName: camera.name,

@@ -31,7 +31,6 @@ const mockUser = {
   password: 'hashed-password',
   firstName: 'Ousmane',
   lastName: 'Diallo',
-  role: 'ADMIN',
   isActive: true,
   createdAt: new Date(),
 };
@@ -41,7 +40,6 @@ const mockUserSafe = {
   email: 'admin@oversight.sn',
   firstName: 'Ousmane',
   lastName: 'Diallo',
-  role: 'ADMIN',
   isActive: true,
   createdAt: new Date(),
 };
@@ -109,7 +107,6 @@ describe('UserService', () => {
             email: true,
             firstName: true,
             lastName: true,
-            role: true,
             isActive: true,
             createdAt: true,
           }),
@@ -134,7 +131,6 @@ describe('UserService', () => {
           email: true,
           firstName: true,
           lastName: true,
-          role: true,
           isActive: true,
           createdAt: true,
         },
@@ -167,19 +163,9 @@ describe('UserService', () => {
           email: true,
           firstName: true,
           lastName: true,
-          role: true,
           isActive: true,
         },
       });
-    });
-
-    it('should update role when provided', async () => {
-      const updatedUser = { ...mockUserSafe, role: 'SUPERVISOR' };
-      mockPrismaService.user.update.mockResolvedValue(updatedUser);
-
-      const result = await service.update('user-uuid-1', { role: 'SUPERVISOR' });
-
-      expect(result.role).toBe('SUPERVISOR');
     });
   });
 

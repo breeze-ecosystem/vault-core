@@ -38,7 +38,7 @@ export class TailgatingProcessor extends WorkerHost {
   }
 
   private async detect(data: TailgatingJob): Promise<any> {
-    const { doorId, orgId, eventTimestamp } = data;
+    const { doorId, organizationId: orgId, eventTimestamp } = data;
 
     if (!orgId) {
       this.logger.warn(`Tailgating job missing orgId — skipping`);
@@ -149,7 +149,7 @@ export class TailgatingProcessor extends WorkerHost {
           snapshotUrl: camera.lastSnapshotUrl,
           metadata: {
             doorId,
-            orgId,
+            organizationId: orgId,
             personCount: count,
             eventTimestamp,
             detectedAt: new Date().toISOString(),

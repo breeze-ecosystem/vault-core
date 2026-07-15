@@ -218,7 +218,7 @@ export class DoorService {
         if (alertEval.shouldAlert) {
           const job: DoorAlertJob = {
             doorId,
-            orgId,
+            organizationId: orgId,
             state,
             reason: alertEval.reason ?? `Door ${state}`,
             timestamp: timestamp.toISOString(),

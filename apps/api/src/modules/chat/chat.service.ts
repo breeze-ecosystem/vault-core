@@ -58,7 +58,7 @@ export class ChatService {
       if (snapshot) {
         snapshots.push({
           cameraName: cam.name,
-          siteName: cam.organizationName,
+          siteName: cam.siteName,
           imageB64: snapshot,
         });
       }
@@ -315,7 +315,7 @@ Réponds en français. Si la question concerne une zone spécifique, suggère à
       name: c.name,
       status: c.status,
       siteName: c.organization?.name || 'Inconnu',
-      orgId: c.orgId,
+      organizationId: c.organizationId,
     }));
   }
 
