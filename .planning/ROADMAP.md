@@ -107,18 +107,29 @@ Plans:
 
 ### Phase 5: Monetization
 
-**Goal**: Customers can subscribe to tiered plans, manage their subscription, and the platform provisions, enforces, and monitors license keys automatically
+**Goal**: Organization administrators can generate crypto-signed JWT license keys (RS256), customers activate them in their self-hosted instance, and the platform enforces device limits with offline validation — pure licensing model, no subscription billing
 **Depends on**: Phase 4
-**Requirements**: BIL-01, BIL-02, BIL-03, BIL-04, BIL-05, BIL-06, BIL-07, BIL-08, LIC-01, LIC-02, LIC-03, LIC-04, LIC-05, LIC-06, LIC-07
+**Requirements**: LIC-01, LIC-02, LIC-03, LIC-04, LIC-05, LIC-06, LIC-07
 **Success Criteria** (what must be TRUE):
 
-  1. New organization selects a plan (Free, Professional, Enterprise) via Stripe Checkout, completes payment, and receives immediate platform access with the correct license key
-  2. Customer upgrades, downgrades, or cancels subscription via Stripe Customer Portal; platform reflects changes within minutes (webhook-driven, not polled)
-  3. When a subscription payment fails, the system retries, notifies the billing admin, and — if unresolved — transitions the organization to a grace-period degraded mode
-  4. License key is crypto-signed (JWT RS256), bound to the organization, carries device limits (cameras, doors, users) and feature flags, and is automatically provisioned on successful subscription
-  5. Admin views their license status, device usage vs limits, expiry date, and billing history/invoices in the dashboard; when a limit is reached, the system prevents adding more resources with a clear upgrade prompt
+  1. Admin generates a crypto-signed JWT license via dashboard or API, bound to an organization with device limits (cameras, doors), issue/expiry dates, and grace period
+  2. Customer activates the license JWT in their self-hosted dashboard — signature verified offline against a bundled RSA public key
+  3. System enforces device limits at both API and UI levels — cannot create cameras or doors beyond license maxCameras/maxDoors
+  4. Expired licenses enter a 7-day grace period with full functionality, then read-only mode — API blocks all mutations, dashboard shows warning banners
+  5. New organizations get a 7-day trial with unlimited devices; thereafter a valid license is required
+  6. Admin manages API keys for programmatic license generation and can revoke them individually
 
-**Plans**: TBD
+**Plans**: 3 plans (2 waves)
+
+Plans:
+**Wave 1**
+
+- [ ] 05-01-PLAN.md — Foundation: Prisma schema + shared package + infrastructure config (LIC-01, LIC-02)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 05-02-PLAN.md — API LicenseModule: signing/verification, REST endpoints, enforcement guards, camera/door limit hooks, AppModule registration (LIC-01, LIC-02, LIC-03, LIC-04, LIC-07)
+- [ ] 05-03-PLAN.md — Dashboard UI: admin license management, client activation, settings integration, shared components (LIC-05, LIC-06)
 
 ### Phase 6: Premium Experience
 
