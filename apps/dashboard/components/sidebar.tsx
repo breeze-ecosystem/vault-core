@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useSidebar } from "./sidebar-provider";
 import { getNavGroups, type NavGroup } from "@/lib/nav-config";
 import { useAuth } from "@/lib/use-auth";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   Shield,
   ChevronLeft,
@@ -155,7 +156,10 @@ export function Sidebar() {
         </nav>
       </ScrollArea>
 
-      <div className="border-t p-2">
+      <div className="border-t p-2 space-y-1">
+        <div className="px-2 py-1">
+          <ThemeToggle />
+        </div>
         <button
           onClick={toggleCollapsed}
           className="flex w-full items-center justify-center rounded-lg px-3 py-2 text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all"
