@@ -75,7 +75,7 @@ v1.0 delivered the unified physical security intelligence platform — access co
 Plans:
 **Wave 1**
 
-- [ ] 04-01-PLAN.md — Prisma Schema Migration + Push + Seed (FND-01)
+- [x] 04-01-PLAN.md — Prisma Schema Migration + Push + Seed (FND-01)
 - [ ] 04-02-PLAN.md — Shared Zod Schemas + Env Vars (FND-01, FND-05)
 
 **Wave 2** *(blocked on Wave 1 completion)*

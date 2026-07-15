@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Commercial Platform — Summary
 status: executing
-stopped_at: Phase 4 UI-SPEC approved
-last_updated: "2026-07-15T16:52:57.852Z"
-last_activity: 2026-07-15 -- Phase 04 planning complete
+stopped_at: Completed 04-01-PLAN.md (Schema migration)
+last_updated: "2026-07-15T17:03:34.012Z"
+last_activity: 2026-07-15
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 11
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Correlate every physical security event with video evidence and AI analysis in real time, so security operators know what happened, where, and what to do — without switching between disconnected systems.
-**Current focus:** v2.0 Commercial Platform — Phase 4 (Commercial Foundation)
+**Current focus:** Phase 04 — commercial-foundation
 
 ## Current Position
 
-Phase: 4 of 10 (Commercial Foundation)
-Plan: — (not yet planned)
+Phase: 04 (commercial-foundation) — EXECUTING
+Plan: 2 of 11
 Status: Ready to execute
-Last activity: 2026-07-15 -- Phase 04 planning complete
+Last activity: 2026-07-15
 
-Progress: [░░░░░░░░░░] 0% (v2.0 phases)
+Progress: [█░░░░░░░░░] 9%
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Progress: [░░░░░░░░░░] 0% (v2.0 phases)
 | 3. Intelligent Platform | 5 | ~TBD | ~TBD |
 
 *Updated after each plan completion*
+| Phase 04-commercial-foundation P01 | 13min | 4 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -63,6 +64,7 @@ Recent decisions affecting current work:
 - [Roadmap v2.0]: Billing and licensing are tightly coupled — built together in Phase 5 to ensure subscription-to-license lifecycle is coherent
 - [Roadmap v2.0]: Design system (Phase 6) must exist before any page-level premium redesigns — prevents half-beautiful/half-ugly product
 - [Roadmap v2.0]: Phase 9 AI Intelligence depends on Phase 8 event data — pgvector embeddings pipeline requires accumulated events for quality
+- [Phase 04-commercial-foundation]: Site → Organization: data-preserving ALTER TABLE RENAME, no backward compat layer — Migration approach chosen to preserve existing data during column renames. Manual SQL rewrite avoids Prisma's default DROP+CREATE which would lose all Site data.
 
 ### Pending Todos
 
@@ -88,6 +90,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-15T16:12:56.588Z
-Stopped at: Phase 4 UI-SPEC approved
-Resume file: .planning/phases/04-commercial-foundation/04-UI-SPEC.md
+Last session: 2026-07-15T17:03:33.971Z
+Stopped at: Completed 04-01-PLAN.md (Schema migration)
+Resume file: None
