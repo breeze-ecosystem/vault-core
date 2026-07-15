@@ -196,6 +196,29 @@ export async function fetchOrganizations(params?: {
   return res.json();
 }
 
+export async function fetchOrganization(orgId: string): Promise<OrganizationItem> {
+  const res = await fetchWithAuth(`${API_BASE}/organizations/${orgId}`);
+  if (!res.ok) throw new Error("Impossible de charger l'organisation");
+  return res.json();
+}
+
+export async function createOrganization(data: {
+  name: string;
+  address?: string;
+  city?: string;
+  country?: string;
+}): Promise<OrganizationItem> {
+  const res = await fetchWithAuth(`${API_BASE}/organizations`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || "Impossible de creer l'organisation");
+  }
+  return res.json();
+}
+
 export async function acknowledgeAlert(id: string): Promise<AlertDetail> {
   const res = await fetchWithAuth(`${API_BASE}/alerts/${id}/acknowledge`, { method: "PATCH" });
   if (!res.ok) throw new Error("Impossible de prendre en compte l'alerte");

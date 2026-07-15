@@ -6,10 +6,11 @@ import { useRouter } from "expo-router";
 import { updatePassword } from "@/lib/api";
 import { API_URL } from "@/lib/config";
 import { colors } from "@/lib/theme";
-import { Bell, ChevronRight, Lock, ChevronUp, ChevronDown } from "lucide-react-native";
+import { Bell, ChevronRight, Lock, ChevronUp, ChevronDown, Building2 } from "lucide-react-native";
+import { OrgSwitcher } from "@/components/org-switcher";
 
 export default function SettingsScreen() {
-  const { user, logout } = useAuth();
+  const { user, organization, logout } = useAuth();
   const router = useRouter();
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -83,6 +84,15 @@ export default function SettingsScreen() {
             <Text style={styles.profileRole}>{user?.role}</Text>
           </View>
         </View>
+        {organization && (
+          <View style={styles.orgRow}>
+            <View style={styles.orgInfo}>
+              <Building2 size={18} color={colors.primary} />
+              <Text style={styles.orgName}>{organization.name}</Text>
+            </View>
+            <OrgSwitcher />
+          </View>
+        )}
       </View>
 
       <View style={styles.section}>
@@ -164,6 +174,9 @@ const styles = StyleSheet.create({
   profileName: { fontSize: 16, fontWeight: "600", color: colors.text },
   profileEmail: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
   profileRole: { fontSize: 12, color: colors.primary, marginTop: 4, fontWeight: "500" },
+  orgRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 12, paddingHorizontal: 4 },
+  orgInfo: { flexDirection: "row", alignItems: "center", gap: 8, flex: 1 },
+  orgName: { fontSize: 14, color: colors.textSecondary, fontWeight: "500" },
   infoRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border },
   infoLabel: { fontSize: 15, color: colors.text },
   infoValue: { fontSize: 15, color: colors.textMuted },
