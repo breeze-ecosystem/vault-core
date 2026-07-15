@@ -75,6 +75,13 @@ enum NotificationStatus {
   FAILED
 }
 
+enum LicenseStatus {
+  PENDING
+  ACTIVE
+  GRACE
+  EXPIRED
+}
+
 // ─── Phase 1: Access Control Reference Tables ───
 
 model Credential {
@@ -386,6 +393,8 @@ model Organization {
   stripeCustomerId String?
   billingEmail     String?
   planTier         String?  // 'FREE' | 'PROFESSIONAL' | 'ENTERPRISE'
+  trialStartDate   DateTime?
+  trialEndDate     DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -401,6 +410,8 @@ model Organization {
   credentials       Credential[]
   alerts            Alert[]
   cameraPrompts     CameraPrompt[]
+  licenses          License[]
+  apiKeys           LicenseApiKey[]
 }
 
 model Camera {
@@ -452,6 +463,7 @@ model User {
   vehicleListEntries       VehicleList[]
   createdInvites           Invite[]               @relation("InviteCreator")
   acceptedInvites          Invite[]               @relation("InviteAcceptor")
+  licenseApiKeys           LicenseApiKey[]
 }
 
 // ─── Multi-Tenancy: Organization Member Join Table ───
@@ -644,4 +656,42 @@ model NotificationSetting {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, channel])
+}
+
+// ─── Phase 5: License Management Models ───
+
+model License {
+  id             String        @id @default(uuid())
+  organizationId String
+  licenseJwt     String
+  status         LicenseStatus @default(PENDING)
+  activatedAt    DateTime?
+  expiresAt      DateTime
+  maxCameras     Int
+  maxDoors       Int
+  gracePeriodDays Int          @default(7)
+  licenseVersion  Int          @default(1)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+  @@unique([organizationId, licenseVersion])
+}
+
+model LicenseApiKey {
+  id          String    @id @default(uuid())
+  name        String
+  keyHash     String    @unique
+  keyPrefix   String
+  isActive    Boolean   @default(true)
+  createdById String
+  createdAt   DateTime  @default(now())
+  revokedAt   DateTime?
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@index([isActive])
+  @@index([keyHash])
 }
