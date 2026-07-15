@@ -116,6 +116,28 @@ export interface PaginatedResponse<T> {
 
 // --- API functions ---
 
+export async function register(data: {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  organizationName: string;
+}) {
+  const res = await fetch(`${API_URL}/api/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.message || "Registration failed");
+  if (typeof window !== "undefined") {
+    if (result.accessToken) sessionStorage.setItem("accessToken", result.accessToken);
+    if (result.user) sessionStorage.setItem("user", JSON.stringify(result.user));
+    if (result.organization) sessionStorage.setItem("organization", JSON.stringify(result.organization));
+  }
+  return result;
+}
+
 export async function fetchDashboardStats(): Promise<DashboardStats> {
   const res = await fetchWithAuth(`${API_URL}/api/dashboard/stats`);
   if (!res.ok) throw new Error("Failed to fetch dashboard stats");
