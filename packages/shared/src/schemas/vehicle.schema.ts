@@ -3,7 +3,7 @@ import { z } from "zod";
 export const createVehicleListEntrySchema = z.object({
   type: z.enum(["allowlist", "blocklist"]),
   plate: z.string().min(1).max(20).transform((v) => v.toUpperCase().trim()),
-  siteId: z.string().uuid(),
+  organizationId: z.string().uuid(),
   description: z.string().optional(),
   isActive: z.boolean().optional(),
 });
@@ -15,7 +15,7 @@ export const updateVehicleListEntrySchema = z.object({
 
 export const vehicleEventQuerySchema = z.object({
   plate: z.string().optional(),
-  siteId: z.string().uuid().optional(),
+  organizationId: z.string().uuid().optional(),
   from: z.string().optional(),
   to: z.string().optional(),
   decision: z.string().optional(),

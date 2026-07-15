@@ -39,6 +39,7 @@ const createData = {
   title: 'Nouvelle alerte',
   severity: 'CRITICAL' as const,
   camera: { connect: { id: 'cam-uuid-1' } },
+  organization: { connect: { id: 'org-uuid-1' } },
 };
 
 // ── Tests ──────────────────────────────────────────────────────────────────────

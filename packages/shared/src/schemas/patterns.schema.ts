@@ -4,7 +4,7 @@ import { z } from "zod";
  * Query params for pattern detection endpoints.
  */
 export const patternsQuerySchema = z.object({
-  siteId: z.string().uuid().optional(),
+  organizationId: z.string().uuid().optional(),
   deviceType: z.enum(["door", "reader", "camera", "controller"]).optional(),
   severity: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional(),
   resolved: z

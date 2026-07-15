@@ -110,24 +110,24 @@ export class VisitorService {
     // Create zone access levels if zone IDs provided
     if (dto.zoneIds && dto.zoneIds.length > 0) {
       // Get host user's site to find/create a 24/7 schedule
-      const hostUser = await this.prisma.user.findUnique({
-        where: { id: dto.hostUserId },
+      const hostMembership = await this.prisma.organizationMember.findFirst({
+        where: { userId: dto.hostUserId, isActive: true },
         select: { organizationId: true },
       });
 
-      if (hostUser?.organizationId) {
+      if (hostMembership?.organizationId) {
         // Find or create a "24/7" schedule for the site
         let schedule = await this.prisma.schedule.findFirst({
           where: {
             name: "24/7",
-            zone: { organizationId: hostUser.organizationId },
+            zone: { organizationId: hostMembership.organizationId },
           },
         });
 
         if (!schedule) {
           // Get the first zone for this site to create the schedule
           const siteZone = await this.prisma.zone.findFirst({
-            where: { organizationId: hostUser.organizationId },
+            where: { organizationId: hostMembership.organizationId },
           });
           if (siteZone) {
             schedule = await this.accessService.createSchedule({

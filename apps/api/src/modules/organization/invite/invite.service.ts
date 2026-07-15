@@ -329,7 +329,7 @@ export class InviteService {
         from: this.emailFrom,
         to: email,
         subject: `You've been invited to join ${orgName} on Oversight Hub`,
-        html: this.buildInviteEmailHtml(inviteUrl, orgName, role),
+        html: this.buildInviteEmailHtml(inviteUrl, orgName, role, dashboardUrl),
       });
       this.logger.log(`Invite email sent to ${email} for org ${orgName}`);
     } catch (error: any) {
@@ -344,6 +344,7 @@ export class InviteService {
     inviteUrl: string,
     orgName: string,
     role: string,
+    dashboardUrl: string,
   ): string {
     const roleLabel = role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
     return `

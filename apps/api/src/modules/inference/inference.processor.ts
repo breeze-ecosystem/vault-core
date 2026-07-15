@@ -59,6 +59,7 @@ export class InferenceProcessor extends WorkerHost {
           description: `Camera ${data.cameraId} - ${det.promptText} (confidence: ${(det.confidence * 100).toFixed(0)}%)`,
           severity: this.mapSeverity(det.promptText),
           cameraId: data.cameraId,
+          organizationId: orgId,
           metadata: {
             promptId: det.promptId,
             confidence: det.confidence,
