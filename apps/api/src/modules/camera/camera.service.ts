@@ -21,7 +21,7 @@ export class CameraService {
         skip,
         take: limit,
         include: {
-          site: { select: { id: true, name: true } },
+          organization: { select: { id: true, name: true } },
           prompts: { where: { isActive: true }, orderBy: { createdAt: "desc" } },
           _count: { select: { alerts: true } },
         },
@@ -37,7 +37,7 @@ export class CameraService {
     const camera = await this.prisma.camera.findUnique({
       where: { id },
       include: {
-        site: { select: { id: true, name: true } },
+        organization: { select: { id: true, name: true } },
         prompts: { orderBy: { createdAt: "desc" } },
         alerts: { take: 10, orderBy: { createdAt: "desc" } },
       },
@@ -86,6 +86,7 @@ export class CameraService {
         cameraId,
         text: data.text,
         severity: data.severity || "MEDIUM",
+        organizationId: camera.organizationId,
       },
     });
   }

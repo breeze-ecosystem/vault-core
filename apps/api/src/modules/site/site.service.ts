@@ -7,7 +7,7 @@ export class SiteService {
   constructor(private prisma: PrismaService) {}
 
   async findAll(filters?: { isActive?: boolean; city?: string; page?: number; limit?: number }) {
-    const where: Prisma.SiteWhereInput = {};
+    const where: Prisma.OrganizationWhereInput = {};
     if (filters?.isActive !== undefined) where.isActive = filters.isActive;
     if (filters?.city) where.city = { contains: filters.city, mode: "insensitive" };
 
@@ -16,39 +16,39 @@ export class SiteService {
     const skip = (page - 1) * limit;
 
     const [data, total] = await Promise.all([
-      this.prisma.site.findMany({
+      this.prisma.organization.findMany({
         where,
         skip,
         take: limit,
-        include: { _count: { select: { cameras: true, users: true } } },
+        include: { _count: { select: { cameras: true, members: true } } },
         orderBy: { createdAt: "desc" },
       }),
-      this.prisma.site.count({ where }),
+      this.prisma.organization.count({ where }),
     ]);
 
     return { data, total, page, limit };
   }
 
   async findById(id: string) {
-    const site = await this.prisma.site.findUnique({
+    const site = await this.prisma.organization.findUnique({
       where: { id },
-      include: { cameras: true, _count: { select: { users: true } } },
+      include: { cameras: true, _count: { select: { members: true } } },
     });
     if (!site) throw new NotFoundException("Site not found");
     return site;
   }
 
-  async create(data: Prisma.SiteCreateInput) {
-    return this.prisma.site.create({ data });
+  async create(data: Prisma.OrganizationCreateInput) {
+    return this.prisma.organization.create({ data });
   }
 
-  async update(id: string, data: Prisma.SiteUpdateInput) {
+  async update(id: string, data: Prisma.OrganizationUpdateInput) {
     await this.findById(id);
-    return this.prisma.site.update({ where: { id }, data });
+    return this.prisma.organization.update({ where: { id }, data });
   }
 
   async remove(id: string) {
     await this.findById(id);
-    return this.prisma.site.update({ where: { id }, data: { isActive: false } });
+    return this.prisma.organization.update({ where: { id }, data: { isActive: false } });
   }
 }
