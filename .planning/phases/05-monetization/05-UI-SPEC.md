@@ -1,7 +1,8 @@
 ---
 phase: 5
 slug: monetization
-status: draft
+status: approved
+reviewed_at: 2026-07-15
 shadcn_initialized: true
 preset: shadcn slate default dark
 created: 2026-07-15
