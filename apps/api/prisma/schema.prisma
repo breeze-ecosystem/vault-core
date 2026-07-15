@@ -17,6 +17,13 @@ enum Role {
   MAINTENANCE_TEAM
 }
 
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
 enum CredentialType {
   BADGE
   PIN
@@ -71,33 +78,36 @@ enum NotificationStatus {
 // ─── Phase 1: Access Control Reference Tables ───
 
 model Credential {
-  id        String         @id @default(uuid())
-  userId    String
-  type      CredentialType
-  badgeNumber    String?  @unique
+  id             String         @id @default(uuid())
+  userId         String
+  type           CredentialType
+  badgeNumber    String?        @unique
   pinHash        String?
   mobileWalletId String?
   qrSeed         String?
-  isActive       Boolean    @default(true)
+  isActive       Boolean        @default(true)
   validFrom      DateTime?
   validUntil     DateTime?
   maxUses        Int?
-  useCount       Int        @default(0)
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  useCount       Int            @default(0)
+  organizationId String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
-  user         User          @relation(fields: [userId], references: [id])
-  accessLevels AccessLevel[]
-  visits       Visit[]
+  user            User          @relation(fields: [userId], references: [id])
+  organization    Organization  @relation(fields: [organizationId], references: [id])
+  accessLevels    AccessLevel[]
+  visits          Visit[]
 
   @@index([userId])
   @@index([type, badgeNumber])
+  @@index([organizationId])
 }
 
 model Door {
   id           String   @id @default(uuid())
   name         String
-  siteId       String
+  organizationId String
   zoneId       String
   location     String?
   controllerId String?
@@ -106,30 +116,30 @@ model Door {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  site       Site            @relation(fields: [siteId], references: [id])
-  zone       Zone            @relation(fields: [zoneId], references: [id])
-  cameraMaps CameraDoorMap[]
+  organization Organization   @relation(fields: [organizationId], references: [id])
+  zone         Zone           @relation(fields: [zoneId], references: [id])
+  cameraMaps   CameraDoorMap[]
 
-  @@index([siteId])
+  @@index([organizationId])
   @@index([zoneId])
-  @@unique([controllerId, siteId])
+  @@unique([controllerId, organizationId])
 }
 
 model Zone {
   id          String   @id @default(uuid())
   name        String
-  siteId      String
+  organizationId String
   description String?
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  site         Site          @relation(fields: [siteId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
   doors        Door[]
   schedules    Schedule[]
   accessLevels AccessLevel[]
 
-  @@index([siteId])
+  @@index([organizationId])
 }
 
 model Schedule {
@@ -187,7 +197,7 @@ model Incident {
   description     String?
   severity        AlertSeverity
   status          String   @default("OPEN")
-  siteId          String
+  organizationId  String
   sourceType      String?
   sourceId        String?
   assignedToId    String?
@@ -205,7 +215,7 @@ model Incident {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  site            Site                  @relation(fields: [siteId], references: [id])
+  organization    Organization          @relation(fields: [organizationId], references: [id])
   assignedTo      User?                 @relation("IncidentAssignee", fields: [assignedToId], references: [id])
   alert           Alert?                @relation(fields: [sourceId], references: [id])
   comments        IncidentComment[]
@@ -213,7 +223,7 @@ model Incident {
   escalations     IncidentEscalation[]
   evidence        IncidentEvidence[]
 
-  @@index([siteId, status])
+  @@index([organizationId, status])
   @@index([assignedToId])
   @@index([status])
   @@index([ticketType])
@@ -332,17 +342,18 @@ model VehicleList {
   id          String   @id @default(uuid())
   type        String   // 'allowlist' or 'blocklist'
   plate       String
-  siteId      String
+  organizationId String
   description String?
   isActive    Boolean  @default(true)
   createdById String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  createdBy User @relation(fields: [createdById], references: [id])
+  createdBy    User         @relation(fields: [createdById], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
 
-  @@unique([type, plate, siteId])
-  @@index([type, siteId])
+  @@unique([type, plate, organizationId])
+  @@index([type, organizationId])
   @@index([plate])
 }
 
@@ -361,9 +372,9 @@ model RetentionPolicy {
   @@index([enabled])
 }
 
-// ─── Existing Models ───
+// ─── Organization Model (renamed from Site) ───
 
-model Site {
+model Organization {
   id        String   @id @default(uuid())
   name      String
   address   String?
@@ -372,14 +383,24 @@ model Site {
   latitude  Float?
   longitude Float?
   isActive  Boolean  @default(true)
+  stripeCustomerId String?
+  billingEmail     String?
+  planTier         String?  // 'FREE' | 'PROFESSIONAL' | 'ENTERPRISE'
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  cameras   Camera[]
-  users     User[]
-  zones     Zone[]
-  doors     Door[]
-  incidents Incident[]
+  cameras           Camera[]
+  doors             Door[]
+  zones             Zone[]
+  incidents         Incident[]
+  members           OrganizationMember[]
+  invites           Invite[]
+  auditLogs         AuditLog[]
+  vehicleListEntries VehicleList[]
+  featureFlags      FeatureFlag[]
+  credentials       Credential[]
+  alerts            Alert[]
+  cameraPrompts     CameraPrompt[]
 }
 
 model Camera {
@@ -387,7 +408,7 @@ model Camera {
   name            String
   rtspUrl         String
   status          CameraStatus @default(OFFLINE)
-  siteId          String
+  organizationId  String
   resolution      String?
   fps             Int          @default(25)
   captureInterval Int          @default(5)
@@ -397,10 +418,12 @@ model Camera {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
-  site    Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  alerts  Alert[]
-  prompts CameraPrompt[]
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  alerts       Alert[]
+  prompts      CameraPrompt[]
   cameraDoorMaps CameraDoorMap[]
+
+  @@index([organizationId])
 }
 
 model User {
@@ -409,27 +432,90 @@ model User {
   password  String
   firstName String
   lastName  String
-  role      Role     @default(VIEWER)
   isActive  Boolean  @default(true)
-  siteId    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  site                 Site?                  @relation(fields: [siteId], references: [id])
-  credentials          Credential[]
-  refreshTokens        RefreshToken[]
-  pushTokens           MobilePushToken[]
-  auditLogs            AuditLog[]
-  notificationSettings NotificationSetting[]
-  assignedIncidents    Incident[]             @relation("IncidentAssignee")
-  incidentComments     IncidentComment[]
-  incidentAssignmentsBy   IncidentAssignment[] @relation("AssignmentBy")
-  incidentAssignmentsTo   IncidentAssignment[] @relation("AssignmentTo")
-  incidentEscalations     IncidentEscalation[]
-  uploadedEvidence        IncidentEvidence[]
-  hostedVisits            Visit[]              @relation("VisitHost")
-  vehicleListEntries      VehicleList[]
+  memberships              OrganizationMember[]
+  credentials              Credential[]
+  refreshTokens            RefreshToken[]
+  pushTokens               MobilePushToken[]
+  auditLogs                AuditLog[]
+  notificationSettings     NotificationSetting[]
+  assignedIncidents        Incident[]             @relation("IncidentAssignee")
+  incidentComments         IncidentComment[]
+  incidentAssignmentsBy    IncidentAssignment[]    @relation("AssignmentBy")
+  incidentAssignmentsTo    IncidentAssignment[]    @relation("AssignmentTo")
+  incidentEscalations      IncidentEscalation[]
+  uploadedEvidence         IncidentEvidence[]
+  hostedVisits             Visit[]                @relation("VisitHost")
+  vehicleListEntries       VehicleList[]
+  createdInvites           Invite[]               @relation("InviteCreator")
+  acceptedInvites          Invite[]               @relation("InviteAcceptor")
 }
+
+// ─── Multi-Tenancy: Organization Member Join Table ───
+
+model OrganizationMember {
+  id             String   @id @default(uuid())
+  userId         String
+  organizationId String
+  role           Role
+  isActive       Boolean  @default(true)
+  joinedAt       DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+  @@index([userId])
+}
+
+// ─── Multi-Tenancy: Invite Token Tracking ───
+
+model Invite {
+  id             String       @id @default(uuid())
+  organizationId String
+  email          String
+  role           Role
+  token          String       @unique
+  status         String       @default("PENDING")  // PENDING, ACCEPTED, EXPIRED, REVOKED
+  createdById    String
+  acceptedById   String?
+  acceptedAt     DateTime?
+  expiresAt      DateTime
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  createdBy    User         @relation("InviteCreator", fields: [createdById], references: [id])
+  acceptedBy   User?        @relation("InviteAcceptor", fields: [acceptedById], references: [id])
+
+  @@index([organizationId])
+  @@index([email, organizationId])
+}
+
+// ─── Multi-Tenancy: Feature Flags ───
+
+model FeatureFlag {
+  id             String   @id @default(uuid())
+  organizationId String
+  key            String
+  enabled        Boolean  @default(false)
+  tier           String?  // minimum tier: 'FREE', 'PROFESSIONAL', 'ENTERPRISE'
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([organizationId, key])
+  @@index([organizationId])
+}
+
+// ─── Alert Model ───
 
 model Alert {
   id             String        @id @default(uuid())
@@ -438,6 +524,7 @@ model Alert {
   severity       AlertSeverity
   status         AlertStatus   @default(OPEN)
   cameraId       String
+  organizationId String
   snapshotUrl    String?
   metadata       Json?
   acknowledgedBy String?
@@ -448,8 +535,11 @@ model Alert {
   updatedAt      DateTime      @updatedAt
 
   camera            Camera             @relation(fields: [cameraId], references: [id], onDelete: Cascade)
+  organization      Organization       @relation(fields: [organizationId], references: [id])
   notificationLogs  NotificationLog[]
   incidents         Incident[]
+
+  @@index([organizationId])
 }
 
 model CameraPrompt {
@@ -458,10 +548,14 @@ model CameraPrompt {
   text      String
   severity  AlertSeverity @default(MEDIUM)
   isActive  Boolean       @default(true)
+  organizationId String
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
-  camera Camera @relation(fields: [cameraId], references: [id], onDelete: Cascade)
+  camera       Camera       @relation(fields: [cameraId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
 }
 
 model RefreshToken {
@@ -497,11 +591,18 @@ model AuditLog {
   changes     Json?
   ipAddress   String?
   userAgent   String?
+  organizationId String?
+  previousHash   String?
+  currentHash    String?
+  content        String?
   createdAt   DateTime @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id])
 
   @@index([userId])
   @@index([entity, entityId])
   @@index([action])
+  @@index([organizationId])
   @@index([createdAt])
 }
 
