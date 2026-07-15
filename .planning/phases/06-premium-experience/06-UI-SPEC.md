@@ -158,8 +158,7 @@ Declared values (multiples of 4, 8-point scale):
 | Display | 28px (text-3xl) | 600 (semibold) | 1.2 | Page hero titles, overview metric hero values |
 | Heading | 20px (text-xl) | 600 (semibold) | 1.2 | Section headings, card titles, page headings |
 | Body | 14px (text-sm) | 400 (regular) | 1.5 | Paragraph text, table cells, descriptions |
-| Label | 12px (text-xs) | 600 (semibold) | 1.2 | Section labels, stat labels, badge text, uppercase section titles |
-| Caption | 11px (text-[11px]) | 400 (regular) | 1.3 | Timestamps, metadata, helper text |
+| Label | 12px (text-xs) | 600 (semibold) / 400 (regular) | 1.2 | Section labels, stat labels, badge text, uppercase section titles (600 weight). Timestamps, metadata, helper text (400 weight) |
 
 **Monospace usage** (JetBrains Mono):
 - `stat-value` class: 24px (text-2xl), 600 weight, tabular-nums — for large metric values
@@ -172,13 +171,12 @@ Declared values (multiples of 4, 8-point scale):
 - 700: Not used in this phase (600 provides sufficient emphasis)
 
 **Line height standardization**:
-- Body text: 1.5 (21px at 14px) — ensures readability
-- Labels: 1.2 — tight for compact UI elements
-- Headings: 1.2 — standard for heading tightness
 - Display/Hero: 1.1 — tight for large display numbers
-- Caption: 1.3 — between body and heading
+- Headings: 1.2 — standard for heading tightness
+- Labels: 1.2 — tight for compact UI elements
+- Body text: 1.5 (21px at 14px) — ensures readability
 
-**Source**: Extended from existing CSS tokens. The `.stat-value` class (24px font-mono semibold) and `.section-title` class (12px semibold uppercase) remain. Body text uses `text-sm` (14px) throughout. New 28px display size added for hero metrics. New 11px caption size for metadata.
+**Source**: Extended from existing CSS tokens. The `.stat-value` class (24px font-mono semibold) and `.section-title` class (12px semibold uppercase) remain. Body text uses `text-sm` (14px) throughout. New 28px display size added for hero metrics. Label/small text uses 12px at 400 weight for captions and metadata.
 
 ---
 
