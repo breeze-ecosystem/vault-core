@@ -48,7 +48,7 @@ v1.0 delivered the unified physical security intelligence platform — access co
 ### v2.0 Commercial Platform — Summary
 
 - [x] **Phase 4: Commercial Foundation** — Multi-tenant architecture, organization isolation, invite-based onboarding, per-tenant audit logs, feature gate infrastructure (completed 2026-07-15)
-- [ ] **Phase 5: Monetization** — Stripe subscriptions, PayPal payments, license key provisioning, device-limit enforcement, billing dashboard
+- [x] **Phase 5: Monetization** — RSA-signed JWT license keys with offline verification, device-limit enforcement, API key auth, admin dashboard, customer activation UI (completed 2026-07-15)
 - [ ] **Phase 6: Premium Experience** — 2026 design system, Dashboard redesign (3 key pages + global uplift), Mobile guard-first design, dark/light mode
 - [ ] **Phase 7: Public Presence** — Marketing landing page, pricing page, MDX blog, multi-language (6 locales), SEO, contact form
 - [ ] **Phase 8: Feature Deepening** — Access control, door state machine, visitor management, incident management, ANPR/LPR, analytics dashboards, equipment health
@@ -124,12 +124,12 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 05-01-PLAN.md — Foundation: Prisma schema + shared package + infrastructure config (LIC-01, LIC-02)
+- [x] 05-01-PLAN.md — Foundation: Prisma schema + shared package + infrastructure config (LIC-01, LIC-02)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 05-02-PLAN.md — API LicenseModule: signing/verification, REST endpoints, enforcement guards, camera/door limit hooks, AppModule registration (LIC-01, LIC-02, LIC-03, LIC-04, LIC-07)
-- [ ] 05-03-PLAN.md — Dashboard UI: admin license management, client activation, settings integration, shared components (LIC-05, LIC-06)
+- [x] 05-02-PLAN.md — API LicenseModule: signing/verification, REST endpoints, enforcement guards, camera/door limit hooks, AppModule registration (LIC-01, LIC-02, LIC-03, LIC-04, LIC-07)
+- [x] 05-03-PLAN.md — Dashboard UI: admin license management, client activation, settings integration, shared components (LIC-05, LIC-06)
 
 ### Phase 6: Premium Experience
 
@@ -144,7 +144,24 @@ Plans:
   4. All other existing pages receive the design system uplift — consistent typography scale, spacing rhythm, color tokens, and component styles — without rewriting page logic
   5. Mobile app renders with guard-first design — large touch targets, simplified bottom-navigation, quick-action shortcuts for guard workflows (check-in, incident capture, door control)
 
-**Plans**: TBD
+**Plans**: 6 plans (3 waves)
+
+Plans:
+**Wave 1**
+
+- [ ] 06-01-PLAN.md — Design System Foundation: CSS namespace migration, Radix Themes, next-themes, ThemeProvider, ThemeToggle, light mode (UIX-01, UIX-05)
+- [ ] 06-02-PLAN.md — Shared Design Tokens + Animation: @repo/design package, motion install, PageTransition, AnimatePresence in dashboard layout (UIX-01, UIX-03)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 06-03-PLAN.md — Premium Components + Global Uplift: GlassCard, MetricHero, Sparkline, DonutChart, QuickActionBar, ActivityTimeline, enhanced StatsCard/PageHeader/Header/Sidebar (UIX-02, UIX-06)
+- [ ] 06-04-PLAN.md — Mobile Guard-First Redesign: 4-tab navigation, quick-action home screen, offline mode, incidents/more tabs, @repo/design integration (UIX-04)
+
+**Wave 3** *(blocked on Wave 2 Plan 06-03 completion)*
+
+- [ ] 06-05-PLAN.md — Overview + Cameras Full Redesign: premium layouts with MetricHero grid, donut chart, timeline, camera grid, search/filter (UIX-07)
+- [ ] 06-06-PLAN.md — Alerts Full Redesign: real-time feed, severity bars, side panel, bulk actions, WebSocket preservation (UIX-07)
+
 **UI hint**: yes
 
 ### Phase 7: Public Presence
