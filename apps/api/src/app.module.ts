@@ -9,8 +9,8 @@ import { PrismaModule } from './modules/prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { HealthModule } from './modules/health/health.module';
-import { SiteModule } from './modules/site/site.module';
 import { OrganizationModule } from './modules/organization/organization.module';
+import { InviteModule } from './modules/organization/invite/invite.module';
 import { CameraModule } from './modules/camera/camera.module';
 import { AlertModule } from './modules/alert/alert.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
@@ -64,8 +64,8 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     AuthModule,
     UserModule,
     HealthModule,
-    SiteModule,
     OrganizationModule,
+    InviteModule,
     CameraModule,
     AlertModule,
     DashboardModule,
