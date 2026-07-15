@@ -268,3 +268,14 @@ export type {
   MaintenanceTicketDto,
   UnifiedIncidentDto,
 } from "./types/maintenance.types";
+
+// Constants - License
+export { LICENSE_VERSION, LICENSE_STATUS, GRACE_PERIOD_DAYS_DEFAULT, TRIAL_DURATION_DAYS } from "./constants/license.constants";
+export type { LicenseStatus } from "./constants/license.constants";
+
+// Schemas - License
+export { generateLicenseSchema, activateLicenseSchema, createApiKeySchema } from "./schemas/license.schema";
+export type { GenerateLicenseInput, ActivateLicenseInput, CreateApiKeyInput } from "./schemas/license.schema";
+
+// Types - License
+export type { LicenseClaims, LicenseState, LicenseStatusDto } from "./types/license.types";
