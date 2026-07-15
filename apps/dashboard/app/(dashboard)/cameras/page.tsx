@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DataTable } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { GlassCard } from "@/components/glass-card";
+import { CameraGrid } from "@/components/camera-grid";
 import {
   fetchCameras,
   fetchSites,
@@ -25,8 +27,12 @@ import {
   type CameraPrompt,
 } from "@/lib/api";
 import { toast } from "@/components/ui/toast";
-import { Plus, Video, Settings, X, Play, Square, Eye, Trash2, Radio } from "lucide-react";
+import {
+  Plus, Video, Settings, X, Play, Square, Eye, Trash2, Radio,
+  Search, LayoutGrid, Map, AlertTriangle,
+} from "lucide-react";
 import VideoPlayer from "@/components/video-player";
+import { AnimatePresence, motion } from "motion/react";
 
 const statusColors: Record<string, "success" | "destructive" | "warning" | "default"> = {
   ONLINE: "success",
@@ -42,8 +48,19 @@ const statusLabels: Record<string, string> = {
   DEGRADED: "Dégradé",
 };
 
+const statusPills = [
+  { value: "", label: "Toutes" },
+  { value: "ONLINE", label: "En ligne" },
+  { value: "OFFLINE", label: "Hors ligne" },
+  { value: "DEGRADED", label: "Dégradé" },
+  { value: "MAINTENANCE", label: "Maintenance" },
+];
+
 export default function CamerasPage() {
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedCamera, setSelectedCamera] = useState<Camera | null>(null);
@@ -54,12 +71,40 @@ export default function CamerasPage() {
   const [sites, setSites] = useState<Site[]>([]);
   const [activeStreams, setActiveStreams] = useState<string[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [camerasData, setCamerasData] = useState<Camera[]>([]);
+  const [camerasLoading, setCamerasLoading] = useState(true);
+  const [camerasError, setCamerasError] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", rtspUrl: "", siteId: "", resolution: "", fps: 25, captureInterval: 5 });
 
   useEffect(() => {
     fetchSites({ limit: 100 }).then((r) => setSites(r.data)).catch(() => {});
     fetchActiveStreams().then(setActiveStreams).catch(() => {});
   }, [refreshKey]);
+
+  useEffect(() => {
+    setCamerasLoading(true);
+    setCamerasError(null);
+    const filters: Record<string, string> | undefined = statusFilter ? { status: statusFilter } : undefined;
+    fetchCameras({ limit: 200, ...filters })
+      .then((r) => setCamerasData(r.data))
+      .catch((e) => setCamerasError(e.message))
+      .finally(() => setCamerasLoading(false));
+  }, [refreshKey, statusFilter]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const filteredCameras = useMemo(() => {
+    if (!debouncedSearch) return camerasData;
+    const q = debouncedSearch.toLowerCase();
+    return camerasData.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        c.site?.name?.toLowerCase().includes(q)
+    );
+  }, [camerasData, debouncedSearch]);
 
   function resetForm() {
     setForm({ name: "", rtspUrl: "", siteId: "", resolution: "", fps: 25, captureInterval: 5 });
@@ -140,18 +185,35 @@ export default function CamerasPage() {
     }
   }
 
-  const filters: Record<string, string> | undefined = statusFilter ? { status: statusFilter } : undefined;
+  const cameraCount = camerasData.length;
+
+  if (camerasError && camerasData.length === 0) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-destructive/10">
+            <AlertTriangle className="h-6 w-6 text-destructive" />
+          </div>
+          <p className="text-lg font-medium">Erreur de chargement</p>
+          <p className="mt-1 text-sm text-muted-foreground">{camerasError}</p>
+          <Button variant="outline" className="mt-4" onClick={() => setRefreshKey((k) => k + 1)}>
+            Réessayer
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="Caméras"
-        description="Gestion des caméras et flux vidéo"
+        description={`${cameraCount} caméra${cameraCount > 1 ? "s" : ""} connectée${cameraCount > 1 ? "s" : ""}`}
         action={{ label: "Ajouter", icon: Plus, onClick: () => { resetForm(); setShowForm(true); } }}
       />
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="mb-6 rounded-lg border border-border bg-card p-4">
+        <form onSubmit={handleSubmit} className="rounded-xl border border-border bg-card p-4">
           <h3 className="mb-3 font-semibold">{editingId ? "Modifier la caméra" : "Nouvelle caméra"}</h3>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -186,7 +248,7 @@ export default function CamerasPage() {
       )}
 
       {liveCamera && (
-        <Card className="mb-6">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2">
               <Radio className="h-4 w-4 text-red-500 animate-pulse" />
@@ -198,10 +260,7 @@ export default function CamerasPage() {
           </CardHeader>
           <CardContent>
             <div className="w-full max-w-4xl">
-              <VideoPlayer
-                cameraId={liveCamera.id}
-                cameraName={liveCamera.name}
-              />
+              <VideoPlayer cameraId={liveCamera.id} cameraName={liveCamera.name} />
             </div>
           </CardContent>
         </Card>
@@ -212,7 +271,7 @@ export default function CamerasPage() {
       )}
 
       {previewCamera && (
-        <Card className="mb-6">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">Aperçu - {previewCamera.name}</CardTitle>
             <Button size="sm" variant="ghost" onClick={() => { setPreviewCamera(null); setPreviewSnapshot(null); }}>
@@ -229,11 +288,7 @@ export default function CamerasPage() {
                   </div>
                 </div>
               ) : previewSnapshot ? (
-                <img
-                  src={`data:image/jpeg;base64,${previewSnapshot}`}
-                  alt={`Snapshot ${previewCamera.name}`}
-                  className="h-full w-full object-contain"
-                />
+                <img src={`data:image/jpeg;base64,${previewSnapshot}`} alt={`Snapshot ${previewCamera.name}`} className="h-full w-full object-contain" />
               ) : (
                 <div className="flex h-full items-center justify-center text-muted-foreground">
                   <p className="text-sm">Impossible de capturer une image. Vérifiez que la caméra est accessible.</p>
@@ -241,68 +296,105 @@ export default function CamerasPage() {
               )}
             </div>
             <div className="mt-3 flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => handlePreview(previewCamera)}>
-                Rafraîchir
-              </Button>
+              <Button size="sm" variant="outline" onClick={() => handlePreview(previewCamera)}>Rafraîchir</Button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        {["", "ONLINE", "OFFLINE", "MAINTENANCE", "DEGRADED"].map((s) => (
-          <Button key={s} variant={statusFilter === s ? "default" : "outline"} size="sm" onClick={() => setStatusFilter(s)}>
-            {s ? statusLabels[s] : "Toutes"}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher une caméra..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 w-64"
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg border border-border p-0.5 bg-muted/30">
+            <Button
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              size="sm"
+              className="gap-1.5 h-8"
+              onClick={() => setViewMode("grid")}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              Grille
+            </Button>
+            <Button
+              variant={viewMode === "map" ? "default" : "ghost"}
+              size="sm"
+              className="gap-1.5 h-8"
+              onClick={() => setViewMode("map")}
+            >
+              <Map className="h-3.5 w-3.5" />
+              Plan
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {statusPills.map((pill) => (
+          <Button
+            key={pill.value}
+            variant={statusFilter === pill.value ? "default" : "outline"}
+            size="sm"
+            className="rounded-full"
+            onClick={() => setStatusFilter(pill.value)}
+          >
+            {pill.label}
           </Button>
         ))}
       </div>
 
-      <DataTable
-        key={refreshKey}
-        columns={[
-          { key: "name", label: "Caméra", render: (c: Camera) => (
-            <div className="flex items-center gap-2">
-              <Video className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="font-medium">{c.name}</p>
-                <p className="text-xs text-muted-foreground font-mono max-w-[200px] truncate">{c.rtspUrl}</p>
+      <AnimatePresence mode="wait">
+        {viewMode === "grid" ? (
+          <motion.div
+            key="grid"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <CameraGrid
+              cameras={filteredCameras}
+              loading={camerasLoading}
+              emptyMessage={
+                debouncedSearch || statusFilter
+                  ? "Aucune caméra ne correspond aux filtres"
+                  : "Aucune caméra enregistrée"
+              }
+            />
+            {!camerasLoading && filteredCameras.length === 0 && (debouncedSearch || statusFilter) && (
+              <div className="flex justify-center mt-4">
+                <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(""); setDebouncedSearch(""); setStatusFilter(""); }}>
+                  Réinitialiser les filtres
+                </Button>
               </div>
-            </div>
-          )},
-          { key: "site", label: "Site", render: (c: Camera) => c.site?.name ?? "—" },
-          { key: "status", label: "Statut", render: (c: Camera) => (
-            <Badge variant={statusColors[c.status]}>{statusLabels[c.status] ?? c.status}</Badge>
-          )},
-          { key: "stream", label: "Flux", render: (c: Camera) => (
-            <Badge variant={activeStreams.includes(c.id) ? "success" : "secondary"}>
-              {activeStreams.includes(c.id) ? "En cours" : "Arrêté"}
-            </Badge>
-          )},
-          { key: "actions", label: "", render: (c: Camera) => (
-            <div className="flex flex-wrap gap-1" onClick={(e) => e.stopPropagation()}>
-              <Button size="sm" variant="outline" onClick={() => handlePreview(c)}>
-                <Eye className="mr-1 h-3 w-3" /> Voir
-              </Button>
-              <Button size="sm" variant="default" className="bg-red-600 hover:bg-red-700" onClick={() => setLiveCamera(c)}>
-                <Radio className="mr-1 h-3 w-3" /> Live
-              </Button>
-              <Button size="sm" variant={activeStreams.includes(c.id) ? "destructive" : "default"} onClick={() => handleToggleStream(c)}>
-                {activeStreams.includes(c.id) ? <Square className="mr-1 h-3 w-3" /> : <Play className="mr-1 h-3 w-3" />}
-                {activeStreams.includes(c.id) ? "Arrêter" : "Démarrer"}
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => setSelectedCamera(c)}>
-                <Settings className="mr-1 h-3 w-3" /> Prompts
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => startEdit(c)}>Modifier</Button>
-              <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDeleteCamera(c)}>
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            </div>
-          )},
-        ]}
-        fetchFn={fetchCameras}
-        filters={filters}
-      />
+            )}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="map"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <GlassCard variant="default" className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <Map className="mx-auto h-12 w-12 text-muted-foreground/20 mb-3" />
+                <p className="text-sm text-muted-foreground">Carte des caméras — fonctionnalité à venir</p>
+              </div>
+            </GlassCard>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -353,7 +445,7 @@ function CameraPromptPanel({ camera, onClose }: { camera: Camera; onClose: () =>
   }
 
   return (
-    <Card className="mb-6">
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg">Prompts - {camera.name}</CardTitle>
         <Button size="sm" variant="ghost" onClick={onClose}><X className="h-4 w-4" /></Button>
