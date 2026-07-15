@@ -76,8 +76,8 @@ function HistoryModal({ controllerId, onClose }: HistoryModalProps) {
                       ? `${entry.battery_level.toFixed(0)}%`
                       : "—"}
                   </span>
-                  <Badge variant={stabilityBadge[entry.connection_stability?.toLowerCase()] ?? "default"}>
-                    {stabilityLabels[entry.connection_stability?.toLowerCase()] ?? entry.connection_stability}
+                        <Badge variant={stabilityBadge[entry.connection_stability?.toLowerCase() ?? ""] ?? "default"}>
+                          {stabilityLabels[entry.connection_stability?.toLowerCase() ?? ""] ?? entry.connection_stability}
                   </Badge>
                   <span className="text-muted-foreground">
                     CPU: {entry.cpu_load !== null && entry.cpu_load !== undefined ? `${entry.cpu_load.toFixed(0)}%` : "—"}
@@ -201,8 +201,8 @@ export default function ControllerHealthPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <Badge variant={stabilityBadge[ctrl.connection_stability?.toLowerCase()] ?? "default"}>
-                          {stabilityLabels[ctrl.connection_stability?.toLowerCase()] ?? ctrl.connection_stability ?? "—"}
+                        <Badge variant={stabilityBadge[ctrl.connection_stability?.toLowerCase() ?? ""] ?? "default"}>
+                          {stabilityLabels[ctrl.connection_stability?.toLowerCase() ?? ""] ?? ctrl.connection_stability ?? "—"}
                         </Badge>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">
