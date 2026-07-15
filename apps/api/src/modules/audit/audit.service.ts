@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import type { FastifyRequest } from "fastify";
@@ -221,6 +222,55 @@ export class AuditService {
         i > 0 &&
         entries[i].previousHash !== entries[i - 1].hash
       ) {
+        if (!tampered.includes(i)) tampered.push(i);
+      }
+    }
+
+    return {
+      verified: tampered.length === 0,
+      totalEntries: entries.length,
+      tamperedIndices: tampered,
+      genesisHash: entries[0]?.hash ?? null,
+      latestHash: entries[entries.length - 1]?.hash ?? null,
+    };
+  }
+
+  /**
+   * Verify the cryptographic hash chain for an entire organization.
+   * D-11: Walks per-organization chain ordered by time and detects any tampering.
+   * Each entry's hash must equal SHA256(previousEntry.hash + content).
+   * Genesis entry uses "genesis" as previousHash with no parent.
+   */
+  async verifyOrganizationChain(
+    organizationId: string,
+  ): Promise<ChainVerificationResult> {
+    const entries = (await this.prisma.$queryRawUnsafe(
+      `SELECT time, hash, previous_hash AS "previousHash", content
+       FROM audit_log
+       WHERE organization_id = $1::uuid
+       ORDER BY time ASC`,
+      organizationId,
+    )) as {
+      time: string;
+      hash: string;
+      previousHash: string | null;
+      content: string;
+    }[];
+
+    const tampered: number[] = [];
+
+    for (let i = 0; i < entries.length; i++) {
+      const expectedInput =
+        (i === 0 ? "genesis" : entries[i - 1].hash) + entries[i].content;
+      const expectedHash = crypto
+        .createHash("sha256")
+        .update(expectedInput)
+        .digest("hex");
+
+      if (entries[i].hash !== expectedHash) {
+        tampered.push(i);
+      }
+      if (i > 0 && entries[i].previousHash !== entries[i - 1].hash) {
         if (!tampered.includes(i)) tampered.push(i);
       }
     }

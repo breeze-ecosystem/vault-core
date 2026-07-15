@@ -7,7 +7,7 @@ export const auditQuerySchema = z.object({
   entity: z.string().optional(),
   entityId: z.string().optional(),
   userId: z.string().optional(),
-  siteId: z.string().optional(),
+  organizationId: z.string().optional(),
   action: z.string().optional(),
   from: z.string().optional(),
   to: z.string().optional(),
@@ -28,13 +28,22 @@ export const auditVerifySchema = z.object({
 export type AuditVerifyInput = z.infer<typeof auditVerifySchema>;
 
 /**
+ * Schema for the /audit/verify-chain query params.
+ */
+export const auditVerifyOrgChainSchema = z.object({
+  organizationId: z.string().uuid(),
+});
+
+export type AuditVerifyOrgChainInput = z.infer<typeof auditVerifyOrgChainSchema>;
+
+/**
  * Schema for the /audit/export query params.
  */
 export const auditExportSchema = z.object({
   entity: z.string().optional(),
   entityId: z.string().optional(),
   userId: z.string().optional(),
-  siteId: z.string().optional(),
+  organizationId: z.string().optional(),
   action: z.string().optional(),
   from: z.string().optional(),
   to: z.string().optional(),

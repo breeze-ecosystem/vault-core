@@ -7,7 +7,7 @@ export interface AuditEntry {
   entityId: string;
   action: string;
   userId: string | null;
-  siteId: string | null;
+  organizationId: string | null;
   changes: Record<string, unknown> | null;
   ipAddress: string | null;
   previousHash: string | null;
@@ -33,7 +33,7 @@ export interface AuditExportParams {
   entity?: string;
   entityId?: string;
   userId?: string;
-  siteId?: string;
+  organizationId?: string;
   action?: string;
   from?: string;
   to?: string;

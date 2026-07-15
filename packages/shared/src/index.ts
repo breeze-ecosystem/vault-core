@@ -98,9 +98,9 @@ export type {
 } from "./types/correlation.types";
 
 // Schemas - Audit
-export { auditQuerySchema, auditVerifySchema, auditExportSchema } from "./schemas/audit.schema";
-export type { AuditQueryInput, AuditVerifyInput, AuditExportInput } from "./schemas/audit.schema";
+export { auditQuerySchema, auditVerifySchema, auditVerifyOrgChainSchema, auditExportSchema } from "./schemas/audit.schema";
 
+export type { AuditQueryInput, AuditVerifyInput, AuditVerifyOrgChainInput, AuditExportInput } from "./schemas/audit.schema";
 // Types - Audit
 export type {
   AuditEntry,

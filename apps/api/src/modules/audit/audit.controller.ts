@@ -17,8 +17,8 @@ import { AuditService } from "./audit.service";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
-import { auditQuerySchema, auditVerifySchema, auditExportSchema } from "@repo/shared";
-import type { AuditQueryInput, AuditVerifyInput, AuditExportInput } from "@repo/shared";
+import { auditQuerySchema, auditVerifySchema, auditVerifyOrgChainSchema, auditExportSchema } from "@repo/shared";
+import type { AuditQueryInput, AuditVerifyInput, AuditVerifyOrgChainInput, AuditExportInput } from "@repo/shared";
 
 @ApiTags("audit")
 @ApiBearerAuth()
@@ -64,6 +64,21 @@ export class AuditController {
     @Query(new ZodValidationPipe(auditVerifySchema)) query: AuditVerifyInput,
   ) {
     return this.auditService.verifyChain(query.entity, query.entityId);
+  }
+
+  /**
+   * GET /api/audit/verify-chain
+   * Verify cryptographic hash chain integrity for an entire organization.
+   */
+  @Get("verify-chain")
+  @Roles("ADMIN", "AUDITOR")
+  @ApiOperation({ summary: "Verify organization hash chain integrity (admin, auditor)" })
+  @ApiQuery({ name: "organizationId", required: true })
+  @ApiResponse({ status: 200, description: "Organization chain verification result" })
+  async verifyOrganizationChain(
+    @Query(new ZodValidationPipe(auditVerifyOrgChainSchema)) query: AuditVerifyOrgChainInput,
+  ) {
+    return this.auditService.verifyOrganizationChain(query.organizationId);
   }
 
   /**
