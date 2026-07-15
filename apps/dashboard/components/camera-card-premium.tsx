@@ -29,7 +29,7 @@ const statusConfig: Record<string, { label: string; color: string; dot: string }
 };
 
 export function CameraCardPremium({ camera, onClick, className }: CameraCardPremiumProps) {
-  const sc = statusConfig[camera.status] || statusConfig.OFFLINE;
+  const sc = (statusConfig[camera.status] || statusConfig.OFFLINE)!;
 
   return (
     <motion.div
