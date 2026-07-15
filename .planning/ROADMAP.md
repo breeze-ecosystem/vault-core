@@ -47,7 +47,7 @@ v1.0 delivered the unified physical security intelligence platform — access co
 
 ### v2.0 Commercial Platform — Summary
 
-- [ ] **Phase 4: Commercial Foundation** — Multi-tenant architecture, organization isolation, invite-based onboarding, per-tenant audit logs, feature gate infrastructure
+- [x] **Phase 4: Commercial Foundation** — Multi-tenant architecture, organization isolation, invite-based onboarding, per-tenant audit logs, feature gate infrastructure (completed 2026-07-15)
 - [ ] **Phase 5: Monetization** — Stripe subscriptions, PayPal payments, license key provisioning, device-limit enforcement, billing dashboard
 - [ ] **Phase 6: Premium Experience** — 2026 design system, Dashboard redesign (3 key pages + global uplift), Mobile guard-first design, dark/light mode
 - [ ] **Phase 7: Public Presence** — Marketing landing page, pricing page, MDX blog, multi-language (6 locales), SEO, contact form
@@ -103,7 +103,7 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 04-09-PLAN.md — Mobile Frontend: Org Switcher (FND-03, FND-05)
+- [x] 04-09-PLAN.md — Mobile Frontend: Org Switcher (FND-03, FND-05)
 
 ### Phase 5: Monetization
 
@@ -207,7 +207,7 @@ Plans:
 | 1. Unified Security | 4/4 | Complete | 2026-07-14 |
 | 2. Operational AI | 6/6 | Complete | 2026-07-14 |
 | 3. Intelligent Platform | 5/5 | Complete | 2026-07-14 |
-| 4. Commercial Foundation | 4/11 | In Progress|  |
+| 4. Commercial Foundation | 11/11 | Complete   | 2026-07-15 |
 | 5. Monetization | 0/TBD | Not started | - |
 | 6. Premium Experience | 0/TBD | Not started | - |
 | 7. Public Presence | 0/TBD | Not started | - |
