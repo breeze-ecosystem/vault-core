@@ -55,7 +55,7 @@ export class AccessController {
       isActive,
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
-      orgId: user?.orgId,
+      organizationId: user?.orgId,
     });
   }
 
@@ -197,8 +197,8 @@ export class AccessController {
   @Post("evaluate")
   @Roles("ADMIN", "SUPER_ADMIN", "SUPERVISOR", "OPERATOR")
   async evaluateAccess(
-    @Body() body: { credentialId: string; doorId: string; orgId: string },
+    @Body() body: { credentialId: string; doorId: string; organizationId: string },
   ) {
-    return this.accessService.evaluateAccess(body.credentialId, body.doorId, body.orgId);
+    return this.accessService.evaluateAccess(body.credentialId, body.doorId, body.organizationId);
   }
 }

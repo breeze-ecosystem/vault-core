@@ -52,7 +52,7 @@ export class IncidentController {
       status,
       severity,
       assignedToId: assignedTo,
-      orgId: user?.orgId,
+      organizationId: user?.orgId,
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
     });

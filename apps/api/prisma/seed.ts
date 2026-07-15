@@ -215,11 +215,17 @@ async function seedSample() {
     { cameraId: "cam-lyn-002", text: "La sortie de secours est-elle bloquee ?",                                  severity: "CRITICAL" as const },
   ];
 
+  // Build cameraId → organizationId lookup
+  const cameraOrgMap: Record<string, string> = {};
+  for (const cam of cameras) {
+    cameraOrgMap[cam.id] = cam.organizationId;
+  }
+
   // Use deleteMany + create to avoid duplicates on re-run (no natural key)
   await prisma.cameraPrompt.deleteMany({});
   for (const p of promptData) {
     await prisma.cameraPrompt.create({
-      data: { cameraId: p.cameraId, text: p.text, severity: p.severity, isActive: true },
+      data: { cameraId: p.cameraId, text: p.text, severity: p.severity, isActive: true, organizationId: cameraOrgMap[p.cameraId] },
     });
   }
 
@@ -248,6 +254,7 @@ async function seedSample() {
         severity: alert.severity,
         status: i < 3 ? "OPEN" : i < 6 ? "ACKNOWLEDGED" : i < 8 ? "RESOLVED" : "FALSE_POSITIVE",
         cameraId: cameras[alert.camera].id,
+        organizationId: cameras[alert.camera].organizationId,
         ...(i >= 3 ? { acknowledgedBy: supervisor.id, acknowledgedAt: new Date(Date.now() - (10 - i) * 60 * 60 * 1000) } : {}),
         ...(i >= 6 && i < 8 ? { resolvedBy: admin.id, resolvedAt: new Date(Date.now() - (8 - i) * 60 * 60 * 1000) } : {}),
       },

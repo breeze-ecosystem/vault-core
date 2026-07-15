@@ -49,8 +49,8 @@ export class AnprController {
   ) {
     const user = (req as any)?.user;
     // Site-scoped: use user's orgId if no orgId filter provided
-    const orgId = query.orgId || user?.orgId;
-    return this.anprService.queryEvents({ ...query, orgId });
+    const organizationId = query.organizationId || user?.orgId;
+    return this.anprService.queryEvents({ ...query, organizationId });
   }
 
   /**
@@ -67,7 +67,7 @@ export class AnprController {
     const user = (req as any)?.user;
     return this.anprService.queryEvents({
       plate,
-      orgId: user?.orgId,
+      organizationId: user?.orgId,
       limit: limit ? parseInt(limit, 10) : 50,
     });
   }
