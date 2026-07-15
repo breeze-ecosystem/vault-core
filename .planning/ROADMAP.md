@@ -80,7 +80,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 04-03a-PLAN.md — Tenant Isolation Core: Extension + Middleware + Worker Helper (FND-01, FND-02)
+- [x] 04-03a-PLAN.md — Tenant Isolation Core: Extension + Middleware + Worker Helper (FND-01, FND-02)
 - [ ] 04-04a-PLAN.md — Auth + Organization API Modules (FND-03, FND-04)
 
 **Wave 3** *(blocked on Wave 2 completion)*

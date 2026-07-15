@@ -16,7 +16,7 @@ Requirements for the commercial SaaS platform, organized by capability block.
 ### Commercial Foundation (FND)
 
 - [x] **FND-01**: Platform supports multi-tenant architecture with `Organization` model and PostgreSQL row-level security
-- [ ] **FND-02**: All existing modules auto-scope queries to current tenant via Prisma Client Extensions
+- [x] **FND-02**: All existing modules auto-scope queries to current tenant via Prisma Client Extensions
 - [ ] **FND-03**: User can belong to multiple organizations with different roles in each
 - [ ] **FND-04**: JWT token carries `organizationId` + `permissions[]` for tenant-scoped authorization
 - [x] **FND-05**: Admin can invite users to their organization via email with expiring tokens
@@ -120,7 +120,7 @@ Deferred to future release after v2.0 ships.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | FND-01 | Phase 4: Commercial Foundation | Complete |
-| FND-02 | Phase 4: Commercial Foundation | Pending |
+| FND-02 | Phase 4: Commercial Foundation | Complete |
 | FND-03 | Phase 4: Commercial Foundation | Pending |
 | FND-04 | Phase 4: Commercial Foundation | Pending |
 | FND-05 | Phase 4: Commercial Foundation | Complete |
