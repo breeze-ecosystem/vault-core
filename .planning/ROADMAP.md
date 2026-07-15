@@ -89,7 +89,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 04-04b-PLAN.md — Invite Module: JWT Tokens + Resend Email + Accept Flow (FND-05)
+- [x] 04-04b-PLAN.md — Invite Module: JWT Tokens + Resend Email + Accept Flow (FND-05)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
