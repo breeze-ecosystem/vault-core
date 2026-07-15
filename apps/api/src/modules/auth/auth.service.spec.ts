@@ -19,12 +19,28 @@ const mockPrismaService = {
     findUnique: jest.fn(),
     create: jest.fn(),
   },
+  organizationMember: {
+    findFirst: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    create: jest.fn(),
+  },
+  organization: {
+    create: jest.fn(),
+  },
   refreshToken: {
     findUnique: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     updateMany: jest.fn(),
   },
+  $transaction: jest.fn((fn: (tx: any) => any) =>
+    fn({
+      organization: { create: jest.fn().mockResolvedValue({ id: 'org-uuid-1', name: 'Test Org' }) },
+      user: { create: jest.fn().mockResolvedValue({ id: 'user-uuid-1', email: 'new@oversight.sn', firstName: 'Amadou', lastName: 'Ba' }) },
+      organizationMember: { create: jest.fn().mockResolvedValue({ id: 'member-uuid-1', userId: 'user-uuid-1', organizationId: 'org-uuid-1', role: 'ADMIN' }) },
+    }),
+  ),
 };
 
 const mockJwtService = {
@@ -46,16 +62,7 @@ const mockUser = {
   password: 'hashed-password',
   firstName: 'Ousmane',
   lastName: 'Diallo',
-  role: 'ADMIN' as const,
   isActive: true,
-};
-
-const mockUserCreateResult = {
-  id: 'user-uuid-1',
-  email: 'admin@oversight.sn',
-  firstName: 'Ousmane',
-  lastName: 'Diallo',
-  role: 'ADMIN',
 };
 
 // ── Tests ──────────────────────────────────────────────────────────────────────
@@ -90,23 +97,21 @@ describe('AuthService', () => {
       password: 'password123',
       firstName: 'Amadou',
       lastName: 'Ba',
+      organizationName: 'Test Org',
     };
 
-    it('should register a new user successfully', async () => {
+    it('should register a new user with organization successfully', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
-      mockPrismaService.user.create.mockResolvedValue(mockUserCreateResult);
       mockPrismaService.refreshToken.create.mockResolvedValue({});
 
       const result = await service.register(registerData);
 
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('refreshToken');
-      expect(result.user).toEqual(mockUserCreateResult);
-      expect(mockPrismaService.user.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ email: registerData.email }),
-        }),
-      );
+      expect(result).toHaveProperty('organization');
+      expect(result.organization.name).toBe('Test Org');
+      expect(result.user.email).toBe('new@oversight.sn');
+      expect(mockPrismaService.$transaction).toHaveBeenCalled();
     });
 
     it('should throw ConflictException if email already exists', async () => {
@@ -117,7 +122,6 @@ describe('AuthService', () => {
 
     it('should hash the password before saving', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
-      mockPrismaService.user.create.mockResolvedValue(mockUserCreateResult);
       mockPrismaService.refreshToken.create.mockResolvedValue({});
 
       const hashSpy = jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashed' as never);
@@ -134,6 +138,18 @@ describe('AuthService', () => {
   describe('login', () => {
     it('should login with valid credentials', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockPrismaService.organizationMember.findFirst.mockResolvedValue({
+        id: 'member-uuid-1',
+        userId: 'user-uuid-1',
+        organizationId: 'org-uuid-1',
+        role: 'ADMIN',
+      });
+      mockPrismaService.organizationMember.findMany.mockResolvedValue([
+        {
+          role: 'ADMIN',
+          organization: { id: 'org-uuid-1', name: 'Test Org' },
+        },
+      ]);
       mockPrismaService.refreshToken.create.mockResolvedValue({});
       jest.spyOn(bcrypt, 'compare').mockResolvedValue(true as never);
 
@@ -141,6 +157,7 @@ describe('AuthService', () => {
 
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('refreshToken');
+      expect(result).toHaveProperty('organizations');
       expect(result.user.email).toBe('admin@oversight.sn');
     });
 
@@ -184,6 +201,12 @@ describe('AuthService', () => {
 
     it('should refresh token successfully', async () => {
       mockPrismaService.refreshToken.findUnique.mockResolvedValue(storedToken);
+      mockPrismaService.organizationMember.findFirst.mockResolvedValue({
+        id: 'member-uuid-1',
+        userId: 'user-uuid-1',
+        organizationId: 'org-uuid-1',
+        role: 'ADMIN',
+      });
       mockPrismaService.refreshToken.update.mockResolvedValue({});
       mockPrismaService.refreshToken.create.mockResolvedValue({});
 
@@ -191,6 +214,7 @@ describe('AuthService', () => {
 
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('refreshToken');
+      expect(result).toHaveProperty('organization');
       expect(result.user.id).toBe('user-uuid-1');
       expect(mockPrismaService.refreshToken.update).toHaveBeenCalledWith({
         where: { id: storedToken.id },
