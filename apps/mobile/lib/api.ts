@@ -18,7 +18,7 @@ export interface DashboardStats {
     low: number;
     info: number;
   };
-  sites: { total: number; active: number };
+  organizations: { total: number; active: number };
   users: { total: number };
   recentAlerts: AlertItem[];
 }
@@ -54,15 +54,15 @@ export interface CameraItem {
   id: string;
   name: string;
   status: CameraStatus;
-  siteId: string;
+  organizationId: string;
   resolution: string | null;
   fps: number;
   isRecording: boolean;
   rtspUrl?: string;
-  site?: { id: string; name: string };
+  organization?: { id: string; name: string };
 }
 
-export interface SiteItem {
+export interface OrganizationItem {
   id: string;
   name: string;
   address: string | null;
@@ -154,13 +154,13 @@ export async function fetchAlertById(id: string): Promise<AlertDetail> {
 }
 
 export async function fetchCameras(params?: {
-  siteId?: string;
+  organizationId?: string;
   status?: CameraStatus;
   page?: number;
   limit?: number;
 }): Promise<PaginatedResponse<CameraItem>> {
   const search = new URLSearchParams();
-  if (params?.siteId) search.set("siteId", params.siteId);
+  if (params?.organizationId) search.set("organizationId", params.organizationId);
   if (params?.status) search.set("status", params.status);
   if (params?.page) search.set("page", String(params.page));
   if (params?.limit) search.set("limit", String(params.limit));
@@ -183,16 +183,16 @@ export async function fetchCameraAlerts(cameraId: string, params?: {
   return fetchAlerts({ cameraId, ...params });
 }
 
-export async function fetchSites(params?: {
+export async function fetchOrganizations(params?: {
   page?: number;
   limit?: number;
-}): Promise<PaginatedResponse<SiteItem>> {
+}): Promise<PaginatedResponse<OrganizationItem>> {
   const search = new URLSearchParams();
   if (params?.page) search.set("page", String(params.page));
   if (params?.limit) search.set("limit", String(params.limit ?? 100));
   const qs = search.toString();
-  const res = await fetchWithAuth(`${API_BASE}/sites${qs ? `?${qs}` : ""}`);
-  if (!res.ok) throw new Error("Impossible de charger les sites");
+  const res = await fetchWithAuth(`${API_BASE}/organizations${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw new Error("Impossible de charger les organisations");
   return res.json();
 }
 

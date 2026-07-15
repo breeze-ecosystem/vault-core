@@ -22,7 +22,7 @@ export interface Camera {
   name: string;
   rtspUrl: string;
   status: "ONLINE" | "OFFLINE" | "MAINTENANCE" | "DEGRADED";
-  siteId: string;
+  organizationId: string;
   resolution: string | null;
   fps: number;
   captureInterval: number;
@@ -31,7 +31,7 @@ export interface Camera {
   lastHeartbeat: string | null;
   createdAt: string;
   updatedAt: string;
-  site?: Site;
+  organization?: Organization;
   prompts?: CameraPrompt[];
   _count?: { alerts: number };
 }
@@ -53,7 +53,7 @@ export interface Alert {
   camera?: Camera;
 }
 
-export interface Site {
+export interface Organization {
   id: string;
   name: string;
   address: string | null;
@@ -62,6 +62,8 @@ export interface Site {
   latitude: number | null;
   longitude: number | null;
   isActive: boolean;
+  billingEmail: string | null;
+  planTier: string;
   createdAt: string;
   updatedAt: string;
   cameras?: Camera[];
@@ -75,7 +77,6 @@ export interface DashboardUser {
   lastName: string;
   role: string;
   isActive: boolean;
-  siteId: string | null;
   createdAt: string;
 }
 
@@ -96,7 +97,7 @@ export interface DashboardStats {
     low: number;
     info: number;
   };
-  sites: {
+  organizations: {
     total: number;
     active: number;
   };
@@ -125,13 +126,13 @@ export async function fetchCameras(params?: {
   page?: number;
   limit?: number;
   status?: string;
-  siteId?: string;
+  organizationId?: string;
 }): Promise<PaginatedResponse<Camera>> {
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.set("page", String(params.page));
   if (params?.limit) searchParams.set("limit", String(params.limit));
   if (params?.status) searchParams.set("status", params.status);
-  if (params?.siteId) searchParams.set("siteId", params.siteId);
+  if (params?.organizationId) searchParams.set("organizationId", params.organizationId);
 
   const res = await fetchWithAuth(`${API_URL}/api/cameras?${searchParams.toString()}`);
   if (!res.ok) throw new Error("Failed to fetch cameras");
@@ -157,16 +158,16 @@ export async function fetchAlerts(params?: {
   return res.json();
 }
 
-export async function fetchSites(params?: {
+export async function fetchOrganizations(params?: {
   page?: number;
   limit?: number;
-}): Promise<PaginatedResponse<Site>> {
+}): Promise<PaginatedResponse<Organization>> {
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.set("page", String(params.page));
   if (params?.limit) searchParams.set("limit", String(params.limit));
 
-  const res = await fetchWithAuth(`${API_URL}/api/sites?${searchParams.toString()}`);
-  if (!res.ok) throw new Error("Failed to fetch sites");
+  const res = await fetchWithAuth(`${API_URL}/api/organizations?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Failed to fetch organizations");
   return res.json();
 }
 
@@ -205,29 +206,29 @@ export async function deleteAlert(id: string): Promise<void> {
   if (!res.ok) throw new Error("Échec de la suppression de l'alerte");
 }
 
-// --- Site actions ---
+// --- Organization actions ---
 
-export async function createSite(data: { name: string; address?: string; city?: string; country?: string }): Promise<Site> {
-  const res = await fetchWithAuth(`${API_URL}/api/sites`, {
+export async function createOrganization(data: { name: string; address?: string; city?: string; country?: string }): Promise<Organization> {
+  const res = await fetchWithAuth(`${API_URL}/api/organizations`, {
     method: "POST",
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Failed to create site");
+  if (!res.ok) throw new Error("Failed to create organization");
   return res.json();
 }
 
-export async function updateSite(id: string, data: any): Promise<Site> {
-  const res = await fetchWithAuth(`${API_URL}/api/sites/${id}`, {
+export async function updateOrganization(id: string, data: any): Promise<Organization> {
+  const res = await fetchWithAuth(`${API_URL}/api/organizations/${id}`, {
     method: "PATCH",
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Failed to update site");
+  if (!res.ok) throw new Error("Failed to update organization");
   return res.json();
 }
 
 // --- Camera actions ---
 
-export async function createCamera(data: { name: string; rtspUrl: string; siteId: string; resolution?: string; fps?: number; captureInterval?: number }): Promise<Camera> {
+export async function createCamera(data: { name: string; rtspUrl: string; organizationId: string; resolution?: string; fps?: number; captureInterval?: number }): Promise<Camera> {
   const res = await fetchWithAuth(`${API_URL}/api/cameras`, {
     method: "POST",
     body: JSON.stringify(data),
@@ -297,7 +298,7 @@ export async function deleteCameraPrompt(cameraId: string, promptId: string): Pr
 
 // --- User actions ---
 
-export async function createUser(data: { email: string; password: string; firstName: string; lastName: string; role: string; siteId?: string }): Promise<DashboardUser> {
+export async function createUser(data: { email: string; password: string; firstName: string; lastName: string; role: string }): Promise<DashboardUser> {
   const res = await fetchWithAuth(`${API_URL}/api/users`, {
     method: "POST",
     body: JSON.stringify(data),
@@ -325,9 +326,33 @@ export async function deleteCamera(id: string): Promise<void> {
   }
 }
 
-export async function deleteSite(id: string): Promise<void> {
-  const res = await fetchWithAuth(`${API_URL}/api/sites/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Failed to delete site");
+export async function deleteOrganization(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/organizations/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Failed to delete organization");
+}
+
+// --- Invite actions ---
+
+export async function fetchInvites(orgId: string): Promise<any[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/organizations/${orgId}/invites`);
+  if (!res.ok) throw new Error("Failed to fetch invites");
+  return res.json();
+}
+
+export async function createInvite(orgId: string, data: { email: string; role: string }): Promise<any> {
+  const res = await fetchWithAuth(`${API_URL}/api/organizations/${orgId}/invites`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to create invite");
+  return res.json();
+}
+
+export async function revokeInvite(orgId: string, inviteId: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/organizations/${orgId}/invites/${inviteId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Failed to revoke invite");
 }
 
 export async function fetchCameraSnapshot(cameraId: string): Promise<string | null> {
@@ -678,7 +703,7 @@ export interface DoorAlertConfigDto {
 
 // ─── Door State API Functions ───
 
-export async function fetchAllDoorStates(siteId?: string): Promise<DoorStateDto[]> {
+export async function fetchAllDoorStates(orgId?: string): Promise<DoorStateDto[]> {
   const res = await fetchWithAuth(`${API_URL}/api/doors/states`);
   if (!res.ok) throw new Error("Échec du chargement de l'état des portes");
   return res.json();
@@ -757,7 +782,7 @@ export interface TimelineEntryDto {
 }
 
 export interface TimelineSearchParams {
-  siteId: string;
+  organizationId: string;
   from?: string;
   to?: string;
   credentialId?: string;
@@ -772,11 +797,11 @@ export interface TimelineSearchParams {
 // ─── Timeline API Functions ───
 
 export async function fetchTimeline(
-  siteId: string,
+  organizationId: string,
   params?: { from?: string; to?: string; limit?: number },
 ): Promise<{ data: TimelineEntryDto[] }> {
   const searchParams = new URLSearchParams();
-  searchParams.set("siteId", siteId);
+  searchParams.set("organizationId", organizationId);
   if (params?.from) searchParams.set("from", params.from);
   if (params?.to) searchParams.set("to", params.to);
   if (params?.limit) searchParams.set("limit", String(params.limit));
@@ -790,7 +815,7 @@ export async function searchTimeline(
   params: TimelineSearchParams,
 ): Promise<{ data: TimelineEntryDto[]; total: number; page: number; limit: number }> {
   const searchParams = new URLSearchParams();
-  searchParams.set("siteId", params.siteId);
+  searchParams.set("organizationId", params.organizationId);
   if (params.from) searchParams.set("from", params.from);
   if (params.to) searchParams.set("to", params.to);
   if (params.credentialId) searchParams.set("credentialId", params.credentialId);

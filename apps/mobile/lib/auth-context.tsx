@@ -3,7 +3,7 @@ import {
   getUserAsync,
   getAccessTokenAsync,
 } from "@/lib/auth-storage";
-import { login as apiLogin, refreshTokens, logout as apiLogout, isTokenExpired } from "@/lib/auth-client";
+import { login as apiLogin, refreshTokens, logout as apiLogout, isTokenExpired, switchOrganization as apiSwitchOrg } from "@/lib/auth-client";
 
 interface User {
   id: string;
@@ -13,10 +13,18 @@ interface User {
   role: string;
 }
 
+interface Organization {
+  id: string;
+  name: string;
+}
+
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  organization: Organization | null;
+  organizations: Array<{ id: string; name: string; role: string }>;
+  switchOrganization: (orgId: string) => Promise<void>;
   login: (email: string, password: string) => Promise<{ error?: string }>;
   logout: () => Promise<void>;
 }
@@ -25,12 +33,17 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
   isAuthenticated: false,
+  organization: null,
+  organizations: [],
+  switchOrganization: async () => {},
   login: async () => ({}),
   logout: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [organization, setOrganization] = useState<Organization | null>(null);
+  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string; role: string }>>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -66,18 +79,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const result = await apiLogin(email, password);
     if (result.user) {
       setUser(result.user as User);
+      if (result.organization) {
+        setOrganization(result.organization as Organization);
+      }
     }
     return { error: result.error };
+  }, []);
+
+  const switchOrganization = useCallback(async (orgId: string) => {
+    const result = await apiSwitchOrg(orgId);
+    if (result.user) {
+      setUser(result.user as User);
+      if (result.organization) {
+        setOrganization(result.organization as Organization);
+      }
+    }
   }, []);
 
   const logout = useCallback(async () => {
     await apiLogout();
     setUser(null);
+    setOrganization(null);
   }, []);
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, isAuthenticated: !!user, login, logout }}
+      value={{ user, organization, organizations, switchOrganization, isLoading, isAuthenticated: !!user, login, logout }}
     >
       {children}
     </AuthContext.Provider>

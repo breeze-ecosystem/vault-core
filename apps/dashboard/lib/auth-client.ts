@@ -12,6 +12,10 @@ interface AuthResult {
     lastName: string;
     role: string;
   };
+  organization?: {
+    id: string;
+    name: string;
+  };
   error?: string;
 }
 
@@ -34,9 +38,12 @@ export async function login(email: string, password: string): Promise<AuthResult
     if (typeof window !== "undefined") {
       sessionStorage.setItem("accessToken", data.accessToken);
       sessionStorage.setItem("user", JSON.stringify(data.user));
+      if (data.organization) {
+        sessionStorage.setItem("organization", JSON.stringify(data.organization));
+      }
     }
 
-    return { accessToken: data.accessToken, user: data.user };
+    return { accessToken: data.accessToken, user: data.user, organization: data.organization };
   } catch {
     return { error: "Serveur inaccessible" };
   }
@@ -58,9 +65,12 @@ export async function refreshTokens(): Promise<AuthResult | null> {
     if (typeof window !== "undefined") {
       sessionStorage.setItem("accessToken", data.accessToken);
       sessionStorage.setItem("user", JSON.stringify(data.user));
+      if (data.organization) {
+        sessionStorage.setItem("organization", JSON.stringify(data.organization));
+      }
     }
 
-    return { accessToken: data.accessToken, user: data.user };
+    return { accessToken: data.accessToken, user: data.user, organization: data.organization };
   } catch {
     return null;
   }
@@ -80,7 +90,32 @@ export async function logout(): Promise<void> {
   if (typeof window !== "undefined") {
     sessionStorage.removeItem("accessToken");
     sessionStorage.removeItem("user");
+    sessionStorage.removeItem("organization");
   }
+}
+
+export function getOrganization() {
+  if (typeof window === "undefined") return null;
+  const raw = sessionStorage.getItem("organization");
+  return raw ? JSON.parse(raw) : null;
+}
+
+export async function switchOrganization(orgId: string): Promise<AuthResult> {
+  const token = getAccessToken();
+  const res = await fetch(`${API_URL}/api/auth/switch-org`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    credentials: "include",
+    body: JSON.stringify({ organizationId: orgId }),
+  });
+  const data = await res.json();
+  if (!res.ok) return { error: data.message || "Échec du changement d'organisation" };
+  if (typeof window !== "undefined") {
+    sessionStorage.setItem("accessToken", data.accessToken);
+    sessionStorage.setItem("user", JSON.stringify(data.user));
+    sessionStorage.setItem("organization", JSON.stringify(data.organization));
+  }
+  return { accessToken: data.accessToken, user: data.user, organization: data.organization };
 }
 
 export function getAccessToken(): string | null {

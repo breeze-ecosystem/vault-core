@@ -16,6 +16,10 @@ interface AuthResult {
     lastName: string;
     role: string;
   };
+  organization?: {
+    id: string;
+    name: string;
+  };
   error?: string;
 }
 
@@ -45,7 +49,7 @@ export async function login(email: string, password: string): Promise<AuthResult
     await saveTokens(data.accessToken, data.refreshToken);
     await saveUser(data.user);
 
-    return { accessToken: data.accessToken, user: data.user };
+    return { accessToken: data.accessToken, user: data.user, organization: data.organization };
   } catch (e) {
     console.warn("[auth] login error:", e);
     return { error: "Serveur indisponible" };
@@ -72,7 +76,7 @@ export async function refreshTokens(): Promise<AuthResult | null> {
     await saveTokens(data.accessToken, data.refreshToken);
     await saveUser(data.user);
 
-    return { accessToken: data.accessToken, user: data.user };
+    return { accessToken: data.accessToken, user: data.user, organization: data.organization };
   } catch (e) {
     console.warn("[auth] refreshTokens error:", e);
     return null;
@@ -97,6 +101,20 @@ export async function logout() {
   }
 
   await clearAuth();
+}
+
+export async function switchOrganization(orgId: string): Promise<AuthResult> {
+  const token = await getAccessTokenAsync();
+  const res = await fetch(`${API_BASE}/auth/switch-org`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: JSON.stringify({ organizationId: orgId }),
+  });
+  const data = await res.json();
+  if (!res.ok) return { error: data.message || "Échec du changement d'organisation" };
+  await saveTokens(data.accessToken, data.refreshToken);
+  await saveUser(data.user);
+  return { accessToken: data.accessToken, user: data.user, organization: data.organization };
 }
 
 export async function fetchWithAuth(url: string, options: RequestInit = {}) {
