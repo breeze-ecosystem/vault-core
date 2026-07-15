@@ -10,6 +10,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { HealthModule } from './modules/health/health.module';
 import { SiteModule } from './modules/site/site.module';
+import { OrganizationModule } from './modules/organization/organization.module';
 import { CameraModule } from './modules/camera/camera.module';
 import { AlertModule } from './modules/alert/alert.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
@@ -63,6 +64,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     UserModule,
     HealthModule,
     SiteModule,
+    OrganizationModule,
     CameraModule,
     AlertModule,
     DashboardModule,
