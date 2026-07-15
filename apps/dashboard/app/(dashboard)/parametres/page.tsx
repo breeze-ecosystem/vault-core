@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "@/components/ui/toast";
-import { updateUser, changePassword } from "@/lib/api";
+import { updateUser, changePassword, getLicenseStatus, getLicenseUsage } from "@/lib/api";
+import { LicenseStatusBadge } from "@/components/license-status-badge";
+import { LicenseUsageBars } from "@/components/license-usage-bars";
+import { LicenseExpiryCountdown } from "@/components/license-expiry-countdown";
 
 export default function ParametresPage() {
   const { user } = useAuth();
@@ -20,6 +23,14 @@ export default function ParametresPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
+
+  const [licenseStatus, setLicenseStatus] = useState<any>(null);
+  const [usage, setUsage] = useState<any>({ cameras: { current: 0, max: null }, doors: { current: 0, max: null } });
+
+  useEffect(() => {
+    getLicenseStatus().then(setLicenseStatus).catch(() => {});
+    getLicenseUsage().then(setUsage).catch(() => {});
+  }, []);
 
   if (!user) return null;
 
@@ -182,6 +193,46 @@ export default function ParametresPage() {
             </div>
           </CardContent>
         </Card>
+
+        {licenseStatus && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Licence</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <LicenseStatusBadge state={licenseStatus.licenseState} />
+              <div className="mt-2">
+                <LicenseExpiryCountdown
+                  state={licenseStatus.licenseState}
+                  expiresAt={licenseStatus.expiresAt}
+                  graceEndsAt={licenseStatus.graceEndsAt}
+                  trialEndsAt={licenseStatus.trialEndsAt}
+                />
+              </div>
+              <div className="mt-4 space-y-3">
+                <LicenseUsageBars
+                  current={usage.cameras.current}
+                  max={usage.cameras.max}
+                  label="Caméras"
+                />
+                <LicenseUsageBars
+                  current={usage.doors.current}
+                  max={usage.doors.max}
+                  label="Portes"
+                />
+              </div>
+              {licenseStatus.licenseState === 'no_license' && (
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => window.location.href = '/licences/activation'}
+                >
+                  Activer une licence
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
