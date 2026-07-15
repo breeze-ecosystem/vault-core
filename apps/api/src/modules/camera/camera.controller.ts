@@ -13,6 +13,8 @@ import { FastifyRequest } from 'fastify';
 import { CameraService } from './camera.service';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { UseGuards } from '@nestjs/common';
+import { LicenseExpiryGuard } from '../license/guards/license-expiry.guard';
 import { AuditService } from '../audit/audit.service';
 import { createCameraSchema, updateCameraSchema } from '@repo/shared';
 import { AlertSeverity } from '@prisma/client';
@@ -45,6 +47,7 @@ export class CameraController {
   }
 
   @Post()
+  @UseGuards(LicenseExpiryGuard)
   @Roles('ADMIN', 'SUPER_ADMIN', 'SUPERVISOR')
   async create(
     @Body(new ZodValidationPipe(createCameraSchema)) body: any,

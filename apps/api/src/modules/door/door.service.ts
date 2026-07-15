@@ -10,6 +10,7 @@ import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
 import Redis from "ioredis";
 import { PrismaService } from "../prisma/prisma.service";
+import { LicenseService } from "../license/license.service";
 import {
   DoorStateMachine,
   IllegalDoorTransitionError,
@@ -47,7 +48,52 @@ export class DoorService {
     private eventEmitter: EventEmitter2,
     @Inject("REDIS") private redis: Redis,
     @InjectQueue("door-alerts") private alertQueue: Queue,
+    private licenseService: LicenseService,
   ) {}
+
+  /**
+   * Validate that the org can create a new door under its license limits.
+   *
+   * Called by door creation endpoints before inserting a new door record.
+   * Follows the same enforcement pattern as CameraService.create() with
+   * the double-barrier approach (D-15): this service-layer check runs
+   * alongside any controller-level guard.
+   *
+   * - If trial: unlimited (D-17), returns without throwing.
+   * - If expired or no_license: throws BadRequestException.
+   * - If active or grace: checks count against maxDoors limit.
+   *
+   * NOTE: This method exists as a hook for future door creation endpoints.
+   * No door.create() controller exists yet — when implemented, call this
+   * method before inserting the door record.
+   */
+  async validateCanCreateDoor(orgId: string): Promise<void> {
+    const licenseStatus = await this.licenseService.getLicenseStatus(orgId);
+
+    if (licenseStatus.licenseState === "expired" || licenseStatus.licenseState === "no_license") {
+      throw new BadRequestException(
+        "Licence expirée — Impossible de créer des portes. Contactez votre administrateur.",
+      );
+    }
+
+    // Trial is unlimited per D-17
+    if (licenseStatus.licenseState === "trial") {
+      return;
+    }
+
+    // Active or grace: check against maxDoors limit
+    if (licenseStatus.maxDoors !== undefined && licenseStatus.maxDoors !== null) {
+      const doorCount = await this.prisma.door.count({
+        where: { organizationId: orgId },
+      });
+
+      if (doorCount >= licenseStatus.maxDoors) {
+        throw new BadRequestException(
+          `Limite de portes atteinte (${licenseStatus.maxDoors}). Contactez votre administrateur pour augmenter votre limite.`,
+        );
+      }
+    }
+  }
 
   // ── MQTT Event Handler (from MqttService) ──
 

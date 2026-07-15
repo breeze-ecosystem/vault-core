@@ -1,10 +1,14 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Prisma, AlertSeverity } from "@prisma/client";
+import { LicenseService } from "../license/license.service";
 
 @Injectable()
 export class CameraService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private licenseService: LicenseService,
+  ) {}
 
   async findAll(filters?: { status?: string; organizationId?: string; page?: number; limit?: number }) {
     const where: Prisma.CameraWhereInput = {};
@@ -47,6 +51,38 @@ export class CameraService {
   }
 
   async create(data: Prisma.CameraCreateInput) {
+    // Check license limits before creating (D-14, D-15 double barrier)
+    const orgId = data.organizationId;
+    const licenseStatus = await this.licenseService.getLicenseStatus(orgId);
+
+    // Expired or no license blocks creation
+    if (licenseStatus.licenseState === "expired" || licenseStatus.licenseState === "no_license") {
+      throw new BadRequestException(
+        "Licence expirée — Impossible de créer des caméras. Contactez votre administrateur.",
+      );
+    }
+
+    // Trial is unlimited per D-17
+    if (licenseStatus.licenseState === "trial") {
+      return this.prisma.camera.create({
+        data,
+        include: { organization: { select: { id: true, name: true } } },
+      });
+    }
+
+    // Active or grace: check against maxCameras limit
+    if (licenseStatus.maxCameras !== undefined && licenseStatus.maxCameras !== null) {
+      const cameraCount = await this.prisma.camera.count({
+        where: { organizationId: orgId },
+      });
+
+      if (cameraCount >= licenseStatus.maxCameras) {
+        throw new BadRequestException(
+          `Limite de caméras atteinte (${licenseStatus.maxCameras}). Contactez votre administrateur pour augmenter votre limite.`,
+        );
+      }
+    }
+
     return this.prisma.camera.create({
       data,
       include: { organization: { select: { id: true, name: true } } },

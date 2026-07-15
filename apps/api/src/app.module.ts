@@ -32,6 +32,7 @@ import { AnprModule } from './modules/anpr/anpr.module';
 import { AiModule } from './modules/ai/ai.module';
 import { EquipmentModule } from './modules/equipment/equipment.module';
 import { GovernanceModule } from './modules/governance/governance.module';
+import { LicenseModule } from './modules/license/license.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { RiskModule } from './modules/risk/risk.module';
 import { PatternsModule } from './modules/patterns/patterns.module';
@@ -94,6 +95,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     PatternsModule,
     MaintenanceModule,
     FeatureGateModule,
+    LicenseModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
