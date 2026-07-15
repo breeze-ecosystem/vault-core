@@ -99,7 +99,7 @@ Plans:
 
 - [x] 04-06-PLAN.md — Feature Gates Infrastructure (FND-07)
 - [x] 04-07-PLAN.md — Hash-Chain Audit Integrity (FND-06)
-- [ ] 04-08-PLAN.md — Dashboard Frontend: Org Switcher + Invites (FND-03, FND-04, FND-05)
+- [x] 04-08-PLAN.md — Dashboard Frontend: Org Switcher + Invites (FND-03, FND-04, FND-05)
 
 **Wave 7** *(blocked on Wave 6 completion)*
 

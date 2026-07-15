@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Commercial Platform — Summary
 status: executing
-stopped_at: Completed 04-06-PLAN.md (feature gate infrastructure)
-last_updated: "2026-07-15T17:51:09.098Z"
+stopped_at: Completed 04-08-PLAN.md (Dashboard org/invite/register UI)
+last_updated: "2026-07-15T17:58:52.846Z"
 last_activity: 2026-07-15
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 11
-  completed_plans: 9
+  completed_plans: 10
   percent: 0
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 04 (commercial-foundation) — EXECUTING
-Plan: 10 of 11
+Plan: 11 of 11
 Status: Ready to execute
 Last activity: 2026-07-15
 
-Progress: [████████░░] 82%
+Progress: [█████████░] 91%
 
 ## Performance Metrics
 
@@ -58,6 +58,7 @@ Progress: [████████░░] 82%
 | Phase 04-commercial-foundation P05 | 12min | 4 tasks | 72 files |
 | Phase 04-commercial-foundation P06 | 2min | 2 tasks | 5 files |
 | Phase 04-commercial-foundation P07 | 3min | - tasks | - files |
+| Phase 04-commercial-foundation P08 | 6min | 4 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -291,6 +292,10 @@ completed: 2026-07-15
 - [Phase 04]: test
 - [Phase 04-commercial-foundation]: Migrated entity-level hash chain trigger to per-organization chain — replaces entity+entity_id chaining with organization_id chaining per D-11
 - [Phase 04-commercial-foundation]: Dual-layer hash computation: app code (Node.js crypto) + DB trigger (pgcrypto) both compute the same org-level SHA256 hash for defense-in-depth
+- [Phase 04-commercial-foundation]: Used native HTML select for role dropdown instead of Radix Select (not installed) — avoids adding new npm dependency
+- [Phase 04-commercial-foundation]: Created Dialog component using already-installed @radix-ui/react-dialog following same pattern as existing DropdownMenu
+- [Phase 04-commercial-foundation]: Invite accept page decodes JWT locally to show org name/role before API call — avoids adding a dedicated validate endpoint
+- [Phase 04-commercial-foundation]: Registration page created from scratch (no existing register page) — follows login page visual pattern
 
 ## Performance
 
@@ -585,6 +590,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-15T17:50:42.312Z
-Stopped at: Completed 04-06-PLAN.md (feature gate infrastructure)
+Last session: 2026-07-15T17:58:52.802Z
+Stopped at: Completed 04-08-PLAN.md (Dashboard org/invite/register UI)
 Resume file: None
