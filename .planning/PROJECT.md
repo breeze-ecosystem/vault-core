@@ -2,7 +2,19 @@
 
 ## What This Is
 
-Oversight Hub is a physical security intelligence platform that unifies video surveillance, access control, and operational security into a single AI-powered system. It serves security teams, IT, facilities, and operations — correlating real-world events (badges, doors, vehicles, incidents, anomalies) with video evidence and automated decision workflows. It replaces fragmented point solutions (separate VMS, ACS, visitor management, incident tracking) with an integrated platform that reduces manual work and accelerates response.
+Oversight Hub is a commercial SaaS platform that delivers AI-powered physical security intelligence — unifying video surveillance, access control, and operational security into a single, premium experience. Sold via subscription and license to security teams, IT, facilities, and operations worldwide, it correlates real-world events (badges, doors, vehicles, incidents, anomalies) with video evidence and automated decision workflows. It replaces fragmented point solutions with an integrated platform that is visually stunning, intuitive, and AI-first.
+
+## Current Milestone: v2.0 Commercial Platform
+
+**Goal:** Transform the v1.0 technical prototype into a production-grade, premium SaaS platform ready for international sale — with deep, polished features, a modern 2026 visual identity, a public marketing website, and subscription/license monetization.
+
+**Target features:**
+- Complete architecture refactor — scalable, multi-tenant, production-grade NestJS patterns
+- Deep feature rebuild — every feature taken from "basic/prototype" to production depth
+- Premium UI/UX redesign — Dashboard + Mobile with modern 2026 design, visual-first, intuitive
+- Public landing page — marketing site, pricing, blog, SEO, international branding
+- Subscription & licensing — Stripe/PayPal billing, plan management, license provisioning
+- AI-first branding — positioning as ultra-advanced, international, modern platform
 
 ## Core Value
 
@@ -12,37 +24,44 @@ Correlate every physical security event with video evidence and AI analysis in r
 
 ### Validated
 
-<!-- Shipped and confirmed valuable. -->
+<!-- Shipped and confirmed valuable. v1.0 delivered the technical foundation. -->
 
-- Video ingestion pipeline (RTSP → FFmpeg frames → AI analysis) — existing
-- Camera management and site organization — existing
-- Real-time alert system with video clip correlation — existing
-- AI-powered frame analysis (object detection, zone intrusion) — existing
-- JWT-based authentication with roles (admin, supervisor, viewer) — existing
-- Notification system (email + push + in-app) — existing
-- Multi-app delivery (NestJS API, Next.js Dashboard, Expo Mobile) — existing
-- Edge agent health monitoring — existing
-- Multi-site site management — existing
+- Video ingestion pipeline (RTSP → FFmpeg frames → AI analysis) — v1.0
+- Camera management and site organization — v1.0
+- Real-time alert system with video clip correlation — v1.0
+- AI-powered frame analysis (object detection, zone intrusion) — v1.0
+- JWT-based authentication with roles (admin, supervisor, viewer) — v1.0
+- Notification system (email + push + in-app) — v1.0
+- Multi-app delivery (NestJS API, Next.js Dashboard, Expo Mobile) — v1.0
+- Edge agent health monitoring — v1.0
+- Multi-site site management — v1.0
+- Access control (badges, QR, mobile credentials, anti-passback, zone rules) — v1.0
+- Door management (forced, held open, unsecured, desynchronized) — v1.0
+- Access event journal correlated with video clips — v1.0
+- Tailgating/piggybacking detection via AI — v1.0
+- Immutable audit logs with hash-chain integrity — v1.0
+- Fine-grained roles (admin, supervisor, operator, viewer, auditor) — v1.0
 
 ### Active
 
-<!-- Current scope. Building toward these. -->
+<!-- v2.0 scope — rebuild with depth, premium quality, and commercial readiness. -->
 
-- [ ] Intelligent access control (badges, QR, mobile credentials, anti-passback, zone rules)
-- [ ] Access event journal correlated with video clips
-- [ ] Door management (forced, held open, unsecured, desynchronized)
-- [ ] Tailgating and piggybacking detection via AI
-- [ ] Visitor management (pre-registration, host assignment, check-in/out, limited validity)
-- [ ] ANPR/LPR vehicle license plate recognition with allowlist/blocklist
-- [ ] Incident management (triage, escalation, assignment, evidence, closure)
-- [ ] Security analytics (loitering, intrusion, unusual activity, per-site metrics)
-- [ ] Equipment health monitoring (cameras, readers, doors, batteries, latency)
-- [ ] Compliance and audit mode (immutable logs, fine-grained roles, encryption, retention)
-- [ ] AI security assistant (natural language event search)
-- [ ] Automatic incident summaries (time, location, people, video, recommended action)
-- [ ] Risk scoring per zone based on recent events and anomalies
-- [ ] Recurring situation detection (false positives, misconfigured readers)
-- [ ] Maintenance + security workflow integration (auto-create tickets)
+- [ ] Architecture refactor — scalable, multi-tenant, clean module boundaries, proper patterns
+- [ ] Backend feature deepening — every existing feature made production-grade (not just "it works")
+- [ ] Premium Dashboard UI/UX — complete redesign, visual-first, modern 2026 design language
+- [ ] Premium Mobile UI/UX — complete redesign for guard/operator workflows
+- [ ] Public landing page — marketing website with product presentation, pricing, blog, SEO
+- [ ] International branding — AI-first positioning, modern design system, global appeal
+- [ ] Subscription & billing system — Stripe/PayPal, plans, invoices, payment management
+- [ ] License management — provisioning, activation, revocation, tenant association
+- [ ] Visitor management (pre-registration, host assignment, check-in/out) — deepened
+- [ ] ANPR/LPR vehicle license plate recognition with allowlist/blocklist — deepened
+- [ ] Incident management (triage, escalation, assignment, evidence, closure) — deepened
+- [ ] Security analytics (loitering, intrusion, unusual activity, per-site metrics) — deepened
+- [ ] Equipment health monitoring (cameras, readers, doors, predictive alerts) — deepened
+- [ ] AI security assistant (natural language queries, auto-summaries) — deepened
+- [ ] Risk scoring per zone and recurring situation detection — deepened
+- [ ] Multi-tenant data isolation and site-level permission scoping
 
 ### Out of Scope
 
@@ -55,11 +74,13 @@ Correlate every physical security event with video evidence and AI analysis in r
 
 ## Context
 
-**Starting point:** The existing codebase already provides video ingestion, camera management, AI frame analysis (Ollama/moondream), real-time alerts (BullMQ + Socket.IO), JWT authentication with roles, multi-site management, an edge agent for health monitoring, and a dual frontend (Next.js Dashboard + Expo Mobile). The architecture is a monorepo (Turborepo) with NestJS API, shared packages (Zod schemas, shared UI), PostgreSQL (Prisma), Redis (BullMQ queues + session cache), and FFmpeg for frame extraction.
+**v1.0 delivered:** The complete technical foundation is in place — video ingestion, camera management, AI frame analysis (Ollama/moondream), access control (badges, QR, mobile, doors, zones), real-time alerts (BullMQ + Socket.IO), JWT authentication with full RBAC, immutable audit logs, visitor management basics, multi-site management, an edge agent, and dual frontends (Next.js Dashboard + Expo Mobile). Deployed on Coolify via Docker Compose with Caddy reverse proxy.
 
-**What exists:** cameras are managed, AI analyzes frames, alerts fire. What's missing is the access control dimension — the platform doesn't yet connect cameras to doors, badges, visitors, vehicles, or incidents. It sees what happens but doesn't control who enters or manage the operational response.
+**v1.0 shortcomings:** Features work at a basic/prototype level — they check boxes but lack production depth. The architecture needs better module boundaries and multi-tenant patterns. The UI is functional but looks like a basic internal tool, not a premium SaaS product. No public website, no monetization, no international branding. The code needs restructuring for maintainability and scale.
 
-**The market:** The physical security industry is consolidating from standalone VMS/ACS into unified platforms (Verkada, Suprema, Genetec, Eagle Eye). The user's positioning as "intelligent physical security platform" rather than "AI camera system" addresses a broader buyer pool — security, IT, facilities, and operations — and aligns with the convergence trend of access control + video + analytics.
+**v2.0 approach:** Rebuild systematically — page by page, feature by feature. Each feature is redesigned in depth (backend patterns, business logic completeness, UI polish) before moving to the next. Add the commercial layer (subscriptions, licensing, landing page, branding) as a first-class concern. Position as an international, AI-first, premium platform.
+
+**The market:** Physical security industry consolidating from standalone VMS/ACS into unified platforms (Verkada, Suprema, Genetec, Eagle Eye). Positioned as "intelligent physical security platform" addresses security, IT, facilities, and operations buyers. Multiple revenue streams via subscription tiers, per-site licensing, and premium AI features. Target: global, not restricted to any single geography.
 
 ## Constraints
 
@@ -74,10 +95,12 @@ Correlate every physical security event with video evidence and AI analysis in r
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Build on existing NestJS monorepo | Significant video + alert infrastructure already exists | — Pending |
-| Phase 1: Unified Security first | User's recommended starting point — access control + video correlation + door management = highest value/feasibility ratio | — Pending |
-| Coarse granularity (3-5 phases) | Platform is large but should ship in coherent vertical slices | — Pending |
-| No hardware manufacturing | Software platform only; integrate with standard protocols (Wiegand, OSDP, ONVIF) | — Pending |
+| Build on existing NestJS monorepo | Significant video + alert infrastructure already exists from v1.0 | ✓ Good |
+| Coarse granularity (5-8 phases) | Platform is large but ships in coherent vertical slices | — Pending |
+| No hardware manufacturing | Software platform only; integrate with standard protocols | ✓ Good |
+| v2.0: Page-by-page + feature-by-feature rebuild | Isolated rebuild ensures each piece is production-grade | — Pending |
+| v2.0: Premium commercial SaaS positioning | AI-first, international branding, subscription/license monetization | — Pending |
+| v2.0: Multi-tenant from day one | Avoids retrofitting tenant isolation later; essential for SaaS billing | — Pending |
 
 ## Evolution
 
@@ -97,4 +120,5 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-14 after initialization*
+---
+*Last updated: 2026-07-15 — start of milestone v2.0*
