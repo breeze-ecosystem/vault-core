@@ -7,6 +7,7 @@ import {
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../prisma/prisma.service";
+import { InviteService } from "../organization/invite/invite.service";
 import * as bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 
@@ -15,7 +16,8 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
-    private config: ConfigService
+    private config: ConfigService,
+    private inviteService: InviteService,
   ) {}
 
   async register(data: {
@@ -279,6 +281,15 @@ export class AuthService {
       user: { id: userId, email: user.email },
       organization: { id: targetOrgId, role: membership.role },
     };
+  }
+
+  async acceptInvite(
+    token: string,
+    password?: string,
+    firstName?: string,
+    lastName?: string,
+  ) {
+    return this.inviteService.acceptInvite(token, password, firstName, lastName);
   }
 
   async getUserOrganizations(userId: string) {

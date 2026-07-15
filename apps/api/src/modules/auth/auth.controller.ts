@@ -17,7 +17,7 @@ import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { Public } from '../../common/decorators/public.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AuditService } from '../audit/audit.service';
-import { loginSchema, registerSchema, refreshSchema, switchOrgSchema } from '@repo/shared';
+import { loginSchema, registerSchema, refreshSchema, switchOrgSchema, acceptInviteSchema } from '@repo/shared';
 import {
   LoginDto,
   RegisterDto,
@@ -137,6 +137,51 @@ export class AuthController {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
       user: result.user,
+    };
+  }
+
+  @Public()
+  @Post('accept-invite')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Accept an invite using a JWT token' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        token: { type: 'string', description: 'Invite token from email' },
+        password: { type: 'string', description: 'Password for new users' },
+        firstName: { type: 'string', description: 'First name' },
+        lastName: { type: 'string', description: 'Last name' },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'Invite accepted, tokens issued' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired token' })
+  @ApiResponse({ status: 409, description: 'Invite already accepted' })
+  async acceptInvite(
+    @Body(new ZodValidationPipe(acceptInviteSchema)) body: any,
+    @Res({ passthrough: true }) res: FastifyReply,
+  ) {
+    const result = await this.authService.acceptInvite(
+      body.token,
+      body.password,
+      body.firstName,
+      body.lastName,
+    );
+
+    res.setCookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      path: '/api/auth',
+      maxAge: 7 * 24 * 60 * 60,
+      sameSite: 'lax',
+    });
+
+    return {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      user: result.user,
+      organization: result.organization,
     };
   }
 
