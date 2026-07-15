@@ -147,6 +147,16 @@ None - no external service configuration required.
 - Ready for **Plan 05-03** (Dashboard license management UI — connecting the frontend to these API endpoints)
 - Note: LicenseApiKey model requires a `keyHash @unique` constraint (already in schema.prisma from Plan 1). The `findFirst` pattern used in the guard accounts for this correctly.
 
+## Self-Check: PASSED
+
+- [x] All 8 license module files created and verified on disk
+- [x] All 5 commits present in git log (3 feat + 1 chore + 1 docs)
+- [x] All 3 tasks executed and committed atomically
+- [x] All Task 1 acceptance criteria pass (jwt.sign count, jwt.verify count, trialEndDate count)
+- [x] All Task 2 acceptance criteria pass (guards, controller endpoints, module exports)
+- [x] All Task 3 acceptance criteria pass (AppModule, camera limits, door hook, controller guard)
+- [x] SUMMARY.md created with substantive content
+
 ---
 
 *Phase: 05-monetization*
