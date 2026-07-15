@@ -20,7 +20,7 @@ export interface AIQueryResult {
 export interface TimelineEntry {
   time: string;
   event_type: string;
-  site_id: string;
+  organization_id: string;
   door_id?: string;
   door_name?: string;
   credential_id?: string;

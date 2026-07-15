@@ -1,7 +1,7 @@
 export interface CameraHealthDto {
   time?: string;
   cameraId: string;
-  siteId: string;
+  organizationId: string;
   status: string;
   fpsActual?: number;
   fpsExpected?: number;
@@ -12,7 +12,7 @@ export interface CameraHealthDto {
 export interface ReaderHealthDto {
   time?: string;
   readerId: string;
-  siteId: string;
+  organizationId: string;
   status: string;
   failedReads?: number;
   responseTimeMs?: number;
@@ -23,7 +23,7 @@ export interface ReaderHealthDto {
 export interface ControllerHealthDto {
   time?: string;
   controllerId: string;
-  siteId: string;
+  organizationId: string;
   batteryLevel?: number;
   connectionStability?: string;
   firmwareVersion?: string;
@@ -34,7 +34,7 @@ export interface ControllerHealthDto {
 export interface PredictionDto {
   id: string;
   time: string;
-  siteId: string;
+  organizationId: string;
   deviceType: string;
   deviceId: string;
   deviceName?: string;
@@ -60,7 +60,7 @@ export interface CameraDoorAssociationDto {
 }
 
 export interface PredictiveQueryParams {
-  siteId?: string;
+  organizationId?: string;
   deviceType?: string;
   metric?: string;
   triggeredAlert?: boolean;

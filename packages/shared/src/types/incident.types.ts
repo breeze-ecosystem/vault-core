@@ -6,7 +6,7 @@ export interface IncidentDto {
   description?: string | null;
   severity: AlertSeverity;
   status: string;
-  siteId: string;
+  organizationId: string;
   sourceType?: string | null;
   sourceId?: string | null;
   assignedToId?: string | null;
@@ -61,7 +61,7 @@ export interface CreateIncidentInput {
   title: string;
   description?: string;
   severity: AlertSeverity;
-  siteId: string;
+  organizationId: string;
   sourceType?: string;
   sourceId?: string;
 }

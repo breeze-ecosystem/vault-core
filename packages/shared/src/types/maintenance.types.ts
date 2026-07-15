@@ -4,7 +4,7 @@ export interface MaintenanceTicketDto {
   description?: string;
   severity: string;
   status: string;
-  siteId: string;
+  organizationId: string;
   assignedToId?: string;
   assignedToName?: string;
   deviceType?: string;
@@ -22,7 +22,7 @@ export interface UnifiedIncidentDto {
   severity: string;
   status: string;
   ticketType: "SECURITY_INCIDENT" | "MAINTENANCE_TICKET";
-  siteId: string;
+  organizationId: string;
   siteName?: string;
   assignedToName?: string;
   deviceType?: string;

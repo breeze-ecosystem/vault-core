@@ -1,6 +1,6 @@
 export interface ZoneAnalyticsDto {
   zoneId: string;
-  siteId: string;
+  organizationId: string;
   zoneName: string;
   bucket: string;
   deniedCount: number;
@@ -11,7 +11,7 @@ export interface ZoneAnalyticsDto {
 }
 
 export interface SiteAnalyticsDto {
-  siteId: string;
+  organizationId: string;
   siteName: string;
   bucket: string;
   totalDenied: number;
@@ -24,7 +24,7 @@ export interface SiteAnalyticsDto {
 export interface IntrusionEventDto {
   id: string;
   zoneId: string;
-  siteId: string;
+  organizationId: string;
   doorId?: string;
   detectedAt: string;
   cameraId?: string;
@@ -36,7 +36,7 @@ export interface IntrusionEventDto {
 export interface LoiteringEventDto {
   id: string;
   zoneId: string;
-  siteId: string;
+  organizationId: string;
   startedAt: string;
   durationSeconds: number;
   doorId?: string;
@@ -47,7 +47,7 @@ export interface LoiteringEventDto {
 
 export interface AbnormalActivityDto {
   zoneId: string;
-  siteId: string;
+  organizationId: string;
   metric: string;
   currentValue: number;
   baselineMean: number;
@@ -64,7 +64,7 @@ export interface AnalyticsTrendPoint {
 }
 
 export interface AnalyticsQueryParams {
-  siteId?: string;
+  organizationId?: string;
   zoneId?: string;
   from?: string;
   to?: string;

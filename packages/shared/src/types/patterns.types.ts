@@ -1,7 +1,7 @@
 export interface DetectedPatternDto {
   id: string;
   time: string;
-  siteId: string;
+  organizationId: string;
   patternId: string;
   patternName: string;
   deviceType: "door" | "reader" | "camera" | "controller";
@@ -24,7 +24,7 @@ export interface PatternDefinition {
 }
 
 export interface PatternsQueryParams {
-  siteId?: string;
+  organizationId?: string;
   deviceType?: string;
   severity?: string;
   resolved?: boolean;

@@ -11,7 +11,7 @@ export interface DoorStateDto {
 
 export interface DoorAlertJob {
   doorId: string;
-  siteId: string;
+  organizationId: string;
   state: DoorState;
   reason: string;
   timestamp: string;

@@ -2,7 +2,7 @@ export interface VehicleListEntryDto {
   id: string;
   type: "allowlist" | "blocklist";
   plate: string;
-  siteId: string;
+  organizationId: string;
   description?: string | null;
   isActive: boolean;
   createdById: string;
@@ -13,7 +13,7 @@ export interface VehicleListEntryDto {
 
 export interface VehicleEventDto {
   time: string;
-  siteId: string;
+  organizationId: string;
   cameraId?: string | null;
   plate: string;
   confidence?: number | null;
@@ -26,14 +26,14 @@ export interface VehicleEventDto {
 export interface CreateVehicleListEntryInput {
   type: "allowlist" | "blocklist";
   plate: string;
-  siteId: string;
+  organizationId: string;
   description?: string;
   isActive?: boolean;
 }
 
 export interface VehicleEventQueryInput {
   plate?: string;
-  siteId?: string;
+  organizationId?: string;
   from?: string;
   to?: string;
   decision?: string;

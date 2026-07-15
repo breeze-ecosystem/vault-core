@@ -22,7 +22,7 @@ export interface PaginatedTimelineResponse {
 export interface CorrelationJob {
   eventType: string;
   doorId: string;
-  siteId: string;
+  organizationId: string;
   credentialId?: string;
   userId?: string;
   reason?: string;
@@ -31,7 +31,7 @@ export interface CorrelationJob {
 
 export interface TailgatingJob {
   doorId: string;
-  siteId: string;
+  organizationId: string;
   eventTimestamp: string;
   accessEventId: string;
 }

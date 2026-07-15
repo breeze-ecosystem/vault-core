@@ -42,7 +42,7 @@ export interface ScheduleEntry {
 
 export interface DoorStateEvent {
   doorId: string;
-  siteId: string;
+  organizationId: string;
   state: DoorState;
   previousState?: DoorState;
   sequence: number;
@@ -51,7 +51,7 @@ export interface DoorStateEvent {
 }
 
 export interface BadgeReadEvent {
-  siteId: string;
+  organizationId: string;
   readerId: string;
   badgeNumber: string;
   sequence: number;

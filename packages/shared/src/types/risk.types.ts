@@ -9,7 +9,7 @@ export interface RiskFactors {
 
 export interface RiskScoreDto {
   zoneId: string;
-  siteId: string;
+  organizationId: string;
   zoneName: string;
   siteName: string;
   score: number;
@@ -27,7 +27,7 @@ export interface RiskTrendPoint {
 }
 
 export interface SiteRiskSummary {
-  siteId: string;
+  organizationId: string;
   siteName: string;
   averageScore: number;
   maxScore: number;
