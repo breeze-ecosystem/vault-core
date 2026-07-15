@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Commercial Platform — Summary
 status: executing
-stopped_at: Completed 04-04b-PLAN.md (Invite module)
-last_updated: "2026-07-15T17:23:46.710Z"
+stopped_at: Completed 04-05-PLAN.md (siteId→organizationId rename)
+last_updated: "2026-07-15T17:37:27.840Z"
 last_activity: 2026-07-15
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 11
-  completed_plans: 6
+  completed_plans: 7
   percent: 0
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 04 (commercial-foundation) — EXECUTING
-Plan: 7 of 11
+Plan: 8 of 11
 Status: Ready to execute
 Last activity: 2026-07-15
 
-Progress: [██████░░░░] 55%
+Progress: [██████░░░░] 64%
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Progress: [██████░░░░] 55%
 | Phase 04-commercial-foundation P04a | 3min | 4 tasks | 8 files |
 | Phase 04-commercial-foundation P03b | 2min | 3 tasks | 4 files |
 | Phase 04-commercial-foundation P04b | 3min | 3 tasks | 7 files |
+| Phase 04-commercial-foundation P05 | 12min | 4 tasks | 72 files |
 
 ## Accumulated Context
 
@@ -283,6 +284,8 @@ completed: 2026-07-15
 # Phase 04 Plan 03b: Tenant Isolation Integration Layer Summary
 
 **CurrentOrg decorator, TenantIsolationGuard (with @Public() bypass), RLS policies migration for 12 scoped tables, and AppModule wiring replacing SiteContextMiddleware with TenantContextMiddleware**
+
+- [Phase 04-commercial-foundation]: Used orgId for BullMQ job data and gateway events (shorthand), organizationId for Prisma queries (exact field name) — Matches existing convention where Prisma fields use full camelCase names while internal data transfer uses abbreviations
 
 ## Performance
 
@@ -577,6 +580,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-15T17:23:46.628Z
-Stopped at: Completed 04-04b-PLAN.md (Invite module)
+Last session: 2026-07-15T17:37:27.785Z
+Stopped at: Completed 04-05-PLAN.md (siteId→organizationId rename)
 Resume file: None

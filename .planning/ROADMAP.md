@@ -93,7 +93,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 04-05-PLAN.md — Codebase Rename: 52-file siteId→organizationId (FND-01, FND-02)
+- [x] 04-05-PLAN.md — Codebase Rename: 52-file siteId→organizationId (FND-01, FND-02)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
