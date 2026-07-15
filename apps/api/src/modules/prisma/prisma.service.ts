@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
+import { tenantExtension } from "./tenant-extension";
 
 @Injectable()
 export class PrismaService
@@ -9,6 +10,10 @@ export class PrismaService
   private readonly logger = new Logger(PrismaService.name);
 
   async onModuleInit() {
+    // Attach tenant isolation extension BEFORE connecting so the extension
+    // is available even if the database connection is retried.
+    this.$extends(tenantExtension);
+
     try {
       await this.$connect();
       this.logger.log("Database connected");
