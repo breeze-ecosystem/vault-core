@@ -1,6 +1,10 @@
-import { Card, CardContent } from "@/components/ui/card";
+"use client";
+
+import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
+import { GlassCard } from "@/components/glass-card";
+import { itemVariants } from "@/components/page-transition";
 
 interface StatsCardProps {
   title: string;
@@ -13,9 +17,8 @@ interface StatsCardProps {
 
 export function StatsCard({ title, value, description, icon: Icon, iconColor, trend }: StatsCardProps) {
   return (
-    <Card className="group relative overflow-hidden transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
-      <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-      <CardContent className="p-5">
+    <motion.div variants={itemVariants}>
+      <GlassCard variant="default" className="group p-5 transition-all duration-300 hover:border-primary/30">
         <div className="flex items-start justify-between">
           <div className="space-y-1.5">
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -43,7 +46,7 @@ export function StatsCard({ title, value, description, icon: Icon, iconColor, tr
             <span className="text-muted-foreground">vs. hier</span>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </GlassCard>
+    </motion.div>
   );
 }

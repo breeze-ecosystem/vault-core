@@ -34,7 +34,7 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b bg-background/80 backdrop-blur-xl px-6">
+    <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b glass-premium px-6">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-success status-pulse" />
