@@ -85,7 +85,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 04-03b-PLAN.md — Tenant Isolation Integration: Guard + Decorator + RLS Migration + AppModule Wiring (FND-01, FND-02)
+- [x] 04-03b-PLAN.md — Tenant Isolation Integration: Guard + Decorator + RLS Migration + AppModule Wiring (FND-01, FND-02)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
