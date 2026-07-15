@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { StatsCard } from "@/components/stats-card";
-import { RecentActivity } from "@/components/recent-activity";
+import { motion } from "motion/react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,18 +12,27 @@ import {
   type DashboardStats,
   type Camera,
 } from "@/lib/api";
+import { toast } from "@/components/ui/toast";
 import {
   Video,
   AlertTriangle,
   MapPin,
   Users,
+  Plus,
+  FileText,
+  Activity,
   Wifi,
   WifiOff,
   Eye,
-  Activity,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { MetricHero } from "@/components/metric-hero";
+import { DonutChart } from "@/components/donut-chart";
+import { QuickActionBar } from "@/components/quick-action-bar";
+import { ActivityTimeline } from "@/components/activity-timeline";
+import { GlassCard } from "@/components/glass-card";
+import { containerVariants, itemVariants } from "@/components/page-transition";
 
 const statusConfig = {
   ONLINE: { label: "En ligne", color: "bg-success/10 text-success border-success/20", dot: "bg-success" },
@@ -37,50 +45,6 @@ function getStatusConfig(status: string) {
   return status in statusConfig
     ? statusConfig[status as keyof typeof statusConfig]
     : statusConfig.OFFLINE;
-}
-
-function CameraCard({ camera }: { camera: Camera }) {
-  const sc = getStatusConfig(camera.status);
-
-  return (
-    <Card className="group overflow-hidden transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
-      <div className="relative aspect-video bg-muted overflow-hidden">
-        {camera.lastSnapshotUrl ? (
-          <Image
-            src={camera.lastSnapshotUrl}
-            alt={camera.name}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            unoptimized
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center">
-            <Video className="h-10 w-10 text-muted-foreground/20" />
-          </div>
-        )}
-        <div className="absolute top-2 right-2">
-          <Badge className={`${sc.color} backdrop-blur-sm text-[11px] border`}>
-            <span className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${sc.dot} ${camera.status === "ONLINE" ? "status-pulse" : ""}`} />
-            {sc.label}
-          </Badge>
-        </div>
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-          <Link href={`/cameras/${camera.id}`}>
-            <Button size="sm" variant="secondary" className="gap-2 backdrop-blur-sm">
-              <Eye className="h-4 w-4" />
-              Voir le flux
-            </Button>
-          </Link>
-        </div>
-      </div>
-      <CardContent className="p-3">
-        <p className="truncate text-sm font-medium">{camera.name}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          {camera.site?.name || "Aucun site"}
-        </p>
-      </CardContent>
-    </Card>
-  );
 }
 
 export default function OverviewPage() {
@@ -121,12 +85,29 @@ export default function OverviewPage() {
 
   const onlineCount = cameras.filter((c) => c.status === "ONLINE").length;
   const offlineCount = cameras.filter((c) => c.status === "OFFLINE").length;
+  const severityData = stats?.recentAlerts
+    ? Object.entries(
+        stats.recentAlerts.reduce(
+          (acc, a) => {
+            const key = a.severity === "CRITICAL" ? "Critique" : a.severity === "HIGH" ? "Élevée" : a.severity === "MEDIUM" ? "Moyenne" : "Basse";
+            acc[key] = (acc[key] || 0) + 1;
+            return acc;
+          },
+          {} as Record<string, number>
+        )
+      ).map(([name, value]) => ({
+        name,
+        value: value as number,
+        color:
+          name === "Critique" ? "#ef4444" : name === "Élevée" ? "#f59e0b" : name === "Moyenne" ? "#06b6d4" : "#94a3b8",
+      }))
+    : [];
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Vue d&apos;ensemble</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Vue d&apos;ensemble</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Résumé de l&apos;activité du système de surveillance
           </p>
@@ -137,7 +118,12 @@ export default function OverviewPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+      >
         {loading ? (
           <>
             {Array.from({ length: 4 }).map((_, i) => (
@@ -156,45 +142,73 @@ export default function OverviewPage() {
           </>
         ) : (
           <>
-            <StatsCard
+            <MetricHero
               title="Caméras en ligne"
               value={`${stats?.cameras.online ?? 0} / ${stats?.cameras.total ?? 0}`}
-              description={`${stats?.cameras.offline ?? 0} hors ligne`}
               icon={Video}
-              iconColor="text-success"
               trend={{ value: 12, positive: true }}
+              description={`${stats?.cameras.offline ?? 0} hors ligne`}
+              sparklineData={[4, 6, 5, 8, 7, 9, 8, 10]}
             />
-            <StatsCard
+            <MetricHero
               title="Alertes actives"
               value={stats?.alerts.open ?? 0}
-              description={`${stats?.alerts.critical ?? 0} critiques`}
               icon={AlertTriangle}
-              iconColor="text-warning"
+              description={`${stats?.alerts.critical ?? 0} critiques`}
+              sparklineData={[3, 5, 4, 6, 7, 5, 4, 3]}
             />
-            <StatsCard
+            <MetricHero
               title="Sites actifs"
               value={stats?.sites.active ?? 0}
-              description={`${stats?.sites.total ?? 0} total`}
               icon={MapPin}
-              iconColor="text-primary"
+              description={`${stats?.sites.total ?? 0} total`}
             />
-            <StatsCard
+            <MetricHero
               title="Utilisateurs"
               value={stats?.users.total ?? 0}
-              description="Comptes enregistrés"
               icon={Users}
-              iconColor="text-purple-500"
+              description="Comptes enregistrés"
             />
           </>
         )}
+      </motion.div>
+
+      {!loading && (
+        <QuickActionBar
+          actions={[
+            { id: "add-camera", label: "Ajouter une caméra", icon: Plus, onClick: () => window.location.href = "/cameras" },
+            { id: "view-alerts", label: "Voir les alertes", icon: AlertTriangle, onClick: () => window.location.href = "/alertes" },
+            { id: "report", label: "Générer un rapport", icon: FileText, onClick: () => toast("Fonctionnalité à venir") },
+            { id: "view-feed", label: "Voir le flux", icon: Video, onClick: () => window.location.href = "/cameras" },
+          ]}
+        />
+      )}
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          {loading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-14 w-full rounded-lg" />
+              ))}
+            </div>
+          ) : (
+            <ActivityTimeline alerts={stats?.recentAlerts ?? []} />
+          )}
+        </div>
+        <div>
+          {!loading && severityData.length > 0 && (
+            <DonutChart data={severityData} />
+          )}
+        </div>
       </div>
 
-      <Card className="overflow-hidden">
-        <CardHeader className="flex flex-row items-center justify-between pb-3 border-b">
-          <CardTitle className="text-sm flex items-center gap-2">
+      <GlassCard variant="default" className="overflow-hidden">
+        <div className="flex flex-row items-center justify-between p-4 pb-3 border-b">
+          <div className="flex items-center gap-2 text-sm font-semibold">
             <Video className="h-4 w-4 text-primary" />
             Aperçu des caméras
-          </CardTitle>
+          </div>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5">
               <Wifi className="h-3.5 w-3.5 text-success" />
@@ -210,18 +224,18 @@ export default function OverviewPage() {
               </Button>
             </Link>
           </div>
-        </CardHeader>
-        <CardContent className="p-4">
+        </div>
+        <div className="p-4">
           {loading ? (
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {Array.from({ length: 8 }).map((_, i) => (
-                <Card key={i} className="overflow-hidden">
+                <div key={i} className="rounded-xl overflow-hidden border bg-card">
                   <Skeleton className="aspect-video rounded-none" />
                   <div className="p-3 space-y-2">
                     <Skeleton className="h-4 w-3/4" />
                     <Skeleton className="h-3 w-1/2" />
                   </div>
-                </Card>
+                </div>
               ))}
             </div>
           ) : cameras.length === 0 ? (
@@ -233,34 +247,59 @@ export default function OverviewPage() {
               </Link>
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {cameras.map((camera) => (
-                <CameraCard key={camera.id} camera={camera} />
-              ))}
-            </div>
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+            >
+              {cameras.map((camera) => {
+                const sc = getStatusConfig(camera.status);
+                return (
+                  <motion.div key={camera.id} variants={itemVariants} className="group rounded-xl overflow-hidden border bg-card hover:border-primary/30 transition-all duration-200">
+                    <div className="relative aspect-video bg-muted overflow-hidden">
+                      {camera.lastSnapshotUrl ? (
+                        <Image
+                          src={camera.lastSnapshotUrl}
+                          alt={camera.name}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          unoptimized
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center">
+                          <Video className="h-10 w-10 text-muted-foreground/20" />
+                        </div>
+                      )}
+                      <div className="absolute top-2 right-2">
+                        <Badge className={`${sc.color} backdrop-blur-sm text-[11px] border`}>
+                          <span className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${sc.dot} ${camera.status === "ONLINE" ? "status-pulse" : ""}`} />
+                          {sc.label}
+                        </Badge>
+                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                        <Link href={`/cameras/${camera.id}`}>
+                          <Button size="sm" variant="secondary" className="gap-2 backdrop-blur-sm">
+                            <Eye className="h-4 w-4" />
+                            Voir le flux
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                    <div className="p-3">
+                      <p className="truncate text-sm font-medium">{camera.name}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {camera.site?.name || "Aucun site"}
+                      </p>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
           )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-3 border-b">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Activity className="h-4 w-4 text-primary" />
-            Activité récente
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="p-4 space-y-3">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-14 w-full rounded-lg" />
-              ))}
-            </div>
-          ) : (
-            <RecentActivity alerts={stats?.recentAlerts ?? []} />
-          )}
-        </CardContent>
-      </Card>
+        </div>
+      </GlassCard>
     </div>
   );
 }
