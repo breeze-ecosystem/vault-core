@@ -2174,3 +2174,92 @@ export async function fetchUnifiedIncidents(params?: {
   if (!res.ok) throw new Error("Échec du chargement de la vue unifiée");
   return res.json();
 }
+
+// ─── License Types ───
+
+export interface LicenseStatusDto {
+  licenseState: 'trial' | 'active' | 'grace' | 'expired' | 'no_license';
+  expiresAt?: string;
+  graceEndsAt?: string;
+  trialEndsAt?: string;
+  maxCameras?: number;
+  maxDoors?: number;
+  isUnlimited?: boolean;
+}
+
+export interface LicenseUsageDto {
+  cameras: { current: number; max: number | null };
+  doors: { current: number; max: number | null };
+}
+
+export interface LicenseDto {
+  id: string;
+  organizationId: string;
+  licenseJwt: string;
+  status: string;
+  activatedAt: string | null;
+  expiresAt: string;
+  maxCameras: number;
+  maxDoors: number;
+  gracePeriodDays: number;
+  licenseVersion: number;
+  createdAt: string;
+  organization?: { id: string; name: string };
+}
+
+// ─── License API Functions ───
+
+export async function getLicenseStatus(): Promise<LicenseStatusDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/licenses/status`);
+  if (!res.ok) throw new Error('Échec du chargement du statut de la licence');
+  return res.json();
+}
+
+export async function getLicenseUsage(): Promise<LicenseUsageDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/licenses/usage`);
+  if (!res.ok) throw new Error("Échec du chargement de l'utilisation");
+  return res.json();
+}
+
+export async function activateLicense(licenseJwt: string): Promise<{ status: string; claims: any }> {
+  const res = await fetchWithAuth(`${API_URL}/api/licenses/activate`, {
+    method: 'POST',
+    body: JSON.stringify({ licenseJwt }),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de l'activation de la licence");
+  }
+  return res.json();
+}
+
+export async function listLicenses(): Promise<LicenseDto[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/licenses`);
+  if (!res.ok) throw new Error('Échec du chargement des licences');
+  return res.json();
+}
+
+export async function listApiKeys(): Promise<{ id: string; name: string; keyPrefix: string; isActive: boolean; createdAt: string }[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/licenses/api-keys`);
+  if (!res.ok) throw new Error('Échec du chargement des clés API');
+  return res.json();
+}
+
+export async function createApiKey(name: string): Promise<{ rawKey: string; keyPrefix: string; id: string }> {
+  const res = await fetchWithAuth(`${API_URL}/api/licenses/api-keys`, {
+    method: 'POST',
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de la création de la clé API");
+  }
+  return res.json();
+}
+
+export async function revokeApiKey(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/licenses/api-keys/${id}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error("Échec de la révocation de la clé API");
+}

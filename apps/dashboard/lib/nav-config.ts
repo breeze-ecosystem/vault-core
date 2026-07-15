@@ -90,6 +90,7 @@ const groups: NavGroup[] = [
     items: [
       { label: "Audit", href: "/audit", icon: Shield, minRole: "ADMIN" as Role },
       { label: "Gouvernance", href: "/gouvernance", icon: ShieldCheck, minRole: "ADMIN" as Role },
+      { label: "Licences", href: "/licences", icon: Key, minRole: "ADMIN" as Role },
     ],
   },
   {
