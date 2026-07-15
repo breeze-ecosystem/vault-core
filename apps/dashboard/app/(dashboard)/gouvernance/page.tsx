@@ -105,22 +105,22 @@ export default function GovernancePage() {
   async function handleCreate() {
     try {
       await createRetentionPolicy(form);
-      toast({ title: "Politique créée", variant: "success" });
+      toast("Politique créée", "success");
       resetForm();
       loadPolicies();
     } catch (err: any) {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+      toast("Erreur : " + (err.message ?? String(err)), "error");
     }
   }
 
   async function handleUpdate(id: string) {
     try {
       await updateRetentionPolicy(id, { retentionDays: form.retentionDays, enabled: form.enabled });
-      toast({ title: "Politique mise à jour", variant: "success" });
+      toast("Politique mise à jour", "success");
       resetForm();
       loadPolicies();
     } catch (err: any) {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+      toast("Erreur : " + (err.message ?? String(err)), "error");
     }
   }
 
@@ -128,10 +128,10 @@ export default function GovernancePage() {
     if (!confirm("Supprimer cette politique de rétention ?")) return;
     try {
       await deleteRetentionPolicy(id);
-      toast({ title: "Politique supprimée", variant: "success" });
+      toast("Politique supprimée", "success");
       loadPolicies();
     } catch (err: any) {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+      toast("Erreur : " + (err.message ?? String(err)), "error");
     }
   }
 
@@ -140,7 +140,7 @@ export default function GovernancePage() {
       await updateRetentionPolicy(id, { enabled: !currentEnabled });
       loadPolicies();
     } catch (err: any) {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+      toast("Erreur : " + (err.message ?? String(err)), "error");
     }
   }
 
@@ -149,7 +149,7 @@ export default function GovernancePage() {
       const result = await testEncrypt(encryptValue);
       setEncryptResult(result.encrypted);
     } catch (err: any) {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+      toast("Erreur : " + (err.message ?? String(err)), "error");
     }
   }
 
@@ -158,7 +158,7 @@ export default function GovernancePage() {
       const result = await testDecrypt(decryptValue);
       setDecryptResult(result.decrypted);
     } catch (err: any) {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+      toast("Erreur : " + (err.message ?? String(err)), "error");
     }
   }
 
