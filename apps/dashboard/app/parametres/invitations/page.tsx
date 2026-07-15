@@ -35,12 +35,14 @@ const ROLE_OPTIONS = [
   { value: "VIEWER", label: "Observateur" },
 ];
 
-const STATUS_CONFIG: Record<string, { label: string; variant: "outline" | "secondary" | "destructive" | "success" | "warning" }> = {
-  PENDING: { label: "En attente", variant: "warning" },
-  ACCEPTED: { label: "Acceptée", variant: "success" },
-  EXPIRED: { label: "Expirée", variant: "destructive" },
-  REVOKED: { label: "Révoquée", variant: "secondary" },
-};
+function getStatusConfig(status: string): { label: string; variant: "outline" | "secondary" | "destructive" | "success" | "warning" } {
+  switch (status) {
+    case "ACCEPTED": return { label: "Acceptée", variant: "success" };
+    case "EXPIRED": return { label: "Expirée", variant: "destructive" };
+    case "REVOKED": return { label: "Révoquée", variant: "secondary" };
+    default: return { label: "En attente", variant: "warning" };
+  }
+}
 
 function formatDate(dateStr: string): string {
   try {
@@ -286,7 +288,7 @@ export default function InvitationsPage() {
             </thead>
             <tbody>
               {invites.map((invite) => {
-                const statusCfg = STATUS_CONFIG[invite.status] || STATUS_CONFIG.PENDING;
+                const statusCfg = getStatusConfig(invite.status);
                 return (
                   <tr key={invite.id} className="border-b border-border transition-colors hover:bg-muted/30">
                     <td className="px-4 py-3">{invite.email}</td>
