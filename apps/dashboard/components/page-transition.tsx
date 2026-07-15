@@ -1,9 +1,9 @@
 "use client";
 
-import { motion, AnimatePresence } from "motion/react";
+import { motion, type Variants, AnimatePresence } from "motion/react";
 import { usePathname } from "next/navigation";
 
-export const containerVariants = {
+export const containerVariants: Variants = {
   hidden: {},
   visible: {
     transition: {
@@ -13,7 +13,7 @@ export const containerVariants = {
   },
 };
 
-export const itemVariants = {
+export const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,

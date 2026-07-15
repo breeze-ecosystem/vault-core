@@ -27,22 +27,24 @@ export function Sparkline({
     })
     .join(" ");
 
-  const polyPoints = data
-    .map((val, i) => {
-      const x = i * 10 + 5;
-      const y = height - ((val - min) / range) * (height - 4) - 2;
-      return `${x},${y}`;
-    });
+  if (data.length < 2) return null;
 
-  const gradientPath = polyPoints.length > 1
-    ? `M${polyPoints[0]} L${polyPoints.slice(1).map((p, i) => {
-        const [px] = p.split(",").map(Number);
-        const [prevX, prevY] = polyPoints[i].split(",").map(Number);
-        const cpx1 = prevX + (px - prevX) * 0.4;
-        const cpx2 = prevX + (px - prevX) * 0.6;
-        return `C${cpx1},${prevY} ${cpx2},${Number(p.split(",")[1])} ${px},${Number(p.split(",")[1])}`;
-      }).join(" ")} L${polyPoints[polyPoints.length - 1].split(",")[0]},${height} L5,${height} Z`
-    : "";
+  const step = 10;
+  const polyPoints = data.map((val, i) => ({
+    x: i * step + 5,
+    y: height - ((val - min) / range) * (height - 4) - 2,
+  }));
+
+  let gradientPath = "";
+  if (polyPoints.length >= 2) {
+    const first = polyPoints[0]!;
+    const last = polyPoints[polyPoints.length - 1]!;
+    const curvePoints = polyPoints.slice(1).map((p, i) => {
+      const prev = polyPoints[i]!;
+      return `C${prev.x + (p.x - prev.x) * 0.4},${prev.y} ${prev.x + (p.x - prev.x) * 0.6},${p.y} ${p.x},${p.y}`;
+    }).join(" ");
+    gradientPath = `M${first.x},${first.y} ${curvePoints} L${last.x},${height} L5,${height} Z`;
+  }
 
   return (
     <svg
