@@ -4,13 +4,13 @@ milestone: v2.0
 milestone_name: Commercial Platform — Summary
 status: executing
 stopped_at: Completed 04-06-PLAN.md (feature gate infrastructure)
-last_updated: "2026-07-15T17:41:50.251Z"
+last_updated: "2026-07-15T17:51:09.098Z"
 last_activity: 2026-07-15
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 11
-  completed_plans: 8
+  completed_plans: 9
   percent: 0
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 04 (commercial-foundation) — EXECUTING
-Plan: 9 of 11
+Plan: 10 of 11
 Status: Ready to execute
 Last activity: 2026-07-15
 
-Progress: [███████░░░] 73%
+Progress: [████████░░] 82%
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Progress: [███████░░░] 73%
 | Phase 04-commercial-foundation P04b | 3min | 3 tasks | 7 files |
 | Phase 04-commercial-foundation P05 | 12min | 4 tasks | 72 files |
 | Phase 04-commercial-foundation P06 | 2min | 2 tasks | 5 files |
+| Phase 04-commercial-foundation P07 | 3min | - tasks | - files |
 
 ## Accumulated Context
 
@@ -287,6 +288,9 @@ completed: 2026-07-15
 **CurrentOrg decorator, TenantIsolationGuard (with @Public() bypass), RLS policies migration for 12 scoped tables, and AppModule wiring replacing SiteContextMiddleware with TenantContextMiddleware**
 
 - [Phase 04-commercial-foundation]: Used orgId for BullMQ job data and gateway events (shorthand), organizationId for Prisma queries (exact field name) — Matches existing convention where Prisma fields use full camelCase names while internal data transfer uses abbreviations
+- [Phase 04]: test
+- [Phase 04-commercial-foundation]: Migrated entity-level hash chain trigger to per-organization chain — replaces entity+entity_id chaining with organization_id chaining per D-11
+- [Phase 04-commercial-foundation]: Dual-layer hash computation: app code (Node.js crypto) + DB trigger (pgcrypto) both compute the same org-level SHA256 hash for defense-in-depth
 
 ## Performance
 
@@ -581,6 +585,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-15T17:41:50.195Z
+Last session: 2026-07-15T17:50:42.312Z
 Stopped at: Completed 04-06-PLAN.md (feature gate infrastructure)
 Resume file: None

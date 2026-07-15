@@ -20,7 +20,7 @@ Requirements for the commercial SaaS platform, organized by capability block.
 - [x] **FND-03**: User can belong to multiple organizations with different roles in each
 - [x] **FND-04**: JWT token carries `organizationId` + `permissions[]` for tenant-scoped authorization
 - [x] **FND-05**: Admin can invite users to their organization via email with expiring tokens
-- [ ] **FND-06**: Audit logs are hash-chained per tenant with cryptographic integrity verification
+- [x] **FND-06**: Audit logs are hash-chained per tenant with cryptographic integrity verification
 - [x] **FND-07**: Feature gates control feature availability per license tier
 
 ### Billing & Subscriptions (BIL)
@@ -124,7 +124,7 @@ Deferred to future release after v2.0 ships.
 | FND-03 | Phase 4: Commercial Foundation | Complete |
 | FND-04 | Phase 4: Commercial Foundation | Complete |
 | FND-05 | Phase 4: Commercial Foundation | Complete |
-| FND-06 | Phase 4: Commercial Foundation | Pending |
+| FND-06 | Phase 4: Commercial Foundation | Complete |
 | FND-07 | Phase 4: Commercial Foundation | Complete |
 | BIL-01 | Phase 5: Monetization | Pending |
 | BIL-02 | Phase 5: Monetization | Pending |
