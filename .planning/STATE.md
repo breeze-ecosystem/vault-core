@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Commercial Platform — Summary
 status: executing
-stopped_at: Completed 04-01-PLAN.md (Schema migration)
-last_updated: "2026-07-15T17:03:34.012Z"
+stopped_at: Completed 04-02-PLAN.md (Org/Invite/Auth schemas)
+last_updated: "2026-07-15T17:07:21.318Z"
 last_activity: 2026-07-15
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 11
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 04 (commercial-foundation) — EXECUTING
-Plan: 2 of 11
+Plan: 3 of 11
 Status: Ready to execute
 Last activity: 2026-07-15
 
-Progress: [█░░░░░░░░░] 9%
+Progress: [██░░░░░░░░] 18%
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Progress: [█░░░░░░░░░] 9%
 
 *Updated after each plan completion*
 | Phase 04-commercial-foundation P01 | 13min | 4 tasks | 3 files |
+| Phase 04-commercial-foundation P02 | 2min | 4 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,10 @@ Recent decisions affecting current work:
 - [Roadmap v2.0]: Design system (Phase 6) must exist before any page-level premium redesigns — prevents half-beautiful/half-ugly product
 - [Roadmap v2.0]: Phase 9 AI Intelligence depends on Phase 8 event data — pgvector embeddings pipeline requires accumulated events for quality
 - [Phase 04-commercial-foundation]: Site → Organization: data-preserving ALTER TABLE RENAME, no backward compat layer — Migration approach chosen to preserve existing data during column renames. Manual SQL rewrite avoids Prisma's default DROP+CREATE which would lose all Site data.
+- [Phase 04-commercial-foundation]: Organization schema mirrors existing Site schema (name, address, city, country, lat/lng, isActive) plus billing fields (billingEmail, planTier) — Forward-compatible with Phase 5 billing while reusing proven schema pattern
+- [Phase 04-commercial-foundation]: Register schema drops siteId and role — replaced by organizationName for auto-org creation on registration — Registration creates a new org (D-08), role assigned via OrganizationMember, not in registration payload
+- [Phase 04-commercial-foundation]: Switch-org schema validates organizationId as UUID — membership check deferred to AuthService — Schema handles input validation; business logic (membership check) belongs in service layer per D-07
+- [Phase 04-commercial-foundation]: Invite schema carries role at creation time, NOT at invite link generation — role is baked into the invite — Role assignment at invite creation (D-15) simplifies accept flow — no role selection step for new users
 
 ### Pending Todos
 
@@ -90,6 +95,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-15T17:03:33.971Z
-Stopped at: Completed 04-01-PLAN.md (Schema migration)
+Last session: 2026-07-15T17:07:21.268Z
+Stopped at: Completed 04-02-PLAN.md (Org/Invite/Auth schemas)
 Resume file: None
