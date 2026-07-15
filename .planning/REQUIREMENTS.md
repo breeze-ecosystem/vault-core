@@ -117,12 +117,70 @@ Deferred to future release after v2.0 ships.
 
 ## Traceability
 
-Empty — populated during roadmap creation.
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| FND-01 | Phase 4: Commercial Foundation | Pending |
+| FND-02 | Phase 4: Commercial Foundation | Pending |
+| FND-03 | Phase 4: Commercial Foundation | Pending |
+| FND-04 | Phase 4: Commercial Foundation | Pending |
+| FND-05 | Phase 4: Commercial Foundation | Pending |
+| FND-06 | Phase 4: Commercial Foundation | Pending |
+| FND-07 | Phase 4: Commercial Foundation | Pending |
+| BIL-01 | Phase 5: Monetization | Pending |
+| BIL-02 | Phase 5: Monetization | Pending |
+| BIL-03 | Phase 5: Monetization | Pending |
+| BIL-04 | Phase 5: Monetization | Pending |
+| BIL-05 | Phase 5: Monetization | Pending |
+| BIL-06 | Phase 5: Monetization | Pending |
+| BIL-07 | Phase 5: Monetization | Pending |
+| BIL-08 | Phase 5: Monetization | Pending |
+| LIC-01 | Phase 5: Monetization | Pending |
+| LIC-02 | Phase 5: Monetization | Pending |
+| LIC-03 | Phase 5: Monetization | Pending |
+| LIC-04 | Phase 5: Monetization | Pending |
+| LIC-05 | Phase 5: Monetization | Pending |
+| LIC-06 | Phase 5: Monetization | Pending |
+| LIC-07 | Phase 5: Monetization | Pending |
+| UIX-01 | Phase 6: Premium Experience | Pending |
+| UIX-02 | Phase 6: Premium Experience | Pending |
+| UIX-03 | Phase 6: Premium Experience | Pending |
+| UIX-04 | Phase 6: Premium Experience | Pending |
+| UIX-05 | Phase 6: Premium Experience | Pending |
+| UIX-06 | Phase 6: Premium Experience | Pending |
+| UIX-07 | Phase 6: Premium Experience | Pending |
+| WEB-01 | Phase 7: Public Presence | Pending |
+| WEB-02 | Phase 7: Public Presence | Pending |
+| WEB-03 | Phase 7: Public Presence | Pending |
+| WEB-04 | Phase 7: Public Presence | Pending |
+| WEB-05 | Phase 7: Public Presence | Pending |
+| WEB-06 | Phase 7: Public Presence | Pending |
+| WEB-07 | Phase 7: Public Presence | Pending |
+| WEB-08 | Phase 7: Public Presence | Pending |
+| FTR-01 | Phase 8: Feature Deepening | Pending |
+| FTR-02 | Phase 8: Feature Deepening | Pending |
+| FTR-03 | Phase 8: Feature Deepening | Pending |
+| FTR-04 | Phase 8: Feature Deepening | Pending |
+| FTR-05 | Phase 8: Feature Deepening | Pending |
+| FTR-06 | Phase 8: Feature Deepening | Pending |
+| FTR-07 | Phase 8: Feature Deepening | Pending |
+| FTR-08 | Phase 9: AI Intelligence | Pending |
+| FTR-09 | Phase 9: AI Intelligence | Pending |
+| FTR-10 | Phase 9: AI Intelligence | Pending |
+| FTR-11 | Phase 9: AI Intelligence | Pending |
+| ENT-01 | Phase 10: Enterprise Grade | Pending |
+| ENT-02 | Phase 10: Enterprise Grade | Pending |
+| ENT-03 | Phase 10: Enterprise Grade | Pending |
+| ENT-04 | Phase 10: Enterprise Grade | Pending |
+| ENT-05 | Phase 10: Enterprise Grade | Pending |
+| ENT-06 | Phase 10: Enterprise Grade | Pending |
+| ENT-07 | Phase 10: Enterprise Grade | Pending |
+| ENT-08 | Phase 10: Enterprise Grade | Pending |
+| ENT-09 | Phase 10: Enterprise Grade | Pending |
 
 **Coverage:**
-- v2.0 requirements: X total
-- Mapped to phases: 0
-- Unmapped: X 
+- v2.0 requirements: 57 total
+- Mapped to phases: 57
+- Unmapped: 0 
 
 ---
 *Requirements defined: 2026-07-15*

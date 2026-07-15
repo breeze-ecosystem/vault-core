@@ -3,7 +3,7 @@
 
 **Oversight Hub**
 
-Oversight Hub is a physical security intelligence platform that unifies video surveillance, access control, and operational security into a single AI-powered system. It serves security teams, IT, facilities, and operations — correlating real-world events (badges, doors, vehicles, incidents, anomalies) with video evidence and automated decision workflows. It replaces fragmented point solutions (separate VMS, ACS, visitor management, incident tracking) with an integrated platform that reduces manual work and accelerates response.
+Oversight Hub is a commercial SaaS platform that delivers AI-powered physical security intelligence — unifying video surveillance, access control, and operational security into a single, premium experience. Sold via subscription and license to security teams, IT, facilities, and operations worldwide, it correlates real-world events (badges, doors, vehicles, incidents, anomalies) with video evidence and automated decision workflows. It replaces fragmented point solutions with an integrated platform that is visually stunning, intuitive, and AI-first.
 
 **Core Value:** Correlate every physical security event with video evidence and AI analysis in real time, so security operators know what happened, where, and what to do — without switching between disconnected systems.
 

@@ -1,50 +1,35 @@
----
-gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Commercial Platform
-status: planning
-last_updated: "2026-07-15T15:03:12.220Z"
-last_activity: 2026-07-15
-progress:
-  total_phases: 0
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
----
-
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-14)
+See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Correlate every physical security event with video evidence and AI analysis in real time, so security operators know what happened, where, and what to do — without switching between disconnected systems.
-**Current focus:** Phase 3 — intelligent-platform
+**Current focus:** v2.0 Commercial Platform — Phase 4 (Commercial Foundation)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-07-15 — Milestone v2.0 started
+Phase: 4 of 10 (Commercial Foundation)
+Plan: — (not yet planned)
+Status: Ready to plan — roadmap defined, requirements mapped, research complete
+Last activity: 2026-07-15 — v2.0 roadmap created (7 phases defined, 57 requirements mapped)
+
+Progress: [░░░░░░░░░░] 0% (v2.0 phases)
 
 ## Performance Metrics
 
-**Velocity:**
-
-- Total plans completed: 4
+**Velocity (v1.0):**
+- Total plans completed: 15
 - Average duration: ~8min
-- Total execution time: ~31min
+- Total execution time: ~39min
 
-**By Phase:**
+**By Phase (v1.0):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-unified-security P01 | ~8min | 2 tasks | 13 files |
-| 01-unified-security P02 | ~8min | 2 tasks | 15 files |
-| 01-unified-security P03 | ~11min | 2 tasks | 12 files |
-| 01-unified-security P04 | ~2min | 2 tasks | 18 files |
+| 1. Unified Security | 4 | ~31min | ~8min |
+| 2. Operational AI | 6 | ~TBD | ~TBD |
+| 3. Intelligent Platform | 5 | ~TBD | ~TBD |
 
 *Updated after each plan completion*
 
@@ -55,18 +40,12 @@ Last activity: 2026-07-15 — Milestone v2.0 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [Init]: Build on existing NestJS monorepo — significant video + alert infrastructure already exists
-- [Init]: Phase 1: Unified Security first — access control + video correlation + door management = highest value/feasibility ratio
-- [Init]: Coarse granularity (3 phases) — platform ships in coherent vertical slices
-- [Init]: No hardware manufacturing — software platform only; integrate with standard protocols (Wiegand, OSDP, ONVIF)
-- [Init]: PostgreSQL extensions (TimescaleDB, pgvector, pgcrypto) over separate databases — per research recommendation
-- [Init]: MQTT.js for door controller communication — native protocol of access control panels
-- [P02]: Door state machine uses event-sourced enum (never booleans) with strictly defined VALID_TRANSITIONS graph (D-04)
-- [P02]: Sequence number validation discards out-of-order MQTT messages before state processing (D-05)
-- [P02]: 500ms settling timeout prevents false alarms from state flickering (D-06)
-- [P02]: Alert config stored as JSON on Door.alertConfig with per-door heldOpenThresholdMs 30-300s (D-07)
-- [P02]: Emergency override keys in Redis read by AccessService.evaluateAccess() — no TTL, cleared manually (D-11)
-- [P02]: 60s cooldown per door+state prevents duplicate alerts via Redis key door:alert:cooldown:{doorId}:{state}
+- [Roadmap v2.0]: Multi-tenancy is the critical path — Phase 4 (Commercial Foundation) must ship before any other v2.0 feature
+- [Roadmap v2.0]: Research confirms Foundation → Monetization → Premium Experience → Public Presence → Feature Deepening → AI Intelligence → Enterprise Grade ordering
+- [Roadmap v2.0]: 7 phases (4-10) at coarse granularity — 57 requirements mapped with 100% coverage
+- [Roadmap v2.0]: Billing and licensing are tightly coupled — built together in Phase 5 to ensure subscription-to-license lifecycle is coherent
+- [Roadmap v2.0]: Design system (Phase 6) must exist before any page-level premium redesigns — prevents half-beautiful/half-ugly product
+- [Roadmap v2.0]: Phase 9 AI Intelligence depends on Phase 8 event data — pgvector embeddings pipeline requires accumulated events for quality
 
 ### Pending Todos
 
@@ -74,10 +53,15 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 1]: Prisma + TimescaleDB migration separation pattern needs validation spike before implementation (per research Pitfall 1)
-- [Phase 1]: MQTT controller protocol diversity — different manufacturers (Mercury, Axis, HID) use different topic schemas; needs protocol adapter abstraction (per research gap)
-- [Phase 1]: Door state machine race conditions — MQTT doesn't guarantee message ordering; needs sequence numbering + state validation (per research Pitfall 2)
-- [Phase 1]: Audit log unbounded growth — must be TimescaleDB hypertable with retention from day one (per research Pitfall 3)
+- [Phase 4]: Prisma Client Extension + PostgreSQL RLS coexistence pattern — needs spike on migration ordering and performance overhead
+- [Phase 4]: SiteContextMiddleware → TenantContextMiddleware migration — backward compatibility with v1.0 Site model
+- [Phase 4]: v1.0 `siteId` references across 29+ models must be reconciled before adding `organizationId`
+- [Phase 5]: PayPal subscription lifecycle edge cases — less documented than Stripe, needs spike
+- [Phase 5]: Stripe webhook endpoint testing — self-hosted deployment behind Caddy needs documented local dev pattern
+- [Phase 6]: Radix Themes + Tailwind coexistence — interaction between CSS variable systems needs spike
+- [Phase 8]: Door state machine race conditions under multi-tenant load — needs spike on MQTT message ordering
+- [Phase 9]: pgvector embedding model selection (nomic-embed-text vs mxbai-embed-large) — needs evaluation benchmark
+- [Phase 9]: Ollama tool calling reliability — less mature than OpenAI; needs spike with real security scenarios
 
 ## Deferred Items
 
@@ -87,6 +71,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-14T16:05:00.000Z
-Stopped at: Phase 1 Plan 04 completed — Audit & Compliance
+Last session: 2026-07-15
+Stopped at: v2.0 roadmap creation completed — Phase 4 ready to plan
 Resume file: None
