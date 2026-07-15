@@ -63,7 +63,18 @@ v1.0 delivered the unified physical security intelligence platform — access co
   3. A direct database query — even a raw SQL statement — cannot access data belonging to a different organization (PostgreSQL RLS enforced at database level)
   4. JWT tokens carry `organizationId` + scoped `permissions[]` so every API request is automatically tenant-scoped without per-endpoint changes
   5. Per-organization audit logs are independently hash-chained with cryptographic integrity verification — an auditor can verify that Organization A's log has not been tampered with
-**Plans**: TBD
+**Plans**: 9 plans (5 waves)
+
+Plans:
+- [ ] 04-01-PLAN.md — Prisma Schema Migration + Push + Seed (FND-01)
+- [ ] 04-02-PLAN.md — Shared Zod Schemas (FND-01, FND-05)
+- [ ] 04-03-PLAN.md — Tenant Isolation Core: Extension + Middleware + RLS (FND-01, FND-02)
+- [ ] 04-04-PLAN.md — Auth + Organization + Invite API Modules (FND-03, FND-04, FND-05)
+- [ ] 04-05-PLAN.md — Codebase Rename: 52-file siteId→organizationId (FND-01, FND-02)
+- [ ] 04-06-PLAN.md — Feature Gates Infrastructure (FND-07)
+- [ ] 04-07-PLAN.md — Hash-Chain Audit (FND-06)
+- [ ] 04-08-PLAN.md — Dashboard Frontend: Org Switcher + Invites (FND-03, FND-04, FND-05)
+- [ ] 04-09-PLAN.md — Mobile Frontend: Org Switcher (FND-03, FND-05)
 
 ### Phase 5: Monetization
 **Goal**: Customers can subscribe to tiered plans, manage their subscription, and the platform provisions, enforces, and monitors license keys automatically
