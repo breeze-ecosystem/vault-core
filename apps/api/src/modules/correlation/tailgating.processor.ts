@@ -37,7 +37,7 @@ export class TailgatingProcessor extends WorkerHost {
   }
 
   private async detect(data: TailgatingJob): Promise<any> {
-    const { doorId, siteId, eventTimestamp } = data;
+    const { doorId, orgId, eventTimestamp } = data;
 
     try {
       // 1. Get cameras mapped to the door (D-14: CameraDoorMap)
@@ -143,7 +143,7 @@ export class TailgatingProcessor extends WorkerHost {
           snapshotUrl: camera.lastSnapshotUrl,
           metadata: {
             doorId,
-            siteId,
+            orgId,
             personCount: count,
             eventTimestamp,
             detectedAt: new Date().toISOString(),

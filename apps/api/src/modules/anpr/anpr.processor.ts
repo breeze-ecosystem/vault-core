@@ -5,7 +5,7 @@ import { AnprService } from "./anpr.service";
 interface AnprFrameJob {
   frame: string;
   cameraId: string;
-  siteId: string;
+  orgId: string;
   imageUrl?: string;
 }
 
@@ -22,7 +22,7 @@ export class AnprProcessor extends WorkerHost {
     this.logger.debug(`Processing ANPR frame for camera ${data.cameraId}`);
 
     try {
-      await this.anprService.processFrame(data.frame, data.cameraId, data.siteId, data.imageUrl);
+      await this.anprService.processFrame(data.frame, data.cameraId, data.orgId, data.imageUrl);
       this.logger.log(`ANPR processing complete for camera ${data.cameraId}`);
     } catch (err: any) {
       this.logger.error(`ANPR processing failed for camera ${data.cameraId}: ${err.message}`);

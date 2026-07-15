@@ -17,7 +17,6 @@ export class UserService {
         lastName: true,
         role: true,
         isActive: true,
-        siteId: true,
         createdAt: true,
       },
     });
@@ -37,7 +36,6 @@ export class UserService {
         lastName: true,
         role: true,
         isActive: true,
-        siteId: true,
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -53,10 +51,9 @@ export class UserService {
   async create(data: {
     email: string;
     password: string;
-    firstName: string;
+      firstName: string;
     lastName: string;
     role?: string;
-    siteId?: string;
   }) {
     const existing = await this.prisma.user.findUnique({
       where: { email: data.email },
@@ -74,7 +71,6 @@ export class UserService {
         firstName: data.firstName,
         lastName: data.lastName,
         role: (data.role as Role) || 'VIEWER',
-        siteId: data.siteId || undefined,
       },
       select: {
         id: true,
@@ -83,7 +79,6 @@ export class UserService {
         lastName: true,
         role: true,
         isActive: true,
-        siteId: true,
       },
     });
   }
@@ -93,18 +88,12 @@ export class UserService {
     lastName?: string;
     role?: string;
     isActive?: boolean;
-    siteId?: string | null;
   }) {
     const updateData: Prisma.UserUpdateInput = {};
     if (data.firstName !== undefined) updateData.firstName = data.firstName;
     if (data.lastName !== undefined) updateData.lastName = data.lastName;
     if (data.role !== undefined) updateData.role = data.role as Role;
     if (data.isActive !== undefined) updateData.isActive = data.isActive;
-    if (data.siteId !== undefined) {
-      updateData.site = data.siteId
-        ? { connect: { id: data.siteId } }
-        : { disconnect: true };
-    }
 
     return this.prisma.user.update({
       where: { id },
@@ -116,7 +105,6 @@ export class UserService {
         lastName: true,
         role: true,
         isActive: true,
-        siteId: true,
       },
     });
   }

@@ -24,7 +24,7 @@ export interface AuditLogFilters {
   action?: string;
   from?: string;
   to?: string;
-  siteId?: string;
+  organizationId?: string;
   entityId?: string;
 }
 
@@ -66,7 +66,7 @@ export class AuditService {
         entityId: params.entityId || "unknown",
         action: params.action,
         userId: params.userId,
-        siteId: null,
+        organizationId: null,
         changes: (params.changes || null) as Record<string, unknown> | null,
         ipAddress,
         userAgent,
@@ -96,7 +96,7 @@ export class AuditService {
     entity?: string;
     entityId?: string;
     userId?: string;
-    siteId?: string;
+    organizationId?: string;
     action?: string;
     from?: string;
     to?: string;
@@ -123,9 +123,9 @@ export class AuditService {
       conditions.push(`user_id = $${paramIndex++}::uuid`);
       params.push(filters.userId);
     }
-    if (filters.siteId) {
-      conditions.push(`site_id = $${paramIndex++}::uuid`);
-      params.push(filters.siteId);
+    if (filters.organizationId) {
+      conditions.push(`organization_id = $${paramIndex++}::uuid`);
+      params.push(filters.organizationId);
     }
     if (filters.action) {
       conditions.push(`action = $${paramIndex++}`);
@@ -152,7 +152,7 @@ export class AuditService {
 
     const dataQuery = `
       SELECT time, entity, entity_id AS "entityId", action,
-             user_id AS "userId", site_id AS "siteId",
+             user_id AS "userId", organization_id AS "organizationId",
              changes, ip_address AS "ipAddress",
              previous_hash AS "previousHash", hash, content
       FROM audit_log
@@ -242,7 +242,7 @@ export class AuditService {
     entity?: string;
     entityId?: string;
     userId?: string;
-    siteId?: string;
+    organizationId?: string;
     action?: string;
     from?: string;
     to?: string;
@@ -261,7 +261,7 @@ export class AuditService {
       "entityId",
       "action",
       "userId",
-      "siteId",
+      "organizationId",
       "changes",
       "ipAddress",
       "hash",
@@ -278,7 +278,7 @@ export class AuditService {
             item.entityId,
             item.action,
             item.userId ?? "",
-            item.siteId ?? "",
+            item.organizationId ?? "",
             item.changes ? JSON.stringify(item.changes).replace(/"/g, '""') : "",
             item.ipAddress ?? "",
             item.hash,

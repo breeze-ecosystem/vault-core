@@ -128,7 +128,7 @@ export class EquipmentPredictor {
    */
   async predictControllerBatteryFailure(
     controllerId: string,
-    siteId: string,
+    orgId: string,
   ): Promise<TrendResult | null> {
     const readings = await this.prisma.$queryRawUnsafe<
       Array<{ time: Date; battery_level: number }>
@@ -155,7 +155,7 @@ export class EquipmentPredictor {
    */
   async predictCameraFpsFailure(
     cameraId: string,
-    siteId: string,
+    orgId: string,
   ): Promise<TrendResult | null> {
     const readings = await this.prisma.$queryRawUnsafe<
       Array<{ time: Date; fps_actual: number | null; fps_expected: number | null }>
@@ -189,7 +189,7 @@ export class EquipmentPredictor {
    */
   async predictReaderFailure(
     readerId: string,
-    siteId: string,
+    orgId: string,
   ): Promise<TrendResult | null> {
     const readings = await this.prisma.$queryRawUnsafe<
       Array<{ time: Date; failed_reads: number | null }>
@@ -220,46 +220,46 @@ export class EquipmentPredictor {
 
     // --- Controllers: battery failure ---
     const controllers = await this.prisma.$queryRawUnsafe<
-      Array<{ id: string; site_id: string }>
+      Array<{ id: string; organization_id: string }>
     >(
-      `SELECT DISTINCT ON (controller_id) controller_id AS id, site_id
+      `SELECT DISTINCT ON (controller_id) controller_id AS id, organization_id
        FROM controller_health
        WHERE time > NOW() - INTERVAL '7 days'
        ORDER BY controller_id, time DESC`,
     );
 
     for (const controller of controllers) {
-      const result = await this.predictControllerBatteryFailure(controller.id, controller.site_id);
+      const result = await this.predictControllerBatteryFailure(controller.id, controller.organization_id);
       results.push({ deviceType: "controller", deviceId: controller.id, metric: "battery_level", result });
     }
 
     // --- Cameras: FPS failure ---
     const cameras = await this.prisma.$queryRawUnsafe<
-      Array<{ id: string; site_id: string }>
+      Array<{ id: string; organization_id: string }>
     >(
-      `SELECT DISTINCT ON (camera_id) camera_id AS id, site_id
+      `SELECT DISTINCT ON (camera_id) camera_id AS id, organization_id
        FROM camera_health
        WHERE time > NOW() - INTERVAL '7 days'
        ORDER BY camera_id, time DESC`,
     );
 
     for (const camera of cameras) {
-      const result = await this.predictCameraFpsFailure(camera.id, camera.site_id);
+      const result = await this.predictCameraFpsFailure(camera.id, camera.organization_id);
       results.push({ deviceType: "camera", deviceId: camera.id, metric: "fps_ratio", result });
     }
 
     // --- Readers: failed reads ---
     const readers = await this.prisma.$queryRawUnsafe<
-      Array<{ id: string; site_id: string }>
+      Array<{ id: string; organization_id: string }>
     >(
-      `SELECT DISTINCT ON (reader_id) reader_id AS id, site_id
+      `SELECT DISTINCT ON (reader_id) reader_id AS id, organization_id
        FROM reader_health
        WHERE time > NOW() - INTERVAL '7 days'
        ORDER BY reader_id, time DESC`,
     );
 
     for (const reader of readers) {
-      const result = await this.predictReaderFailure(reader.id, reader.site_id);
+      const result = await this.predictReaderFailure(reader.id, reader.organization_id);
       results.push({ deviceType: "reader", deviceId: reader.id, metric: "failed_reads", result });
     }
 
@@ -268,14 +268,14 @@ export class EquipmentPredictor {
     for (const { deviceType, deviceId, metric, result } of results) {
       if (!result) continue;
 
-      const siteId = await this.getSiteIdForDevice(deviceType, deviceId);
+      const orgId = await this.getSiteIdForDevice(deviceType, deviceId);
 
       await this.prisma.$queryRawUnsafe(
         `INSERT INTO predictions
-         (time, site_id, device_type, device_id, metric, current_value, failure_threshold,
+         (time, organization_id, device_type, device_id, metric, current_value, failure_threshold,
           slope, hours_to_failure, confidence, data_points, triggered_alert)
          VALUES (NOW(), $1::uuid, $2, $3::uuid, $4, $5, $6, $7, $8, $9, $10, $11)`,
-        siteId,
+        orgId,
         deviceType,
         deviceId,
         metric,
@@ -296,7 +296,7 @@ export class EquipmentPredictor {
           metric,
           hoursToFailure: result.hoursToFailure,
           confidence: result.confidence,
-          siteId,
+          orgId,
           timestamp: new Date().toISOString(),
         });
       }
@@ -308,38 +308,38 @@ export class EquipmentPredictor {
   }
 
   /**
-   * Resolve site_id for a given device type and ID from its health hypertable.
+   * Resolve organization_id for a given device type and ID from its health hypertable.
    */
   private async getSiteIdForDevice(deviceType: string, deviceId: string): Promise<string> {
     if (deviceType === "controller") {
       const rows = await this.prisma.$queryRawUnsafe<
-        Array<{ site_id: string }>
+        Array<{ organization_id: string }>
       >(
-        `SELECT site_id FROM controller_health
+        `SELECT organization_id FROM controller_health
          WHERE controller_id = $1::uuid ORDER BY time DESC LIMIT 1`,
         deviceId,
       );
-      return rows[0]?.site_id ?? "00000000-0000-0000-0000-000000000000";
+      return rows[0]?.organization_id ?? "00000000-0000-0000-0000-000000000000";
     }
     if (deviceType === "camera") {
       const rows = await this.prisma.$queryRawUnsafe<
-        Array<{ site_id: string }>
+        Array<{ organization_id: string }>
       >(
-        `SELECT site_id FROM camera_health
+        `SELECT organization_id FROM camera_health
          WHERE camera_id = $1::uuid ORDER BY time DESC LIMIT 1`,
         deviceId,
       );
-      return rows[0]?.site_id ?? "00000000-0000-0000-0000-000000000000";
+      return rows[0]?.organization_id ?? "00000000-0000-0000-0000-000000000000";
     }
     if (deviceType === "reader") {
       const rows = await this.prisma.$queryRawUnsafe<
-        Array<{ site_id: string }>
+        Array<{ organization_id: string }>
       >(
-        `SELECT site_id FROM reader_health
+        `SELECT organization_id FROM reader_health
          WHERE reader_id = $1::uuid ORDER BY time DESC LIMIT 1`,
         deviceId,
       );
-      return rows[0]?.site_id ?? "00000000-0000-0000-0000-000000000000";
+      return rows[0]?.organization_id ?? "00000000-0000-0000-0000-000000000000";
     }
     return "00000000-0000-0000-0000-000000000000";
   }

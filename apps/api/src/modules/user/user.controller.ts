@@ -93,7 +93,7 @@ export class UserController {
     if (body.lastName) data.lastName = body.lastName;
     if (isAdmin && body.role) data.role = body.role;
     if (isAdmin && body.isActive !== undefined) data.isActive = body.isActive;
-    if (isAdmin && body.siteId !== undefined) data.siteId = body.siteId || null;
+    // siteId removed from User model; user-org association via OrganizationMember
 
     const result = await this.userService.update(id, data);
 

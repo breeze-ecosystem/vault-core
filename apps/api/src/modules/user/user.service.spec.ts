@@ -33,7 +33,6 @@ const mockUser = {
   lastName: 'Diallo',
   role: 'ADMIN',
   isActive: true,
-  siteId: 'site-uuid-1',
   createdAt: new Date(),
 };
 
@@ -44,7 +43,6 @@ const mockUserSafe = {
   lastName: 'Diallo',
   role: 'ADMIN',
   isActive: true,
-  siteId: 'site-uuid-1',
   createdAt: new Date(),
 };
 
@@ -113,7 +111,6 @@ describe('UserService', () => {
             lastName: true,
             role: true,
             isActive: true,
-            siteId: true,
             createdAt: true,
           }),
         }),
@@ -139,7 +136,6 @@ describe('UserService', () => {
           lastName: true,
           role: true,
           isActive: true,
-          siteId: true,
           createdAt: true,
         },
       });
@@ -173,37 +169,8 @@ describe('UserService', () => {
           lastName: true,
           role: true,
           isActive: true,
-          siteId: true,
         },
       });
-    });
-
-    it('should connect site when siteId is provided', async () => {
-      mockPrismaService.user.update.mockResolvedValue(mockUserSafe);
-
-      await service.update('user-uuid-1', { siteId: 'site-uuid-2' });
-
-      expect(mockPrismaService.user.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            site: { connect: { id: 'site-uuid-2' } },
-          }),
-        }),
-      );
-    });
-
-    it('should disconnect site when siteId is null', async () => {
-      mockPrismaService.user.update.mockResolvedValue({ ...mockUserSafe, siteId: null });
-
-      await service.update('user-uuid-1', { siteId: null });
-
-      expect(mockPrismaService.user.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            site: { disconnect: true },
-          }),
-        }),
-      );
     });
 
     it('should update role when provided', async () => {

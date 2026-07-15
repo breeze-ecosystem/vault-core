@@ -35,7 +35,7 @@ export class IncidentProcessor extends WorkerHost {
     const alert = await this.prisma.alert.findUnique({
       where: { id: data.alertId },
       include: {
-        camera: { select: { id: true, name: true, siteId: true } },
+        camera: { select: { id: true, name: true, orgId: true } },
       },
     });
 
@@ -53,7 +53,7 @@ export class IncidentProcessor extends WorkerHost {
         status: "open",
         sourceType: "alert",
         sourceId: alert.id,
-        siteId: alert.camera.siteId,
+        orgId: alert.camera.orgId,
         slaMinutes: 30,
         escalationChain: [
           { level: 1, slaMinutes: 30, notifyRole: "SUPERVISOR" },
@@ -65,11 +65,11 @@ export class IncidentProcessor extends WorkerHost {
     // Log to incident_events hypertable
     try {
       await this.prisma.$queryRaw`
-        INSERT INTO incident_events (time, incident_id, site_id, status, previous_status, triggered_by, metadata)
+        INSERT INTO incident_events (time, incident_id, organization_id, status, previous_status, triggered_by, metadata)
         VALUES (
           NOW(),
           ${incident.id}::uuid,
-          ${alert.camera.siteId}::uuid,
+          ${alert.camera.orgId}::uuid,
           'open'::incident_status,
           NULL::incident_status,
           'auto-triage',
@@ -86,7 +86,7 @@ export class IncidentProcessor extends WorkerHost {
       title: incident.title,
       severity: incident.severity,
       status: incident.status,
-      siteId: incident.siteId,
+      orgId: incident.orgId,
       sourceType: "alert",
       sourceId: alert.id,
       createdAt: incident.createdAt.toISOString(),
@@ -102,7 +102,7 @@ export class IncidentProcessor extends WorkerHost {
   private async handleSlaEscalation(data: { incidentId: string; level: number; notifyUserId?: string }) {
     const incident = await this.prisma.incident.findUnique({
       where: { id: data.incidentId },
-      select: { id: true, status: true, siteId: true, title: true },
+      select: { id: true, status: true, orgId: true, title: true },
     });
 
     if (!incident) {
@@ -116,11 +116,11 @@ export class IncidentProcessor extends WorkerHost {
     // Log escalation to incident_events
     try {
       await this.prisma.$queryRaw`
-        INSERT INTO incident_events (time, incident_id, site_id, status, previous_status, triggered_by, metadata)
+        INSERT INTO incident_events (time, incident_id, organization_id, status, previous_status, triggered_by, metadata)
         VALUES (
           NOW(),
           ${incident.id}::uuid,
-          ${incident.siteId}::uuid,
+          ${incident.orgId}::uuid,
           ${incident.status}::incident_status,
           ${incident.status}::incident_status,
           'escalation',
@@ -135,7 +135,7 @@ export class IncidentProcessor extends WorkerHost {
     this.eventEmitter.emit("incident.escalated", {
       incidentId: incident.id,
       title: incident.title,
-      siteId: incident.siteId,
+      orgId: incident.orgId,
       level: data.level,
       notifyUserId: data.notifyUserId,
       triggeredAt: new Date().toISOString(),

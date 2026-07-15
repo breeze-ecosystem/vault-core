@@ -112,22 +112,22 @@ export class VisitorService {
       // Get host user's site to find/create a 24/7 schedule
       const hostUser = await this.prisma.user.findUnique({
         where: { id: dto.hostUserId },
-        select: { siteId: true },
+        select: { organizationId: true },
       });
 
-      if (hostUser?.siteId) {
+      if (hostUser?.organizationId) {
         // Find or create a "24/7" schedule for the site
         let schedule = await this.prisma.schedule.findFirst({
           where: {
             name: "24/7",
-            zone: { siteId: hostUser.siteId },
+            zone: { organizationId: hostUser.organizationId },
           },
         });
 
         if (!schedule) {
           // Get the first zone for this site to create the schedule
           const siteZone = await this.prisma.zone.findFirst({
-            where: { siteId: hostUser.siteId },
+            where: { organizationId: hostUser.organizationId },
           });
           if (siteZone) {
             schedule = await this.accessService.createSchedule({
@@ -380,7 +380,7 @@ export class VisitorService {
     to?: string;
     page?: number;
     limit?: number;
-    siteId?: string;
+    organizationId?: string;
   }) {
     const where: Record<string, any> = {};
 
@@ -395,8 +395,8 @@ export class VisitorService {
     }
 
     // Site scope via host user
-    if (filters.siteId) {
-      where.host = { siteId: filters.siteId };
+    if (filters.organizationId) {
+      where.host = { organizationId: filters.organizationId };
     }
 
     const page = filters.page ?? 1;

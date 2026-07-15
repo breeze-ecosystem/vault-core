@@ -26,10 +26,10 @@ export class RiskGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage("subscribe:site")
-  handleSubscribeSite(client: Socket, payload: { siteId: string }) {
-    const room = `risk:${payload.siteId}`;
+  handleSubscribeSite(client: Socket, payload: { orgId: string }) {
+    const room = `org:${payload.orgId}`;
     client.join(room);
-    this.logger.log(`Client ${client.id} subscribed to risk updates for site ${payload.siteId}`);
+    this.logger.log(`Client ${client.id} subscribed to risk updates for site ${payload.orgId}`);
   }
 
   @SubscribeMessage("subscribe:zone")
@@ -44,10 +44,10 @@ export class RiskGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * Called by RiskService via OnEvent after each score computation.
    */
   @OnEvent("risk.score-updated", { async: true })
-  handleRiskScoreUpdated(payload: { siteId: string; zoneId: string; score: RiskScoreDto }) {
+  handleRiskScoreUpdated(payload: { orgId: string; zoneId: string; score: RiskScoreDto }) {
     // Emit to site room
     this.server
-      .to(`risk:${payload.siteId}`)
+      .to(`org:${payload.orgId}`)
       .emit("score-update", payload.score);
 
     // Emit to zone room

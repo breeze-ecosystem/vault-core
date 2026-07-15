@@ -25,14 +25,14 @@ export class VisitorGateway implements OnGatewayConnection, OnGatewayDisconnect 
   }
 
   @SubscribeMessage("subscribe:site")
-  handleSubscribeSite(client: Socket, siteId: string) {
-    client.join(`site:${siteId}`);
-    this.logger.log(`Client ${client.id} subscribed to visitor events for site ${siteId}`);
+  handleSubscribeSite(client: Socket, orgId: string) {
+    client.join(`org:${orgId}`);
+    this.logger.log(`Client ${client.id} subscribed to visitor events for site ${orgId}`);
   }
 
   @OnEvent("visitor.preregistered", { async: true })
   handleVisitorPreregistered(payload: any) {
-    this.server.to(`site:${payload.siteId || "all"}`).emit("visitor.preregistered", {
+    this.server.to(`org:${payload.orgId || "all"}`).emit("visitor.preregistered", {
       visitId: payload.visitId,
       visitorName: payload.visitorName,
       timestamp: payload.timestamp,
@@ -42,7 +42,7 @@ export class VisitorGateway implements OnGatewayConnection, OnGatewayDisconnect 
 
   @OnEvent("visitor.checked-in", { async: true })
   handleVisitorCheckedIn(payload: any) {
-    this.server.to(`site:${payload.siteId || "all"}`).emit("visitor.checked-in", {
+    this.server.to(`org:${payload.orgId || "all"}`).emit("visitor.checked-in", {
       visitId: payload.visitId,
       visitorName: payload.visitorName,
       timestamp: payload.timestamp,
@@ -52,7 +52,7 @@ export class VisitorGateway implements OnGatewayConnection, OnGatewayDisconnect 
 
   @OnEvent("visitor.checked-out", { async: true })
   handleVisitorCheckedOut(payload: any) {
-    this.server.to(`site:${payload.siteId || "all"}`).emit("visitor.checked-out", {
+    this.server.to(`org:${payload.orgId || "all"}`).emit("visitor.checked-out", {
       visitId: payload.visitId,
       visitorName: payload.visitorName,
       timestamp: payload.timestamp,
@@ -62,7 +62,7 @@ export class VisitorGateway implements OnGatewayConnection, OnGatewayDisconnect 
 
   @OnEvent("visitor.cancelled", { async: true })
   handleVisitorCancelled(payload: any) {
-    this.server.to(`site:${payload.siteId || "all"}`).emit("visitor.cancelled", {
+    this.server.to(`org:${payload.orgId || "all"}`).emit("visitor.cancelled", {
       visitId: payload.visitId,
       timestamp: payload.timestamp,
     });

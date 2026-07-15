@@ -31,7 +31,7 @@ export class CorrelationProcessor extends WorkerHost {
   }
 
   private async correlateVideo(data: CorrelationJob): Promise<any> {
-    const { doorId, siteId, eventType, timestamp } = data;
+    const { doorId, orgId, eventType, timestamp } = data;
 
     try {
       // 1. Query CameraDoorMap for cameras mapped to this door (D-14), sorted by priority ASC
@@ -98,7 +98,7 @@ export class CorrelationProcessor extends WorkerHost {
       // 4. Emit correlation.ready for real-time Socket.IO push (VEC-04)
       this.eventEmitter.emit("correlation.ready", {
         doorId,
-        siteId,
+        orgId,
         eventType,
         cameraId: camera.id,
         cameraName: camera.name,

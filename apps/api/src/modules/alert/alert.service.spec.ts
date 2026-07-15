@@ -32,7 +32,7 @@ const mockAlert = {
   resolvedAt: null,
   createdAt: new Date(),
   updatedAt: new Date(),
-  camera: { id: 'cam-uuid-1', name: 'Entrée Principale', site: { id: 'site-uuid-1', name: 'Dakar Port' } },
+  camera: { id: 'cam-uuid-1', name: 'Entrée Principale', organization: { id: 'org-uuid-1', name: 'Dakar Port' } },
 };
 
 const createData = {

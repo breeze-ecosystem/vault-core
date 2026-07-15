@@ -16,7 +16,7 @@ export interface AuditJobData {
   entityId: string;
   action: string;
   userId?: string;
-  siteId?: string | null;
+  orgId?: string | null;
   changes: Record<string, unknown> | null;
   ipAddress?: string;
   userAgent?: string;
@@ -47,8 +47,8 @@ export class AuditInterceptor implements NestInterceptor {
         const entityId =
           result?.id || request.params?.id || "unknown";
         const userId = request.user?.id || "system";
-        const siteId =
-          request.user?.siteId || request.body?.siteId || null;
+        const orgId =
+          request.user?.orgId || request.body?.orgId || null;
         const ipAddress =
           request.ip || request.socket?.remoteAddress || undefined;
         const userAgent = request.headers?.["user-agent"] || undefined;
@@ -73,7 +73,7 @@ export class AuditInterceptor implements NestInterceptor {
           entityId,
           auditMeta.action,
           userId,
-          siteId || "",
+          orgId || "",
           JSON.stringify(changes || {}),
           ipAddress || "",
           timestamp,
@@ -87,7 +87,7 @@ export class AuditInterceptor implements NestInterceptor {
             entityId,
             action: auditMeta.action,
             userId,
-            siteId,
+            orgId,
             changes,
             ipAddress,
             userAgent,
@@ -113,7 +113,7 @@ export class AuditInterceptor implements NestInterceptor {
           entityId,
           `${auditMeta.action}_FAILED`,
           userId,
-          request.user?.siteId || "",
+          request.user?.orgId || "",
           JSON.stringify({ error: error.message }),
           ipAddress || "",
           timestamp,
@@ -124,7 +124,7 @@ export class AuditInterceptor implements NestInterceptor {
           entityId,
           action: `${auditMeta.action}_FAILED`,
           userId,
-          siteId: request.user?.siteId || null,
+          orgId: request.user?.orgId || null,
           changes: { error: error.message } as Record<string, unknown>,
           ipAddress,
           timestamp,

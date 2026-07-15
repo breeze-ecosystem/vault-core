@@ -20,7 +20,7 @@ export class AnalyticsService {
   ) {}
 
   async getZoneAnalytics(
-    siteId?: string,
+    organizationId?: string,
     zoneId?: string,
     from?: string,
     to?: string,
@@ -34,9 +34,9 @@ export class AnalyticsService {
     const params: any[] = [];
     let paramIndex = 1;
 
-    if (siteId) {
-      conditions.push(`zah.site_id = $${paramIndex}::uuid`);
-      params.push(siteId);
+    if (organizationId) {
+      conditions.push(`zah.organization_id = $${paramIndex}::uuid`);
+      params.push(organizationId);
       paramIndex++;
     }
     if (zoneId) {
@@ -61,7 +61,7 @@ export class AnalyticsService {
       const rows = await this.prisma.$queryRawUnsafe<Array<Record<string, any>>>(
         `SELECT
           zah.zone_id AS "zoneId",
-          zah.site_id AS "siteId",
+          zah.organization_id AS "organizationId",
           z.name AS "zoneName",
           zah.bucket::text AS "bucket",
           COALESCE(zah.denied_count, 0) AS "deniedCount",
@@ -81,12 +81,12 @@ export class AnalyticsService {
     } catch (err: any) {
       this.logger.warn(`getZoneAnalytics query failed, falling back to raw events: ${err.message}`);
       // Fallback: query raw events directly
-      return this.getZoneAnalyticsFallback(siteId, zoneId, from, to);
+      return this.getZoneAnalyticsFallback(organizationId, zoneId, from, to);
     }
   }
 
   private async getZoneAnalyticsFallback(
-    siteId?: string,
+    organizationId?: string,
     zoneId?: string,
     from?: string,
     to?: string,
@@ -95,9 +95,9 @@ export class AnalyticsService {
     const params: any[] = [];
     let paramIndex = 1;
 
-    if (siteId) {
-      conditions.push(`ae.site_id = $${paramIndex}::uuid`);
-      params.push(siteId);
+    if (organizationId) {
+      conditions.push(`ae.organization_id = $${paramIndex}::uuid`);
+      params.push(organizationId);
       paramIndex++;
     }
     if (zoneId) {
@@ -122,7 +122,7 @@ export class AnalyticsService {
       const rows = await this.prisma.$queryRawUnsafe<Array<Record<string, any>>>(
         `SELECT
           z.id AS "zoneId",
-          z.site_id AS "siteId",
+          z.organization_id AS "organizationId",
           z.name AS "zoneName",
           NOW()::text AS "bucket",
           COALESCE(SUM(CASE WHEN ae.decision = 'denied' THEN 1 ELSE 0 END), 0) AS "deniedCount",
@@ -134,7 +134,7 @@ export class AnalyticsService {
         JOIN doors d ON d.zone_id = z.id
         LEFT JOIN access_events ae ON ae.door_id = d.id
         ${whereClause}
-        GROUP BY z.id, z.site_id, z.name
+        GROUP BY z.id, z.organization_id, z.name
         LIMIT 100`,
         ...params,
       );
@@ -147,7 +147,7 @@ export class AnalyticsService {
   }
 
   async getSiteAnalytics(
-    siteId?: string,
+    organizationId?: string,
     from?: string,
     to?: string,
   ): Promise<SiteAnalyticsDto[]> {
@@ -155,9 +155,9 @@ export class AnalyticsService {
     const params: any[] = [];
     let paramIndex = 1;
 
-    if (siteId) {
-      conditions.push(`sad.site_id = $${paramIndex}::uuid`);
-      params.push(siteId);
+    if (organizationId) {
+      conditions.push(`sad.organization_id = $${paramIndex}::uuid`);
+      params.push(organizationId);
       paramIndex++;
     }
     if (from) {
@@ -176,7 +176,7 @@ export class AnalyticsService {
     try {
       const rows = await this.prisma.$queryRawUnsafe<Array<Record<string, any>>>(
         `SELECT
-          sad.site_id AS "siteId",
+          sad.organization_id AS "organizationId",
           s.name AS "siteName",
           sad.bucket::text AS "bucket",
           COALESCE(sad.total_denied, 0) AS "totalDenied",
@@ -185,7 +185,7 @@ export class AnalyticsService {
           COALESCE(sad.doors_unsecured, 0) AS "doorsUnsecured",
           COALESCE(sad.incidents_created, 0) AS "incidentsCreated"
         FROM site_analytics_daily sad
-        JOIN sites s ON s.id = sad.site_id
+        JOIN sites s ON s.id = sad.organization_id
         ${whereClause}
         ORDER BY sad.bucket DESC
         LIMIT 100`,
@@ -200,7 +200,7 @@ export class AnalyticsService {
   }
 
   async getIntrusionEvents(
-    siteId?: string,
+    organizationId?: string,
     from?: string,
     to?: string,
   ): Promise<IntrusionEventDto[]> {
@@ -208,9 +208,9 @@ export class AnalyticsService {
     const params: any[] = [];
     let paramIndex = 1;
 
-    if (siteId) {
-      conditions.push(`a.site_id = $${paramIndex}::uuid`);
-      params.push(siteId);
+    if (organizationId) {
+      conditions.push(`a.organization_id = $${paramIndex}::uuid`);
+      params.push(organizationId);
       paramIndex++;
     }
     if (from) {
@@ -231,7 +231,7 @@ export class AnalyticsService {
         `SELECT
           a.id,
           COALESCE(a.metadata->>'zone_id', '') AS "zoneId",
-          a.site_id AS "siteId",
+          a.organization_id AS "organizationId",
           a.metadata->>'door_id' AS "doorId",
           a.created_at::text AS "detectedAt",
           a.camera_id AS "cameraId",
@@ -253,7 +253,7 @@ export class AnalyticsService {
   }
 
   async getLoiteringEvents(
-    siteId?: string,
+    organizationId?: string,
     from?: string,
     to?: string,
   ): Promise<LoiteringEventDto[]> {
@@ -266,9 +266,9 @@ export class AnalyticsService {
     const params: any[] = [durationThreshold];
     let paramIndex = 2;
 
-    if (siteId) {
-      conditions.push(`dsl.site_id = $${paramIndex}::uuid`);
-      params.push(siteId);
+    if (organizationId) {
+      conditions.push(`dsl.organization_id = $${paramIndex}::uuid`);
+      params.push(organizationId);
       paramIndex++;
     }
     if (from) {
@@ -288,13 +288,13 @@ export class AnalyticsService {
       const rows = await this.prisma.$queryRawUnsafe<Array<Record<string, any>>>(
         `SELECT
           dsl.door_id AS "doorId",
-          dsl.site_id AS "siteId",
+          dsl.organization_id AS "organizationId",
           d.name AS "doorName",
           d.zone_id AS "zoneId",
           dsl.time::text AS "startedAt",
           EXTRACT(EPOCH FROM (NOW() - dsl.time)) AS "durationSeconds",
           dsl.time::text AS "detectedAt",
-          dsl.site_id::text AS "id"
+          dsl.organization_id::text AS "id"
         FROM door_state_log dsl
         JOIN doors d ON d.id = dsl.door_id
         ${whereClause}
@@ -306,7 +306,7 @@ export class AnalyticsService {
       return rows.map((row: any) => ({
         id: `loitering-${row.doorId}-${row.startedAt}`,
         zoneId: row.zoneId || '',
-        siteId: row.siteId,
+        organizationId: row.organizationId,
         startedAt: row.startedAt,
         durationSeconds: Math.round(Number(row.durationSeconds) || 0),
         maxConfidence: 0,
@@ -320,7 +320,7 @@ export class AnalyticsService {
   }
 
   async getUnusualAbsence(
-    siteId?: string,
+    organizationId?: string,
     zoneId?: string,
   ): Promise<AbnormalActivityDto[]> {
     // Detect zones with zero granted events in the last 2 hours
@@ -329,9 +329,9 @@ export class AnalyticsService {
     const params: any[] = [];
     let paramIndex = 1;
 
-    if (siteId) {
-      conditions.push(`z.site_id = $${paramIndex}::uuid`);
-      params.push(siteId);
+    if (organizationId) {
+      conditions.push(`z.organization_id = $${paramIndex}::uuid`);
+      params.push(organizationId);
       paramIndex++;
     }
     if (zoneId) {
@@ -346,7 +346,7 @@ export class AnalyticsService {
       const rows = await this.prisma.$queryRawUnsafe<Array<Record<string, any>>>(
         `SELECT
           z.id AS "zoneId",
-          z.site_id AS "siteId",
+          z.organization_id AS "organizationId",
           z.name AS "zoneName",
           0 AS "currentValue",
           0 AS "baselineMean",
@@ -367,7 +367,7 @@ export class AnalyticsService {
 
       return rows.map((row: any) => ({
         zoneId: row.zoneId,
-        siteId: row.siteId,
+        organizationId: row.organizationId,
         metric: 'unusual_absence',
         currentValue: 0,
         baselineMean: row.baselineMean,
@@ -383,7 +383,7 @@ export class AnalyticsService {
   }
 
   async getAbnormalActivity(
-    siteId?: string,
+    organizationId?: string,
     zoneId?: string,
   ): Promise<AbnormalActivityDto[]> {
     // Compute z-score deviation: compare current hour denied/anomaly count
@@ -394,9 +394,9 @@ export class AnalyticsService {
     const params: any[] = [minZScore];
     let paramIndex = 2;
 
-    if (siteId) {
-      conditions.push(`zah.site_id = $${paramIndex}::uuid`);
-      params.push(siteId);
+    if (organizationId) {
+      conditions.push(`zah.organization_id = $${paramIndex}::uuid`);
+      params.push(organizationId);
       paramIndex++;
     }
     if (zoneId) {
@@ -412,7 +412,7 @@ export class AnalyticsService {
         `WITH current_hour AS (
           SELECT
             zone_id,
-            site_id,
+            organization_id,
             denied_count,
             door_anomaly_count
           FROM zone_analytics_hourly
@@ -434,7 +434,7 @@ export class AnalyticsService {
         )
         SELECT
           ch.zone_id AS "zoneId",
-          ch.site_id AS "siteId",
+          ch.organization_id AS "organizationId",
           'abnormal_activity' AS metric,
           COALESCE(ch.denied_count, 0) AS "currentValue",
           COALESCE(b.mean_denied, 0) AS "baselineMean",
@@ -458,7 +458,7 @@ export class AnalyticsService {
 
       return rows.map((row: any) => ({
         zoneId: row.zoneId,
-        siteId: row.siteId,
+        organizationId: row.organizationId,
         metric: row.metric,
         currentValue: Number(row.currentValue) || 0,
         baselineMean: Number(row.baselineMean) || 0,
@@ -474,7 +474,7 @@ export class AnalyticsService {
   }
 
   async getAnalyticsTrends(
-    siteId: string,
+    organizationId: string,
     metric: string,
     granularity: 'hourly' | 'daily' = 'hourly',
   ): Promise<AnalyticsTrendPoint[]> {
@@ -501,11 +501,11 @@ export class AnalyticsService {
           COALESCE(${column}, 0) AS "value",
           $1 AS "metric"
         FROM ${table}
-        WHERE site_id = $2::uuid
+        WHERE organization_id = $2::uuid
         ORDER BY ${bucketExpr} ASC
         LIMIT 200`,
         metric,
-        siteId,
+        organizationId,
       );
 
       return rows as unknown as AnalyticsTrendPoint[];

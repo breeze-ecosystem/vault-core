@@ -36,7 +36,7 @@ export class RegisterDto {
   @ApiPropertyOptional({ example: 'uuid-site-id' })
   @IsOptional()
   @IsString()
-  siteId?: string;
+  organizationId?: string;
 }
 
 export class LoginDto {
@@ -133,7 +133,7 @@ export class CreateCameraDto {
 
   @ApiProperty({ example: 'uuid-site-id' })
   @IsString()
-  siteId: string;
+  organizationId: string;
 
   @ApiPropertyOptional({ example: '1920x1080' })
   @IsOptional() @IsString() resolution?: string;
@@ -148,7 +148,7 @@ export class CreateCameraDto {
 export class UpdateCameraDto {
   @ApiPropertyOptional() @IsOptional() @IsString() name?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() rtspUrl?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() siteId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() organizationId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() resolution?: string;
   @ApiPropertyOptional() @IsOptional() fps?: number;
   @ApiPropertyOptional() @IsOptional() captureInterval?: number;
@@ -205,7 +205,7 @@ export class UpdateUserDto {
   @ApiPropertyOptional({ enum: ['VIEWER', 'OPERATOR', 'SUPERVISOR', 'ADMIN', 'SUPER_ADMIN'] })
   @IsOptional() @IsEnum(['VIEWER', 'OPERATOR', 'SUPERVISOR', 'ADMIN', 'SUPER_ADMIN']) role?: string;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsString() siteId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() organizationId?: string;
 }
 
 // ── Pagination ──

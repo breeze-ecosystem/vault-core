@@ -25,24 +25,24 @@ export class AccessGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage("subscribe:site")
-  handleSubscribeSite(client: Socket, siteId: string) {
-    client.join(`site:${siteId}`);
-    this.logger.log(`Client ${client.id} subscribed to site ${siteId}`);
+  handleSubscribeSite(client: Socket, orgId: string) {
+    client.join(`org:${orgId}`);
+    this.logger.log(`Client ${client.id} subscribed to site ${orgId}`);
   }
 
   @SubscribeMessage("unsubscribe:site")
-  handleUnsubscribeSite(client: Socket, siteId: string) {
-    client.leave(`site:${siteId}`);
-    this.logger.log(`Client ${client.id} unsubscribed from site ${siteId}`);
+  handleUnsubscribeSite(client: Socket, orgId: string) {
+    client.leave(`org:${orgId}`);
+    this.logger.log(`Client ${client.id} unsubscribed from site ${orgId}`);
   }
 
   @OnEvent("access.granted", { async: true })
   handleAccessGranted(payload: any) {
-    this.server.to(`site:${payload.siteId}`).emit("access.granted", payload);
+    this.server.to(`org:${payload.orgId}`).emit("access.granted", payload);
   }
 
   @OnEvent("access.denied", { async: true })
   handleAccessDenied(payload: any) {
-    this.server.to(`site:${payload.siteId}`).emit("access.denied", payload);
+    this.server.to(`org:${payload.orgId}`).emit("access.denied", payload);
   }
 }

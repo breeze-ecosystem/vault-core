@@ -30,7 +30,7 @@ const mockCamera = {
   name: 'Entrée Principale',
   rtspUrl: 'rtsp://10.0.0.1:554/stream',
   status: 'ONLINE',
-  siteId: 'site-uuid-1',
+  organizationId: 'site-uuid-1',
   resolution: '1920x1080',
   fps: 25,
   captureInterval: 5,
@@ -39,7 +39,7 @@ const mockCamera = {
   lastHeartbeat: new Date(),
   createdAt: new Date(),
   updatedAt: new Date(),
-  site: { id: 'site-uuid-1', name: 'Dakar Port' },
+  organization: { id: 'org-uuid-1', name: 'Dakar Port' },
   prompts: [],
   _count: { alerts: 3 },
 };
@@ -57,7 +57,7 @@ const mockPrompt = {
 const createData = {
   name: 'Nouvelle Caméra',
   rtspUrl: 'rtsp://10.0.0.5:554/stream',
-  site: { connect: { id: 'site-uuid-1' } },
+  organization: { connect: { id: 'site-uuid-1' } },
 };
 
 const updateData = {
@@ -111,15 +111,15 @@ describe('CameraService', () => {
       );
     });
 
-    it('should filter by siteId', async () => {
+    it('should filter by organizationId', async () => {
       mockPrismaService.camera.findMany.mockResolvedValue([mockCamera]);
       mockPrismaService.camera.count.mockResolvedValue(1);
 
-      await service.findAll({ siteId: 'site-uuid-1' });
+      await service.findAll({ organizationId: 'site-uuid-1' });
 
       expect(mockPrismaService.camera.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: expect.objectContaining({ siteId: 'site-uuid-1' }),
+          where: expect.objectContaining({ organizationId: 'site-uuid-1' }),
         }),
       );
     });
@@ -146,7 +146,7 @@ describe('CameraService', () => {
       expect(mockPrismaService.camera.findUnique).toHaveBeenCalledWith({
         where: { id: 'cam-uuid-1' },
         include: {
-          site: { select: { id: true, name: true } },
+          organization: { select: { id: true, name: true } },
           prompts: { orderBy: { createdAt: 'desc' } },
           alerts: { take: 10, orderBy: { createdAt: 'desc' } },
         },
@@ -172,7 +172,7 @@ describe('CameraService', () => {
       expect(result).toEqual(created);
       expect(mockPrismaService.camera.create).toHaveBeenCalledWith({
         data: createData,
-        include: { site: { select: { id: true, name: true } } },
+        include: { organization: { select: { id: true, name: true } } },
       });
     });
   });

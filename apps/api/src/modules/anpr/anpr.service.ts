@@ -90,7 +90,7 @@ export class AnprService {
 
   // ── Allowlist/Blocklist Evaluation ──
 
-  async evaluatePlate(plate: string, siteId: string): Promise<EvaluationResult> {
+  async evaluatePlate(plate: string, organizationId: string): Promise<EvaluationResult> {
     // Check Redis cache first
     const allowCached = await this.redis.get(`vehicle:allowlist:${plate}`);
     if (allowCached === "1") {
@@ -104,7 +104,7 @@ export class AnprService {
 
     // Not cached — query Prisma
     const allowlistEntry = await this.prisma.vehicleList.findFirst({
-      where: { type: "allowlist", plate, siteId, isActive: true },
+      where: { type: "allowlist", plate, organizationId, isActive: true },
     });
 
     if (allowlistEntry) {
@@ -113,7 +113,7 @@ export class AnprService {
     }
 
     const blocklistEntry = await this.prisma.vehicleList.findFirst({
-      where: { type: "blocklist", plate, siteId, isActive: true },
+      where: { type: "blocklist", plate, organizationId, isActive: true },
     });
 
     if (blocklistEntry) {
@@ -128,15 +128,15 @@ export class AnprService {
   // ── Event Recording ──
 
   async recordEvent(
-    plateData: { plate: string; confidence: number; cameraId: string; siteId: string; imageUrl?: string },
+    plateData: { plate: string; confidence: number; cameraId: string; organizationId: string; imageUrl?: string },
     decision: string,
     reason: string,
   ) {
     try {
       await this.prisma.$queryRawUnsafe(
-        `INSERT INTO vehicle_events ("time", site_id, camera_id, plate, confidence, image_url, decision, reason)
+        `INSERT INTO vehicle_events ("time", organization_id, camera_id, plate, confidence, image_url, decision, reason)
          VALUES (NOW(), $1::uuid, $2::uuid, $3, $4, $5, $6::vehicle_decision, $7)`,
-        plateData.siteId,
+        plateData.organizationId,
         plateData.cameraId || null,
         plateData.plate,
         plateData.confidence || null,
@@ -149,7 +149,7 @@ export class AnprService {
       this.eventEmitter.emit("anpr.recognized", {
         plate: plateData.plate,
         cameraId: plateData.cameraId,
-        siteId: plateData.siteId,
+        organizationId: plateData.organizationId,
         decision,
         reason,
         confidence: plateData.confidence,
@@ -162,7 +162,7 @@ export class AnprService {
           type: "vehicle.blocklist",
           plate: plateData.plate,
           cameraId: plateData.cameraId,
-          siteId: plateData.siteId,
+          organizationId: plateData.organizationId,
           timestamp: new Date().toISOString(),
         });
       }
@@ -173,18 +173,18 @@ export class AnprService {
 
   // ── Full Pipeline Orchestration ──
 
-  async processFrame(frame: string, cameraId: string, siteId: string, imageUrl?: string) {
+  async processFrame(frame: string, cameraId: string, organizationId: string, imageUrl?: string) {
     const plates = await this.analyzePlate(frame, cameraId);
 
     for (const plateResult of plates) {
-      const evaluation = await this.evaluatePlate(plateResult.plate, siteId);
+      const evaluation = await this.evaluatePlate(plateResult.plate, organizationId);
 
       await this.recordEvent(
         {
           plate: plateResult.plate,
           confidence: plateResult.confidence,
           cameraId,
-          siteId,
+          organizationId,
           imageUrl,
         },
         evaluation.decision,
@@ -202,7 +202,7 @@ export class AnprService {
   async createListEntry(dto: {
     type: string;
     plate: string;
-    siteId: string;
+    organizationId: string;
     description?: string;
     isActive?: boolean;
     createdById: string;
@@ -211,7 +211,7 @@ export class AnprService {
       data: {
         type: dto.type,
         plate: dto.plate.toUpperCase().trim(),
-        siteId: dto.siteId,
+        organizationId: dto.organizationId,
         description: dto.description ?? null,
         isActive: dto.isActive ?? true,
         createdById: dto.createdById,
@@ -269,10 +269,10 @@ export class AnprService {
     ]);
   }
 
-  async listEntries(type?: string, siteId?: string) {
+  async listEntries(type?: string, organizationId?: string) {
     const where: Record<string, any> = {};
     if (type) where.type = type;
-    if (siteId) where.siteId = siteId;
+    if (organizationId) where.organizationId = organizationId;
 
     return this.prisma.vehicleList.findMany({
       where,
@@ -300,7 +300,7 @@ export class AnprService {
 
   async queryEvents(filters: {
     plate?: string;
-    siteId?: string;
+    organizationId?: string;
     from?: string;
     to?: string;
     decision?: string;
@@ -322,9 +322,9 @@ export class AnprService {
       paramIndex++;
     }
 
-    if (filters.siteId) {
-      conditions.push(`site_id = $${paramIndex}::uuid`);
-      params.push(filters.siteId);
+    if (filters.organizationId) {
+      conditions.push(`organization_id = $${paramIndex}::uuid`);
+      params.push(filters.organizationId);
       paramIndex++;
     }
 
@@ -356,7 +356,7 @@ export class AnprService {
       const total = Number((countResult as any[])[0]?.total ?? 0);
 
       const data = await this.prisma.$queryRawUnsafe(
-        `SELECT "time", site_id, camera_id, plate, confidence, image_url, decision, reason, metadata
+        `SELECT "time", organization_id, camera_id, plate, confidence, image_url, decision, reason, metadata
          FROM vehicle_events ${whereClause}
          ORDER BY "time" DESC
          LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
@@ -368,7 +368,7 @@ export class AnprService {
       return {
         data: (data as any[]).map((row: any) => ({
           time: row.time instanceof Date ? row.time.toISOString() : String(row.time),
-          siteId: row.site_id,
+          organizationId: row.organization_id,
           cameraId: row.camera_id,
           plate: row.plate,
           confidence: row.confidence,

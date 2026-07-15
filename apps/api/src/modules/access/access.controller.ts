@@ -55,7 +55,7 @@ export class AccessController {
       isActive,
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
-      siteId: user?.siteId,
+      orgId: user?.orgId,
     });
   }
 
@@ -157,7 +157,7 @@ export class AccessController {
   @Roles("ADMIN", "SUPER_ADMIN", "SUPERVISOR", "OPERATOR")
   async listZones(@Req() req?: FastifyRequest) {
     const user = (req as any)?.user;
-    return this.accessService.listZones(user?.siteId);
+    return this.accessService.listZones(user?.orgId);
   }
 
   // ── Doors ──
@@ -173,7 +173,7 @@ export class AccessController {
   @Roles("ADMIN", "SUPER_ADMIN", "SUPERVISOR", "OPERATOR")
   async listDoors(@Req() req?: FastifyRequest) {
     const user = (req as any)?.user;
-    return this.accessService.listDoors(user?.siteId);
+    return this.accessService.listDoors(user?.orgId);
   }
 
   // ── Camera-Door Mapping ──
@@ -197,8 +197,8 @@ export class AccessController {
   @Post("evaluate")
   @Roles("ADMIN", "SUPER_ADMIN", "SUPERVISOR", "OPERATOR")
   async evaluateAccess(
-    @Body() body: { credentialId: string; doorId: string; siteId: string },
+    @Body() body: { credentialId: string; doorId: string; orgId: string },
   ) {
-    return this.accessService.evaluateAccess(body.credentialId, body.doorId, body.siteId);
+    return this.accessService.evaluateAccess(body.credentialId, body.doorId, body.orgId);
   }
 }

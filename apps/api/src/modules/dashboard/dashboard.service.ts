@@ -36,8 +36,8 @@ export class DashboardService {
       this.prisma.alert.count({ where: { severity: "LOW" } }),
       this.prisma.alert.count({ where: { severity: "INFO" } }),
       this.prisma.alert.count(),
-      this.prisma.site.count({ where: { isActive: true } }),
-      this.prisma.site.count(),
+      this.prisma.organization.count({ where: { isActive: true } }),
+      this.prisma.organization.count(),
       this.prisma.user.count({ where: { isActive: true } }),
       this.prisma.alert.findMany({
         take: 10,

@@ -24,7 +24,7 @@ export class MaintenanceService {
     deviceType: string;
     deviceId: string;
     status: string;
-    siteId: string;
+    organizationId: string;
     batteryLevel?: number;
     timestamp?: string;
   }): Promise<MaintenanceTicketDto | null> {
@@ -66,7 +66,7 @@ export class MaintenanceService {
           description,
           severity: severity as any,
           status: "open",
-          siteId: payload.siteId,
+          organizationId: payload.organizationId,
           ticketType: "MAINTENANCE_TICKET",
           deviceType: payload.deviceType,
           deviceId: payload.deviceId,
@@ -92,7 +92,7 @@ export class MaintenanceService {
     deviceId: string;
     metric: string;
     hoursToFailure: number;
-    siteId: string;
+    organizationId: string;
     deviceName?: string;
   }): Promise<MaintenanceTicketDto | null> {
     try {
@@ -112,7 +112,7 @@ export class MaintenanceService {
           description: `Predictive alert: ${payload.deviceType} ${payload.deviceId} — ${payload.metric} will likely fail within ${Math.round(payload.hoursToFailure)} hours.`,
           severity: payload.hoursToFailure <= 24 ? "HIGH" as any : "MEDIUM" as any,
           status: "open",
-          siteId: payload.siteId,
+          organizationId: payload.organizationId,
           ticketType: "MAINTENANCE_TICKET",
           deviceType: payload.deviceType,
           deviceId: payload.deviceId,
@@ -140,7 +140,7 @@ export class MaintenanceService {
         description: dto.description,
         severity: dto.severity as any,
         status: "open",
-        siteId: dto.siteId,
+        organizationId: dto.organizationId,
         ticketType: "MAINTENANCE_TICKET",
         deviceType: dto.deviceType,
         deviceId: dto.deviceId,
@@ -163,7 +163,7 @@ export class MaintenanceService {
     const skip = (page - 1) * limit;
 
     const where: any = { ticketType: "MAINTENANCE_TICKET" };
-    if (params.siteId) where.siteId = params.siteId;
+    if (params.organizationId) where.organizationId = params.organizationId;
     if (params.deviceType) where.deviceType = params.deviceType;
     if (params.status) where.status = params.status;
 
@@ -210,7 +210,7 @@ export class MaintenanceService {
    * Get unified incidents list — both SECURITY_INCIDENT and MAINTENANCE_TICKET (WFL-03).
    */
   async getUnifiedIncidents(params: {
-    siteId?: string;
+    organizationId?: string;
     ticketType?: string;
     status?: string;
     severity?: string;
@@ -222,7 +222,7 @@ export class MaintenanceService {
     const skip = (page - 1) * limit;
 
     const where: any = {};
-    if (params.siteId) where.siteId = params.siteId;
+    if (params.organizationId) where.organizationId = params.organizationId;
     if (params.ticketType) where.ticketType = params.ticketType;
     if (params.status) where.status = params.status;
     if (params.severity) where.severity = params.severity;
@@ -307,7 +307,7 @@ export class MaintenanceService {
       description: ticket.description ?? undefined,
       severity: ticket.severity,
       status: ticket.status,
-      siteId: ticket.siteId,
+      organizationId: ticket.organizationId,
       assignedToId: ticket.assignedToId ?? undefined,
       assignedToName: ticket.assignedTo
         ? `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`
@@ -329,8 +329,8 @@ export class MaintenanceService {
       severity: ticket.severity,
       status: ticket.status,
       ticketType: ticket.ticketType === "MAINTENANCE_TICKET" ? "MAINTENANCE_TICKET" : "SECURITY_INCIDENT",
-      siteId: ticket.siteId,
-      siteName: ticket.site?.name ?? undefined,
+      organizationId: ticket.organizationId,
+      siteName: ticket.organization?.name ?? undefined,
       assignedToName: ticket.assignedTo
         ? `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`
         : undefined,

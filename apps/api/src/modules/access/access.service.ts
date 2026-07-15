@@ -62,7 +62,7 @@ export class AccessService {
     isActive?: string;
     page?: number;
     limit?: number;
-    siteId?: string;
+    organizationId?: string;
   }) {
     const where: Record<string, any> = {};
     if (filters?.type) where.type = filters.type;
@@ -70,8 +70,8 @@ export class AccessService {
     if (filters?.isActive !== undefined) {
       where.isActive = filters.isActive === "true";
     }
-    if (filters?.siteId) {
-      where.user = { siteId: filters.siteId };
+    if (filters?.organizationId) {
+      where.user = { organizationId: filters.organizationId };
     }
 
     const page = filters?.page ?? 1;
@@ -81,7 +81,7 @@ export class AccessService {
       this.prisma.credential.findMany({
         where,
         include: {
-          user: { select: { id: true, firstName: true, lastName: true, email: true, siteId: true } },
+          user: { select: { id: true, firstName: true, lastName: true, email: true, organizationId: true } },
           accessLevels: {
             include: { zone: true, schedule: true },
           },
@@ -100,7 +100,7 @@ export class AccessService {
     const credential = await this.prisma.credential.findUnique({
       where: { id },
       include: {
-        user: { select: { id: true, firstName: true, lastName: true, email: true, siteId: true } },
+        user: { select: { id: true, firstName: true, lastName: true, email: true, organizationId: true } },
         accessLevels: {
           include: { zone: true, schedule: true },
         },
@@ -263,27 +263,27 @@ export class AccessService {
 
   // ── Zones ──
 
-  async createZone(dto: { name: string; siteId: string; description?: string }) {
-    const site = await this.prisma.site.findUnique({ where: { id: dto.siteId } });
+  async createZone(dto: { name: string; organizationId: string; description?: string }) {
+    const site = await this.prisma.organization.findUnique({ where: { id: dto.organizationId } });
     if (!site) throw new NotFoundException("Site not found");
 
     return this.prisma.zone.create({
       data: {
         name: dto.name,
-        siteId: dto.siteId,
+        organizationId: dto.organizationId,
         description: dto.description ?? null,
       },
     });
   }
 
-  async listZones(siteId?: string) {
+  async listZones(organizationId?: string) {
     const where: Record<string, any> = {};
-    if (siteId) where.siteId = siteId;
+    if (organizationId) where.organizationId = organizationId;
 
     return this.prisma.zone.findMany({
       where,
       include: {
-        site: { select: { id: true, name: true } },
+        organization: { select: { id: true, name: true } },
         _count: { select: { doors: true } },
       },
       orderBy: { name: "asc" },
@@ -292,9 +292,9 @@ export class AccessService {
 
   // ── Doors ──
 
-  async registerDoor(dto: { name: string; siteId: string; zoneId: string; location?: string; controllerId?: string }) {
+  async registerDoor(dto: { name: string; organizationId: string; zoneId: string; location?: string; controllerId?: string }) {
     const [site, zone] = await Promise.all([
-      this.prisma.site.findUnique({ where: { id: dto.siteId } }),
+      this.prisma.organization.findUnique({ where: { id: dto.organizationId } }),
       this.prisma.zone.findUnique({ where: { id: dto.zoneId } }),
     ]);
 
@@ -304,24 +304,24 @@ export class AccessService {
     return this.prisma.door.create({
       data: {
         name: dto.name,
-        siteId: dto.siteId,
+        organizationId: dto.organizationId,
         zoneId: dto.zoneId,
         location: dto.location ?? null,
         controllerId: dto.controllerId ?? null,
         alertConfig: { heldOpenThresholdMs: 30000 } as any,
       },
-      include: { site: { select: { id: true, name: true } }, zone: { select: { id: true, name: true } } },
+      include: { organization: { select: { id: true, name: true } }, zone: { select: { id: true, name: true } } },
     });
   }
 
-  async listDoors(siteId?: string) {
+  async listDoors(organizationId?: string) {
     const where: Record<string, any> = {};
-    if (siteId) where.siteId = siteId;
+    if (organizationId) where.organizationId = organizationId;
 
     return this.prisma.door.findMany({
       where,
       include: {
-        site: { select: { id: true, name: true } },
+        organization: { select: { id: true, name: true } },
         zone: { select: { id: true, name: true } },
         cameraMaps: { include: { camera: { select: { id: true, name: true } } } },
       },
@@ -362,7 +362,7 @@ export class AccessService {
 
   // ── Access Evaluation (D-13: sub-100ms path) ──
 
-  async evaluateAccess(credentialId: string, doorId: string, siteId: string) {
+  async evaluateAccess(credentialId: string, doorId: string, organizationId: string) {
     const start = Date.now();
     const now = new Date();
 
@@ -388,7 +388,7 @@ export class AccessService {
     // Get door and zone
     const door = await this.prisma.door.findUnique({
       where: { id: doorId },
-      select: { id: true, zoneId: true, siteId: true },
+      select: { id: true, zoneId: true, organizationId: true },
     });
     if (!door) {
       return { decision: "denied", reason: "door-not-found", timestamp: now };
@@ -455,7 +455,7 @@ export class AccessService {
         userId: credential.userId,
         doorId: door.id,
         zoneId: door.zoneId,
-        siteId: door.siteId,
+        organizationId: door.organizationId,
         timestamp: now,
       },
     );

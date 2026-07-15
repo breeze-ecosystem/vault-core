@@ -25,9 +25,9 @@ export class IncidentGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   @SubscribeMessage("subscribe:incidents")
-  handleSubscribeIncidents(client: Socket, siteId: string) {
-    client.join(`site:${siteId}`);
-    this.logger.log(`Client ${client.id} subscribed to incidents for site ${siteId}`);
+  handleSubscribeIncidents(client: Socket, orgId: string) {
+    client.join(`org:${orgId}`);
+    this.logger.log(`Client ${client.id} subscribed to incidents for site ${orgId}`);
   }
 
   @SubscribeMessage("subscribe:incident")
@@ -38,19 +38,19 @@ export class IncidentGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   @OnEvent("incident.created", { async: true })
   handleIncidentCreated(payload: any) {
-    this.server.to(`site:${payload.siteId}`).emit("incident.created", payload);
+    this.server.to(`org:${payload.orgId}`).emit("incident.created", payload);
     this.logger.log(`Emitted incident.created for ${payload.id}`);
   }
 
   @OnEvent("incident.status-changed", { async: true })
   handleIncidentStatusChanged(payload: any) {
-    this.server.to(`site:${payload.siteId}`).emit("incident.status-changed", payload);
+    this.server.to(`org:${payload.orgId}`).emit("incident.status-changed", payload);
     this.server.to(`incident:${payload.id}`).emit("incident.status-changed", payload);
   }
 
   @OnEvent("incident.assigned", { async: true })
   handleIncidentAssigned(payload: any) {
-    this.server.to(`site:${payload.siteId}`).emit("incident.assigned", payload);
+    this.server.to(`org:${payload.orgId}`).emit("incident.assigned", payload);
     this.server.to(`incident:${payload.id}`).emit("incident.assigned", payload);
   }
 
@@ -61,7 +61,7 @@ export class IncidentGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   @OnEvent("incident.escalated", { async: true })
   handleIncidentEscalated(payload: any) {
-    this.server.to(`site:${payload.siteId}`).emit("incident.escalated", payload);
+    this.server.to(`org:${payload.orgId}`).emit("incident.escalated", payload);
     this.server.to(`incident:${payload.incidentId}`).emit("incident.escalated", payload);
   }
 }

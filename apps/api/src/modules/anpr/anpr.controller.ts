@@ -31,7 +31,7 @@ export class AnprController {
   @Post("anpr/evaluate")
   @Roles("ADMIN", "SUPERVISOR", "OPERATOR")
   async evaluateFrame(
-    @Body() body: { imageBase64: string; cameraId: string; siteId: string },
+    @Body() body: { imageBase64: string; cameraId: string; orgId: string },
   ) {
     const result = await this.anprService.analyzePlate(body.imageBase64, body.cameraId);
     return { plates: result };
@@ -39,7 +39,7 @@ export class AnprController {
 
   /**
    * GET /api/anpr/events
-   * List vehicle events with filters (plate, siteId, from, to, decision, page, limit).
+   * List vehicle events with filters (plate, orgId, from, to, decision, page, limit).
    */
   @Get("anpr/events")
   @Roles("ADMIN", "SUPERVISOR", "OPERATOR")
@@ -48,9 +48,9 @@ export class AnprController {
     @Req() req: FastifyRequest,
   ) {
     const user = (req as any)?.user;
-    // Site-scoped: use user's siteId if no siteId filter provided
-    const siteId = query.siteId || user?.siteId;
-    return this.anprService.queryEvents({ ...query, siteId });
+    // Site-scoped: use user's orgId if no orgId filter provided
+    const orgId = query.orgId || user?.orgId;
+    return this.anprService.queryEvents({ ...query, orgId });
   }
 
   /**
@@ -67,7 +67,7 @@ export class AnprController {
     const user = (req as any)?.user;
     return this.anprService.queryEvents({
       plate,
-      siteId: user?.siteId,
+      orgId: user?.orgId,
       limit: limit ? parseInt(limit, 10) : 50,
     });
   }
@@ -83,7 +83,7 @@ export class AnprController {
     @Req() req: FastifyRequest,
   ) {
     const user = (req as any)?.user;
-    return this.anprService.listEntries(type, user?.siteId);
+    return this.anprService.listEntries(type, user?.orgId);
   }
 
   /**

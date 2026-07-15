@@ -73,7 +73,7 @@ export class IncidentService {
     title: string;
     description?: string;
     severity: string;
-    siteId: string;
+    organizationId: string;
     sourceType?: string;
     sourceId?: string;
   }, userId: string) {
@@ -82,7 +82,7 @@ export class IncidentService {
         title: dto.title,
         description: dto.description ?? null,
         severity: dto.severity as any,
-        siteId: dto.siteId,
+        organizationId: dto.organizationId,
         sourceType: dto.sourceType ?? "manual",
         sourceId: dto.sourceId ?? null,
         slaMinutes: 30,
@@ -97,7 +97,7 @@ export class IncidentService {
     });
 
     // Log to incident_events hypertable
-    await this.logStatusTransition(incident.id, incident.siteId, "open", null, "system");
+    await this.logStatusTransition(incident.id, incident.organizationId, "open", null, "system");
 
     this.logger.log(`Incident created: ${incident.id} — ${incident.title}`);
     return incident;
@@ -107,7 +107,7 @@ export class IncidentService {
     status?: string;
     severity?: string;
     assignedToId?: string;
-    siteId?: string;
+    organizationId?: string;
     page?: number;
     limit?: number;
   }) {
@@ -115,7 +115,7 @@ export class IncidentService {
     if (filters.status) where.status = filters.status;
     if (filters.severity) where.severity = filters.severity;
     if (filters.assignedToId) where.assignedToId = filters.assignedToId;
-    if (filters.siteId) where.siteId = filters.siteId;
+    if (filters.organizationId) where.organizationId = filters.organizationId;
 
     const page = filters.page ?? 1;
     const limit = filters.limit ?? 20;
@@ -184,7 +184,7 @@ export class IncidentService {
     });
 
     // Log to incident_events hypertable
-    await this.logStatusTransition(id, incident.siteId, newStatus, incident.status, userId);
+    await this.logStatusTransition(id, incident.organizationId, newStatus, incident.status, userId);
 
     this.logger.log(`Incident ${id} status changed: ${incident.status} → ${newStatus}`);
     return updated;
@@ -669,7 +669,7 @@ export class IncidentService {
     description?: string;
     severity: string;
     cameraId: string;
-    siteId: string;
+    organizationId: string;
     metadata?: any;
   }) {
     // T-02-03: Only HIGH and CRITICAL severity triggers auto-triage
@@ -702,7 +702,7 @@ export class IncidentService {
 
   private async logStatusTransition(
     incidentId: string,
-    siteId: string,
+    organizationId: string,
     status: string,
     previousStatus: string | null,
     triggeredBy: string,
@@ -710,11 +710,11 @@ export class IncidentService {
   ) {
     try {
       await this.prisma.$queryRaw`
-        INSERT INTO incident_events (time, incident_id, site_id, status, previous_status, triggered_by, metadata)
+        INSERT INTO incident_events (time, incident_id, organization_id, status, previous_status, triggered_by, metadata)
         VALUES (
           NOW(),
           ${incidentId}::uuid,
-          ${siteId}::uuid,
+          ${organizationId}::uuid,
           ${status}::incident_status,
           ${previousStatus ?? null}::incident_status,
           ${triggeredBy},

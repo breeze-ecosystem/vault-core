@@ -91,7 +91,7 @@ export class MaintenanceController {
   @Get("unified")
   @Roles("ADMIN", "SUPERVISOR", "OPERATOR", "MAINTENANCE_TEAM")
   async getUnifiedIncidents(
-    @Query() params: { siteId?: string; ticketType?: string; status?: string; severity?: string; page?: number; limit?: number },
+    @Query() params: { orgId?: string; ticketType?: string; status?: string; severity?: string; page?: number; limit?: number },
   ): Promise<{ data: UnifiedIncidentDto[]; total: number; page: number; limit: number }> {
     return this.maintenanceService.getUnifiedIncidents(params);
   }

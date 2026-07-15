@@ -51,7 +51,7 @@ export class NotificationsService {
       where: { id: alertId },
       include: {
         camera: {
-          select: { id: true, name: true, site: { select: { id: true, name: true } } },
+          select: { id: true, name: true, organization: { select: { id: true, name: true } } },
         },
       },
     });
@@ -257,14 +257,14 @@ export class NotificationsService {
 
     const alert = await this.prisma.alert.findUnique({
       where: { id: alertId },
-      include: { camera: { select: { siteId: true } } },
+      include: { camera: { select: { orgId: true } } },
     });
     if (!alert) return;
 
     const users = await this.prisma.user.findMany({
       where: {
         OR: [
-          { siteId: alert.camera.siteId },
+          { orgId: alert.camera.orgId },
           { role: 'SUPER_ADMIN' },
         ],
         isActive: true,
@@ -349,7 +349,7 @@ export class NotificationsService {
 
   private buildAlertEmailHtml(alert: any, dashboardUrl: string): string {
     const cameraName = alert.camera?.name ?? 'Unknown';
-    const siteName = alert.camera?.site?.name ?? 'Unknown';
+    const siteName = alert.camera?.organization?.name ?? 'Unknown';
     const severityColor = this.severityColor(alert.severity);
     const severityBg = this.severityBgColor(alert.severity);
     const time = new Date(alert.createdAt).toLocaleString('fr-FR', {

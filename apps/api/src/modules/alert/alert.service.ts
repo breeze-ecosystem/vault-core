@@ -25,7 +25,7 @@ export class AlertService {
       this.prisma.alert.findMany({
         where,
         include: {
-          camera: { select: { id: true, name: true, site: { select: { id: true, name: true } } } },
+          camera: { select: { id: true, name: true, organization: { select: { id: true, name: true } } } },
         },
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * limit,

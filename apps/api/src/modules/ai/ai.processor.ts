@@ -74,13 +74,13 @@ export class AiProcessor extends WorkerHost {
     eventType: string;
     eventId: string;
     summary: string;
-    siteId: string;
+    orgId: string;
     time: Date;
   }) {
-    const { eventType, eventId, summary, siteId, time } = data;
+    const { eventType, eventId, summary, orgId, time } = data;
 
     try {
-      await this.aiService.embedEvent(eventType, eventId, summary, siteId, time);
+      await this.aiService.embedEvent(eventType, eventId, summary, orgId, time);
       this.logger.debug(`Embedding stored for ${eventType} ${eventId}`);
       return { embedded: true, eventType, eventId };
     } catch (err: any) {

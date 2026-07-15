@@ -35,7 +35,7 @@ export class RiskService {
     try {
       const zones = await this.prisma.zone.findMany({
         where: { isActive: true },
-        select: { id: true, siteId: true },
+        select: { id: true, organizationId: true },
       });
 
       for (const zone of zones) {
@@ -72,7 +72,7 @@ export class RiskService {
     try {
       const zones = await this.prisma.zone.findMany({
         where: { isActive: true },
-        include: { site: { select: { id: true, name: true } } },
+        include: { organization: { select: { id: true, name: true } } },
       });
 
       let criticalCount = 0;
@@ -80,7 +80,7 @@ export class RiskService {
 
       for (const zone of zones) {
         try {
-          const factors = await this.collectRiskFactors(zone.id, zone.siteId);
+          const factors = await this.collectRiskFactors(zone.id, zone.organizationId);
           const rawScore = this.calculateScore(factors);
           const level = this.classifyLevel(rawScore);
 
@@ -116,10 +116,10 @@ export class RiskService {
 
           // Insert into risk_scores hypertable
           await this.prisma.$queryRawUnsafe(
-            `INSERT INTO risk_scores (time, zone_id, site_id, score, risk_level, factors, smoothed_score)
+            `INSERT INTO risk_scores (time, zone_id, organization_id, score, risk_level, factors, smoothed_score)
              VALUES (NOW(), $1::uuid, $2::uuid, $3, $4::risk_level, $5::jsonb, $6)`,
             zone.id,
-            zone.siteId,
+            zone.organizationId,
             rawScore,
             level,
             JSON.stringify(factors),
@@ -129,9 +129,9 @@ export class RiskService {
           // Cache current score in Redis with 10-min TTL
           const scoreDto: RiskScoreDto = {
             zoneId: zone.id,
-            siteId: zone.siteId,
+            organizationId: zone.organizationId,
             zoneName: zone.name,
-            siteName: (zone.site as any)?.name ?? "",
+            siteName: (zone.organization as any)?.name ?? "",
             score: rawScore,
             smoothedScore,
             riskLevel: smoothedLevel,
@@ -158,7 +158,7 @@ export class RiskService {
 
           // Emit score-updated event for real-time dashboard updates (gateway forwards to WebSocket)
           this.eventEmitter.emit("risk.score-updated", {
-            siteId: zone.siteId,
+            organizationId: zone.organizationId,
             zoneId: zone.id,
             score: scoreDto,
           });
@@ -167,7 +167,7 @@ export class RiskService {
           if (smoothedScore >= 70) {
             this.eventEmitter.emit("risk.score-critical", {
               zoneId: zone.id,
-              siteId: zone.siteId,
+              organizationId: zone.organizationId,
               score: rawScore,
               smoothedScore,
               level: smoothedLevel,
@@ -222,7 +222,7 @@ export class RiskService {
    * Collect risk factors for a zone from various data sources.
    * Queries use raw SQL for TimescaleDB hypertables and Prisma for models.
    */
-  async collectRiskFactors(zoneId: string, siteId: string): Promise<RiskFactors> {
+  async collectRiskFactors(zoneId: string, organizationId: string): Promise<RiskFactors> {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
     try {
@@ -265,7 +265,7 @@ export class RiskService {
           // Count active (not resolved/closed) incidents for this site
           this.prisma.incident.count({
             where: {
-              siteId,
+              organizationId,
               status: { notIn: ["resolved", "closed"] },
             },
           }),
@@ -273,8 +273,8 @@ export class RiskService {
           // Count readers with >10 failed reads in last 24h for this site
           this.prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
             `SELECT COUNT(DISTINCT reader_id)::int as count FROM reader_health
-             WHERE site_id = $1::uuid AND failed_reads > 10 AND time >= $2::timestamptz`,
-            siteId,
+             WHERE organization_id = $1::uuid AND failed_reads > 10 AND time >= $2::timestamptz`,
+            organizationId,
             twentyFourHoursAgo,
           ),
 
@@ -316,7 +316,7 @@ export class RiskService {
    * Get current risk scores for all zones (optionally filtered by site).
    * Reads from Redis cache first, falls back to hypertable.
    */
-  async getCurrentScores(siteId?: string): Promise<RiskScoreDto[]> {
+  async getCurrentScores(organizationId?: string): Promise<RiskScoreDto[]> {
     try {
       // Try Redis cache first
       const keys = await this.redis.keys(`risk:zone:*`);
@@ -338,8 +338,8 @@ export class RiskService {
 
         const validScores = cached.filter((s): s is RiskScoreDto => s !== null);
         if (validScores.length > 0) {
-          return siteId
-            ? validScores.filter((s) => s.siteId === siteId)
+          return organizationId
+            ? validScores.filter((s) => s.organizationId === organizationId)
             : validScores;
         }
       }
@@ -348,7 +348,7 @@ export class RiskService {
       const rows = await this.prisma.$queryRawUnsafe<
         Array<{
           zone_id: string;
-          site_id: string;
+          organization_id: string;
           score: number;
           smoothed_score: number;
           risk_level: string;
@@ -359,20 +359,20 @@ export class RiskService {
         }>
       >(
         `SELECT DISTINCT ON (rs.zone_id)
-                rs.zone_id, rs.site_id, rs.score, rs.smoothed_score,
+                rs.zone_id, rs.organization_id, rs.score, rs.smoothed_score,
                 rs.risk_level::text, rs.factors, rs.time,
                 z.name AS zone_name, s.name AS site_name
          FROM risk_scores rs
          JOIN zones z ON z.id = rs.zone_id
-         JOIN sites s ON s.id = rs.site_id
-         ${siteId ? "WHERE rs.site_id = $1::uuid" : ""}
+         JOIN sites s ON s.id = rs.organization_id
+         ${organizationId ? "WHERE rs.organization_id = $1::uuid" : ""}
          ORDER BY rs.zone_id, rs.time DESC`,
-        ...(siteId ? [siteId] : []),
+        ...(organizationId ? [organizationId] : []),
       );
 
       return rows.map((row) => ({
         zoneId: row.zone_id,
-        siteId: row.site_id,
+        organizationId: row.organization_id,
         zoneName: row.zone_name,
         siteName: row.site_name,
         score: row.score,
@@ -435,7 +435,7 @@ export class RiskService {
     try {
       const rows = await this.prisma.$queryRawUnsafe<
         Array<{
-          site_id: string;
+          organization_id: string;
           site_name: string;
           average_score: number;
           max_score: number;
@@ -446,7 +446,7 @@ export class RiskService {
         }>
       >(
         `SELECT
-           rs.site_id,
+           rs.organization_id,
            s.name AS site_name,
            ROUND(AVG(rs.smoothed_score))::int AS average_score,
            MAX(rs.smoothed_score)::int AS max_score,
@@ -455,13 +455,13 @@ export class RiskService {
            COUNT(DISTINCT rs.zone_id) FILTER (WHERE rs.risk_level = 'elevated')::int AS elevated_zones,
            MAX(rs.time) AS last_updated
          FROM risk_scores rs
-         JOIN sites s ON s.id = rs.site_id
+         JOIN sites s ON s.id = rs.organization_id
          WHERE rs.time > NOW() - INTERVAL '5 minutes'
-         GROUP BY rs.site_id, s.name`,
+         GROUP BY rs.organization_id, s.name`,
       );
 
       return rows.map((row) => ({
-        siteId: row.site_id,
+        organizationId: row.organization_id,
         siteName: row.site_name,
         averageScore: row.average_score,
         maxScore: row.max_score,

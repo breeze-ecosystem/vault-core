@@ -27,10 +27,10 @@ const PATTERNS: PatternRule[] = [
     name: "Porte forcée répétée",
     description: "La même porte a été forcée à plusieurs reprises dans un court laps de temps",
     query: `
-      SELECT door_id, site_id, COUNT(*) as occurrence_count
+      SELECT door_id, organization_id, COUNT(*) as occurrence_count
       FROM door_state_log
       WHERE state = 'forced' AND time > NOW() - $1::interval
-      GROUP BY door_id, site_id
+      GROUP BY door_id, organization_id
       HAVING COUNT(*) >= $2
     `,
     params: ["1 hour", 3],
@@ -41,10 +41,10 @@ const PATTERNS: PatternRule[] = [
     name: "Porte maintenue ouverte répétée",
     description: "La même porte a été maintenue ouverte anormalement à plusieurs reprises",
     query: `
-      SELECT door_id, site_id, COUNT(*) as occurrence_count
+      SELECT door_id, organization_id, COUNT(*) as occurrence_count
       FROM door_state_log
       WHERE state = 'held-open' AND time > NOW() - $1::interval
-      GROUP BY door_id, site_id
+      GROUP BY door_id, organization_id
       HAVING COUNT(*) >= $2
     `,
     params: ["1 hour", 3],
@@ -55,10 +55,10 @@ const PATTERNS: PatternRule[] = [
     name: "Taux d'échec de lecteur élevé",
     description: "Un lecteur présente un nombre élevé d'échecs de lecture, indiquant un possible dysfonctionnement",
     query: `
-      SELECT reader_id, site_id, COUNT(*) as occurrence_count
+      SELECT reader_id, organization_id, COUNT(*) as occurrence_count
       FROM reader_health
       WHERE failed_reads > 5 AND time > NOW() - $1::interval
-      GROUP BY reader_id, site_id
+      GROUP BY reader_id, organization_id
       HAVING COUNT(*) >= $2
     `,
     params: ["6 hours", 10],
@@ -69,11 +69,11 @@ const PATTERNS: PatternRule[] = [
     name: "Chutes FPS caméra",
     description: "Une caméra subit des chutes de FPS répétées, indiquant un possible problème de réseau ou de charge",
     query: `
-      SELECT camera_id, site_id, COUNT(*) as occurrence_count
+      SELECT camera_id, organization_id, COUNT(*) as occurrence_count
       FROM camera_health
       WHERE fps_actual IS NOT NULL AND fps_actual < fps_expected * 0.5
       AND time > NOW() - $1::interval
-      GROUP BY camera_id, site_id
+      GROUP BY camera_id, organization_id
       HAVING COUNT(*) >= $2
     `,
     params: ["2 hours", 5],
@@ -84,10 +84,10 @@ const PATTERNS: PatternRule[] = [
     name: "Accès refusé répété",
     description: "Des tentatives d'accès refusées répétées sur une même porte",
     query: `
-      SELECT door_id, site_id, COUNT(*) as occurrence_count
+      SELECT door_id, organization_id, COUNT(*) as occurrence_count
       FROM access_events
       WHERE decision = 'denied' AND time > NOW() - $1::interval
-      GROUP BY door_id, site_id
+      GROUP BY door_id, organization_id
       HAVING COUNT(*) >= $2
     `,
     params: ["1 hour", 10],
@@ -131,7 +131,7 @@ export class PatternsService {
             door_id?: string;
             reader_id?: string;
             camera_id?: string;
-            site_id: string;
+            organization_id: string;
             occurrence_count: number;
           }>
         >(pattern.query, pattern.params[0], pattern.params[1]);
@@ -156,10 +156,10 @@ export class PatternsService {
           // Write to detected_patterns hypertable
           try {
             await this.prisma.$queryRawUnsafe(
-              `INSERT INTO detected_patterns (time, site_id, pattern_id, pattern_name,
+              `INSERT INTO detected_patterns (time, organization_id, pattern_id, pattern_name,
                device_type, device_id, occurrence_count, severity)
                VALUES (NOW(), $1::uuid, $2, $3, $4, $5::uuid, $6, $7::pattern_severity)`,
-              result.site_id,
+              result.organization_id,
               pattern.id,
               pattern.name,
               deviceType,
@@ -180,7 +180,7 @@ export class PatternsService {
             patternName: pattern.name,
             deviceId,
             deviceType,
-            siteId: result.site_id,
+            organizationId: result.organization_id,
             severity: pattern.severity,
             occurrenceCount: result.occurrence_count,
             timestamp: new Date().toISOString(),
@@ -216,9 +216,9 @@ export class PatternsService {
     const queryParams: any[] = [];
     let paramIndex = 1;
 
-    if (params.siteId) {
-      conditions.push(`site_id = $${paramIndex}::uuid`);
-      queryParams.push(params.siteId);
+    if (params.organizationId) {
+      conditions.push(`organization_id = $${paramIndex}::uuid`);
+      queryParams.push(params.organizationId);
       paramIndex++;
     }
 
@@ -268,7 +268,7 @@ export class PatternsService {
     const offset = (page - 1) * limit;
 
     const rows = await this.prisma.$queryRawUnsafe<any[]>(
-      `SELECT time, site_id, pattern_id, pattern_name, device_type, device_id,
+      `SELECT time, organization_id, pattern_id, pattern_name, device_type, device_id,
               occurrence_count, severity, metadata, resolved, resolved_at
        FROM detected_patterns
        ${whereClause}
@@ -283,7 +283,7 @@ export class PatternsService {
     const data: DetectedPatternDto[] = rows.map((row: any, idx: number) => ({
       id: `${row.pattern_id}-${row.device_id}-${idx}`,
       time: row.time instanceof Date ? row.time.toISOString() : String(row.time),
-      siteId: row.site_id,
+      organizationId: row.organization_id,
       patternId: row.pattern_id,
       patternName: row.pattern_name,
       deviceType: row.device_type,
@@ -323,7 +323,7 @@ export class PatternsService {
     const patternId = parts.slice(0, -1).join("-");
 
     const rows = await this.prisma.$queryRawUnsafe<any[]>(
-      `SELECT time, site_id, pattern_id, pattern_name, device_type, device_id,
+      `SELECT time, organization_id, pattern_id, pattern_name, device_type, device_id,
               occurrence_count, severity, metadata, resolved, resolved_at
        FROM detected_patterns
        WHERE pattern_id = $1 AND device_id = $2::uuid
@@ -339,7 +339,7 @@ export class PatternsService {
     return {
       id,
       time: row.time instanceof Date ? row.time.toISOString() : String(row.time),
-      siteId: row.site_id,
+      organizationId: row.organization_id,
       patternId: row.pattern_id,
       patternName: row.pattern_name,
       deviceType: row.device_type,

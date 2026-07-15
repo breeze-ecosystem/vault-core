@@ -14,14 +14,14 @@ interface AccessEventPayload {
   userId: string;
   doorId: string;
   zoneId: string;
-  siteId: string;
+  orgId: string;
   reason?: string;
   timestamp: Date;
 }
 
 interface DoorStateEvent {
   doorId: string;
-  siteId: string;
+  orgId: string;
   zoneId: string;
   previousState: string;
   newState: string;
@@ -52,7 +52,7 @@ export class CorrelationService {
       await this.correlationQueue.add("correlate-video", {
         eventType: "access.granted",
         doorId: payload.doorId,
-        siteId: payload.siteId,
+        orgId: payload.orgId,
         credentialId: payload.credentialId,
         userId: payload.userId,
         timestamp: payload.timestamp,
@@ -61,7 +61,7 @@ export class CorrelationService {
       // D-20: Enqueue tailgating detection with 3s delay
       await this.tailgatingQueue.add("detect-tailgating", {
         doorId: payload.doorId,
-        siteId: payload.siteId,
+        orgId: payload.orgId,
         eventTimestamp: payload.timestamp,
         accessEventId: "",
       }, {
@@ -86,7 +86,7 @@ export class CorrelationService {
       await this.correlationQueue.add("correlate-video", {
         eventType: "access.denied",
         doorId: payload.doorId,
-        siteId: payload.siteId,
+        orgId: payload.orgId,
         credentialId: payload.credentialId,
         reason: payload.reason,
         timestamp: payload.timestamp,
@@ -110,7 +110,7 @@ export class CorrelationService {
     this.eventEmitter.emit("timeline.new-event", {
       type: "door-state",
       doorId: payload.doorId,
-      siteId: payload.siteId,
+      orgId: payload.orgId,
       zoneId: payload.zoneId,
       state: payload.newState,
       previousState: payload.previousState,
@@ -125,7 +125,7 @@ export class CorrelationService {
    * Queries TimescaleDB access_events hypertable via $queryRaw.
    */
   async searchEvents(params: {
-    siteId: string;
+    orgId: string;
     from?: string;
     to?: string;
     credentialId?: string;
@@ -142,8 +142,8 @@ export class CorrelationService {
 
     try {
       // Build WHERE clauses dynamically
-      const conditions: string[] = ["ae.site_id = $1::uuid"];
-      const values: any[] = [params.siteId];
+      const conditions: string[] = ["ae.organization_id = $1::uuid"];
+      const values: any[] = [params.orgId];
       let idx = 2;
 
       if (params.from) {
@@ -272,7 +272,7 @@ export class CorrelationService {
    * Read-time UNION ALL merge of access_events + door_state_log.
    */
   async getUnifiedTimeline(
-    siteId: string,
+    orgId: string,
     params: { from?: string; to?: string; limit?: number },
   ): Promise<TimelineEntry[]> {
     const limit = params.limit ?? 100;
@@ -292,24 +292,24 @@ export class CorrelationService {
             'access' as "eventType",
             time as "timestamp",
             door_id::text as "doorId",
-            site_id::text as "siteId",
+            organization_id::text as "orgId",
             'access' as "category",
             decision::text as "summary",
             metadata::jsonb as "metadata"
           FROM access_events
-          WHERE site_id = $1::uuid ${fromCondition} ${toCondition}
+          WHERE organization_id = $1::uuid ${fromCondition} ${toCondition}
           UNION ALL
           SELECT
             '' as "eventId",
             'door' as "eventType",
             time as "timestamp",
             door_id::text as "doorId",
-            site_id::text as "siteId",
+            organization_id::text as "orgId",
             state as "category",
             state as "summary",
             '{}'::jsonb as "metadata"
           FROM door_state_log
-          WHERE site_id = $1::uuid ${fromCondition} ${toCondition}
+          WHERE organization_id = $1::uuid ${fromCondition} ${toCondition}
         ) combined
         ORDER BY time DESC
         LIMIT $2
@@ -321,12 +321,12 @@ export class CorrelationService {
           eventType: string;
           timestamp: Date;
           doorId: string;
-          siteId: string;
+          orgId: string;
           summary: string;
           category: string;
           metadata: any;
         }>
-      >(query, siteId, limit);
+      >(query, orgId, limit);
 
       // Enrich with door names
       const doorIds = [...new Set(rows.map((r) => r.doorId))];

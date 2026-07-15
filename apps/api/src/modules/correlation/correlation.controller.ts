@@ -20,16 +20,16 @@ export class CorrelationController {
   @Get("events")
   @Roles("ADMIN", "SUPERVISOR", "OPERATOR", "VIEWER")
   async getTimeline(
-    @Query("siteId") siteId: string,
+    @Query("orgId") orgId: string,
     @Query("from") from?: string,
     @Query("to") to?: string,
     @Query("limit") limit?: string,
   ) {
-    if (!siteId) {
+    if (!orgId) {
       return { data: [], total: 0 };
     }
 
-    const entries = await this.correlationService.getUnifiedTimeline(siteId, {
+    const entries = await this.correlationService.getUnifiedTimeline(orgId, {
       from,
       to,
       limit: limit ? parseInt(limit, 10) : 100,
@@ -44,7 +44,7 @@ export class CorrelationController {
   @Get("search")
   @Roles("ADMIN", "SUPERVISOR", "OPERATOR")
   async searchEvents(
-    @Query("siteId") siteId: string,
+    @Query("orgId") orgId: string,
     @Query("from") from?: string,
     @Query("to") to?: string,
     @Query("credentialId") credentialId?: string,
@@ -55,12 +55,12 @@ export class CorrelationController {
     @Query("page") page?: string,
     @Query("limit") limit?: string,
   ) {
-    if (!siteId) {
+    if (!orgId) {
       return { data: [], total: 0, page: 1, limit: 20 };
     }
 
     return this.correlationService.searchEvents({
-      siteId,
+      orgId,
       from,
       to,
       credentialId,

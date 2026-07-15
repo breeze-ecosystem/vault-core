@@ -62,13 +62,13 @@ export class EquipmentController {
   @Get("predictions")
   @Roles("ADMIN", "SUPERVISOR")
   async getPredictions(
-    @Query("siteId") siteId?: string,
+    @Query("orgId") orgId?: string,
     @Query("deviceType") deviceType?: string,
     @Query("metric") metric?: string,
     @Query("triggeredAlert") triggeredAlert?: string,
   ) {
     return this.equipmentService.getPredictions({
-      siteId,
+      orgId,
       deviceType,
       metric,
       triggeredAlert: triggeredAlert !== undefined ? triggeredAlert === "true" : undefined,
@@ -77,14 +77,14 @@ export class EquipmentController {
 
   @Get("predictions/summary")
   @Roles("ADMIN", "SUPERVISOR")
-  async getPredictiveSummary(@Query("siteId") siteId?: string) {
-    return this.equipmentService.getPredictiveHealthSummary(siteId);
+  async getPredictiveSummary(@Query("orgId") orgId?: string) {
+    return this.equipmentService.getPredictiveHealthSummary(orgId);
   }
 
   @Get("camera-door-map")
   @Roles("ADMIN", "SUPERVISOR", "OPERATOR")
-  async getCameraDoorMap(@Query("siteId") siteId?: string) {
-    return this.equipmentService.getCameraDoorAssociations(siteId);
+  async getCameraDoorMap(@Query("orgId") orgId?: string) {
+    return this.equipmentService.getCameraDoorAssociations(orgId);
   }
 
   @Post("predictions/run")

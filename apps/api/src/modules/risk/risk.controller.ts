@@ -9,12 +9,12 @@ export class RiskController {
 
   /**
    * GET /api/risk/scores — Get current risk scores for all zones.
-   * Optional query param: ?siteId=uuid to filter by site.
+   * Optional query param: ?orgId=uuid to filter by site.
    */
   @Get("scores")
   @Roles("ADMIN", "SUPERVISOR")
-  async getScores(@Query("siteId") siteId?: string) {
-    return this.riskService.getCurrentScores(siteId);
+  async getScores(@Query("orgId") orgId?: string) {
+    return this.riskService.getCurrentScores(orgId);
   }
 
   /**

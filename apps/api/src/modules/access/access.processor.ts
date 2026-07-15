@@ -5,7 +5,7 @@ import { PrismaService } from "../prisma/prisma.service";
 
 export interface PersistEventJob {
   time: Date;
-  siteId: string;
+  orgId: string;
   doorId: string;
   credentialId: string;
   userId: string;
@@ -38,8 +38,8 @@ export class AccessProcessor extends WorkerHost {
   private async persistEvent(data: PersistEventJob) {
     try {
       await this.prisma.$queryRaw`
-        INSERT INTO access_events (time, site_id, door_id, credential_id, user_id, decision, reason, sequence)
-        VALUES (${data.time}, ${data.siteId}::uuid, ${data.doorId}::uuid,
+        INSERT INTO access_events (time, organization_id, door_id, credential_id, user_id, decision, reason, sequence)
+        VALUES (${data.time}, ${data.orgId}::uuid, ${data.doorId}::uuid,
                 ${data.credentialId}::uuid, ${data.userId}::uuid,
                 ${data.decision}::event_decision, ${data.reason}, ${data.sequence})
       `;

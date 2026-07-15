@@ -25,7 +25,7 @@ export class PatternsController {
 
   /**
    * GET /api/patterns — List detected patterns with filters.
-   * Supports siteId, deviceType, severity, resolved, from, to, page, limit.
+   * Supports orgId, deviceType, severity, resolved, from, to, page, limit.
    */
   @Get()
   @Roles("ADMIN", "SUPERVISOR", "OPERATOR")

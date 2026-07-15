@@ -30,11 +30,11 @@ export class DoorController {
   @Roles("ADMIN", "SUPERVISOR", "OPERATOR", "VIEWER")
   async getAllStates(@Req() req: FastifyRequest) {
     const user = (req as any)?.user;
-    const siteId = user?.siteId;
-    if (!siteId) {
+    const orgId = user?.orgId;
+    if (!orgId) {
       return [];
     }
-    return this.doorService.getAllDoorStates(siteId);
+    return this.doorService.getAllDoorStates(orgId);
   }
 
   /**
@@ -76,10 +76,10 @@ export class DoorController {
     @Req() req: FastifyRequest,
   ) {
     const user = (req as any)?.user;
-    const siteId = user?.siteId ?? "";
+    const orgId = user?.orgId ?? "";
     await this.doorService.lockdownZone(
       zoneId,
-      siteId,
+      orgId,
       user?.id ?? "unknown",
       body.reason,
     );
@@ -99,10 +99,10 @@ export class DoorController {
     @Req() req: FastifyRequest,
   ) {
     const user = (req as any)?.user;
-    const siteId = user?.siteId ?? "";
+    const orgId = user?.orgId ?? "";
     await this.doorService.emergencyUnlockZone(
       zoneId,
-      siteId,
+      orgId,
       user?.id ?? "unknown",
       body.reason,
     );
@@ -120,10 +120,10 @@ export class DoorController {
     @Req() req: FastifyRequest,
   ) {
     const user = (req as any)?.user;
-    const siteId = user?.siteId ?? "";
+    const orgId = user?.orgId ?? "";
     await this.doorService.clearEmergencyOverride(
       zoneId,
-      siteId,
+      orgId,
       user?.id ?? "unknown",
     );
     return { status: "cleared", zoneId };

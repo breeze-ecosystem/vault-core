@@ -58,7 +58,7 @@ export class ChatService {
       if (snapshot) {
         snapshots.push({
           cameraName: cam.name,
-          siteName: cam.siteName,
+          siteName: cam.organizationName,
           imageB64: snapshot,
         });
       }
@@ -93,14 +93,14 @@ export class ChatService {
     if (explicitCameraId) {
       const cam = await this.prisma.camera.findUnique({
         where: { id: explicitCameraId },
-        include: { site: true },
+        include: { organization: true },
       });
       if (cam) {
         return [{
           id: cam.id,
           name: cam.name,
           status: cam.status,
-          siteName: cam.site?.name || 'Inconnu',
+          siteName: cam.organization?.name || 'Inconnu',
           rtspUrl: cam.rtspUrl,
           lastSnapshotUrl: cam.lastSnapshotUrl,
         }];
@@ -110,7 +110,7 @@ export class ChatService {
 
     // Smart camera resolution from message
     const allCameras = await this.prisma.camera.findMany({
-      include: { site: true },
+      include: { organization: true },
     });
 
     const msgLower = message.toLowerCase();
@@ -118,7 +118,7 @@ export class ChatService {
 
     for (const cam of allCameras) {
       const camName = cam.name.toLowerCase();
-      const siteName = (cam.site?.name || '').toLowerCase();
+      const siteName = (cam.organization?.name || '').toLowerCase();
 
       // Check if message mentions camera name or site name
       // Extract keywords from camera name (e.g., "couloir", "entree", "parking")
@@ -133,7 +133,7 @@ export class ChatService {
           id: cam.id,
           name: cam.name,
           status: cam.status,
-          siteName: cam.site?.name || 'Inconnu',
+          siteName: cam.organization?.name || 'Inconnu',
           rtspUrl: cam.rtspUrl,
           lastSnapshotUrl: cam.lastSnapshotUrl,
         });
@@ -149,7 +149,7 @@ export class ChatService {
           id: c.id,
           name: c.name,
           status: c.status,
-          siteName: c.site?.name || 'Inconnu',
+          siteName: c.organization?.name || 'Inconnu',
           rtspUrl: c.rtspUrl,
           lastSnapshotUrl: c.lastSnapshotUrl,
         }));
@@ -225,7 +225,7 @@ export class ChatService {
     const results: string[] = [];
 
     for (const snap of snapshots) {
-      const prompt = `Tu es un agent de surveillance IA. Analyse cette image de la caméra "${snap.cameraName}" (site: ${snap.siteName}).
+      const prompt = `Tu es un agent de surveillance IA. Analyse cette image de la caméra "${snap.cameraName}" (org: ${snap.siteName}).
 ${contextStr}
 Question de l'utilisateur: ${question}
 
@@ -306,7 +306,7 @@ Réponds en français. Si la question concerne une zone spécifique, suggère à
    */
   async getCamerasForChat(userId: string) {
     const cameras = await this.prisma.camera.findMany({
-      include: { site: true },
+      include: { organization: true },
       orderBy: { name: 'asc' },
     });
 
@@ -314,8 +314,8 @@ Réponds en français. Si la question concerne une zone spécifique, suggère à
       id: c.id,
       name: c.name,
       status: c.status,
-      siteName: c.site?.name || 'Inconnu',
-      siteId: c.siteId,
+      siteName: c.organization?.name || 'Inconnu',
+      orgId: c.orgId,
     }));
   }
 

@@ -4,7 +4,7 @@ import { Queue } from "bullmq";
 
 export interface FrameJob {
   cameraId: string;
-  siteId: string;
+  orgId: string;
   snapshotBuffer: string;
   timestamp: string;
   prompts: { id: string; text: string; severity: string }[];

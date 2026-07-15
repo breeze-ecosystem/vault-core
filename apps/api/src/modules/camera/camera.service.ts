@@ -6,10 +6,10 @@ import { Prisma, AlertSeverity } from "@prisma/client";
 export class CameraService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(filters?: { status?: string; siteId?: string; page?: number; limit?: number }) {
+  async findAll(filters?: { status?: string; organizationId?: string; page?: number; limit?: number }) {
     const where: Prisma.CameraWhereInput = {};
     if (filters?.status) where.status = filters.status as Prisma.EnumCameraStatusFilter;
-    if (filters?.siteId) where.siteId = filters.siteId;
+    if (filters?.organizationId) where.organizationId = filters.organizationId;
 
     const page = filters?.page ?? 1;
     const limit = filters?.limit ?? 50;
@@ -49,7 +49,7 @@ export class CameraService {
   async create(data: Prisma.CameraCreateInput) {
     return this.prisma.camera.create({
       data,
-      include: { site: { select: { id: true, name: true } } },
+      include: { organization: { select: { id: true, name: true } } },
     });
   }
 
@@ -58,7 +58,7 @@ export class CameraService {
     return this.prisma.camera.update({
       where: { id },
       data,
-      include: { site: { select: { id: true, name: true } } },
+      include: { organization: { select: { id: true, name: true } } },
     });
   }
 

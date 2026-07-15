@@ -37,7 +37,7 @@ export class AuditController {
   @ApiQuery({ name: "entity", required: false })
   @ApiQuery({ name: "entityId", required: false })
   @ApiQuery({ name: "userId", required: false })
-  @ApiQuery({ name: "siteId", required: false })
+  @ApiQuery({ name: "orgId", required: false })
   @ApiQuery({ name: "action", required: false })
   @ApiQuery({ name: "from", required: false })
   @ApiQuery({ name: "to", required: false })

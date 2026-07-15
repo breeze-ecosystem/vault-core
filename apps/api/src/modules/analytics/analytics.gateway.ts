@@ -24,8 +24,8 @@ export class AnalyticsGateway implements OnGatewayConnection, OnGatewayDisconnec
   }
 
   @SubscribeMessage('subscribe:site')
-  handleSubscribeSite(client: Socket, siteId: string) {
-    client.join(`analytics:${siteId}`);
-    this.logger.log(`Client ${client.id} subscribed to analytics for site ${siteId}`);
+  handleSubscribeSite(client: Socket, orgId: string) {
+    client.join(`analytics:${orgId}`);
+    this.logger.log(`Client ${client.id} subscribed to analytics for org ${orgId}`);
   }
 }

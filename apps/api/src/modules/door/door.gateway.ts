@@ -25,8 +25,8 @@ export class DoorGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage("subscribe:site")
-  handleSubscribeSite(client: Socket, payload: { siteId: string }) {
-    const room = `site:${payload.siteId}`;
+  handleSubscribeSite(client: Socket, payload: { orgId: string }) {
+    const room = `org:${payload.orgId}`;
     client.join(room);
     this.logger.log(
       `Client ${client.id} subscribed to door updates for ${room}`,
@@ -45,14 +45,14 @@ export class DoorGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @OnEvent("door.state-changed", { async: true })
   handleDoorStateChanged(payload: {
     doorId: string;
-    siteId: string;
+    orgId: string;
     zoneId: string;
     previousState: string;
     newState: string;
     timestamp: Date;
   }) {
     this.server
-      .to(`site:${payload.siteId}`)
+      .to(`org:${payload.orgId}`)
       .emit("state-update", payload);
     this.server
       .to(`door:${payload.doorId}`)
@@ -62,13 +62,13 @@ export class DoorGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @OnEvent("zone.emergency", { async: true })
   handleZoneEmergency(payload: {
     zoneId: string;
-    siteId: string;
+    orgId: string;
     status: string;
     triggeredBy: string;
     timestamp: Date;
   }) {
     this.server
-      .to(`site:${payload.siteId}`)
+      .to(`org:${payload.orgId}`)
       .emit("emergency-update", payload);
   }
 }

@@ -9,7 +9,7 @@ import type { AIQueryResult, AIQuerySpec, AssistantResponse } from "@repo/shared
 interface TimelineEntry {
   time: string;
   event_type: string;
-  site_id: string;
+  organization_id: string;
   door_id?: string;
   door_name?: string;
   credential_id?: string;
@@ -38,16 +38,16 @@ export class AiService {
   async naturalLanguageQuery(query: string, userId: string): Promise<AIQueryResult> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { siteId: true },
+      select: { organizationId: true },
     });
 
-    const siteId = user?.siteId;
+    const organizationId = user?.organizationId;
 
     // Build system prompt for structured output
     const systemPrompt = `You are a security system query interpreter. Convert natural language queries about security events into structured JSON.
 
 Current time: ${new Date().toISOString()}
-User's site ID: ${siteId || "unknown (use site_name filter if specified)"}
+User's organization ID: ${organizationId || "unknown (use site_name filter if specified)"}
 
 Valid event_types: access_granted, access_denied, door_forced, door_held_open, door_unsecured, tailgating, anpr_allow, anpr_deny
 Valid filter fields: site_name (string), from_time (ISO8601), to_time (ISO8601), door_name (string), plate (string)
@@ -79,17 +79,17 @@ Respond with ONLY valid JSON (no markdown, no explanation):
     }
 
     // Resolve site name to site ID
-    let resolvedSiteId = siteId;
-    if (spec.filters.site_name && !resolvedSiteId) {
-      const site = await this.prisma.site.findFirst({
+    let resolvedOrgId = organizationId;
+    if (spec.filters.site_name && !resolvedOrgId) {
+      const org = await this.prisma.organization.findFirst({
         where: { name: { contains: spec.filters.site_name, mode: "insensitive" } },
         select: { id: true },
       });
-      if (site) resolvedSiteId = site.id;
+      if (org) resolvedOrgId = org.id;
     }
 
     // Execute TimescaleDB query based on spec
-    const results = await this.executeEventQuery(spec, resolvedSiteId);
+    const results = await this.executeEventQuery(spec, resolvedOrgId);
 
     // Generate summary
     let summary = `${results.length} événement(s) trouvé(s)`;
@@ -210,9 +210,9 @@ Réponds en JSON:
   async answerQuestion(question: string, userId: string): Promise<AssistantResponse> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { siteId: true },
+      select: { organizationId: true },
     });
-    const siteId = user?.siteId;
+    const organizationId = user?.organizationId;
 
     // Generate embedding for the question
     let embedding: number[] = [];
@@ -252,7 +252,7 @@ Réponds en JSON:
           where: { status: { notIn: ["resolved", "closed"] } },
         }),
         this.prisma.visit.count({ where: { status: "active" } }),
-        this.prisma.site.findMany({
+        this.prisma.organization.findMany({
           select: { id: true, name: true, _count: { select: { cameras: true, doors: true } } },
         }),
       ]);
@@ -308,15 +308,15 @@ Réponds de manière naturelle et concise en français, en te basant sur le cont
 
   // ── 4. Embed Event (for pgvector storage) ──
 
-  async embedEvent(eventType: string, eventId: string, summary: string, siteId: string, time: Date): Promise<void> {
+  async embedEvent(eventType: string, eventId: string, summary: string, organizationId: string, time: Date): Promise<void> {
     try {
       const embedding = await this.generateEmbedding(summary);
 
       await this.prisma.$queryRawUnsafe(
-        `INSERT INTO event_embeddings (time, site_id, event_type, event_id, summary, embedding)
+        `INSERT INTO event_embeddings (time, organization_id, event_type, event_id, summary, embedding)
          VALUES ($1::timestamptz, $2::uuid, $3::varchar, $4::uuid, $5::text, $6::vector)`,
         time,
-        siteId,
+        organizationId,
         eventType,
         eventId,
         summary,
@@ -336,7 +336,7 @@ Réponds de manière naturelle et concise en français, en te basant sur le cont
     credentialId: string;
     userId: string;
     doorId: string;
-    siteId: string;
+    organizationId: string;
     timestamp: Date;
   }): Promise<void> {
     try {
@@ -354,7 +354,7 @@ Réponds de manière naturelle et concise en français, en te basant sur le cont
         eventType: "access_granted",
         eventId: payload.credentialId,
         summary,
-        siteId: payload.siteId,
+        organizationId: payload.organizationId,
         time: payload.timestamp,
       });
     } catch (err: any) {
@@ -366,7 +366,7 @@ Réponds de manière naturelle et concise en français, en te basant sur le cont
   async onAccessDenied(payload: {
     credentialId: string;
     doorId: string;
-    siteId: string;
+    organizationId: string;
     timestamp: Date;
     reason?: string;
   }): Promise<void> {
@@ -381,7 +381,7 @@ Réponds de manière naturelle et concise en français, en te basant sur le cont
         eventType: "access_denied",
         eventId: payload.credentialId,
         summary,
-        siteId: payload.siteId,
+        organizationId: payload.organizationId,
         time: payload.timestamp,
       });
     } catch (err: any) {
@@ -392,7 +392,7 @@ Réponds de manière naturelle et concise en français, en te basant sur le cont
   @OnEvent("door.state-changed", { async: true })
   async onDoorStateChanged(payload: {
     doorId: string;
-    siteId: string;
+    organizationId: string;
     previousState: string;
     newState: string;
     timestamp: Date;
@@ -412,7 +412,7 @@ Réponds de manière naturelle et concise en français, en te basant sur le cont
         eventType: "door_abnormal_state",
         eventId: payload.doorId,
         summary,
-        siteId: payload.siteId,
+        organizationId: payload.organizationId,
         time: payload.timestamp,
       });
     } catch (err: any) {
@@ -424,7 +424,7 @@ Réponds de manière naturelle et concise en français, en te basant sur le cont
   async onAnprRecognized(payload: {
     plate: string;
     cameraId: string;
-    siteId: string;
+    organizationId: string;
     decision: string;
     timestamp: Date;
   }): Promise<void> {
@@ -439,7 +439,7 @@ Réponds de manière naturelle et concise en français, en te basant sur le cont
         eventType: "anpr_recognized",
         eventId: payload.plate,
         summary,
-        siteId: payload.siteId,
+        organizationId: payload.organizationId,
         time: payload.timestamp,
       });
     } catch (err: any) {
@@ -573,14 +573,14 @@ Réponds de manière naturelle et concise en français, en te basant sur le cont
     }
   }
 
-  private async executeEventQuery(spec: AIQuerySpec, siteId: string | null | undefined): Promise<TimelineEntry[]> {
+  private async executeEventQuery(spec: AIQuerySpec, organizationId: string | null | undefined): Promise<TimelineEntry[]> {
     const conditions: string[] = [];
     const values: any[] = [];
     let idx = 1;
 
-    if (siteId) {
-      conditions.push(`ae.site_id = $${idx}::uuid`);
-      values.push(siteId);
+    if (organizationId) {
+      conditions.push(`ae.organization_id = $${idx}::uuid`);
+      values.push(organizationId);
       idx++;
     }
 
@@ -627,14 +627,14 @@ Réponds de manière naturelle et concise en français, en te basant sur le cont
         const rows = await this.prisma.$queryRawUnsafe<Array<{
           id: string;
           time: Date;
-          site_id: string;
+          organization_id: string;
           door_id: string;
           decision: string;
           credential_id: string;
           user_name: string;
           metadata: any;
         }>>(
-          `SELECT id::text, time, site_id::text, door_id::text, decision::text,
+          `SELECT id::text, time, organization_id::text, door_id::text, decision::text,
                   COALESCE(metadata->>'credential_id', '') as credential_id,
                   COALESCE(metadata->>'user_name', '') as user_name,
                   metadata
@@ -649,7 +649,7 @@ Réponds de manière naturelle et concise en français, en te basant sur le cont
           results.push({
             time: row.time.toISOString(),
             event_type: row.decision === "granted" ? "access_granted" : "access_denied",
-            site_id: row.site_id,
+            organization_id: row.organization_id,
             door_id: row.door_id,
             credential_id: row.credential_id || undefined,
             user_name: row.user_name || undefined,
@@ -669,11 +669,11 @@ Réponds de manière naturelle et concise en français, en te basant sur le cont
         const rows = await this.prisma.$queryRawUnsafe<Array<{
           id: string;
           time: Date;
-          site_id: string;
+          organization_id: string;
           door_id: string;
           state: string;
         }>>(
-          `SELECT id::text, time, site_id::text, door_id::text, state
+          `SELECT id::text, time, organization_id::text, door_id::text, state
            FROM door_state_log
            WHERE state IN (${abnormalStates.map((_, i) => `$${idx + i}::text`).join(",")})
            ORDER BY time DESC
@@ -686,7 +686,7 @@ Réponds de manière naturelle et concise en français, en te basant sur le cont
           results.push({
             time: row.time.toISOString(),
             event_type: `door_${row.state}`,
-            site_id: row.site_id,
+            organization_id: row.organization_id,
             door_id: row.door_id,
             summary: `État de porte anormal: ${row.state}`,
           });
@@ -708,14 +708,14 @@ Réponds de manière naturelle et concise en français, en te basant sur le cont
 
         const rows = await this.prisma.$queryRawUnsafe<Array<{
           time: Date;
-          site_id: string;
+          organization_id: string;
           camera_id: string;
           plate: string;
           decision: string;
         }>>(
-          `SELECT time, site_id::text, COALESCE(camera_id::text, '') as camera_id, plate, decision
+          `SELECT time, organization_id::text, COALESCE(camera_id::text, '') as camera_id, plate, decision
            FROM vehicle_events
-           WHERE site_id = $1::uuid ${plateFilter}
+           WHERE organization_id = $1::uuid ${plateFilter}
            ORDER BY time DESC
            LIMIT 50`,
           ...values,
@@ -725,7 +725,7 @@ Réponds de manière naturelle et concise en français, en te basant sur le cont
           results.push({
             time: row.time.toISOString(),
             event_type: row.decision === "allow" ? "anpr_allow" : "anpr_deny",
-            site_id: row.site_id,
+            organization_id: row.organization_id,
             camera_id: row.camera_id || undefined,
             summary: `Véhicule ${row.plate} — ${row.decision}`,
           });

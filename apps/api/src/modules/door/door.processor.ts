@@ -32,7 +32,7 @@ export class DoorProcessor extends WorkerHost {
    * Create alert via existing AlertService with 60s cooldown deduplication.
    */
   private async evaluateDoorAlert(data: DoorAlertJob) {
-    const { doorId, siteId, state, reason, timestamp } = data;
+    const { doorId, orgId, state, reason, timestamp } = data;
 
     // 60s cooldown: prevent duplicate alerts for same door+state
     const cooldownKey = `door:alert:cooldown:${doorId}:${state}`;
@@ -91,7 +91,7 @@ export class DoorProcessor extends WorkerHost {
           doorId,
           state,
           eventTimestamp: timestamp,
-          siteId,
+          orgId,
         } as any,
       } as any);
 

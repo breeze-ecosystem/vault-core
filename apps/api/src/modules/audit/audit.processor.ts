@@ -32,7 +32,7 @@ export class AuditProcessor extends WorkerHost {
       entityId,
       action,
       userId,
-      siteId,
+      orgId,
       changes,
       ipAddress,
       timestamp,
@@ -41,14 +41,14 @@ export class AuditProcessor extends WorkerHost {
 
     try {
       await this.prisma.$queryRaw`
-        INSERT INTO audit_log (time, entity, entity_id, action, user_id, site_id, changes, ip_address, content)
+        INSERT INTO audit_log (time, entity, entity_id, action, user_id, organization_id, changes, ip_address, content)
         VALUES (
           ${timestamp}::timestamptz,
           ${entity},
           ${entityId}::uuid,
           ${action},
           ${userId ? `${userId}::uuid` : "NULL::uuid"},
-          ${siteId ? `${siteId}::uuid` : "NULL::uuid"},
+          ${orgId ? `${orgId}::uuid` : "NULL::uuid"},
           ${changes ? JSON.stringify(changes) : null}::jsonb,
           ${ipAddress || null},
           ${content}

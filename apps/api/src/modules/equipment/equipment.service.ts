@@ -37,16 +37,16 @@ export class EquipmentService {
           ],
           status: { in: ["ONLINE", "DEGRADED"] as any },
         },
-        include: { site: true },
+        include: { organization: true },
       });
 
       for (const camera of staleCameras) {
         // Write to camera_health hypertable
         await this.prisma.$queryRawUnsafe(
-          `INSERT INTO camera_health (time, camera_id, site_id, status, last_heartbeat)
+          `INSERT INTO camera_health (time, camera_id, organization_id, status, last_heartbeat)
            VALUES (NOW(), $1::uuid, $2::uuid, 'offline', $3::timestamptz)`,
           camera.id,
-          camera.siteId,
+          camera.orgId,
           camera.lastHeartbeat?.toISOString() ?? null,
         );
 
@@ -64,7 +64,7 @@ export class EquipmentService {
             deviceType: "camera",
             deviceId: camera.id,
             status: "offline",
-            siteId: camera.siteId,
+            orgId: camera.orgId,
             timestamp: new Date().toISOString(),
           });
           await this.setDebounce(debounceKey, 60);
@@ -87,9 +87,9 @@ export class EquipmentService {
 
     try {
       const staleReaders = await this.prisma.$queryRawUnsafe<
-        Array<{ reader_id: string; site_id: string; last_connected: Date | null }>
+        Array<{ reader_id: string; organization_id: string; last_connected: Date | null }>
       >(
-        `SELECT DISTINCT ON (reader_id) reader_id, site_id, last_connected
+        `SELECT DISTINCT ON (reader_id) reader_id, organization_id, last_connected
          FROM reader_health
          WHERE time > $1::timestamptz
          ORDER BY reader_id, time DESC`,
@@ -100,10 +100,10 @@ export class EquipmentService {
         if (reader.last_connected && reader.last_connected > staleThreshold) continue;
 
         await this.prisma.$queryRawUnsafe(
-          `INSERT INTO reader_health (time, reader_id, site_id, status)
+          `INSERT INTO reader_health (time, reader_id, organization_id, status)
            VALUES (NOW(), $1::uuid, $2::uuid, 'offline')`,
           reader.reader_id,
-          reader.site_id,
+          reader.organization_id,
         );
 
         const debounceKey = `equipment:debounce:reader:${reader.reader_id}`;
@@ -113,7 +113,7 @@ export class EquipmentService {
             deviceType: "reader",
             deviceId: reader.reader_id,
             status: "offline",
-            siteId: reader.site_id,
+            orgId: reader.organization_id,
             timestamp: new Date().toISOString(),
           });
           await this.setDebounce(debounceKey, 60);
@@ -132,18 +132,18 @@ export class EquipmentService {
   async handleControllerHealth(payload: { topic: string; message: any }) {
     const { topic, message } = payload;
     const topicParts = topic.split("/");
-    const siteId = topicParts[1];
+    const orgId = topicParts[1];
     const controllerId = topicParts[3];
 
-    if (!siteId || !controllerId || !message) return;
+    if (!orgId || !controllerId || !message) return;
 
     try {
       await this.prisma.$queryRawUnsafe(
         `INSERT INTO controller_health
-         (time, controller_id, site_id, battery_level, connection_stability, firmware_version, cpu_load, memory_usage, metadata)
+         (time, controller_id, organization_id, battery_level, connection_stability, firmware_version, cpu_load, memory_usage, metadata)
          VALUES (NOW(), $1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8::jsonb)`,
         controllerId,
-        siteId,
+        orgId,
         message.batteryLevel ?? null,
         message.connectionStability ?? null,
         message.firmwareVersion ?? null,
@@ -161,7 +161,7 @@ export class EquipmentService {
             deviceType: "controller",
             deviceId: controllerId,
             status: "low-battery",
-            siteId,
+            orgId,
             batteryLevel: message.batteryLevel,
             timestamp: new Date().toISOString(),
           });
@@ -178,7 +178,7 @@ export class EquipmentService {
             deviceType: "controller",
             deviceId: controllerId,
             status: "connection-issue",
-            siteId,
+            orgId,
             connectionStability: message.connectionStability,
             timestamp: new Date().toISOString(),
           });
@@ -195,7 +195,7 @@ export class EquipmentService {
    */
   async getCameraHealth() {
     const cameras = await this.prisma.camera.findMany({
-      include: { site: { select: { id: true, name: true } } },
+      include: { organization: { select: { id: true, name: true } } },
     });
 
     return Promise.all(
@@ -213,8 +213,8 @@ export class EquipmentService {
           id: camera.id,
           name: camera.name,
           status: camera.status,
-          siteId: camera.siteId,
-          siteName: (camera.site as any)?.name ?? null,
+          orgId: camera.orgId,
+          siteName: (camera.organization as any)?.name ?? null,
           lastHeartbeat: camera.lastHeartbeat?.toISOString() ?? null,
           isRecording: camera.isRecording,
           fps: camera.fps,
@@ -247,7 +247,7 @@ export class EquipmentService {
    */
   async getReaderHealth() {
     return this.prisma.$queryRawUnsafe(
-      `SELECT DISTINCT ON (reader_id) reader_id, site_id, status, failed_reads, response_time_ms,
+      `SELECT DISTINCT ON (reader_id) reader_id, organization_id, status, failed_reads, response_time_ms,
               last_connected, firmware_version, time
        FROM reader_health
        WHERE time > NOW() - INTERVAL '24 hours'
@@ -278,7 +278,7 @@ export class EquipmentService {
    */
   async getControllerHealth() {
     return this.prisma.$queryRawUnsafe(
-      `SELECT DISTINCT ON (controller_id) controller_id, site_id, battery_level, connection_stability,
+      `SELECT DISTINCT ON (controller_id) controller_id, organization_id, battery_level, connection_stability,
               firmware_version, cpu_load, memory_usage, time
        FROM controller_health
        WHERE time > NOW() - INTERVAL '24 hours'
@@ -348,13 +348,13 @@ export class EquipmentService {
    * Get predictions with optional filters.
    */
   async getPredictions(params?: {
-    siteId?: string;
+    orgId?: string;
     deviceType?: string;
     metric?: string;
     triggeredAlert?: boolean;
   }): Promise<any[]> {
     let query = `
-      SELECT p.time, p.site_id, p.device_type, p.device_id, p.metric,
+      SELECT p.time, p.organization_id, p.device_type, p.device_id, p.metric,
              p.current_value, p.failure_threshold, p.slope,
              p.hours_to_failure, p.confidence, p.data_points, p.triggered_alert,
              p.time AS id
@@ -363,9 +363,9 @@ export class EquipmentService {
     const values: any[] = [];
     let paramIndex = 1;
 
-    if (params?.siteId) {
-      conditions.push(`p.site_id = $${paramIndex}::uuid`);
-      values.push(params.siteId);
+    if (params?.orgId) {
+      conditions.push(`p.organization_id = $${paramIndex}::uuid`);
+      values.push(params.orgId);
       paramIndex++;
     }
     if (params?.deviceType) {
@@ -403,7 +403,7 @@ export class EquipmentService {
     return rows.map((row: any) => ({
       id: row.id,
       time: row.time?.toISOString?.() ?? row.time,
-      siteId: row.site_id,
+      orgId: row.organization_id,
       deviceType: row.device_type,
       deviceId: row.device_id,
       deviceName: row.device_name ?? null,
@@ -421,12 +421,12 @@ export class EquipmentService {
   /**
    * Get camera-to-door associations with status (orphans, mismatches).
    */
-  async getCameraDoorAssociations(siteId?: string): Promise<any[]> {
+  async getCameraDoorAssociations(orgId?: string): Promise<any[]> {
     const associations: any[] = [];
 
     // Get all CameraDoorMap entries with camera and door details
-    const siteFilter = siteId
-      ? `AND c.site_id = $1::uuid AND d.site_id = $1::uuid`
+    const siteFilter = orgId
+      ? `AND c.organization_id = $1::uuid AND d.organization_id = $1::uuid`
       : "";
 
     // Mapped associations
@@ -437,7 +437,7 @@ export class EquipmentService {
          d.zone_id AS door_zone_id,
          cdm.angle, cdm.priority,
          CASE
-           WHEN c.site_id != d.site_id THEN 'zone_mismatch'
+           WHEN c.organization_id != d.organization_id THEN 'zone_mismatch'
            ELSE 'mapped'
          END AS status
        FROM "CameraDoorMap" cdm
@@ -445,7 +445,7 @@ export class EquipmentService {
        JOIN "Door" d ON cdm.door_id = d.id
        WHERE 1=1 ${siteFilter}
        ORDER BY c.name`,
-      ...(siteId ? [siteId] : []),
+      ...(orgId ? [orgId] : []),
     );
     associations.push(...mapped);
 
@@ -457,9 +457,9 @@ export class EquipmentService {
               'orphan_camera' AS status
        FROM "Camera" c
        WHERE c.id NOT IN (SELECT camera_id FROM "CameraDoorMap")
-       ${siteId ? `AND c.site_id = $1::uuid` : ""}
+       ${orgId ? `AND c.organization_id = $1::uuid` : ""}
        ORDER BY c.name`,
-      ...(siteId ? [siteId] : []),
+      ...(orgId ? [orgId] : []),
     );
     associations.push(...orphanCameras);
 
@@ -471,9 +471,9 @@ export class EquipmentService {
               'orphan_door' AS status
        FROM "Door" d
        WHERE d.id NOT IN (SELECT door_id FROM "CameraDoorMap")
-       ${siteId ? `AND d.site_id = $1::uuid` : ""}
+       ${orgId ? `AND d.organization_id = $1::uuid` : ""}
        ORDER BY d.name`,
-      ...(siteId ? [siteId] : []),
+      ...(orgId ? [orgId] : []),
     );
     associations.push(...orphanDoors);
 
@@ -483,18 +483,18 @@ export class EquipmentService {
   /**
    * Get predictive health summary stats for dashboard.
    */
-  async getPredictiveHealthSummary(siteId?: string): Promise<{
+  async getPredictiveHealthSummary(orgId?: string): Promise<{
     totalPredictions: number;
     criticalPredictions: number;
     byDeviceType: { camera: number; reader: number; controller: number };
   }> {
-    const siteFilter = siteId ? `WHERE site_id = $1::uuid` : "";
+    const siteFilter = orgId ? `WHERE organization_id = $1::uuid` : "";
 
     const total = await this.prisma.$queryRawUnsafe<
       Array<{ total: bigint }>
     >(
       `SELECT COUNT(*) AS total FROM predictions ${siteFilter}`,
-      ...(siteId ? [siteId] : []),
+      ...(orgId ? [orgId] : []),
     );
 
     const critical = await this.prisma.$queryRawUnsafe<
@@ -502,8 +502,8 @@ export class EquipmentService {
     >(
       `SELECT COUNT(*) AS total FROM predictions
        WHERE hours_to_failure IS NOT NULL AND hours_to_failure <= 72
-       ${siteId ? "AND site_id = $1::uuid" : ""}`,
-      ...(siteId ? [siteId] : []),
+       ${orgId ? "AND organization_id = $1::uuid" : ""}`,
+      ...(orgId ? [orgId] : []),
     );
 
     const byDevice = await this.prisma.$queryRawUnsafe<
@@ -512,7 +512,7 @@ export class EquipmentService {
       `SELECT device_type, COUNT(*) AS count FROM predictions
        ${siteFilter}
        GROUP BY device_type`,
-      ...(siteId ? [siteId] : []),
+      ...(orgId ? [orgId] : []),
     );
 
     const byDeviceType: { camera: number; reader: number; controller: number } = {

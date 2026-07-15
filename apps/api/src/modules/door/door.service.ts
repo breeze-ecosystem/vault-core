@@ -59,15 +59,15 @@ export class DoorService {
     const { topic, message } = payload;
 
     try {
-      // 1. Parse siteId, doorId from topic: site/{siteId}/door/{doorId}/state
+      // 1. Parse orgId, doorId from topic: site/{orgId}/door/{doorId}/state
       const topicParts = topic.split("/");
-      // Expected: ["site", "{siteId}", "door", "{doorId}", "state"]
+      // Expected: ["site", "{orgId}", "door", "{doorId}", "state"]
       if (topicParts.length < 5) {
         this.logger.warn(`Invalid door state topic format: ${topic}`);
         return;
       }
 
-      const siteId = topicParts[1];
+      const orgId = topicParts[1];
       const doorId = topicParts[3];
 
       // 2. D-05: Validate sequence
@@ -135,7 +135,7 @@ export class DoorService {
       // 7a. Persist to TimescaleDB door_state_log via $queryRaw
       await this.persistDoorStateLog(
         doorId,
-        siteId,
+        orgId,
         newState,
         currentState,
         message.sequence,
@@ -149,7 +149,7 @@ export class DoorService {
       // 7c. Emit state change event
       this.eventEmitter.emit("door.state-changed", {
         doorId,
-        siteId,
+        orgId,
         zoneId: door.zoneId,
         previousState: currentState,
         newState,
@@ -160,7 +160,7 @@ export class DoorService {
       if (machine.shouldGenerateAlert(newState)) {
         this.scheduleAlertEvaluation(
           doorId,
-          siteId,
+          orgId,
           newState,
           machine,
           transitionTimestamp,
@@ -182,7 +182,7 @@ export class DoorService {
    */
   private scheduleAlertEvaluation(
     doorId: string,
-    siteId: string,
+    orgId: string,
     state: DoorState,
     machine: DoorStateMachine,
     timestamp: Date,
@@ -218,7 +218,7 @@ export class DoorService {
         if (alertEval.shouldAlert) {
           const job: DoorAlertJob = {
             doorId,
-            siteId,
+            orgId,
             state,
             reason: alertEval.reason ?? `Door ${state}`,
             timestamp: timestamp.toISOString(),
@@ -243,7 +243,7 @@ export class DoorService {
 
   async lockdownZone(
     zoneId: string,
-    siteId: string,
+    orgId: string,
     triggeredBy: string,
     reason?: string,
   ): Promise<void> {
@@ -257,7 +257,7 @@ export class DoorService {
 
     this.eventEmitter.emit("zone.emergency", {
       zoneId,
-      siteId,
+      orgId,
       status: "lockdown",
       triggeredBy,
       reason: reason ?? "Manual lockdown triggered",
@@ -271,7 +271,7 @@ export class DoorService {
 
   async emergencyUnlockZone(
     zoneId: string,
-    siteId: string,
+    orgId: string,
     triggeredBy: string,
     reason?: string,
   ): Promise<void> {
@@ -285,7 +285,7 @@ export class DoorService {
 
     this.eventEmitter.emit("zone.emergency", {
       zoneId,
-      siteId,
+      orgId,
       status: "emergency-unlock",
       triggeredBy,
       reason: reason ?? "Manual emergency unlock",
@@ -299,7 +299,7 @@ export class DoorService {
 
   async clearEmergencyOverride(
     zoneId: string,
-    siteId: string,
+    orgId: string,
     triggeredBy: string,
   ): Promise<void> {
     const zone = await this.prisma.zone.findUnique({
@@ -312,7 +312,7 @@ export class DoorService {
 
     this.eventEmitter.emit("zone.emergency", {
       zoneId,
-      siteId,
+      orgId,
       status: "cleared",
       triggeredBy,
       timestamp: new Date(),
@@ -325,7 +325,7 @@ export class DoorService {
 
   // ── Current State Methods (DOOR-06) ──
 
-  async getAllDoorStates(siteId: string): Promise<
+  async getAllDoorStates(orgId: string): Promise<
     Array<{
       doorId: string;
       name: string;
@@ -337,7 +337,7 @@ export class DoorService {
     }>
   > {
     const doors = await this.prisma.door.findMany({
-      where: { siteId, isActive: true },
+      where: { organizationId: orgId, isActive: true },
       include: {
         zone: { select: { id: true, name: true } },
       },
@@ -531,7 +531,7 @@ export class DoorService {
    */
   private async persistDoorStateLog(
     doorId: string,
-    siteId: string,
+    orgId: string,
     newState: string,
     previousState: string,
     sequence: number,
@@ -539,8 +539,8 @@ export class DoorService {
   ): Promise<void> {
     try {
       await this.prisma.$queryRaw`
-        INSERT INTO door_state_log (time, door_id, site_id, state, previous_state, sequence)
-        VALUES (${timestamp}, ${doorId}::uuid, ${siteId}::uuid, ${newState}, ${previousState}, ${sequence})
+        INSERT INTO door_state_log (time, door_id, organization_id, state, previous_state, sequence)
+        VALUES (${timestamp}, ${doorId}::uuid, ${orgId}::uuid, ${newState}, ${previousState}, ${sequence})
       `;
     } catch (err: any) {
       // door_state_log hypertable may not exist yet (created by TimescaleDB migration)
