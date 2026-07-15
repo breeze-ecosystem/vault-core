@@ -36,12 +36,12 @@ export class AiService {
   // ── 1. Natural Language Query (AI-01) ──
 
   async naturalLanguageQuery(query: string, userId: string): Promise<AIQueryResult> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
+    const membership = await this.prisma.organizationMember.findFirst({
+      where: { userId, isActive: true },
       select: { organizationId: true },
     });
 
-    const organizationId = user?.organizationId;
+    const organizationId = membership?.organizationId;
 
     // Build system prompt for structured output
     const systemPrompt = `You are a security system query interpreter. Convert natural language queries about security events into structured JSON.
@@ -208,11 +208,11 @@ Réponds en JSON:
   // ── 3. AI Assistant Question Answering (AI-03, RAG) ──
 
   async answerQuestion(question: string, userId: string): Promise<AssistantResponse> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
+    const membership = await this.prisma.organizationMember.findFirst({
+      where: { userId, isActive: true },
       select: { organizationId: true },
     });
-    const organizationId = user?.organizationId;
+    const organizationId = membership?.organizationId;
 
     // Generate embedding for the question
     let embedding: number[] = [];

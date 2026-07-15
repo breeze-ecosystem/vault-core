@@ -39,6 +39,16 @@ export class AccessService {
     // Generate QR seed for QR type
     const qrSeed = dto.type === "QR" ? dto.qrSeed ?? crypto.randomUUID() : dto.qrSeed;
 
+    // Resolve user's organization for the credential
+    const user = await this.prisma.user.findUnique({
+      where: { id: dto.userId },
+      include: { memberships: { where: { isActive: true }, take: 1 } },
+    });
+    const organizationId = user?.memberships?.[0]?.organizationId;
+    if (!organizationId) {
+      throw new BadRequestException("User has no active organization membership");
+    }
+
     return this.prisma.credential.create({
       data: {
         userId: dto.userId,
@@ -49,6 +59,7 @@ export class AccessService {
         validFrom: dto.validFrom ? new Date(dto.validFrom) : null,
         validUntil: dto.validUntil ? new Date(dto.validUntil) : null,
         maxUses: dto.maxUses ?? null,
+        organizationId,
       },
       include: {
         user: { select: { id: true, firstName: true, lastName: true, email: true } },
@@ -81,7 +92,7 @@ export class AccessService {
       this.prisma.credential.findMany({
         where,
         include: {
-          user: { select: { id: true, firstName: true, lastName: true, email: true, organizationId: true } },
+          user: { select: { id: true, firstName: true, lastName: true, email: true } },
           accessLevels: {
             include: { zone: true, schedule: true },
           },
@@ -100,7 +111,7 @@ export class AccessService {
     const credential = await this.prisma.credential.findUnique({
       where: { id },
       include: {
-        user: { select: { id: true, firstName: true, lastName: true, email: true, organizationId: true } },
+        user: { select: { id: true, firstName: true, lastName: true, email: true } },
         accessLevels: {
           include: { zone: true, schedule: true },
         },
