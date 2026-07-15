@@ -681,17 +681,20 @@ model License {
 }
 
 model LicenseApiKey {
-  id          String    @id @default(uuid())
-  name        String
-  keyHash     String    @unique
-  keyPrefix   String
-  isActive    Boolean   @default(true)
-  createdById String
-  createdAt   DateTime  @default(now())
-  revokedAt   DateTime?
+  id             String    @id @default(uuid())
+  name           String
+  keyHash        String    @unique
+  keyPrefix      String
+  isActive       Boolean   @default(true)
+  organizationId String
+  createdById    String
+  createdAt      DateTime  @default(now())
+  revokedAt      DateTime?
 
-  createdBy User @relation(fields: [createdById], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  createdBy    User         @relation(fields: [createdById], references: [id])
 
+  @@index([organizationId])
   @@index([isActive])
   @@index([keyHash])
 }
