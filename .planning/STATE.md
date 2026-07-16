@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Commercial Platform — Summary
-status: executing
-stopped_at: Phase 7 UI-SPEC approved
-last_updated: "2026-07-15T23:57:08.612Z"
-last_activity: 2026-07-15 -- Phase 6 execution started
+status: completed
+stopped_at: Phase 8 context gathered
+last_updated: "2026-07-16T01:31:10.136Z"
+last_activity: 2026-07-16 -- Phase 7 marked complete
 progress:
   total_phases: 7
-  completed_phases: 3
-  total_plans: 20
-  completed_plans: 20
-  percent: 43
+  completed_phases: 4
+  total_plans: 29
+  completed_plans: 29
+  percent: 57
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Correlate every physical security event with video evidence and AI analysis in real time, so security operators know what happened, where, and what to do — without switching between disconnected systems.
-**Current focus:** Phase 6 — premium-experience
+**Current focus:** Phase 7 — public-presence
 
 ## Current Position
 
-Phase: 7 (public-presence) — PLANNED
-Plan: 0 of 9
-Status: Phase 7 planned
-Last activity: 2026-07-16 -- Phase 7 planning complete
+Phase: 7 — COMPLETE
+Plan: 1 of 9
+Status: Phase 7 complete
+Last activity: 2026-07-16 -- Phase 7 marked complete
 
 Progress: [██████████] 100%
 Last activity: 2026-07-15 -- Phase 05 execution started
@@ -597,6 +597,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-15T23:57:08.581Z
-Stopped at: Phase 7 context gathered
-Resume file: .planning/phases/07-public-presence/07-UI-SPEC.md
+Last session: 2026-07-16T01:31:10.085Z
+Stopped at: Phase 8 context gathered
+Resume file: .planning/phases/08-feature-deepening/08-CONTEXT.md
