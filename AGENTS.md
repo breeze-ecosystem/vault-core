@@ -379,26 +379,21 @@ Do not make direct repo edits outside a GSD workflow unless the user explicitly 
 > This section is managed by `generate-claude-profile` -- do not edit manually.
 <!-- GSD:profile-end -->
 
-## Local Testing
+## Règles de Workflow (pour tous les agents AI)
 
-### API (NestJS)
-
-Before testing locally, ensure the following Docker containers are running:
+### 1. Toujours tester en local AVANT de push
 
 ```bash
-# Oversight DB (PostgreSQL) — Coolify project oversight-hub
-docker ps | grep dh4wundp5g2ofyek65r9ie7h
-# Redis (global Coolify instance)
-docker ps | grep coolify-redis
-```
+# 1. Build l'API
+cd apps/api && npx nest build
 
-**Build + start the API locally:**
-```bash
-cd apps/api
-npx nest build
+# 2. Récupérer les credentials DB
+DB_PASS=$(docker inspect dh4wundp5g2ofyek65r9ie7h | python3 -c "import json,sys;d=json.load(sys.stdin);[print(e.split('=',1)[1]) for e in d[0]['Config']['Env'] if 'POSTGRES_PASSWORD' in e]")
+DB_IP=$(docker inspect dh4wundp5g2ofyek65r9ie7h | python3 -c "import json,sys;d=json.load(sys.stdin);print(d[0]['NetworkSettings']['Networks']['coolify']['IPAddress'])")
 
+# 3. Démarrer l'API localement
 node -e "
-process.env.DATABASE_URL = 'postgresql://POSTGRES_USER:POSTGRES_PASSWORD@CONTAINER_IP:5432/postgres';
+process.env.DATABASE_URL = 'postgresql://postgres:${DB_PASS}@${DB_IP}:5432/postgres';
 process.env.REDIS_HOST = 'localhost';
 process.env.REDIS_PORT = '6379';
 process.env.REDIS_PASSWORD = '';
@@ -407,35 +402,55 @@ process.env.JWT_REFRESH_SECRET = 'test-refresh-secret';
 process.env.NODE_ENV = 'development';
 process.env.ADMIN_PASSWORD = '';
 require('./dist/src/main.js');
-" 2>&1 | grep -E "LOG.*NestApplication|ERROR|successfully"
+" 2>&1 | grep -E "NestApplication|ERROR"
+
+# Résultat attendu: "Nest application successfully started"
+# Si une erreur DI apparaît (Nest can't resolve dependencies), la corriger AVANT de push
 ```
 
-Get `POSTGRES_PASSWORD` and `CONTAINER_IP`:
+### 2. Ne JAMAIS déployer manuellement après un git push
+
+Le tag `v2.0.0-beta` déclenche **automatiquement** un déploiement sur Coolify. Push le tag seulement :
+
 ```bash
-# Get password
-docker inspect dh4wundp5g2ofyek65r9ie7h | python3 -c "import json,sys;d=json.load(sys.stdin);[print(e) for e in d[0]['Config']['Env'] if 'POSTGRES_PASSWORD' in e]"
-# Get container IP on coolify network
-docker inspect dh4wundp5g2ofyek65r9ie7h | python3 -c "import json,sys;d=json.load(sys.stdin);print(d[0]['NetworkSettings']['Networks']['coolify']['IPAddress'])"
+git tag -d v2.0.0-beta && git tag v2.0.0-beta HEAD && git push origin v2.0.0-beta -f
 ```
 
-**Expected result:** "Nest application successfully started"
-- DI errors will appear as `Nest can't resolve dependencies of...` before startup
-- Warnings (MCP tool registration, missing env vars) are expected and non-blocking
-- MQTT connection refused is normal (no local MQTT broker)
+Si l'auto-deploy ne se déclenche pas (rare), utiliser l'API Coolify :
+```bash
+curl -X POST -H "Authorization: Bearer $(grep COOLIFY_API_TOKEN .env | cut -d= -f2)" \
+  -H "Content-Type: application/json" \
+  -d '{"uuid":"wt83ltw31zjpksrut7hi7cfp"}' \
+  "https://coolify.digitsoftafrica.com/api/v1/deploy"
+```
+
+### 3. Projets et ressources Coolify
+
+| Ressource | UUID / Nom | Détails |
+|-----------|-----------|---------|
+| Projet | `xtupsj1d6oy8mq2l369frzix` | OVERSIGHT AI |
+| Environment | `o46t8ae6cqx6ddljwhcuoecg` | production |
+| App Oversight-Hub | `wt83ltw31zjpksrut7hi7cfp` | API + Dashboard + Marketing |
+| DB PostgreSQL | `dh4wundp5g2ofyek65r9ie7h` | `postgres`/`postgres` (user/db) |
+| Redis | `coolify-redis` | localhost:6379 |
+| Réseau Docker | `wt83ltw31zjpksrut7hi7cfp_default` | Réseau du projet |
+
+Les credentials DB sont dans `.env` (fichier local, gitignoré). Les récupérer dynamiquement :
+```bash
+docker inspect dh4wundp5g2ofyek65r9ie7h | python3 -c "import json,sys;d=json.load(sys.stdin);[print(e) for e in d[0]['Config']['Env'] if 'POSTGRES_PASSWORD' in e]"
+```
+
+### 4. Configuration locale
+
+Voir `.env` à la racine du projet pour les tokens et UUIDs.
 
 ### DB Migration Fix
 
-If the `_prisma_migrations` table has a migration marked as `finished` but its SQL was never executed:
+Si la table `_prisma_migrations` a une migration marquée `finished` mais dont le SQL n'a jamais été exécuté :
 ```bash
-# Re-run the migration SQL manually via psql
+# Re-exécuter le SQL manuellement
 docker exec -i dh4wundp5g2ofyek65r9ie7h psql -U postgres -d postgres < apps/api/prisma/migrations/MIGRATION_NAME/migration.sql
 
-# Then mark it as rolled-back in prisma so future deploy re-runs it
-cd apps/api && DATABASE_URL="postgresql://...@CONTAINER_IP:5432/postgres" npx prisma migrate resolve --rolled-back MIGRATION_NAME
+# Marquer comme rolled-back pour que prisma la re-joue au déploiement
+cd apps/api && DATABASE_URL="postgresql://postgres:PASSWORD@IP:5432/postgres" npx prisma migrate resolve --rolled-back MIGRATION_NAME
 ```
-
-### Coolify Deployments
-
-- Git tag `v2.0.0-beta` triggers deployment to `https://oversight.digitsoftafrica.com`
-- Force push tag: `git tag -d v2.0.0-beta && git tag v2.0.0-beta HEAD && git push origin v2.0.0-beta -f`
-- If auto-deploy doesn't trigger, POST to `https://coolify.digitsoftafrica.com/api/v1/deploy` with Bearer token and `{"uuid":"wt83ltw31zjpksrut7hi7cfp"}`
