@@ -258,7 +258,7 @@ Plans:
 **Wave 3** (Services + Integration — parallel)
 
 - [x] 09-05-PLAN.md — Agent Services: Memory + Tracing + Guardrails + MCP (FTR-08, FTR-09, FTR-10, FTR-11)
-- [ ] 09-06-PLAN.md — Backend Integration: Qdrant + Patterns + AppModule + API client (FTR-08, FTR-09, FTR-10, FTR-11)
+- [x] 09-06-PLAN.md — Backend Integration: Qdrant + Patterns + AppModule + API client (FTR-08, FTR-09, FTR-10, FTR-11)
 
 **Wave 4** (Frontend — parallel)
 
@@ -295,5 +295,5 @@ Plans:
 | 6. Premium Experience | 6/6 | Complete   | 2026-07-15 |
 | 7. Public Presence | 9/9 | Complete   | 2026-07-16 |
 | 8. Feature Deepening | 0/8 | Planned | - |
-| 9. AI Intelligence | 4/8 | In Progress|  |
+| 9. AI Intelligence | 6/8 | In Progress|  |
 | 10. Enterprise Grade | 0/TBD | Not started | - |
