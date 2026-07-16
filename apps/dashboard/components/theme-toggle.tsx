@@ -10,9 +10,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useSidebar } from "@/components/sidebar-provider";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+  const { isCollapsed } = useSidebar();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -34,7 +36,7 @@ export function ThemeToggle() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="w-full justify-start gap-2 px-2">
           <ThemeIcon className="h-4 w-4" />
-          <span className="text-xs">
+          <span className={`text-xs ${isCollapsed ? "hidden" : ""}`}>
             {theme === "dark" ? "Sombre" : theme === "light" ? "Clair" : "Automatique"}
           </span>
         </Button>

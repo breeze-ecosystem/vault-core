@@ -11,6 +11,7 @@ import cookie from "@fastify/cookie";
 import rateLimit from "@fastify/rate-limit";
 import helmet from "@fastify/helmet";
 import { AppModule } from "./app.module";
+import { SocketIoAdapter } from "./common/adapters/socket-io.adapter";
 
 async function bootstrap() {
   const logger = new Logger("Bootstrap");
@@ -19,6 +20,7 @@ async function bootstrap() {
     new FastifyAdapter(),
     { logger: ["log", "error", "warn", "debug"] }
   );
+  app.useWebSocketAdapter(new SocketIoAdapter(app));
 
   const configService = app.get(ConfigService);
 
