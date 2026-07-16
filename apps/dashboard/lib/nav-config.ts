@@ -20,6 +20,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   Building2,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 import { hasMinRole, type Role } from "@repo/shared";
@@ -94,11 +95,19 @@ const groups: NavGroup[] = [
     ],
   },
   {
+    label: "Intelligence",
+    icon: Zap,
+    minRole: null,
+    items: [
+      { label: "Centre de commande", href: "/command-center", icon: Zap, minRole: null },
+      { label: "Motifs", href: "/patterns", icon: Repeat, minRole: "SUPERVISOR" as Role },
+    ],
+  },
+  {
     label: "Outils",
     icon: MessageSquare,
     minRole: null,
     items: [
-      { label: "Assistant IA", href: "/ia", icon: MessageSquare, minRole: null },
       { label: "Notifications", href: "/notifications", icon: Bell, minRole: null },
       { label: "Paramètres", href: "/parametres", icon: Settings, minRole: null },
     ],

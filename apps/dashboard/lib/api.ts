@@ -1520,6 +1520,199 @@ export async function aiStatus(): Promise<AIStatusDto> {
   return res.json();
 }
 
+// ─── Agent (Phase 09-06) Types ───
+
+export interface AgentChatResponse {
+  sessionId: string;
+  response: string;
+  toolCalls?: Array<{
+    type: string;
+    name?: string;
+    input?: unknown;
+    output?: unknown;
+  }>;
+  error?: string;
+}
+
+export interface RiskExplanation {
+  zoneName: string;
+  zoneId: string;
+  currentScore: number;
+  scoreBreakdown: Record<string, number>;
+  contributingEvents: Array<{
+    type: string;
+    description: string;
+    time: string;
+    impact: string;
+  }>;
+  aiSummary: string;
+  recommendations: string[];
+}
+
+export interface AgentStatusResponse {
+  ollamaAvailable: boolean;
+  agentsCount: number;
+  modelStatus: Record<string, boolean>;
+}
+
+// ─── Agent API Functions (Phase 09-06) ───
+
+/**
+ * Synchronous fallback for agent chat (non-SSE).
+ * POST /api/ai/agent-chat
+ */
+export async function agentChat(message: string): Promise<AgentChatResponse> {
+  const res = await fetchWithAuth(`${API_URL}/api/ai/agent-chat`, {
+    method: "POST",
+    body: JSON.stringify({ message }),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de la communication avec l'agent");
+  }
+  return res.json();
+}
+
+/**
+ * SSE streaming agent chat helper.
+ * Uses fetchWithAuth with ReadableStream for authenticated SSE support.
+ * Returns a cleanup function to abort the stream.
+ */
+export function createAgentChatStream(
+  message: string,
+  sessionId: string,
+  callbacks: {
+    onToken: (token: string) => void;
+    onToolCall: (toolCall: Record<string, unknown>) => void;
+    onDone: (content: string) => void;
+    onError: (error: string) => void;
+  },
+): () => void {
+  const abortController = new AbortController();
+  const encodedMessage = encodeURIComponent(message);
+  const encodedSession = encodeURIComponent(sessionId);
+
+  // Use fetchWithAuth for SSE (supports auth token + 401 refresh)
+  fetchWithAuth(
+    `${API_URL}/api/ai-agent/chat?message=${encodedMessage}&sessionId=${encodedSession}`,
+    { signal: abortController.signal },
+  )
+    .then(async (response) => {
+      if (!response.ok) {
+        callbacks.onError(`Erreur HTTP ${response.status}`);
+        return;
+      }
+      const reader = response.body?.getReader();
+      if (!reader) {
+        callbacks.onError("Flux de réponse non disponible");
+        return;
+      }
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const data = line.slice(6).trim();
+              if (!data) continue;
+
+              try {
+                const event = JSON.parse(data);
+                switch (event.type) {
+                  case "token":
+                    callbacks.onToken(event.data ?? "");
+                    break;
+                  case "tool_call":
+                    callbacks.onToolCall(event);
+                    break;
+                  case "done":
+                    callbacks.onDone(event.data ?? "");
+                    return;
+                  case "error":
+                    callbacks.onError(event.data ?? "Erreur inconnue");
+                    return;
+                }
+              } catch {
+                // Non-JSON line (e.g., keepalive comment)
+              }
+            }
+          }
+        }
+
+        // Process remaining buffer
+        if (buffer.startsWith("data: ")) {
+          try {
+            const event = JSON.parse(buffer.slice(6).trim());
+            if (event.type === "done") {
+              callbacks.onDone(event.data ?? "");
+            }
+          } catch {
+            // ignore
+          }
+        }
+      } catch (err: any) {
+        if (err.name !== "AbortError") {
+          callbacks.onError(err.message || "Erreur de flux SSE");
+        }
+      }
+    })
+    .catch((err) => {
+      if (err.name !== "AbortError") {
+        callbacks.onError(err.message || "Échec de la connexion SSE");
+      }
+    });
+
+  return () => abortController.abort();
+}
+
+/**
+ * GET /api/risk/scores/:zoneId/explain — AI risk score explanation.
+ */
+export async function explainRisk(zoneId: string): Promise<RiskExplanation> {
+  const res = await fetchWithAuth(
+    `${API_URL}/api/risk/scores/${zoneId}/explain`,
+  );
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de l'explication du risque");
+  }
+  return res.json();
+}
+
+/**
+ * GET /api/patterns/:patternId/analyze — AI pattern trend analysis.
+ */
+export async function analyzePattern(patternId: string): Promise<any> {
+  const res = await fetchWithAuth(
+    `${API_URL}/api/patterns/${patternId}/analyze`,
+  );
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de l'analyse du motif");
+  }
+  return res.json();
+}
+
+/**
+ * GET /api/ai-agent/status — Agent system health.
+ */
+export async function getAgentStatus(): Promise<AgentStatusResponse> {
+  const res = await fetchWithAuth(`${API_URL}/api/ai-agent/status`);
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec du statut de l'agent");
+  }
+  return res.json();
+}
+
 // ─── Predictive Health Types (Plan 03-04) ───
 
 export interface PredictionDto {
@@ -2262,4 +2455,197 @@ export async function revokeApiKey(id: string): Promise<void> {
     method: 'DELETE',
   });
   if (!res.ok) throw new Error("Échec de la révocation de la clé API");
+}
+
+// ─── Phase 8: SLA Config ───
+
+export async function fetchSlaProfiles(orgId: string): Promise<any> {
+  const res = await fetchWithAuth(`${API_URL}/api/organizations/${orgId}/sla`);
+  if (!res.ok) throw new Error("Échec du chargement des profils SLA");
+  return res.json();
+}
+
+export async function updateSlaProfiles(orgId: string, profiles: any): Promise<any> {
+  const res = await fetchWithAuth(`${API_URL}/api/organizations/${orgId}/sla`, {
+    method: "PUT",
+    body: JSON.stringify(profiles),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour des profils SLA");
+  return res.json();
+}
+
+// ─── Phase 8: ANPR Config ───
+
+export async function fetchAnprThreshold(orgId: string): Promise<number> {
+  const res = await fetchWithAuth(`${API_URL}/api/organizations/${orgId}/anpr-threshold`);
+  if (!res.ok) throw new Error("Échec du chargement du seuil ANPR");
+  const data = await res.json();
+  return data;
+}
+
+export async function updateAnprThreshold(orgId: string, confidenceThreshold: number): Promise<any> {
+  const res = await fetchWithAuth(`${API_URL}/api/organizations/${orgId}/anpr-threshold`, {
+    method: "PUT",
+    body: JSON.stringify({ confidenceThreshold }),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour du seuil ANPR");
+  return res.json();
+}
+
+// ─── Phase 8: Health Thresholds ───
+
+export async function fetchHealthThresholds(orgId: string): Promise<any> {
+  const res = await fetchWithAuth(`${API_URL}/api/organizations/${orgId}/health-thresholds`);
+  if (!res.ok) throw new Error("Échec du chargement des seuils de santé");
+  return res.json();
+}
+
+export async function updateHealthThresholds(orgId: string, thresholds: any): Promise<any> {
+  const res = await fetchWithAuth(`${API_URL}/api/organizations/${orgId}/health-thresholds`, {
+    method: "PUT",
+    body: JSON.stringify(thresholds),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour des seuils de santé");
+  return res.json();
+}
+
+// ─── Phase 8: Door Config ───
+
+export async function fetchDoorThresholds(orgId: string): Promise<any> {
+  const res = await fetchWithAuth(`${API_URL}/api/doors/thresholds?orgId=${orgId}`);
+  if (!res.ok) throw new Error("Échec du chargement des seuils de porte");
+  return res.json();
+}
+
+export async function updateDoorThresholds(doorId: string, config: any): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/doors/${doorId}/thresholds`, {
+    method: "PATCH",
+    body: JSON.stringify(config),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour des seuils de porte");
+}
+
+// ─── Phase 8: Incident SLA ───
+
+export async function fetchSlaTimer(incidentId: string): Promise<any> {
+  const res = await fetchWithAuth(`${API_URL}/api/incidents/${incidentId}/sla`);
+  if (!res.ok) throw new Error("Échec du chargement du timer SLA");
+  return res.json();
+}
+
+export async function triggerEvidenceBundle(incidentId: string): Promise<any> {
+  const res = await fetchWithAuth(`${API_URL}/api/incidents/${incidentId}/auto-bundle`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) throw new Error("Échec de la génération du bundle de preuves");
+  return res.json();
+}
+
+// ─── Phase 8: ANPR ───
+
+export async function fetchAnprConfidenceThreshold(orgId: string): Promise<number> {
+  const res = await fetchWithAuth(`${API_URL}/api/anpr/threshold?orgId=${orgId}`);
+  if (!res.ok) throw new Error("Échec du chargement du seuil de confiance ANPR");
+  const data = await res.json();
+  return data;
+}
+
+export async function updateAnprConfidenceThreshold(threshold: number): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/anpr/threshold`, {
+    method: "PUT",
+    body: JSON.stringify({ threshold }),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour du seuil ANPR");
+}
+
+// ─── Phase 8: Visitor ───
+
+export async function sendHostApproval(visitId: string): Promise<any> {
+  const res = await fetchWithAuth(`${API_URL}/api/visitors/${visitId}/request-approval`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) throw new Error("Échec de la demande d'approbation");
+  return res.json();
+}
+
+export async function approveVisit(visitId: string, approved: boolean, reason?: string): Promise<any> {
+  const res = await fetchWithAuth(`${API_URL}/api/visitors/${visitId}/approve`, {
+    method: "POST",
+    body: JSON.stringify({ approved, reason }),
+  });
+  if (!res.ok) throw new Error("Échec de l'approbation de la visite");
+  return res.json();
+}
+
+export async function setTimedPass(visitId: string, timeWindowStart: string, timeWindowEnd: string): Promise<any> {
+  const res = await fetchWithAuth(`${API_URL}/api/visitors/${visitId}/timed-pass`, {
+    method: "PATCH",
+    body: JSON.stringify({ timeWindowStart, timeWindowEnd }),
+  });
+  if (!res.ok) throw new Error("Échec de la configuration du pass horaire");
+  return res.json();
+}
+
+// ─── Phase 8: Credential Lifecycle ───
+
+export async function revokeCredential(credentialId: string, reason: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/credentials/${credentialId}/revoke`, {
+    method: "POST",
+    body: JSON.stringify({ reason }),
+  });
+  if (!res.ok) throw new Error("Échec de la révocation du justificatif");
+}
+
+export async function reissueCredential(credentialId: string, newValidUntil: string): Promise<any> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/credentials/${credentialId}/reissue`, {
+    method: "POST",
+    body: JSON.stringify({ newValidUntil }),
+  });
+  if (!res.ok) throw new Error("Échec de la réémission du justificatif");
+  return res.json();
+}
+
+// ─── Phase 8: Analytics ───
+
+export async function fetchZoneMetrics(orgId: string, from?: string, to?: string): Promise<any> {
+  const params = new URLSearchParams({ orgId });
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
+  const res = await fetchWithAuth(`${API_URL}/api/analytics/zones?${params.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des métriques de zone");
+  return res.json();
+}
+
+export async function fetchTrendData(orgId: string, period: string): Promise<any> {
+  const params = new URLSearchParams({ orgId, period });
+  const res = await fetchWithAuth(`${API_URL}/api/analytics/trends?${params.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des tendances");
+  return res.json();
+}
+
+export async function fetchHeatmapData(orgId: string, from?: string, to?: string): Promise<any> {
+  const params = new URLSearchParams({ orgId });
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
+  const res = await fetchWithAuth(`${API_URL}/api/analytics/heatmap?${params.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement de la carte de chaleur");
+  return res.json();
+}
+
+// ─── Phase 8: Equipment Health ───
+
+export async function fetchSiteHealth(orgId: string): Promise<any> {
+  const res = await fetchWithAuth(`${API_URL}/api/equipment/health?orgId=${orgId}`);
+  if (!res.ok) throw new Error("Échec du chargement de la santé du site");
+  return res.json();
+}
+
+export async function fetchDeviceHealth(orgId: string, deviceType?: string): Promise<any> {
+  const params = new URLSearchParams({ orgId });
+  if (deviceType) params.set("deviceType", deviceType);
+  const res = await fetchWithAuth(`${API_URL}/api/equipment/devices?${params.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement de la santé des équipements");
+  return res.json();
 }
