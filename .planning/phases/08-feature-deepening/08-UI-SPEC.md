@@ -1,7 +1,8 @@
 ---
 phase: 8
 slug: feature-deepening
-status: draft
+status: approved
+reviewed_at: 2026-07-16
 shadcn_initialized: true
 preset: default (phase 6 — radix themes + tailwind)
 created: 2026-07-16
