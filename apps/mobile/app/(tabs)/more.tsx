@@ -22,7 +22,7 @@ const menuItems: MoreMenuItem[] = [
     id: "chat",
     label: "Chat IA",
     icon: <MessageSquareText size={22} color={colors.dark.text} />,
-    route: "/chat",
+    route: "/(tabs)/more/chat",
   },
   {
     id: "sites",
