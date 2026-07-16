@@ -110,9 +110,31 @@ services:
       - mosquitto_log:/mosquitto/log
     restart: unless-stopped
 
+  # ─── Qdrant Vector Database ───
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: oversight-qdrant
+    restart: unless-stopped
+    networks:
+      - default
+      - coolify
+    expose:
+      - "6333"
+      - "6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:6333/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
 volumes:
   mosquitto_data:
   mosquitto_log:
+  qdrant_data:
 
 networks:
   coolify:

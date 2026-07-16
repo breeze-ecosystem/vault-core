@@ -6,3 +6,12 @@ pydantic-settings==2.5.2
 Pillow==10.4.0
 paddleocr>=3.7.0
 paddlepaddle>=2.6.0
+
+# ── Phase 9: AI Intelligence — Computer Vision & ML Dependencies ──
+ultralytics>=8.4
+supervision>=0.25
+faster-whisper>=1.2
+tensorflow-hub>=0.16
+opencv-python>=5.0
+av>=18.0
+qdrant-client>=1.18
