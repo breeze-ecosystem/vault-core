@@ -22,7 +22,7 @@ created: 2026-07-16
 | Styling | Tailwind CSS 3 + `cn()` utility (clsx + tailwind-merge) | Follows existing convention |
 | Animation | **CSS animations for 90% of interactions**; `motion` (already in monorepo at ^12.42.2) for hero section page transitions and showcase carousels only | D-09 |
 | Icon library | Lucide React ^1.11.0 (already in monorepo) | Existing stack |
-| Font | **IBM Plex Sans** (weights 300–700) — same as Dashboard brand font, loaded via Google Fonts | D-07 / Phase 6 established |
+| Font | **IBM Plex Sans** (UI chrome: weights 400, 600) — same brand font as Dashboard, loaded via Google Fonts. Blog MDX prose uses `@tailwindcss/typography` with its own scale (outside UI contract scope) | D-07 / Phase 6 established |
 | Monospace | JetBrains Mono (weights 400–600) — used for code blocks in blog MDX | Phase 6 established |
 | Dark mode default | Dashboard uses dark-first. Marketing site is **light-first** (brand extension, not dark dashboard aesthetic) | D-07 |
 | Component approach | Build **marketing-specific local components** in `apps/marketing/components/`. Do NOT extend `@repo/ui`. Do NOT use `@radix-ui/themes` (that's dashboard-only). | D-10 |
@@ -33,7 +33,7 @@ The marketing site defines its own subset of CSS variables in `apps/marketing/ap
 
 ```css
 /* apps/marketing/app/globals.css — token foundation */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -98,36 +98,41 @@ The marketing site defines its own subset of CSS variables in `apps/marketing/ap
 
 ### Font Family
 
-**IBM Plex Sans** (weights 300, 400, 500, 600, 700) — same as Dashboard. Loaded via Google Fonts in `globals.css`.
+**IBM Plex Sans** (UI chrome: weights 400, 600) — same brand font as Dashboard. Loaded via Google Fonts in `globals.css`.
 
-**JetBrains Mono** (weights 400, 500, 600) — reserved for blog code blocks and technical content.
+**JetBrains Mono** (weights 400, 500, 600) — reserved for blog code blocks and technical content (blog MDX prose, outside UI contract scope).
 
-### Size Scale
+### UI Chrome Type Scale (4 sizes, 2 weights)
 
 | Role | Size | Weight | Line Height | Usage |
 |------|------|--------|-------------|-------|
-| **Hero Display** | 48px (text-5xl) | 600 (semibold) | 1.1 | Hero headlines, page H1 titles |
-| **Hero Subtitle** | 20px (text-xl) | 400 (regular) | 1.5 | Hero description text |
-| **Section Heading** | 36px (text-4xl) | 600 (semibold) | 1.2 | Major section titles (Features, Pricing, Blog) |
-| **Section Subheading** | 18px (text-lg) | 400 (regular) | 1.5 | Section description/supporting text |
-| **Card Title** | 20px (text-xl) | 600 (semibold) | 1.3 | Pricing tier names, feature card titles, blog post titles |
-| **Card Body** | 16px (text-base) | 400 (regular) | 1.6 | Feature descriptions, blog excerpts, testimonial text |
-| **Body** | 16px (text-base) | 400 (regular) | 1.6 | Standard marketing body copy |
-| **Small** | 14px (text-sm) | 400 (regular) | 1.4 | Blog post dates, metadata, footnotes, feature list items |
-| **Caption** | 12px (text-xs) | 600 (semibold) | 1.2 | Section eyebrow labels (uppercase), badge text |
-| **CTA Button** | 16px (text-base) | 600 (semibold) | 1 | Primary and secondary CTA button text |
-| **Navigation** | 14px (text-sm) | 500 (medium) | 1 | Nav links, language switcher |
+| **Small** | 14px (text-sm) | 400 (regular) | 1.4 | Nav links, metadata, footnotes, section eyebrow labels, badges |
+| **Body** | 16px (text-base) | 400 (regular) | 1.6 | Body paragraphs, card descriptions, feature lists, testimonial text, blog excerpts |
+| **Body Emphasis** | 16px (text-base) | 600 (semibold) | 1.6 | CTA button text, active nav link, strong emphasis inline |
+| **Heading** | 24px (text-2xl) | 600 (semibold) | 1.3 | Card titles, hero subtitle, section subheadings, pricing tier names, blog post titles |
+| **Display** | 40px (custom) | 600 (semibold) | 1.1 | Hero headline, page H1 titles, major section headings |
 
-**Weight restriction:** Uses **400 (regular)**, **500 (medium)**, and **600 (semibold)**. Weight 300 is available for hero wordmarks if desired at agent discretion. Weight 700 is available for blog headings in MDX content but NOT for UI chrome.
+**Exactly 4 sizes:** 14px, 16px, 24px, 40px.  
+**Exactly 2 weights:** 400 (regular), 600 (semibold).
 
-**Key difference from Dashboard:** Marketing body text is 16px (vs 14px in dashboard) for readability in long-form narrative content. Section headings are 36px (vs 20px heading in dashboard) for visual impact.
+**Note — Blog MDX prose is outside this contract:** Blog post body content rendered via `@tailwindcss/typography` (prose plugin) uses a separate typographic scale with its own sizes and weights (including weight 700 for headings). That scale is managed entirely by the Tailwind typography plugin and is not part of the UI component contract.
+
+**40px Display requires a Tailwind config extension.** Add to `apps/marketing/tailwind.config.ts`:
+```ts
+fontSize: {
+  'display': ['40px', { lineHeight: '1.1', fontWeight: '600' }],
+}
+```
+
+**Responsive behavior (Display):** 40px → 32px (tablet) → 24px (mobile).
+
+**Key difference from Dashboard:** Marketing body text is 16px (vs 14px in dashboard) for readability in long-form narrative content. Headings use a dedicated 40px/24px pair (vs 20px in dashboard) for visual impact.
 
 ### Line Height Standardization
-- Hero Display: **1.1** — tight, impactful
-- Section Headings: **1.2**
-- Card titles: **1.3**
-- Body text: **1.6** — generous for readability
-- Small/eyebrow: **1.2–1.4**
+- Display: **1.1** — tight, impactful
+- Heading: **1.3**
+- Body: **1.6** — generous for readability
+- Small: **1.4**
 - CTA buttons: **1** (single line)
 
 ---
@@ -208,8 +213,8 @@ VISUAL HIERARCHY (top to bottom):
     
   🔟  HERO SECTION (full-viewport, dark navy bg)
     • Animated grid + gradient background
-    • H1: "AI-Powered Physical Security Intelligence" (48px, white)
-    • Subtitle: Descriptive value prop (20px, muted white)
+    • H1: "AI-Powered Physical Security Intelligence" (40px, white)
+    • Subtitle: Descriptive value prop (24px, muted white)
     • 2 CTAs: [Book a Demo ⏎] [Talk to Sales ▸]
     • Trust stat: "Trusted by 150+ security teams worldwide"
     • ↓ scroll indicator (animates)
@@ -325,7 +330,7 @@ Focal points: Professional tier card (highlighted), primary CTA buttons on each 
 
   🔟  ARTICLE HEADER
     • Category badge | Published date | Read time
-    • H1: Post title (36px)
+    • H1: Post title (40px)
     • Author: Avatar + Name + Role
     • Featured image (16:9, full-width)
 
@@ -758,10 +763,10 @@ All marketing pages share this structure:
 
 | Element | Desktop | Tablet | Mobile |
 |---------|---------|--------|--------|
-| Hero display | 48px | 36px | 28px |
-| Section heading | 36px | 28px | 24px |
-| Card title | 20px | 18px | 18px |
-| Body | 16px | 16px | 15px |
+| Display (hero, page H1, major headings) | 40px | 32px | 24px |
+| Heading (card titles, subtitles) | 24px | 20px | 18px |
+| Body | 16px | 16px | 16px |
+| Small (nav, metadata, captions) | 14px | 14px | 13px |
 
 ---
 
