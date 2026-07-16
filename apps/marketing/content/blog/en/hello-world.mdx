@@ -1,0 +1,47 @@
+---
+title: "Welcome to Oversight Hub"
+slug: "hello-world"
+date: "2026-07-16"
+locale: "en"
+category: "product-updates"
+excerpt: "Introducing Oversight Hub — the AI-powered physical security platform unifying video surveillance, access control, and operational intelligence."
+tags: ["product", "launch"]
+---
+
+## A New Era for Physical Security
+
+Physical security is at an inflection point. Organizations are moving away from fragmented, point-solution architectures toward unified platforms that correlate data across video, access control, and operational systems.
+
+Oversight Hub is purpose-built for this new reality.
+
+### What Makes Us Different
+
+Unlike traditional systems that require operators to switch between multiple dashboards — one for cameras, another for door access, a third for incident management — Oversight Hub brings everything together in a single, intelligent pane of glass.
+
+```typescript
+// Example: Correlate an access control event with video evidence
+const event = await prisma.accessEvent.findUnique({
+  where: { id: eventId },
+  include: {
+    camera: true,
+    door: true,
+    alert: true,
+  },
+});
+
+// AI analysis runs in real-time against the video clip
+const analysis = await aiService.analyzeFrame({
+  cameraId: event.camera.id,
+  timestamp: event.timestamp,
+});
+```
+
+### AI-First by Design
+
+Every event flows through our AI analysis pipeline. From tailgating detection to anomaly scoring, the platform learns your facility's normal patterns and surfaces only what matters.
+
+### Self-Hosted & Private
+
+Your video never leaves your infrastructure. Oversight Hub is designed from the ground up for on-premise deployment — no cloud dependency, no data residency concerns.
+
+Stay tuned for more updates as we continue to build the future of physical security intelligence.
