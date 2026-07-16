@@ -435,6 +435,10 @@ model Organization {
   cameraPrompts     CameraPrompt[]
   licenses          License[]
   apiKeys           LicenseApiKey[]
+  tenantApiKeys     TenantApiKey[]
+  idpConfig         IdpConfig?
+  webhookSubscriptions WebhookSubscription[]
+  webhookDeliveries    WebhookDelivery[]
 }
 
 model Camera {
@@ -489,6 +493,8 @@ model User {
   createdInvites           Invite[]               @relation("InviteCreator")
   acceptedInvites          Invite[]               @relation("InviteAcceptor")
   licenseApiKeys           LicenseApiKey[]
+  tenantApiKeys            TenantApiKey[]
+  webhookSubscriptions     WebhookSubscription[]
 }
 
 // ─── Multi-Tenancy: Organization Member Join Table ───
@@ -737,6 +743,30 @@ model LicenseApiKey {
   @@index([organizationId])
   @@index([isActive])
   @@index([keyHash])
+}
+
+// ─── Phase 10: Enterprise — IdP Configuration (SSO) ───
+
+model IdpConfig {
+  id               String   @id @default(uuid())
+  organizationId   String   @unique
+  protocol         String   // 'saml' or 'oidc'
+  metadataUrl      String?  // IdP metadata URL for auto-fetch
+  entityId         String?  // SAML entity ID
+  certificate      String?  // IdP public certificate (SAML)
+  entryPoint       String?  // SAML IdP entry point URL
+  issuerUrl        String?  // OIDC issuer URL
+  clientId         String?  // OIDC client ID
+  clientSecret     String?  // Encrypted OIDC client secret
+  attributeMappings Json?  // IdP attribute → platform field mapping
+  isActive         Boolean  @default(true)
+  ssoEnforced      Boolean  @default(false)  // Force SSO-only login
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
 }
 
 // ─── Phase 10: Enterprise — Tenant API Keys ───
