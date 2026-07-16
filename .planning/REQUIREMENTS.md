@@ -74,10 +74,10 @@ Requirements for the commercial SaaS platform, organized by capability block.
 - [ ] **FTR-05**: ANPR/LPR deepened — plate recognition with confidence scoring, allowlist/blocklist, vehicle-event correlation
 - [ ] **FTR-06**: Security analytics dashboard with per-zone metrics, trend graphs, heatmaps, and anomaly visualization
 - [ ] **FTR-07**: Equipment health monitoring with predictive degradation alerts and per-site health scores
-- [ ] **FTR-08**: AI assistant supports natural language queries ("show intrusions on Site A after 8pm")
-- [ ] **FTR-09**: System auto-generates incident summaries with time, location, persons, video, and recommended actions
-- [ ] **FTR-10**: Per-zone dynamic risk scoring (0-100) from recent events, anomalies, and door states
-- [ ] **FTR-11**: System detects recurring situations (false positives, schedule mismatches, impossible travel)
+- [x] **FTR-08**: AI assistant supports natural language queries ("show intrusions on Site A after 8pm")
+- [x] **FTR-09**: System auto-generates incident summaries with time, location, persons, video, and recommended actions
+- [x] **FTR-10**: Per-zone dynamic risk scoring (0-100) from recent events, anomalies, and door states
+- [x] **FTR-11**: System detects recurring situations (false positives, schedule mismatches, impossible travel)
 
 ### Enterprise Features (ENT)
 
@@ -163,10 +163,10 @@ Deferred to future release after v2.0 ships.
 | FTR-05 | Phase 8: Feature Deepening | Pending |
 | FTR-06 | Phase 8: Feature Deepening | Pending |
 | FTR-07 | Phase 8: Feature Deepening | Pending |
-| FTR-08 | Phase 9: AI Intelligence | Pending |
-| FTR-09 | Phase 9: AI Intelligence | Pending |
-| FTR-10 | Phase 9: AI Intelligence | Pending |
-| FTR-11 | Phase 9: AI Intelligence | Pending |
+| FTR-08 | Phase 9: AI Intelligence | Complete |
+| FTR-09 | Phase 9: AI Intelligence | Complete |
+| FTR-10 | Phase 9: AI Intelligence | Complete |
+| FTR-11 | Phase 9: AI Intelligence | Complete |
 | ENT-01 | Phase 10: Enterprise Grade | Pending |
 | ENT-02 | Phase 10: Enterprise Grade | Pending |
 | ENT-03 | Phase 10: Enterprise Grade | Pending |

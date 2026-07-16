@@ -247,8 +247,8 @@ Plans:
 Plans:
 **Wave 1** (Foundation — parallel)
 
-- [ ] 09-01-PLAN.md — Infrastructure: Prisma schema + config + Docker + packages + DB push (FTR-08, FTR-09, FTR-10, FTR-11)
-- [ ] 09-02-PLAN.md — AiAgentModule Foundation: Types + schemas + Skill registry + prompts (FTR-08, FTR-09, FTR-10, FTR-11)
+- [x] 09-01-PLAN.md — Infrastructure: Prisma schema + config + Docker + packages + DB push (FTR-08, FTR-09, FTR-10, FTR-11)
+- [x] 09-02-PLAN.md — AiAgentModule Foundation: Types + schemas + Skill registry + prompts (FTR-08, FTR-09, FTR-10, FTR-11)
 
 **Wave 2** (Core — parallel)
 
@@ -295,5 +295,5 @@ Plans:
 | 6. Premium Experience | 6/6 | Complete   | 2026-07-15 |
 | 7. Public Presence | 9/9 | Complete   | 2026-07-16 |
 | 8. Feature Deepening | 0/8 | Planned | - |
-| 9. AI Intelligence | 0/8 | Planned | - |
+| 9. AI Intelligence | 2/8 | In Progress|  |
 | 10. Enterprise Grade | 0/TBD | Not started | - |
