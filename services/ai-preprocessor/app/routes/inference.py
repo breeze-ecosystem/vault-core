@@ -1,11 +1,28 @@
+"""
+VLM Inference Routes — DEPRECATED
+
+These endpoints are being replaced by the two-tier approach:
+1. YOLOv12 fast detection (routes/detection.py)
+2. Qwen VL deep analysis triggered only when detection fires
+
+Existing endpoints continue to function but emit deprecation warnings.
+They will remain available until the NestJS DoorControlAgent is fully
+operational (per D-27 coexistence requirement).
+
+DO NOT REMOVE these endpoints until migration is confirmed complete.
+"""
+
 import base64
 import io
+import logging
 import httpx
 from fastapi import APIRouter
 from pydantic import BaseModel
 from PIL import Image
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -106,7 +123,18 @@ def parse_detection(response: str, prompt_text: str) -> tuple[bool, float]:
 
 @router.post("/analyze", response_model=AnalyzeResponse)
 async def analyze(request: AnalyzeRequest):
-    """Analyze a camera frame against configured prompts using Ollama VLM."""
+    """Analyze a camera frame against configured prompts using Ollama VLM.
+
+    DEPRECATED: This VLM-based analysis pipeline is being replaced by the
+    two-tier YOLOv12 + Qwen VL approach. Use POST /api/v1/detect instead
+    for object detection, with VLM deep analysis triggered only on detection
+    events.
+    """
+    logger.warning(
+        "DeprecationWarning: /api/v1/analyze is deprecated — "
+        "use /api/v1/detect for object detection. "
+        "This endpoint will remain available until DoorControlAgent migration is complete."
+    )
     if not request.prompts:
         return AnalyzeResponse(detections=[])
 
