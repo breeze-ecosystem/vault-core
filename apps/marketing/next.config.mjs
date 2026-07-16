@@ -1,4 +1,3 @@
-import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const isDev = process.argv.indexOf('dev') !== -1;
@@ -11,7 +10,8 @@ if (!process.env.VELITE_STARTED && (isDev || isBuild)) {
 
 const withNextIntl = createNextIntlPlugin();
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   output: 'standalone',
   experimental: {
     optimizePackageImports: ['@repo/design'],
