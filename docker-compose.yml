@@ -10,6 +10,8 @@ services:
       dockerfile: docker/api.Dockerfile
     container_name: oversight-api
     restart: unless-stopped
+    ports:
+      - 4000:4000
     networks:
       - default
       - coolify
@@ -50,6 +52,8 @@ services:
       dockerfile: docker/dashboard.Dockerfile
     container_name: oversight-dashboard
     restart: unless-stopped
+    ports:
+      - 3100:3100
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL is required}
       NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-OVERSIGHT AI}
@@ -68,6 +72,8 @@ services:
       dockerfile: docker/website.Dockerfile
     container_name: oversight-marketing
     restart: unless-stopped
+    ports:
+      - 3200:3200
     environment:
       PORT: 3200
       NODE_ENV: production

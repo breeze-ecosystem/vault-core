@@ -82,7 +82,7 @@ export class AccessService {
       where.isActive = filters.isActive === "true";
     }
     if (filters?.organizationId) {
-      where.user = { organizationId: filters.organizationId };
+      where.organizationId = filters.organizationId;
     }
 
     const page = filters?.page ?? 1;
