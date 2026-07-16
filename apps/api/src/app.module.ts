@@ -33,6 +33,9 @@ import { AiModule } from './modules/ai/ai.module';
 import { AiAgentModule } from './modules/ai-agent/ai-agent.module';
 import { EquipmentModule } from './modules/equipment/equipment.module';
 import { GovernanceModule } from './modules/governance/governance.module';
+import { SsoModule } from './modules/sso/sso.module';
+import { ApiKeyModule } from './modules/api-key/api-key.module';
+import { WebhookModule } from './modules/webhook/webhook.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
 import { LicenseModule } from './modules/license/license.module';
 import { ContactModule } from './modules/contact/contact.module';
@@ -66,48 +69,61 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
       delimiter: '.',
     }),
     ScheduleModule.forRoot(),
-    PrismaModule,
-    AuthModule,
-    UserModule,
-    HealthModule,
-    OrganizationModule,
-    InviteModule,
-    CameraModule,
+    // ── Alphabetical module order ──
+    AccessModule,
+    AiAgentModule,
+    AiModule,
     AlertModule,
-    DashboardModule,
-    QueueModule,
-    IngestionModule,
-    InferenceModule,
+    AnalyticsModule,
+    AnprModule,
+    ApiKeyModule,
     AuditModule,
+    AuthModule,
+    CameraModule,
+    ChatModule,
+    ComplianceModule,
+    ContactModule,
+    CorrelationModule,
+    DashboardModule,
+    DoorModule,
+    EquipmentModule,
+    FeatureGateModule,
+    GovernanceModule,
+    HealthModule,
+    IncidentModule,
+    InferenceModule,
+    IngestionModule,
+    InviteModule,
+    LicenseModule,
+    MaintenanceModule,
+    MqttModule,
     NotificationModule,
     NotificationsModule,
-    ChatModule,
-    SupervisionModule,
-    MqttModule,
-    AccessModule,
-    DoorModule,
-    CorrelationModule,
-    IncidentModule,
-    VisitorModule,
-    AnprModule,
-    AiModule,
-    AiAgentModule,
-    EquipmentModule,
-    GovernanceModule,
-    ComplianceModule,
-    AnalyticsModule,
-    RiskModule,
+    OrganizationModule,
     PatternsModule,
-    MaintenanceModule,
-    FeatureGateModule,
-    LicenseModule,
-    ContactModule,
+    PrismaModule,
+    QueueModule,
+    RiskModule,
+    SsoModule,
+    SupervisionModule,
+    UserModule,
+    VisitorModule,
+    WebhookModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: TenantIsolationGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_GUARD, useClass: FeatureGateGuard },
+    // NOTE: TenantApiKeyGuard is NOT a global APP_GUARD — it's applied per-controller
+    // via @UseGuards() on v1 controllers only. JWT-based routes don't need it.
+    //
+    // RATE LIMITER NOTE: The global @fastify/rate-limit protects /api/* routes.
+    // v1 endpoints (/api/v1/*) use per-key rate limiting in TenantApiKeyGuard instead.
+    // If the global rate limiter causes double-counting, configure it to exclude
+    // /api/v1/* paths. Currently both may trigger (per-key guard runs inside NestJS
+    // request lifecycle, Fastify rate limiter at HTTP layer) — acceptable for initial
+    // delivery. Exclusion hook can be added in a follow-up.
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],

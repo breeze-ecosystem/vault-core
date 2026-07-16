@@ -17,6 +17,7 @@ import { ApiTags, ApiOperation } from "@nestjs/swagger";
 import { SsoService } from "./sso.service";
 import { AuthService } from "../auth/auth.service";
 import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
+import { orgContext } from "../../modules/prisma/tenant-extension";
 import { Public } from "../../common/decorators/public.decorator";
 import { RequiresFeature } from "../../common/decorators/feature-gate.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
@@ -53,7 +54,12 @@ export class SsoController {
     @Res({ passthrough: true }) res: FastifyReply,
   ) {
     const user = (req as any).user;
-    const result = await this.authService.exchangeSsoUser(user);
+    // SSO callbacks are @Public() — no JWT, thus no orgContext from TenantContextMiddleware.
+    // The SamlStrategy resolves orgId from the IdP config during assertion validation,
+    // so we wrap the token exchange in orgContext to set tenant isolation manually.
+    const result = await orgContext.run(user.orgId, () =>
+      this.authService.exchangeSsoUser(user),
+    );
 
     res.setCookie("refreshToken", result.refreshToken, {
       httpOnly: true,
@@ -97,7 +103,12 @@ export class SsoController {
     @Res({ passthrough: true }) res: FastifyReply,
   ) {
     const user = (req as any).user;
-    const result = await this.authService.exchangeSsoUser(user);
+    // SSO callbacks are @Public() — no JWT, thus no orgContext from TenantContextMiddleware.
+    // The OidcStrategy resolves orgId from the IdP config during token validation,
+    // so we wrap the token exchange in orgContext to set tenant isolation manually.
+    const result = await orgContext.run(user.orgId, () =>
+      this.authService.exchangeSsoUser(user),
+    );
 
     res.setCookie("refreshToken", result.refreshToken, {
       httpOnly: true,
