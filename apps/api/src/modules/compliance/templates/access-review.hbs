@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>{{reportTitle}}</title>
+  <style>
+    body { font-family: Helvetica, Arial, sans-serif; font-size: 10pt; color: #333; margin: 40px; }
+    h1 { font-size: 18pt; color: #1a1a2e; border-bottom: 2px solid #e0e0e0; padding-bottom: 8px; }
+    h2 { font-size: 14pt; color: #16213e; margin-top: 24px; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    th { background: #1a1a2e; color: white; padding: 8px; text-align: left; font-size: 9pt; }
+    td { padding: 6px 8px; border-bottom: 1px solid #e0e0e0; font-size: 9pt; }
+    tr:nth-child(even) { background: #f8f9fa; }
+    .header { text-align: center; margin-bottom: 24px; }
+    .header h1 { border: none; }
+    .org-name { font-size: 16pt; color: #1a1a2e; margin: 4px 0; }
+    .meta { color: #666; font-size: 9pt; margin: 2px 0; }
+    .summary-grid { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+    .summary-card { background: #fff8f0; border: 1px solid #f0e0d0; border-radius: 6px; padding: 12px; flex: 1; min-width: 120px; }
+    .summary-card .value { font-size: 20pt; font-weight: bold; color: #8b4513; }
+    .summary-card .label { font-size: 8pt; color: #666; text-transform: uppercase; }
+    .role-ADMIN { color: #d32f2f; font-weight: bold; }
+    .role-SUPERVISOR { color: #e65100; font-weight: bold; }
+    .role-OPERATOR { color: #1565c0; }
+    .role-VIEWER { color: #2e7d32; }
+    .role-AUDITOR { color: #6a1b9a; }
+    .footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid #ccc; font-size: 8pt; color: #999; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>{{reportTitle}}</h1>
+    <div class="org-name">{{orgName}}</div>
+    <div class="meta">ID du rapport: {{reportId}}</div>
+    <div class="meta">Généré le: {{generatedAt}}</div>
+  </div>
+
+  <h2>Résumé des Accès</h2>
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="value">{{totalMembers}}</div>
+      <div class="label">Membres</div>
+    </div>
+  </div>
+
+  <h2>Répartition par Rôle</h2>
+  <table>
+    <thead>
+      <tr><th>Rôle</th><th>Nombre</th></tr>
+    </thead>
+    <tbody>
+      {{#each roleSummary}}
+      <tr><td class="role-{{this.role}}">{{this.role}}</td><td>{{this.count}}</td></tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <h2>Membres de l'Organisation</h2>
+  <table>
+    <thead>
+      <tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Membre actif</th><th>Date d'adhésion</th></tr>
+    </thead>
+    <tbody>
+      {{#each members}}
+      <tr>
+        <td>{{this.firstName}} {{this.lastName}}</td>
+        <td>{{this.email}}</td>
+        <td class="role-{{this.role}}">{{this.role}}</td>
+        <td>{{#if this.isActive}}Oui{{else}}Non{{/if}}</td>
+        <td>{{this.joinedAt}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <p>CONFIDENTIEL — OVERSIGHT HUB — Revue des Accès générée automatiquement</p>
+    <p>{{orgName}} — {{generatedAt}}</p>
+  </div>
+</body>
+</html>

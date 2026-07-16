@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>{{reportTitle}}</title>
+  <style>
+    body { font-family: Helvetica, Arial, sans-serif; font-size: 10pt; color: #333; margin: 40px; }
+    h1 { font-size: 18pt; color: #1a1a2e; border-bottom: 2px solid #e0e0e0; padding-bottom: 8px; }
+    h2 { font-size: 14pt; color: #16213e; margin-top: 24px; }
+    h3 { font-size: 12pt; color: #0f3460; margin-top: 16px; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    th { background: #1a1a2e; color: white; padding: 8px; text-align: left; font-size: 9pt; }
+    td { padding: 6px 8px; border-bottom: 1px solid #e0e0e0; font-size: 9pt; }
+    tr:nth-child(even) { background: #f8f9fa; }
+    .header { text-align: center; margin-bottom: 24px; }
+    .header h1 { border: none; }
+    .org-name { font-size: 16pt; color: #1a1a2e; margin: 4px 0; }
+    .meta { color: #666; font-size: 9pt; margin: 2px 0; }
+    .summary-grid { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+    .summary-card { background: #f0f4ff; border: 1px solid #d0d8f0; border-radius: 6px; padding: 12px; flex: 1; min-width: 120px; }
+    .summary-card .value { font-size: 20pt; font-weight: bold; color: #1a1a2e; }
+    .summary-card .label { font-size: 8pt; color: #666; text-transform: uppercase; }
+    .footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid #ccc; font-size: 8pt; color: #999; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>{{reportTitle}}</h1>
+    <div class="org-name">{{orgName}}</div>
+    <div class="meta">ID du rapport: {{reportId}}</div>
+    <div class="meta">Généré le: {{generatedAt}}</div>
+    <div class="meta">Période: {{dateRangeLabel}}</div>
+  </div>
+
+  <h2>Résumé des Indicateurs</h2>
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="value">{{totalAuditEvents}}</div>
+      <div class="label">Événements d'audit</div>
+    </div>
+    <div class="summary-card">
+      <div class="value">{{totalIncidents}}</div>
+      <div class="label">Incidents</div>
+    </div>
+    <div class="summary-card">
+      <div class="value">{{totalUsers}}</div>
+      <div class="label">Utilisateurs</div>
+    </div>
+    <div class="summary-card">
+      <div class="value">{{totalCameras}}</div>
+      <div class="label">Caméras</div>
+    </div>
+    <div class="summary-card">
+      <div class="value">{{totalDoors}}</div>
+      <div class="label">Portes</div>
+    </div>
+  </div>
+
+  <h2>Résumé des Contrôles par Action</h2>
+  <table>
+    <thead>
+      <tr><th>Action</th><th>Nombre d'événements</th></tr>
+    </thead>
+    <tbody>
+      {{#each controlSummary}}
+      <tr><td>{{this.action}}</td><td>{{this.count}}</td></tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <h2>Incidents Récents</h2>
+  <table>
+    <thead>
+      <tr><th>Titre</th><th>Sévérité</th><th>Statut</th><th>Date</th></tr>
+    </thead>
+    <tbody>
+      {{#each incidents}}
+      <tr>
+        <td>{{this.title}}</td>
+        <td>{{this.severity}}</td>
+        <td>{{this.status}}</td>
+        <td>{{this.createdAt}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <h2>Événements d'Audit Récents</h2>
+  <table>
+    <thead>
+      <tr><th>Action</th><th>Entité</th><th>Date</th></tr>
+    </thead>
+    <tbody>
+      {{#each auditEntries}}
+      <tr>
+        <td>{{this.action}}</td>
+        <td>{{this.entity}}</td>
+        <td>{{this.time}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <p>CONFIDENTIEL — OVERSIGHT HUB — Rapport SOC 2 généré automatiquement</p>
+    <p>{{orgName}} — {{generatedAt}}</p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>{{reportTitle}}</title>
+  <style>
+    body { font-family: Helvetica, Arial, sans-serif; font-size: 10pt; color: #333; margin: 40px; }
+    h1 { font-size: 18pt; color: #1a1a2e; border-bottom: 2px solid #e0e0e0; padding-bottom: 8px; }
+    h2 { font-size: 14pt; color: #16213e; margin-top: 24px; }
+    h3 { font-size: 12pt; color: #0f3460; margin-top: 16px; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    th { background: #1a1a2e; color: white; padding: 8px; text-align: left; font-size: 9pt; }
+    td { padding: 6px 8px; border-bottom: 1px solid #e0e0e0; font-size: 9pt; }
+    tr:nth-child(even) { background: #f8f9fa; }
+    .header { text-align: center; margin-bottom: 24px; }
+    .header h1 { border: none; }
+    .org-name { font-size: 16pt; color: #1a1a2e; margin: 4px 0; }
+    .meta { color: #666; font-size: 9pt; margin: 2px 0; }
+    .summary-grid { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+    .summary-card { background: #f0fff4; border: 1px solid #d0f0d0; border-radius: 6px; padding: 12px; flex: 1; min-width: 120px; }
+    .summary-card .value { font-size: 20pt; font-weight: bold; color: #1a6b1a; }
+    .summary-card .label { font-size: 8pt; color: #666; text-transform: uppercase; }
+    .status-en-place { color: #2e7d32; font-weight: bold; }
+    .status-partiel { color: #e65100; font-weight: bold; }
+    .footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid #ccc; font-size: 8pt; color: #999; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>{{reportTitle}}</h1>
+    <div class="org-name">{{orgName}}</div>
+    <div class="meta">ID du rapport: {{reportId}}</div>
+    <div class="meta">Généré le: {{generatedAt}}</div>
+    <div class="meta">Période: {{dateRangeLabel}}</div>
+  </div>
+
+  <h2>Indicateurs de Performance SMIS</h2>
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="value">{{totalIncidents}}</div>
+      <div class="label">Incidents totaux</div>
+    </div>
+    <div class="summary-card">
+      <div class="value">{{closedIncidents}}</div>
+      <div class="label">Incidents clôturés</div>
+    </div>
+    <div class="summary-card">
+      <div class="value">{{openIncidents}}</div>
+      <div class="label">Incidents ouverts</div>
+    </div>
+    <div class="summary-card">
+      <div class="value">{{avgResolutionHours}}h</div>
+      <div class="label">Délai moyen de résolution</div>
+    </div>
+    <div class="summary-card">
+      <div class="value">{{totalAuditEvents}}</div>
+      <div class="label">Événements d'audit</div>
+    </div>
+  </div>
+
+  <h2>Incidents par Sévérité</h2>
+  <table>
+    <thead>
+      <tr><th>Sévérité</th><th>Nombre</th></tr>
+    </thead>
+    <tbody>
+      {{#each incidentsBySeverity}}
+      <tr><td>{{this.severity}}</td><td>{{this.count}}</td></tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <h2>Contrôles SMIS (ISO 27001:2022)</h2>
+  <table>
+    <thead>
+      <tr><th>Contrôle</th><th>Statut</th></tr>
+    </thead>
+    <tbody>
+      {{#each ismsControls}}
+      <tr>
+        <td>{{this.control}}</td>
+        <td class="{{#if (eq this.status "En place")}}status-en-place{{else}}status-partiel{{/if}}">{{this.status}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <h2>Incidents Récents</h2>
+  <table>
+    <thead>
+      <tr><th>Titre</th><th>Sévérité</th><th>Statut</th><th>Date</th></tr>
+    </thead>
+    <tbody>
+      {{#each incidents}}
+      <tr>
+        <td>{{this.title}}</td>
+        <td>{{this.severity}}</td>
+        <td>{{this.status}}</td>
+        <td>{{this.createdAt}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <p>CONFIDENTIEL — OVERSIGHT HUB — Rapport ISO 27001 généré automatiquement</p>
+    <p>{{orgName}} — {{generatedAt}}</p>
+  </div>
+</body>
+</html>

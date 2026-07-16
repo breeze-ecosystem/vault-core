@@ -33,6 +33,7 @@ import { AiModule } from './modules/ai/ai.module';
 import { AiAgentModule } from './modules/ai-agent/ai-agent.module';
 import { EquipmentModule } from './modules/equipment/equipment.module';
 import { GovernanceModule } from './modules/governance/governance.module';
+import { ComplianceModule } from './modules/compliance/compliance.module';
 import { LicenseModule } from './modules/license/license.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
@@ -93,6 +94,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     AiAgentModule,
     EquipmentModule,
     GovernanceModule,
+    ComplianceModule,
     AnalyticsModule,
     RiskModule,
     PatternsModule,
