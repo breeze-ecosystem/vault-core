@@ -3,11 +3,11 @@ import { View, Text } from "react-native";
 import { useAuth } from "@/lib/auth-context";
 import { Redirect } from "expo-router";
 import {
-  LayoutDashboard, Camera, AlertTriangle, MoreHorizontal,
+  LayoutDashboard, Camera, AlertTriangle, MoreHorizontal, Shield,
 } from "lucide-react-native";
 import { colors } from "@repo/design";
 
-type TabName = "index" | "cameras" | "incidents" | "more";
+type TabName = "index" | "cameras" | "incidents" | "guard" | "more";
 
 function TabIcon({ name, focused }: { name: TabName; focused: boolean }) {
   const size = 24;
@@ -16,6 +16,7 @@ function TabIcon({ name, focused }: { name: TabName; focused: boolean }) {
     index: <LayoutDashboard size={size} color={color} />,
     cameras: <Camera size={size} color={color} />,
     incidents: <AlertTriangle size={size} color={color} />,
+    guard: <Shield size={size} color={color} />,
     more: <MoreHorizontal size={size} color={color} />,
   };
   return icons[name];
@@ -72,6 +73,13 @@ export default function TabLayout() {
         options={{
           title: "Incidents",
           tabBarIcon: ({ focused }) => <TabIcon name="incidents" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
+        name="guard"
+        options={{
+          title: "Garde",
+          tabBarIcon: ({ focused }) => <TabIcon name="guard" focused={focused} />,
         }}
       />
       <Tabs.Screen

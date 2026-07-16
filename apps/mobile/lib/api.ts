@@ -486,3 +486,90 @@ export async function getAgentStatus(): Promise<MobileAgentStatus> {
   }
   return res.json();
 }
+
+// ─── Phase 10: Guard Mobile Workflows ───
+
+export interface BadgeValidationResult {
+  valid: boolean;
+  userName?: string;
+  accessLevel?: string;
+  reason?: string;
+}
+
+export interface CheckInResult {
+  success: boolean;
+  visitorName?: string;
+  hostName?: string;
+  checkInTime?: string;
+  accessLevel?: string;
+  alreadyCheckedIn?: boolean;
+}
+
+export interface DoorControlResult {
+  success: boolean;
+  newState?: string;
+  message?: string;
+}
+
+/** Valide un badge NFC via l'API */
+export async function validateBadge(badgeId: string): Promise<BadgeValidationResult> {
+  const res = await fetchWithAuth(`${API_BASE}/access/validate-credential`, {
+    method: "POST",
+    body: JSON.stringify({ badgeId }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Badge invalide");
+  }
+  return res.json();
+}
+
+/** Check-in d'un visiteur via QR code */
+export async function checkInVisitor(token: string): Promise<CheckInResult> {
+  const res = await fetchWithAuth(`${API_BASE}/visitors/check-in`, {
+    method: "POST",
+    body: JSON.stringify({ token }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Check-in impossible");
+  }
+  return res.json();
+}
+
+/** Contrôle à distance d'une porte */
+export async function controlDoor(doorId: string, action: string): Promise<DoorControlResult> {
+  const res = await fetchWithAuth(`${API_BASE}/doors/${doorId}/control`, {
+    method: "POST",
+    body: JSON.stringify({ action }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Action impossible");
+  }
+  return res.json();
+}
+
+/** Téléverse une photo comme preuve d'incident */
+export async function uploadIncidentPhoto(incidentId: string, photoUri: string): Promise<{ id: string; url: string }> {
+  const formData = new FormData();
+  const filename = photoUri.split("/").pop() || "photo.jpg";
+  const fileType = filename.endsWith(".png") ? "image/png" : "image/jpeg";
+
+  formData.append("file", {
+    uri: photoUri,
+    name: filename,
+    type: fileType,
+  } as any);
+
+  const res = await fetchWithAuth(`${API_BASE}/incidents/${incidentId}/evidence`, {
+    method: "POST",
+    body: formData,
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Impossible de téléverser la photo");
+  }
+  return res.json();
+}
