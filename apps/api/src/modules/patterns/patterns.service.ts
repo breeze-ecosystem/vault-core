@@ -17,7 +17,7 @@ export interface PatternRule {
   name: string;
   description: string;
   query: string;
-  params: [string, number]; // [interval, threshold_count]
+  params: any[]; // varied per pattern: [interval, threshold_count] or [orgId] or [orgId, orgId]
   severity: string;
 }
 
@@ -93,6 +93,66 @@ const PATTERNS: PatternRule[] = [
     params: ["1 hour", 10],
     severity: "LOW",
   },
+  {
+    id: "false-positive",
+    name: "Faux positifs par caméra",
+    description:
+      "Caméra avec un nombre d'alertes anormalement élevé par rapport à la moyenne de l'organisation",
+    query: `
+      SELECT a.camera_id, a.organization_id, COUNT(*) as occurrence_count
+      FROM alerts a
+      WHERE a.created_at > NOW() - $1::interval
+        AND a.severity = 'LOW'
+      GROUP BY a.camera_id, a.organization_id
+      HAVING COUNT(*) > (
+        SELECT COALESCE(AVG(cnt), 0) + 2 * COALESCE(STDDEV(cnt), 0)
+        FROM (
+          SELECT COUNT(*) as cnt FROM alerts
+          WHERE created_at > NOW() - $1::interval
+            AND severity = 'LOW'
+            AND organization_id = a.organization_id
+          GROUP BY camera_id
+        ) sub
+      )
+    `,
+    params: ["7 days"],
+    severity: "Avertissement",
+  },
+  {
+    id: "schedule-mismatch",
+    name: "Événement hors horaire",
+    description:
+      "Événements d'accès survenant en dehors des heures ouvrées (22h-06h)",
+    query: `
+      SELECT ae.zone_id, ae.organization_id, COUNT(*) as occurrence_count
+      FROM access_events ae
+      WHERE ae.time > NOW() - $1::interval
+        AND (EXTRACT(HOUR FROM ae.time) < 6 OR EXTRACT(HOUR FROM ae.time) >= 22)
+      GROUP BY ae.zone_id, ae.organization_id
+      HAVING COUNT(*) > 3
+    `,
+    params: ["24 hours"],
+    severity: "Avertissement",
+  },
+  {
+    id: "impossible-travel",
+    name: "Déplacement impossible",
+    description:
+      "Même credential utilisé à des portes différentes dans un intervalle inférieur à 60 secondes",
+    query: `
+      SELECT ae1.credential_id, ae1.organization_id, COUNT(*) as occurrence_count
+      FROM access_events ae1
+      JOIN access_events ae2 ON ae1.credential_id = ae2.credential_id
+        AND ae1.time < ae2.time
+        AND ae2.time - ae1.time < INTERVAL '60 seconds'
+        AND ae1.door_id != ae2.door_id
+      WHERE ae1.time > NOW() - $1::interval
+      GROUP BY ae1.credential_id, ae1.organization_id
+      HAVING COUNT(*) > 2
+    `,
+    params: ["24 hours"],
+    severity: "Critique",
+  },
 ];
 
 @Injectable()
@@ -131,14 +191,20 @@ export class PatternsService {
             door_id?: string;
             reader_id?: string;
             camera_id?: string;
+            zone_id?: string;
+            credential_id?: string;
             organization_id: string;
             occurrence_count: number;
           }>
-        >(pattern.query, pattern.params[0], pattern.params[1]);
+        >(pattern.query, ...pattern.params);
 
         for (const result of results) {
           const deviceId =
-            result.door_id || result.reader_id || result.camera_id;
+            result.door_id ||
+            result.reader_id ||
+            result.camera_id ||
+            result.zone_id ||
+            result.credential_id;
           if (!deviceId) continue;
 
           // Redis dedup — skip if this pattern was already detected for this device
@@ -151,7 +217,11 @@ export class PatternsService {
             ? "door"
             : pattern.id.includes("reader")
               ? "reader"
-              : "camera";
+              : pattern.id.includes("zone") || result.zone_id
+                ? "zone"
+                : pattern.id.includes("credential") || result.credential_id
+                  ? "credential"
+                  : "camera";
 
           // Write to detected_patterns hypertable
           try {
