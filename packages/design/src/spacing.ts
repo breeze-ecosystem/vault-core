@@ -7,6 +7,7 @@ export const spacing = {
   xl: 32,
   xxl: 48,
   xxxl: 64,
+  xxxxl: 96,
 } as const;
 
 export type SpacingScale = typeof spacing;
