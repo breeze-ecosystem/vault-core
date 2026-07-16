@@ -61,14 +61,18 @@ export class DoorsMcpServer implements OnModuleInit {
       }
     };
 
-    this.server.tool(
-      "control_door",
-      skill.definition.description,
-      skill.definition.inputSchema,
-      handler,
-    );
-
-    this.logger.log("Registered MCP tool: control_door");
+    try {
+      this.server.tool(
+        "control_door",
+        skill.definition.description,
+        skill.definition.inputSchema,
+        handler,
+      );
+      this.logger.log("Registered MCP tool: control_door");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Failed to register MCP tool control_door: ${message}`);
+    }
   }
 
   private registerAssessCamera(): void {
@@ -99,13 +103,17 @@ export class DoorsMcpServer implements OnModuleInit {
       }
     };
 
-    this.server.tool(
-      "assess_camera",
-      skill.definition.description,
-      skill.definition.inputSchema,
-      handler,
-    );
-
-    this.logger.log("Registered MCP tool: assess_camera (doors)");
+    try {
+      this.server.tool(
+        "assess_camera",
+        skill.definition.description,
+        skill.definition.inputSchema,
+        handler,
+      );
+      this.logger.log("Registered MCP tool: assess_camera (doors)");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Failed to register MCP tool assess_camera: ${message}`);
+    }
   }
 }

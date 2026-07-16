@@ -55,13 +55,17 @@ export class RiskMcpServer implements OnModuleInit {
       }
     };
 
-    this.server.tool(
-      "get_risk_score",
-      skill.definition.description,
-      skill.definition.inputSchema,
-      handler,
-    );
-
-    this.logger.log("Registered MCP tool: get_risk_score");
+    try {
+      this.server.tool(
+        "get_risk_score",
+        skill.definition.description,
+        skill.definition.inputSchema,
+        handler,
+      );
+      this.logger.log("Registered MCP tool: get_risk_score");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Failed to register MCP tool get_risk_score: ${message}`);
+    }
   }
 }

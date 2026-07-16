@@ -56,12 +56,18 @@ export class CamerasMcpServer implements OnModuleInit {
       }
     };
 
-    this.server.tool(
-      "assess_camera",
-      skill.definition.description,
-      skill.definition.inputSchema,
-      handler,
-    );
+    try {
+      this.server.tool(
+        "assess_camera",
+        skill.definition.description,
+        skill.definition.inputSchema,
+        handler,
+      );
+      this.logger.log("Registered MCP tool: assess_camera");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Failed to register MCP tool assess_camera: ${message}`);
+    }
 
     this.logger.log("Registered MCP tool: assess_camera (cameras)");
   }

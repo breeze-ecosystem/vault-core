@@ -58,13 +58,17 @@ export class EventsMcpServer implements OnModuleInit {
       }
     };
 
-    this.server.tool(
-      "search_events",
-      skill.definition.description,
-      skill.definition.inputSchema,
-      handler,
-    );
-
-    this.logger.log("Registered MCP tool: search_events");
+    try {
+      this.server.tool(
+        "search_events",
+        skill.definition.description,
+        skill.definition.inputSchema,
+        handler,
+      );
+      this.logger.log("Registered MCP tool: search_events");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Failed to register MCP tool search_events: ${message}`);
+    }
   }
 }
