@@ -378,3 +378,64 @@ Do not make direct repo edits outside a GSD workflow unless the user explicitly 
 > Profile not yet configured. Run `/gsd-profile-user` to generate your developer profile.
 > This section is managed by `generate-claude-profile` -- do not edit manually.
 <!-- GSD:profile-end -->
+
+## Local Testing
+
+### API (NestJS)
+
+Before testing locally, ensure the following Docker containers are running:
+
+```bash
+# Oversight DB (PostgreSQL) — Coolify project oversight-hub
+docker ps | grep dh4wundp5g2ofyek65r9ie7h
+# Redis (global Coolify instance)
+docker ps | grep coolify-redis
+```
+
+**Build + start the API locally:**
+```bash
+cd apps/api
+npx nest build
+
+node -e "
+process.env.DATABASE_URL = 'postgresql://POSTGRES_USER:POSTGRES_PASSWORD@CONTAINER_IP:5432/postgres';
+process.env.REDIS_HOST = 'localhost';
+process.env.REDIS_PORT = '6379';
+process.env.REDIS_PASSWORD = '';
+process.env.JWT_ACCESS_SECRET = 'test-access-secret';
+process.env.JWT_REFRESH_SECRET = 'test-refresh-secret';
+process.env.NODE_ENV = 'development';
+process.env.ADMIN_PASSWORD = '';
+require('./dist/src/main.js');
+" 2>&1 | grep -E "LOG.*NestApplication|ERROR|successfully"
+```
+
+Get `POSTGRES_PASSWORD` and `CONTAINER_IP`:
+```bash
+# Get password
+docker inspect dh4wundp5g2ofyek65r9ie7h | python3 -c "import json,sys;d=json.load(sys.stdin);[print(e) for e in d[0]['Config']['Env'] if 'POSTGRES_PASSWORD' in e]"
+# Get container IP on coolify network
+docker inspect dh4wundp5g2ofyek65r9ie7h | python3 -c "import json,sys;d=json.load(sys.stdin);print(d[0]['NetworkSettings']['Networks']['coolify']['IPAddress'])"
+```
+
+**Expected result:** "Nest application successfully started"
+- DI errors will appear as `Nest can't resolve dependencies of...` before startup
+- Warnings (MCP tool registration, missing env vars) are expected and non-blocking
+- MQTT connection refused is normal (no local MQTT broker)
+
+### DB Migration Fix
+
+If the `_prisma_migrations` table has a migration marked as `finished` but its SQL was never executed:
+```bash
+# Re-run the migration SQL manually via psql
+docker exec -i dh4wundp5g2ofyek65r9ie7h psql -U postgres -d postgres < apps/api/prisma/migrations/MIGRATION_NAME/migration.sql
+
+# Then mark it as rolled-back in prisma so future deploy re-runs it
+cd apps/api && DATABASE_URL="postgresql://...@CONTAINER_IP:5432/postgres" npx prisma migrate resolve --rolled-back MIGRATION_NAME
+```
+
+### Coolify Deployments
+
+- Git tag `v2.0.0-beta` triggers deployment to `https://oversight.digitsoftafrica.com`
+- Force push tag: `git tag -d v2.0.0-beta && git tag v2.0.0-beta HEAD && git push origin v2.0.0-beta -f`
+- If auto-deploy doesn't trigger, POST to `https://coolify.digitsoftafrica.com/api/v1/deploy` with Bearer token and `{"uuid":"wt83ltw31zjpksrut7hi7cfp"}`
