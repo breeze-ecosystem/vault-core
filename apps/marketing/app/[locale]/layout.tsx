@@ -20,7 +20,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   const direction = rtlLocales.has(locale) ? 'rtl' : 'ltr';
 
   return (
-    <html lang={locale} dir={direction} suppressHydrationWarning>
+    <html lang={locale} dir={direction} className="dark" suppressHydrationWarning>
       <body className="bg-background text-foreground">
         <NextIntlClientProvider messages={messages}>
           <OrganizationJsonLd />
