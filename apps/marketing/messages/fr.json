@@ -1,0 +1,160 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "pricing": "Tarifs",
+    "blog": "Blog",
+    "contact": "Contact"
+  },
+  "cta": {
+    "bookDemo": "Réserver une démo",
+    "talkToSales": "Parler aux ventes",
+    "contactSales": "Contacter les ventes",
+    "getStarted": "Commencer",
+    "sendMessage": "Envoyer le message",
+    "seeInAction": "Voir Oversight Hub en action",
+    "explorePricing": "Explorer les tarifs"
+  },
+  "hero": {
+    "headline": "Intelligence de sécurité physique pilotée par l'IA",
+    "subtitle": "Corrélez chaque événement d'accès, alerte de porte et flux de caméra dans une plateforme unifiée — avec une analyse IA en temps réel.",
+    "trustBar": "Approuvé par les équipes de sécurité du monde entier",
+    "scrollHint": "Faites défiler pour explorer"
+  },
+  "features": {
+    "heading": "Tout ce dont vous avez besoin pour sécuriser vos installations",
+    "subheading": "Une plateforme unifiée qui remplace les systèmes de sécurité fragmentés par un seul panneau de verre intelligent."
+  },
+  "featureCards": [
+    {
+      "title": "Centre de commandement unifié",
+      "description": "Contrôle d'accès, vidéosurveillance et analyse IA — le tout dans un tableau de bord en temps réel."
+    },
+    {
+      "title": "Informations basées sur l'IA",
+      "description": "Corrélez les événements entre les systèmes avec des résumés générés par IA et la détection d'anomalies."
+    },
+    {
+      "title": "Auto-hébergé et privé",
+      "description": "Exécuté entièrement sur votre infrastructure. Vos vidéos ne quittent jamais votre réseau."
+    },
+    {
+      "title": "Alertes en temps réel",
+      "description": "Soyez notifié dès qu'une porte est forcée, qu'un talonnage est détecté ou qu'une anomalie apparaît."
+    },
+    {
+      "title": "Mobile conçu pour les agents",
+      "description": "Outils de terrain conçus pour les agents en patrouille — pointage, capture d'incidents et contrôle des portes depuis n'importe quel appareil."
+    },
+    {
+      "title": "Tarification basée sur licence",
+      "description": "Licences simples et prévisibles. Pas de frais par caméra, pas de coûts cachés."
+    }
+  ],
+  "ai": {
+    "heading": "Construit sur l'IA. Alimenté par vous.",
+    "subheading": "Une IA sur site qui respecte la confidentialité de vos données — le traitement se fait sur votre infrastructure, pas dans le cloud."
+  },
+  "testimonials": {
+    "heading": "Approuvé par des équipes de sécurité comme la vôtre"
+  },
+  "stats": {
+    "uptime": "99,9% de disponibilité",
+    "monitoring": "Surveillance 24h/24 et 7j/7",
+    "teams": "150+ équipes de sécurité",
+    "selfHosted": "100% auto-hébergé"
+  },
+  "finalCta": {
+    "heading": "Prêt à transformer vos opérations de sécurité ?",
+    "body": "Découvrez comment Oversight Hub unifie votre vidéo, votre contrôle d'accès et votre analyse IA en une seule expérience fluide.",
+    "action": "Réserver votre démo"
+  },
+  "pricing": {
+    "heading": "Tarification simple et transparente",
+    "subheading": "Commencez avec un essai gratuit. Évoluez en toute confiance. Sans frais cachés.",
+    "tiers": {
+      "starter": {
+        "name": "Starter",
+        "desc": "Pour les petites équipes qui débutent avec la sécurité intelligente."
+      },
+      "professional": {
+        "name": "Professional",
+        "desc": "Pour les organisations en croissance ayant besoin de fonctionnalités avancées et de limites plus élevées.",
+        "badge": "Le plus populaire"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "desc": "Pour les grandes organisations nécessitant des appareils illimités et un support prioritaire."
+      }
+    },
+    "footnote": "Tous les plans incluent un essai gratuit de 14 jours. Aucune carte de crédit requise.",
+    "faq": "Questions fréquentes",
+    "features": "Fonctionnalité",
+    "starter": "Starter",
+    "professional": "Professional",
+    "enterprise": "Enterprise"
+  },
+  "blog": {
+    "heading": "Blog",
+    "subheading": "Actualités sécurité, mises à jour produit et journal des modifications",
+    "categories": {
+      "all": "Tous les articles",
+      "changelog": "Journal des modifications",
+      "security": "Actualités sécurité",
+      "product": "Mises à jour produit"
+    },
+    "empty": {
+      "heading": "Pas encore d'articles",
+      "body": "Revenez bientôt pour des actualités sécurité, des mises à jour produit et des entrées du journal des modifications."
+    },
+    "readMore": "Lire la suite →",
+    "share": "Partager cet article",
+    "related": "Articles connexes"
+  },
+  "contact": {
+    "heading": "Prenez contact",
+    "subheading": "Prêt à voir Oversight Hub en action ? Remplissez le formulaire et notre équipe vous répondra sous 24 heures.",
+    "fields": {
+      "name": "Nom",
+      "email": "E-mail",
+      "company": "Entreprise (facultatif)",
+      "message": "Message"
+    },
+    "placeholders": {
+      "name": "Votre nom complet",
+      "email": "vous@entreprise.com",
+      "company": "Nom de l'entreprise",
+      "message": "Parlez-nous de vos besoins en sécurité..."
+    },
+    "submit": "Envoyer le message",
+    "sending": "Envoi en cours...",
+    "success": {
+      "heading": "Message envoyé !",
+      "body": "Merci de nous avoir contactés. Notre équipe vous répondra sous 24 heures."
+    },
+    "error": {
+      "heading": "Une erreur est survenue",
+      "body": "Veuillez réessayer ou nous envoyer un e-mail directement à hello@oversighthub.com."
+    },
+    "footer": "Ou envoyez-nous un e-mail directement : hello@oversighthub.com",
+    "turnstile": "Vérification en cours..."
+  },
+  "errors": {
+    "required": "Ce champ est obligatoire",
+    "invalidEmail": "Veuillez saisir une adresse e-mail valide",
+    "turnstile": "La vérification a échoué. Veuillez réessayer.",
+    "server": "Une erreur est survenue. Veuillez réessayer ou nous envoyer un e-mail à hello@oversighthub.com.",
+    "rateLimited": "Trop de demandes. Veuillez réessayer plus tard."
+  },
+  "notFound": {
+    "heading": "Page non trouvée",
+    "body": "La page que vous recherchez n'existe pas ou a été déplacée.",
+    "action": "Retour à l'accueil"
+  },
+  "footer": {
+    "product": "Produit",
+    "resources": "Ressources",
+    "company": "Entreprise",
+    "legal": "Légal",
+    "copyright": "© 2026 Oversight AI. Tous droits réservés."
+  }
+}
