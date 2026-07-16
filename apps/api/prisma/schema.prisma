@@ -658,6 +658,20 @@ model NotificationSetting {
   @@unique([userId, channel])
 }
 
+// ─── Contact Form Submission (Public Marketing Site) ───
+
+model ContactSubmission {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  company   String?
+  message   String
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+}
+
 // ─── Phase 5: License Management Models ───
 
 model License {
