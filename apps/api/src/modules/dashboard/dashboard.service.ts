@@ -65,7 +65,7 @@ export class DashboardService {
         low: alertsLow,
         info: alertsInfo,
       },
-      sites: {
+      organizations: {
         total: sitesTotal,
         active: sitesActive,
       },
