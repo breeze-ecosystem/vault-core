@@ -2649,3 +2649,247 @@ export async function fetchDeviceHealth(orgId: string, deviceType?: string): Pro
   if (!res.ok) throw new Error("Échec du chargement de la santé des équipements");
   return res.json();
 }
+
+// ─── SSO Configuration Types ───
+
+export interface IdpConfig {
+  configured: boolean;
+  protocol?: "saml" | "oidc";
+  metadataUrl?: string;
+  entityId?: string;
+  certificate?: string | null;
+  attributeMappings?: Record<string, string>;
+  isActive?: boolean;
+  ssoEnforced?: boolean;
+  clientId?: string;
+  issuerUrl?: string;
+  entryPoint?: string;
+}
+
+// ─── SSO Configuration API Functions ───
+
+export async function fetchIdpConfig(): Promise<IdpConfig | { configured: false }> {
+  const res = await fetchWithAuth(`${API_URL}/api/auth/sso/config`);
+  if (!res.ok) throw new Error("Échec du chargement de la configuration SSO");
+  return res.json();
+}
+
+export async function saveIdpConfig(data: import("@repo/shared").CreateIdpConfigInput): Promise<IdpConfig> {
+  const res = await fetchWithAuth(`${API_URL}/api/auth/sso/config`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de l'enregistrement de la configuration SSO");
+  }
+  return res.json();
+}
+
+// ─── Tenant API Key Types ───
+
+export interface TenantApiKey {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  scopes: string[];
+  rateLimit: number;
+  isActive: boolean;
+  lastUsedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateApiKeyResponse {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  scopes: string[];
+  rateLimit: number;
+  rawKey: string; // Only returned once at creation
+}
+
+export interface ApiKeyUsageResponse {
+  lastUsedAt: string | null;
+  recentRequestCount: number;
+}
+
+// ─── Tenant API Key API Functions ───
+
+export async function fetchApiKeys(): Promise<TenantApiKey[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/api-keys`);
+  if (!res.ok) throw new Error("Échec du chargement des clés API");
+  return res.json();
+}
+
+export async function createTenantApiKey(data: import("@repo/shared").CreateTenantApiKeyInput): Promise<CreateApiKeyResponse> {
+  const res = await fetchWithAuth(`${API_URL}/api/api-keys`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de la création de la clé API");
+  }
+  return res.json();
+}
+
+export async function revokeTenantApiKey(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/api-keys/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Échec de la révocation de la clé API");
+}
+
+export async function fetchApiKeyUsage(id: string): Promise<ApiKeyUsageResponse> {
+  const res = await fetchWithAuth(`${API_URL}/api/api-keys/${id}/usage`);
+  if (!res.ok) throw new Error("Échec du chargement des statistiques d'utilisation");
+  return res.json();
+}
+
+// ─── Webhook Types ───
+
+export interface WebhookSubscription {
+  id: string;
+  organizationId: string;
+  url: string;
+  events: string[];
+  secret: string | null; // Masked — only first 8 + last 4 chars
+  isActive: boolean;
+  retryCount: number;
+  timeoutMs: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WebhookDelivery {
+  id: string;
+  subscriptionId: string;
+  event: string;
+  url: string;
+  status: "pending" | "delivered" | "failed" | "retrying";
+  statusCode: number | null;
+  responseBody: string | null;
+  durationMs: number | null;
+  attempts: number;
+  nextRetryAt: string | null;
+  deliveredAt: string | null;
+  createdAt: string;
+}
+
+// ─── Webhook API Functions ───
+
+export async function fetchWebhookSubscriptions(): Promise<WebhookSubscription[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/webhooks/subscriptions`);
+  if (!res.ok) throw new Error("Échec du chargement des abonnements webhook");
+  return res.json();
+}
+
+export async function createWebhookSubscription(data: import("@repo/shared").CreateWebhookSubscriptionInput): Promise<WebhookSubscription> {
+  const res = await fetchWithAuth(`${API_URL}/api/webhooks/subscriptions`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de la création de l'abonnement webhook");
+  }
+  return res.json();
+}
+
+export async function updateWebhookSubscription(
+  id: string,
+  data: import("@repo/shared").UpdateWebhookSubscriptionInput,
+): Promise<WebhookSubscription> {
+  const res = await fetchWithAuth(`${API_URL}/api/webhooks/subscriptions/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de la mise à jour de l'abonnement webhook");
+  }
+  return res.json();
+}
+
+export async function deleteWebhookSubscription(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/webhooks/subscriptions/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Échec de la suppression de l'abonnement webhook");
+}
+
+export async function fetchWebhookDeliveries(
+  id: string,
+  filters?: { status?: string; from?: string; to?: string },
+): Promise<WebhookDelivery[]> {
+  const searchParams = new URLSearchParams();
+  if (filters?.status) searchParams.set("status", filters.status);
+  if (filters?.from) searchParams.set("from", filters.from);
+  if (filters?.to) searchParams.set("to", filters.to);
+  const qs = searchParams.toString() ? `?${searchParams.toString()}` : "";
+
+  const res = await fetchWithAuth(`${API_URL}/api/webhooks/subscriptions/${id}/deliveries${qs}`);
+  if (!res.ok) throw new Error("Échec du chargement des livraisons webhook");
+  return res.json();
+}
+
+export async function retryWebhookDelivery(subscriptionId: string, deliveryId: string): Promise<void> {
+  const res = await fetchWithAuth(
+    `${API_URL}/api/webhooks/subscriptions/${subscriptionId}/retry/${deliveryId}`,
+    { method: "POST" },
+  );
+  if (!res.ok) throw new Error("Échec de la relance de la livraison webhook");
+}
+
+// ─── Compliance API Functions ───
+
+export async function generateComplianceReport(data: import("@repo/shared").GenerateComplianceReportInput): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/compliance/reports/generate`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Échec de la génération du rapport de conformité");
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `compliance-report-${new Date().toISOString().split("T")[0]}.pdf`;
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
+
+// ─── Organization Branding Types & API Functions ───
+
+export interface OrganizationBranding {
+  logoUrl?: string;
+  primaryColor?: string;
+  displayName?: string;
+}
+
+export async function fetchOrganizationBranding(): Promise<OrganizationBranding> {
+  const res = await fetchWithAuth(`${API_URL}/api/organizations/me`);
+  if (!res.ok) throw new Error("Échec du chargement des informations de l'organisation");
+  const org = await res.json();
+  return {
+    logoUrl: org.logoUrl,
+    primaryColor: org.primaryColor,
+    displayName: org.name,
+  };
+}
+
+export async function updateOrganizationBranding(data: {
+  logoUrl?: string;
+  primaryColor?: string;
+  displayName?: string;
+}): Promise<Organization> {
+  const res = await fetchWithAuth(`${API_URL}/api/organizations/branding`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de la mise à jour de l'image de marque");
+  }
+  return res.json();
+}
