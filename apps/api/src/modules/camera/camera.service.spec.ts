@@ -57,7 +57,7 @@ const mockPrompt = {
 const createData = {
   name: 'Nouvelle Caméra',
   rtspUrl: 'rtsp://10.0.0.5:554/stream',
-  organization: { connect: { id: 'site-uuid-1' } },
+  organizationId: 'site-uuid-1',
 };
 
 const updateData = {

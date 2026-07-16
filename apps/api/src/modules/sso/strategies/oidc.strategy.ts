@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
-import { Strategy, type VerifyCallback } from "openid-client/build/passport";
+import { Strategy } from "openid-client/build/passport";
+type VerifyCallback = (err?: Error | null, user?: Express.User, info?: unknown) => void;
 import { SsoService } from "../sso.service";
 
 @Injectable()

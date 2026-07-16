@@ -9,6 +9,7 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
 import * as crypto from "crypto";
+import type { Prisma } from "@prisma/client";
 
 // Private/reserved IP ranges for SSRF protection
 const PRIVATE_IP_RANGES = [
@@ -332,7 +333,7 @@ export class WebhookService {
         id: data.deliveryId ?? undefined,
         subscriptionId: data.subscriptionId,
         eventType: data.eventType,
-        payload: data.payload,
+        payload: data.payload as unknown as Prisma.InputJsonValue,
         statusCode: data.statusCode,
         responseBody: data.responseBody,
         attemptNumber: data.attemptNumber,

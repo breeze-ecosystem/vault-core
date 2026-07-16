@@ -50,7 +50,7 @@ export class CameraService {
     return camera;
   }
 
-  async create(data: Prisma.CameraCreateInput) {
+  async create(data: Prisma.CameraUncheckedCreateInput) {
     // Check license limits before creating (D-14, D-15 double barrier)
     const orgId = data.organizationId;
     const licenseStatus = await this.licenseService.getLicenseStatus(orgId);

@@ -305,7 +305,7 @@ export class LicenseService {
    * Create a new API key.
    * Returns the rawKey (shown once) and the stored hash.
    */
-  async createApiKey(name: string, createdById: string): Promise<ApiKeyResult> {
+  async createApiKey(name: string, createdById: string, organizationId: string): Promise<ApiKeyResult> {
     const rawKey = uuidv4();
     const keyHash = crypto.createHash("sha256").update(rawKey).digest("hex");
     const keyPrefix = rawKey.slice(-4);
@@ -316,6 +316,7 @@ export class LicenseService {
         keyHash,
         keyPrefix,
         createdById,
+        organizationId,
       },
     });
 

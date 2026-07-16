@@ -117,8 +117,8 @@ export class LicenseController {
     @Req() req: FastifyRequest,
     @Body(new ZodValidationPipe(createApiKeySchema)) body: any,
   ) {
-    const userId = (req as any).user.id;
-    return this.licenseService.createApiKey(body.name, userId);
+    const user = (req as any).user;
+    return this.licenseService.createApiKey(body.name, user.id, user.organizationId);
   }
 
   /**
