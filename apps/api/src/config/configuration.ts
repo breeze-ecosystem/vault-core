@@ -24,9 +24,15 @@ export default () => ({
     ollamaModel: process.env.OLLAMA_MODEL || 'moondream',
     embeddingModel: process.env.OLLAMA_EMBEDDING_MODEL || 'nomic-embed-text',
     summaryModel: process.env.OLLAMA_SUMMARY_MODEL || 'moondream',
+    qwenVlModel: process.env.QWEN_VL_MODEL || 'qwen-vl',
+    qwenEmbeddingModel: process.env.QWEN_EMBEDDING_MODEL || 'qwen-embedding',
+    llamaModel: process.env.LLAMA_MODEL || 'llama3.1',
   },
 
   qdrantUrl: process.env.QDRANT_URL || 'http://localhost:6333',
+  vllmUrl: process.env.VLLM_URL || 'http://localhost:8000',
+  yoloModel: process.env.YOLO_MODEL || 'yolov12n',
+  whisperModel: process.env.WHISPER_MODEL || 'medium',
 
   fcm: {
     serverKey: process.env.FCM_SERVER_KEY || '',

@@ -36,4 +36,12 @@ export const validationSchema = Joi.object({
 
   // License signing key
   LICENSE_PRIVATE_KEY_PATH: Joi.string().optional().allow(''),
+
+  // ── Phase 9: AI Intelligence Models ──
+  VLLM_URL: Joi.string().default('http://localhost:8000'),
+  QWEN_VL_MODEL: Joi.string().default('qwen-vl'),
+  QWEN_EMBEDDING_MODEL: Joi.string().default('qwen-embedding'),
+  LLAMA_MODEL: Joi.string().default('llama3.1'),
+  YOLO_MODEL: Joi.string().default('yolov12n'),
+  WHISPER_MODEL: Joi.string().default('medium'),
 });
