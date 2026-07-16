@@ -279,9 +279,9 @@ export type {
 export { analyticsQuerySchema } from "./schemas/analytics.schema";
 export type { AnalyticsQueryParams } from "./schemas/analytics.schema";
 
-// Schemas - Analytics Phase 8
-export { zoneMetricsQuerySchema, heatmapQuerySchema, trendQuerySchema } from "./schemas/analytics.schema";
-export type { ZoneMetricsQueryInput, HeatmapQueryInput, TrendQueryInput } from "./schemas/analytics.schema";
+// Schemas - Analytics Phase 8 (stubs — will be defined when Phase 8 is planned)
+// export { zoneMetricsQuerySchema, heatmapQuerySchema, trendQuerySchema } from "./schemas/analytics.schema";
+// export type { ZoneMetricsQueryInput, HeatmapQueryInput, TrendQueryInput } from "./schemas/analytics.schema";
 
 // Types - Analytics
 export type {
