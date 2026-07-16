@@ -8,10 +8,10 @@ import {
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../prisma/prisma.service";
-import { AuthService } from "../../auth/auth.service";
 import { Resend } from "resend";
 import { Role } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
+import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
 export class InviteService {
@@ -23,7 +23,6 @@ export class InviteService {
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
-    private authService: AuthService,
   ) {
     this.emailFrom = this.config.get<string>(
       "RESEND_FROM_EMAIL",
@@ -268,13 +267,26 @@ export class InviteService {
       },
     });
 
-    // Issue tokens via AuthService
-    const tokens = await this.authService.createTokens(
-      user.id,
-      user.email,
-      payload.orgId,
-      payload.role,
+    // Issue tokens (inline to avoid circular dependency on AuthModule)
+    const accessSecret = this.config.get<string>("JWT_ACCESS_SECRET", "change-me-access-secret-in-prod");
+    const refreshSecret = this.config.get<string>("JWT_REFRESH_SECRET", "change-me-refresh-secret-in-prod");
+
+    const accessToken = this.jwt.sign(
+      { sub: user.id, email: user.email, orgId: payload.orgId, role: payload.role },
+      { secret: accessSecret, expiresIn: this.config.get("JWT_ACCESS_EXPIRY", "15m") }
     );
+
+    const refreshTokenUuid = uuidv4();
+    const refreshExpiresAt = new Date();
+    refreshExpiresAt.setDate(refreshExpiresAt.getDate() + 7);
+
+    await this.prisma.refreshToken.create({
+      data: {
+        token: refreshTokenUuid,
+        userId: user.id,
+        expiresAt: refreshExpiresAt,
+      },
+    });
 
     // Fetch org info for response
     const org = await this.prisma.organization.findUnique({
@@ -283,8 +295,8 @@ export class InviteService {
     });
 
     return {
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
+      accessToken,
+      refreshToken: refreshTokenUuid,
       user: {
         id: user.id,
         email: user.email,
