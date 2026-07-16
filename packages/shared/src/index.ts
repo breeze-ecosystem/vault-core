@@ -6,6 +6,10 @@ export type { RegisterInput, LoginInput, RefreshInput, SwitchOrgInput } from "./
 export { createOrganizationSchema, updateOrganizationSchema } from "./schemas/organization.schema";
 export type { CreateOrganizationInput, UpdateOrganizationInput } from "./schemas/organization.schema";
 
+// Schemas - Organization Config
+export { anprThresholdSchema, healthThresholdSchema } from "./schemas/organization.schema";
+export type { AnprThresholdInput, HealthThresholdInput } from "./schemas/organization.schema";
+
 // Schemas - Invite
 export { createInviteSchema, acceptInviteSchema } from "./schemas/invite.schema";
 export type { CreateInviteInput, AcceptInviteInput } from "./schemas/invite.schema";
@@ -68,6 +72,10 @@ export type {
   CreateCameraDoorMapInput,
 } from "./schemas/access.schema";
 
+// Schemas - Credential Lifecycle
+export { revokeCredentialSchema, reissueCredentialSchema } from "./schemas/credential.schema";
+export type { RevokeCredentialInput, ReissueCredentialInput } from "./schemas/credential.schema";
+
 // Types
 export type { TokenPayload, AuthResponse } from "./types/auth.types";
 
@@ -93,6 +101,10 @@ export type {
   DoorAlertConfig,
 } from "./types/door.types";
 
+// Schemas - Door Threshold Config
+export { doorThresholdConfigSchema } from "./schemas/door.schema";
+export type { DoorThresholdConfigInput } from "./schemas/door.schema";
+
 // Types - Correlation (Video-Event Timeline & Tailgating)
 export type {
   TimelineEntry,
@@ -117,6 +129,9 @@ export type {
 export { INCIDENT_STATUS } from "./constants/incident-status";
 export type { IncidentStatus } from "./constants/incident-status";
 
+// Constants - Incident Phase 8
+export { SLA_SEVERITY_DEFAULTS, INCIDENT_EVIDENCE_TYPES } from "./constants/incident-constants";
+
 // Schemas - Incident
 export {
   createIncidentSchema,
@@ -134,6 +149,10 @@ export type {
   QueryIncidentInput,
   AddEvidenceInput,
 } from "./schemas/incident.schema";
+
+// Schemas - Incident SLA & Evidence Bundle
+export { slaProfileSchema, slaProfilesConfigSchema, evidenceBundleSchema } from "./schemas/incident.schema";
+export type { SlaProfileInput, SlaProfilesConfigInput, EvidenceBundleInput } from "./schemas/incident.schema";
 
 // Types - Incident
 export type {
@@ -163,6 +182,10 @@ export type {
   VisitorQueryInput,
 } from "./schemas/visitor.schema";
 
+// Schemas - Visitor Host Approval & Timed Pass
+export { hostApprovalSchema, timedPassSchema } from "./schemas/visitor.schema";
+export type { HostApprovalInput, TimedPassInput } from "./schemas/visitor.schema";
+
 // Types - Visitor
 export type {
   VisitorDto,
@@ -170,12 +193,16 @@ export type {
 } from "./types/visitor.types";
 
 // Constants - Vehicle
-export { VEHICLE_LIST_TYPES, VEHICLE_DECISIONS, VEHICLE_DECISION_REASONS } from "./constants/vehicle-constants";
+export { VEHICLE_LIST_TYPES, VEHICLE_DECISIONS, VEHICLE_DECISION_REASONS, VEHICLE_CONFIDENCE_DEFAULT } from "./constants/vehicle-constants";
 export type { VehicleListType, VehicleDecision } from "./constants/vehicle-constants";
 
 // Schemas - Vehicle
 export { createVehicleListEntrySchema, updateVehicleListEntrySchema, vehicleEventQuerySchema } from "./schemas/vehicle.schema";
 export type { CreateVehicleListEntryInput, VehicleEventQueryInput } from "./schemas/vehicle.schema";
+
+// Schemas - Vehicle Event Correlation
+export { vehicleEventCorrelationSchema } from "./schemas/vehicle.schema";
+export type { VehicleEventCorrelationInput } from "./schemas/vehicle.schema";
 
 // Types - Vehicle
 export type { VehicleListEntryDto, VehicleEventDto } from "./types/vehicle.types";
@@ -183,6 +210,10 @@ export type { VehicleListEntryDto, VehicleEventDto } from "./types/vehicle.types
 // Schemas - AI
 export { aiQuerySchema, aiAssistantSchema, aiSummarizeSchema } from "./schemas/ai.schema";
 export type { AIQueryInput, AIAssistantInput, AISummarizeInput } from "./schemas/ai.schema";
+
+// Schemas - Agent
+export { agentChatSchema, agentSseEventSchema, riskExplainSchema } from "./schemas/agent.schema";
+export type { AgentChatInput, AgentSseEvent, RiskExplainInput } from "./schemas/agent.schema";
 
 // Types - AI
 export type {
@@ -193,6 +224,17 @@ export type {
   TimelineEntry as AITimelineEntry,
 } from "./types/ai.types";
 
+// Types - Agent
+export type {
+  AgentChatInput as AgentChatInputType,
+  AgentChatMessage,
+  SSEEvent,
+  AgentStatus,
+  RiskExplanation,
+  PatternDetail,
+  AgentTraceEntry,
+} from "./types/agent.types";
+
 // Constants - Equipment
 export { EQUIPMENT_STATUS } from "./constants/equipment-status";
 export type { EquipmentStatus } from "./constants/equipment-status";
@@ -200,6 +242,10 @@ export type { EquipmentStatus } from "./constants/equipment-status";
 // Schemas - Equipment
 export { equipmentQuerySchema } from "./schemas/equipment.schema";
 export type { EquipmentQueryInput } from "./schemas/equipment.schema";
+
+// Schemas - Equipment Health
+export { healthScoreQuerySchema, deviceHealthQuerySchema } from "./schemas/equipment.schema";
+export type { HealthScoreQueryInput, DeviceHealthQueryInput } from "./schemas/equipment.schema";
 
 // Types - Equipment
 export type {
@@ -230,6 +276,10 @@ export type {
 // Schemas - Analytics
 export { analyticsQuerySchema } from "./schemas/analytics.schema";
 export type { AnalyticsQueryParams } from "./schemas/analytics.schema";
+
+// Schemas - Analytics Phase 8
+export { zoneMetricsQuerySchema, heatmapQuerySchema, trendQuerySchema } from "./schemas/analytics.schema";
+export type { ZoneMetricsQueryInput, HeatmapQueryInput, TrendQueryInput } from "./schemas/analytics.schema";
 
 // Types - Analytics
 export type {
