@@ -50,7 +50,7 @@ v1.0 delivered the unified physical security intelligence platform — access co
 - [x] **Phase 4: Commercial Foundation** — Multi-tenant architecture, organization isolation, invite-based onboarding, per-tenant audit logs, feature gate infrastructure (completed 2026-07-15)
 - [x] **Phase 5: Monetization** — RSA-signed JWT license keys with offline verification, device-limit enforcement, API key auth, admin dashboard, customer activation UI (completed 2026-07-15)
 - [x] **Phase 6: Premium Experience** — 2026 design system, Dashboard redesign (3 key pages + global uplift), Mobile guard-first design, dark/light mode (completed 2026-07-15)
-- [ ] **Phase 7: Public Presence** — Marketing landing page, pricing page, MDX blog, multi-language (6 locales), SEO, contact form
+- [x] **Phase 7: Public Presence** — Marketing landing page, pricing page, MDX blog, multi-language (6 locales), SEO, contact form (completed 2026-07-16)
 - [ ] **Phase 8: Feature Deepening** — Access control, door state machine, visitor management, incident management, ANPR/LPR, analytics dashboards, equipment health
 - [ ] **Phase 9: AI Intelligence** — Natural language event search, AI incident auto-summaries, per-zone risk scoring, recurring pattern detection, AI security assistant
 - [ ] **Phase 10: Enterprise Grade** — SSO/SAML, compliance reporting, public REST API, webhooks, multi-currency, unified command center, guard mobile workflows
@@ -181,21 +181,21 @@ Plans:
 
 Plans:
 **Wave 1** (Foundation)
-- [ ] 07-01-PLAN.md — Design tokens + monorepo config + .env.example (WEB-07)
-- [ ] 07-02-PLAN.md — Docker infrastructure + Caddy routing (WEB-08)
-- [ ] 07-03-PLAN.md — Contact API module + shared schema (WEB-06)
+- [x] 07-01-PLAN.md — Design tokens + monorepo config + .env.example (WEB-07)
+- [x] 07-02-PLAN.md — Docker infrastructure + Caddy routing (WEB-08)
+- [x] 07-03-PLAN.md — Contact API module + shared schema (WEB-06)
 
 **Wave 2** (Core App)
-- [ ] 07-04-PLAN.md — App scaffold + i18n routing + layout (WEB-04, WEB-08)
+- [x] 07-04-PLAN.md — App scaffold + i18n routing + layout (WEB-04, WEB-08)
 
 **Wave 3** (Pages)
-- [ ] 07-05-PLAN.md — Shared UI components + landing page (WEB-01, WEB-08)
-- [ ] 07-06-PLAN.md — Pricing page + feature comparison + FAQ (WEB-02, WEB-08)
-- [ ] 07-07-PLAN.md — MDX blog with velite + blog pages (WEB-03, WEB-08)
-- [ ] 07-08-PLAN.md — Contact form page + Turnstile (WEB-06, WEB-08)
+- [x] 07-05-PLAN.md — Shared UI components + landing page (WEB-01, WEB-08)
+- [x] 07-06-PLAN.md — Pricing page + feature comparison + FAQ (WEB-02, WEB-08)
+- [x] 07-07-PLAN.md — MDX blog with velite + blog pages (WEB-03, WEB-08)
+- [x] 07-08-PLAN.md — Contact form page + Turnstile (WEB-06, WEB-08)
 
 **Wave 4** (Content & SEO)
-- [ ] 07-09-PLAN.md — Translations + JSON-LD + OG images + sitemaps (WEB-04, WEB-05)
+- [x] 07-09-PLAN.md — Translations + JSON-LD + OG images + sitemaps (WEB-04, WEB-05)
 
 **UI hint**: yes
 
@@ -212,7 +212,21 @@ Plans:
   4. System recognizes vehicle plates with confidence scoring (PaddleOCR), checks against per-tenant allowlist/blocklist, and generates vehicle-access event correlations linked to video clips
   5. Admin views an equipment health dashboard showing per-site health scores, degradation trend graphs, and predictive alerts — "Camera 14 has 87% frame drop rate, recommend inspection"
 
-**Plans**: TBD
+**Plans**: 8 plans (2 waves)
+
+Plans:
+**Wave 1**
+- [ ] 08-01-PLAN.md — Foundation: Schema extensions, shared schemas, org config endpoints, API client (FTR-01, FTR-02, FTR-03, FTR-04, FTR-05, FTR-06, FTR-07)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 08-02-PLAN.md — Door Hardening: Per-door thresholds, Redis sequence dedup, door config UI, mobile door control (FTR-02)
+- [ ] 08-03-PLAN.md — Incident Deepening: SLA profiles, evidence auto-bundle, Redis dedup, SLA/evidence UI (FTR-04)
+- [ ] 08-04-PLAN.md — Visitor + ANPR: Host approval workflow, timed passes, confidence thresholds, vehicle-event correlation (FTR-03, FTR-05)
+- [ ] 08-05-PLAN.md — Access Control: Credential lifecycle management (revoke/reissue/expiry), lifecycle UI (FTR-01)
+- [ ] 08-06-PLAN.md — Analytics Dashboard: Zone metrics, trend charts, heatmaps, custom SVG/CSS dashboard (FTR-06)
+- [ ] 08-07-PLAN.md — Equipment Health: Per-site health scores, frame drop monitoring, health dashboard UI (FTR-07)
+- [ ] 08-08-PLAN.md — Mobile Incident: Incident list + detail + status transitions (FTR-02, FTR-04)
+
 **UI hint**: yes
 
 ### Phase 9: AI Intelligence
@@ -257,7 +271,7 @@ Plans:
 | 4. Commercial Foundation | 11/11 | Complete   | 2026-07-15 |
 | 5. Monetization | 0/TBD | Not started | - |
 | 6. Premium Experience | 6/6 | Complete   | 2026-07-15 |
-| 7. Public Presence | 0/9 | Planned | - |
-| 8. Feature Deepening | 0/TBD | Not started | - |
+| 7. Public Presence | 9/9 | Complete   | 2026-07-16 |
+| 8. Feature Deepening | 0/8 | Planned | - |
 | 9. AI Intelligence | 0/TBD | Not started | - |
 | 10. Enterprise Grade | 0/TBD | Not started | - |
