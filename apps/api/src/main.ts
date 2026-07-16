@@ -46,6 +46,11 @@ async function bootstrap() {
   await app.register(cookie);
 
   // ── Rate limiting ──
+  // NOTE: Global @fastify/rate-limit applies to ALL routes including /api/v1/*.
+  // TenantApiKeyGuard provides per-key rate limiting as the primary mechanism.
+  // The global rate limiter may need to exclude /api/v1/* paths to prevent
+  // double-counting. This will be configured in Plan 05 (AppModule wiring)
+  // when the v1 route prefix is finalized.
   const rateLimitMax = configService.get<number>("rateLimit.max", 100);
   const rateLimitTtl = configService.get<number>("rateLimit.ttl", 60);
   const rateLimitAuthMax = configService.get<number>(
@@ -142,11 +147,34 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup("api/docs", app, document);
 
+  // ── Swagger v1 — Public REST API documentation ───────────────────────────
+  const v1Config = new DocumentBuilder()
+    .setTitle("OVERSIGHT API v1")
+    .setDescription(
+      "Public REST API for enterprise integrations. " +
+        "Authenticate with an API key (X-API-Key header).",
+    )
+    .setVersion("1.0")
+    .addApiKey(
+      { type: "apiKey", name: "X-API-Key", in: "header" },
+      "ApiKey",
+    )
+    .addTag("cameras", "Camera monitoring (read-only)")
+    .addTag("doors", "Door management (read + control)")
+    .addTag("alerts", "Alert management (read + acknowledge)")
+    .addTag("incidents", "Incident management (read + status update)")
+    .addTag("events", "Event search (read-only)")
+    .addTag("audit", "Audit logs (read-only)")
+    .build();
+  const v1Document = SwaggerModule.createDocument(app, v1Config);
+  SwaggerModule.setup("api/docs/v1", app, v1Document);
+
   const port = configService.get<number>("port", 4000);
   await app.listen(port, "0.0.0.0");
 
   logger.log(`🚀 API running on http://localhost:${port}/api`);
   logger.log(`📖 Swagger docs on http://localhost:${port}/api/docs`);
+  logger.log(`📖 Swagger v1 docs on http://localhost:${port}/api/docs/v1`);
   logger.log(`🌍 CORS origins: ${corsOrigin}`);
   logger.log(
     `⏱️  Rate limit: ${rateLimitMax} req/${rateLimitTtl}s (auth: ${rateLimitAuthMax} req/${rateLimitTtl}s)`

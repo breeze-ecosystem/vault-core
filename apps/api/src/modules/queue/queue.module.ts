@@ -31,6 +31,7 @@ import { QueueService } from "./queue.service";
       { name: "predictive-health" },
       { name: "risk-scoring" },
       { name: "recurring-patterns" },
+      { name: "webhook-delivery" },
     ),
   ],
   providers: [QueueService],
