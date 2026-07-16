@@ -240,9 +240,31 @@ Plans:
   2. System auto-generates an incident summary with time, location, persons involved, video evidence, and AI-recommended actions — saving operators 5+ minutes of manual documentation per incident
   3. Admin views a per-zone risk score (0-100) on the dashboard that dynamically updates based on recent events, denied access attempts, open doors, and detected anomalies — color-coded gauge with drill-down
   4. System surfaces recurring situations — e.g., "Door 3 held open 4 times this week at the same time" or "Camera 7 false intrusion alerts 12x daily" — with trend visualization
-  5. Operator asks the AI assistant "assess the current risk level on Zone B" or "lock down Zone C" and receives a contextual analysis with supporting evidence and action confirmation
+   5. Operator asks the AI assistant "assess the current risk level on Zone B" or "lock down Zone C" and receives a contextual analysis with supporting evidence and action confirmation
 
-**Plans**: TBD
+**Plans**: 8 plans (4 waves)
+
+Plans:
+**Wave 1** (Foundation — parallel)
+
+- [ ] 09-01-PLAN.md — Infrastructure: Prisma schema + config + Docker + packages + DB push (FTR-08, FTR-09, FTR-10, FTR-11)
+- [ ] 09-02-PLAN.md — AiAgentModule Foundation: Types + schemas + Skill registry + prompts (FTR-08, FTR-09, FTR-10, FTR-11)
+
+**Wave 2** (Core — parallel)
+
+- [ ] 09-03-PLAN.md — Python AI Preprocessor: YOLOv12 + ByteTrack + YAMNet + Whisper (FTR-08, FTR-11)
+- [ ] 09-04-PLAN.md — NestJS Agent Core: LLM provider + Orchestrator + 6 agents + SSE (FTR-08, FTR-09, FTR-10, FTR-11)
+
+**Wave 3** (Services + Integration — parallel)
+
+- [ ] 09-05-PLAN.md — Agent Services: Memory + Tracing + Guardrails + MCP (FTR-08, FTR-09, FTR-10, FTR-11)
+- [ ] 09-06-PLAN.md — Backend Integration: Qdrant + Patterns + AppModule + API client (FTR-08, FTR-09, FTR-10, FTR-11)
+
+**Wave 4** (Frontend — parallel)
+
+- [ ] 09-07-PLAN.md — Dashboard UI: Command Center + Patterns + Risk enhancement (FTR-08, FTR-10, FTR-11)
+- [ ] 09-08-PLAN.md — Mobile Chat + API client (FTR-08, FTR-09)
+
 **UI hint**: yes
 
 ### Phase 10: Enterprise Grade
@@ -273,5 +295,5 @@ Plans:
 | 6. Premium Experience | 6/6 | Complete   | 2026-07-15 |
 | 7. Public Presence | 9/9 | Complete   | 2026-07-16 |
 | 8. Feature Deepening | 0/8 | Planned | - |
-| 9. AI Intelligence | 0/TBD | Not started | - |
+| 9. AI Intelligence | 0/8 | Planned | - |
 | 10. Enterprise Grade | 0/TBD | Not started | - |
