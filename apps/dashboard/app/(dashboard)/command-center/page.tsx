@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Activity } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { PageTransition } from "@/components/page-transition";
 import { ChatPanel } from "@/components/chat-panel";
@@ -12,6 +12,8 @@ import { RiskGauge } from "@/components/risk-gauge";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { DonutChart } from "@/components/donut-chart";
 import { ActivityTimeline } from "@/components/activity-timeline";
+import { CommandCenterFeed } from "@/components/command-center/CommandCenterFeed";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/use-auth";
 import {
   getAgentStatus,
@@ -68,6 +70,8 @@ export default function CommandCenterPage() {
   const [modelHealth, setModelHealth] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showFeed, setShowFeed] = useState(false);
+  const [feedNewEvents, setFeedNewEvents] = useState(0);
 
   // Confirmation dialog state
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
@@ -217,7 +221,42 @@ export default function CommandCenterPage() {
   return (
     <PageTransition>
       <div className="flex flex-col gap-6">
-        <PageHeader title="Centre de commande" />
+        <div className="flex items-center justify-between pb-6">
+          <PageHeader title="Centre de commande" />
+          <div className="flex items-center gap-2">
+            <Button
+              variant={showFeed ? "default" : "secondary"}
+              size="sm"
+              onClick={() => setShowFeed(!showFeed)}
+              className="relative"
+            >
+              <Activity className="h-4 w-4 mr-1.5" />
+              Flux temps réel
+              {!showFeed && feedNewEvents > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[9px] font-bold flex items-center justify-center text-white">
+                  {feedNewEvents > 9 ? "9+" : feedNewEvents}
+                </span>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Feed panel (collapsible) */}
+        {showFeed && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden rounded-lg border border-border"
+          >
+            <div className="h-[320px] lg:h-[calc(100vh-16rem)]">
+              <CommandCenterFeed
+                onNewEventCount={setFeedNewEvents}
+              />
+            </div>
+          </motion.div>
+        )}
 
         {/* 3-panel layout */}
         <div className="grid gap-4 lg:grid-cols-[20%_1fr_30%]">
