@@ -343,3 +343,11 @@ export type { CreateTenantApiKeyInput } from "./schemas/api-key.schema";
 // Schemas - Webhook (Enterprise)
 export { createWebhookSubscriptionSchema, updateWebhookSubscriptionSchema } from "./schemas/webhook.schema";
 export type { CreateWebhookSubscriptionInput, UpdateWebhookSubscriptionInput } from "./schemas/webhook.schema";
+
+// Schemas - SSO (Enterprise)
+export { createIdpConfigSchema, updateIdpConfigSchema } from "./schemas/sso.schema";
+export type { CreateIdpConfigInput, UpdateIdpConfigInput } from "./schemas/sso.schema";
+
+// Schemas - Compliance (Enterprise)
+export { generateComplianceReportSchema } from "./schemas/compliance.schema";
+export type { GenerateComplianceReportInput } from "./schemas/compliance.schema";
