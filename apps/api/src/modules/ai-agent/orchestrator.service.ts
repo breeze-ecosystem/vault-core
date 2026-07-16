@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
-import type { EventEmitter2 } from "@nestjs/event-emitter";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { LlmProviderService } from "./llm/llm-provider.service";
 import { SkillRegistry } from "./skills/skill-registry.service";
 import type { AgentContext } from "./types/agent.types";

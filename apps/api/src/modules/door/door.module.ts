@@ -7,6 +7,7 @@ import { DoorService } from "./door.service";
 import { DoorGateway } from "./door.gateway";
 import { DoorProcessor } from "./door.processor";
 import { AlertModule } from "../alert/alert.module";
+import { LicenseModule } from "../license/license.module";
 
 const RedisProvider = {
   provide: "REDIS",
@@ -26,6 +27,7 @@ const RedisProvider = {
   imports: [
     BullModule.registerQueue({ name: "door-alerts" }),
     AlertModule,
+    LicenseModule,
   ],
   controllers: [DoorController],
   providers: [
