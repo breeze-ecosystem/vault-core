@@ -49,7 +49,7 @@ v1.0 delivered the unified physical security intelligence platform — access co
 
 - [x] **Phase 4: Commercial Foundation** — Multi-tenant architecture, organization isolation, invite-based onboarding, per-tenant audit logs, feature gate infrastructure (completed 2026-07-15)
 - [x] **Phase 5: Monetization** — RSA-signed JWT license keys with offline verification, device-limit enforcement, API key auth, admin dashboard, customer activation UI (completed 2026-07-15)
-- [ ] **Phase 6: Premium Experience** — 2026 design system, Dashboard redesign (3 key pages + global uplift), Mobile guard-first design, dark/light mode
+- [x] **Phase 6: Premium Experience** — 2026 design system, Dashboard redesign (3 key pages + global uplift), Mobile guard-first design, dark/light mode (completed 2026-07-15)
 - [ ] **Phase 7: Public Presence** — Marketing landing page, pricing page, MDX blog, multi-language (6 locales), SEO, contact form
 - [ ] **Phase 8: Feature Deepening** — Access control, door state machine, visitor management, incident management, ANPR/LPR, analytics dashboards, equipment health
 - [ ] **Phase 9: AI Intelligence** — Natural language event search, AI incident auto-summaries, per-zone risk scoring, recurring pattern detection, AI security assistant
@@ -149,18 +149,18 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 06-01-PLAN.md — Design System Foundation: CSS namespace migration, Radix Themes, next-themes, ThemeProvider, ThemeToggle, light mode (UIX-01, UIX-05)
-- [ ] 06-02-PLAN.md — Shared Design Tokens + Animation: @repo/design package, motion install, PageTransition, AnimatePresence in dashboard layout (UIX-01, UIX-03)
+- [x] 06-01-PLAN.md — Design System Foundation: CSS namespace migration, Radix Themes, next-themes, ThemeProvider, ThemeToggle, light mode (UIX-01, UIX-05)
+- [x] 06-02-PLAN.md — Shared Design Tokens + Animation: @repo/design package, motion install, PageTransition, AnimatePresence in dashboard layout (UIX-01, UIX-03)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 06-03-PLAN.md — Premium Components + Global Uplift: GlassCard, MetricHero, Sparkline, DonutChart, QuickActionBar, ActivityTimeline, enhanced StatsCard/PageHeader/Header/Sidebar (UIX-02, UIX-06)
-- [ ] 06-04-PLAN.md — Mobile Guard-First Redesign: 4-tab navigation, quick-action home screen, offline mode, incidents/more tabs, @repo/design integration (UIX-04)
+- [x] 06-03-PLAN.md — Premium Components + Global Uplift: GlassCard, MetricHero, Sparkline, DonutChart, QuickActionBar, ActivityTimeline, enhanced StatsCard/PageHeader/Header/Sidebar (UIX-02, UIX-06)
+- [x] 06-04-PLAN.md — Mobile Guard-First Redesign: 4-tab navigation, quick-action home screen, offline mode, incidents/more tabs, @repo/design integration (UIX-04)
 
 **Wave 3** *(blocked on Wave 2 Plan 06-03 completion)*
 
-- [ ] 06-05-PLAN.md — Overview + Cameras Full Redesign: premium layouts with MetricHero grid, donut chart, timeline, camera grid, search/filter (UIX-07)
-- [ ] 06-06-PLAN.md — Alerts Full Redesign: real-time feed, severity bars, side panel, bulk actions, WebSocket preservation (UIX-07)
+- [x] 06-05-PLAN.md — Overview + Cameras Full Redesign: premium layouts with MetricHero grid, donut chart, timeline, camera grid, search/filter (UIX-07)
+- [x] 06-06-PLAN.md — Alerts Full Redesign: real-time feed, severity bars, side panel, bulk actions, WebSocket preservation (UIX-07)
 
 **UI hint**: yes
 
@@ -172,12 +172,31 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
   1. Visitor lands on the marketing site and sees a compelling hero section, feature showcase, trust indicators, and clear calls to action — the brand feels premium and AI-first
-  2. Visitor browses the pricing page with plan comparison and feature matrix; clicking a plan CTA redirects to Stripe Checkout for subscription
+  2. Visitor browses the pricing page with plan comparison and feature matrix; clicking a plan CTA leads to "Book a Demo" or "Contact Sales" pipeline (pure licensing model, no Stripe)
   3. Visitor switches language among French (primary), English, Spanish, German, Japanese, and Arabic — all content, navigation, and SEO metadata update without a page reload
   4. Visitor reads blog posts rendered from MDX (changelog, security insights, product updates) with code highlighting and rich media
   5. Visitor submits a contact/demo request form and receives an email confirmation; the marketing team receives the lead notification
 
-**Plans**: TBD
+**Plans**: 9 plans (4 waves)
+
+Plans:
+**Wave 1** (Foundation)
+- [ ] 07-01-PLAN.md — Design tokens + monorepo config + .env.example (WEB-07)
+- [ ] 07-02-PLAN.md — Docker infrastructure + Caddy routing (WEB-08)
+- [ ] 07-03-PLAN.md — Contact API module + shared schema (WEB-06)
+
+**Wave 2** (Core App)
+- [ ] 07-04-PLAN.md — App scaffold + i18n routing + layout (WEB-04, WEB-08)
+
+**Wave 3** (Pages)
+- [ ] 07-05-PLAN.md — Shared UI components + landing page (WEB-01, WEB-08)
+- [ ] 07-06-PLAN.md — Pricing page + feature comparison + FAQ (WEB-02, WEB-08)
+- [ ] 07-07-PLAN.md — MDX blog with velite + blog pages (WEB-03, WEB-08)
+- [ ] 07-08-PLAN.md — Contact form page + Turnstile (WEB-06, WEB-08)
+
+**Wave 4** (Content & SEO)
+- [ ] 07-09-PLAN.md — Translations + JSON-LD + OG images + sitemaps (WEB-04, WEB-05)
+
 **UI hint**: yes
 
 ### Phase 8: Feature Deepening
@@ -237,8 +256,8 @@ Plans:
 | 3. Intelligent Platform | 5/5 | Complete | 2026-07-14 |
 | 4. Commercial Foundation | 11/11 | Complete   | 2026-07-15 |
 | 5. Monetization | 0/TBD | Not started | - |
-| 6. Premium Experience | 0/TBD | Not started | - |
-| 7. Public Presence | 0/TBD | Not started | - |
+| 6. Premium Experience | 6/6 | Complete   | 2026-07-15 |
+| 7. Public Presence | 0/9 | Planned | - |
 | 8. Feature Deepening | 0/TBD | Not started | - |
 | 9. AI Intelligence | 0/TBD | Not started | - |
 | 10. Enterprise Grade | 0/TBD | Not started | - |
