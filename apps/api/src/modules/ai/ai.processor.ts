@@ -1,9 +1,11 @@
-import { Logger } from "@nestjs/common";
+import { Logger, Inject, Optional } from "@nestjs/common";
 import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Job } from "bullmq";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { PrismaService } from "../prisma/prisma.service";
 import { AiService } from "./ai.service";
+import type { QdrantService } from "../ai-agent/qdrant/qdrant.service";
+import type { LlmProviderService } from "../ai-agent/llm/llm-provider.service";
 
 @Processor("ai-summaries")
 export class AiProcessor extends WorkerHost {
@@ -13,6 +15,8 @@ export class AiProcessor extends WorkerHost {
     private prisma: PrismaService,
     private eventEmitter: EventEmitter2,
     private aiService: AiService,
+    @Optional() @Inject("QdrantService") private qdrantService?: QdrantService,
+    @Optional() @Inject("LlmProviderService") private llmProvider?: LlmProviderService,
   ) {
     super();
   }
@@ -76,12 +80,49 @@ export class AiProcessor extends WorkerHost {
     summary: string;
     orgId: string;
     time: Date;
+    zone?: string;
+    severity?: string;
   }) {
-    const { eventType, eventId, summary, orgId, time } = data;
+    const { eventType, eventId, summary, orgId, time, zone, severity } = data;
 
     try {
       await this.aiService.embedEvent(eventType, eventId, summary, orgId, time);
       this.logger.debug(`Embedding stored for ${eventType} ${eventId}`);
+
+      // ── Parallel Qdrant write (D-17, Pitfall 3 prevention) ──
+      // Write the same event to Qdrant with Qwen (4096-dim) embedding.
+      // Wrapped in try/catch so pgvector write is never blocked.
+      if (this.qdrantService && this.llmProvider) {
+        try {
+          const qwenEmbedding = await this.llmProvider.embed(
+            summary,
+            "qwen-embedding",
+          );
+          await this.qdrantService.upsertEvents([
+            {
+              id: `${eventType}:${eventId}`,
+              vector: qwenEmbedding,
+              payload: {
+                organizationId: orgId,
+                event_type: eventType,
+                eventId,
+                zone: zone ?? null,
+                time: time.toISOString(),
+                severity: severity ?? null,
+                summary,
+              },
+            },
+          ]);
+          this.logger.debug(
+            `Qdrant upsert for ${eventType} ${eventId}`,
+          );
+        } catch (qdrantErr: any) {
+          this.logger.warn(
+            `Qdrant parallel write failed for ${eventType}/${eventId}: ${qdrantErr.message}`,
+          );
+        }
+      }
+
       return { embedded: true, eventType, eventId };
     } catch (err: any) {
       this.logger.error(`Failed to embed event ${eventType}/${eventId}: ${err.message}`);

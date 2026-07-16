@@ -30,6 +30,7 @@ import { IncidentModule } from './modules/incident/incident.module';
 import { VisitorModule } from './modules/visitor/visitor.module';
 import { AnprModule } from './modules/anpr/anpr.module';
 import { AiModule } from './modules/ai/ai.module';
+import { AiAgentModule } from './modules/ai-agent/ai-agent.module';
 import { EquipmentModule } from './modules/equipment/equipment.module';
 import { GovernanceModule } from './modules/governance/governance.module';
 import { LicenseModule } from './modules/license/license.module';
@@ -89,6 +90,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     VisitorModule,
     AnprModule,
     AiModule,
+    AiAgentModule,
     EquipmentModule,
     GovernanceModule,
     AnalyticsModule,

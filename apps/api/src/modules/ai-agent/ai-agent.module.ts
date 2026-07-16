@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, Global } from "@nestjs/common";
 import { BullModule } from "@nestjs/bullmq";
 import { DiscoveryModule } from "@nestjs/core";
 import { ConfigModule, ConfigService } from "@nestjs/config";
@@ -10,6 +10,7 @@ import { SkillRegistry } from "./skills/skill-registry.service";
 import { LlmProviderService } from "./llm/llm-provider.service";
 import { OrchestratorService } from "./orchestrator.service";
 import { ChatController } from "./sse/chat.controller";
+import { QdrantService } from "./qdrant/qdrant.service";
 
 // Memory, tracing, resilience
 import { ConversationMemory } from "./memory/conversation.memory";
@@ -61,6 +62,7 @@ const RedisAgentProvider = {
   inject: [ConfigService],
 };
 
+@Global()
 @Module({
   imports: [
     DiscoveryModule,
@@ -78,6 +80,7 @@ const RedisAgentProvider = {
     SkillRegistry,
     LlmProviderService,
     OrchestratorService,
+    QdrantService,
 
     // Memory, tracing, resilience
     ConversationMemory,
@@ -111,12 +114,20 @@ const RedisAgentProvider = {
     SummarizeIncidentSkill,
     ControlDoorSkill,
     AssessCameraSkill,
+
+    // String token aliases for cross-module injection (used by RiskController, PatternsController, etc.)
+    { provide: "QdrantService", useExisting: QdrantService },
+    { provide: "LlmProviderService", useExisting: LlmProviderService },
+    { provide: "OrchestratorService", useExisting: OrchestratorService },
+    { provide: "RiskAnalysisAgent", useExisting: RiskAnalysisAgent },
+    { provide: "PatternDetectionAgent", useExisting: PatternDetectionAgent },
   ],
   exports: [
     // Foundation
     SkillRegistry,
     LlmProviderService,
     OrchestratorService,
+    QdrantService,
 
     // Memory and tracing (external consumers need these)
     ConversationMemory,

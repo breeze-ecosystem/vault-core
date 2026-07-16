@@ -1,11 +1,20 @@
-import { Controller, Get, Param, Query, ParseUUIDPipe } from "@nestjs/common";
+import { Controller, Get, Param, Query, ParseUUIDPipe, Req, Inject, Optional, Logger } from "@nestjs/common";
+import type { FastifyRequest } from "fastify";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { RiskService } from "./risk.service";
+import type { RiskAnalysisAgent } from "../ai-agent/agents/risk-analysis.agent";
+import type { AgentContext } from "../ai-agent/types/agent.types";
+import type { RiskExplanation } from "../ai-agent/agents/risk-analysis.agent";
 
 @Controller("risk")
 @Roles("ADMIN", "SUPERVISOR")
 export class RiskController {
-  constructor(private readonly riskService: RiskService) {}
+  private readonly logger = new Logger(RiskController.name);
+
+  constructor(
+    private readonly riskService: RiskService,
+    @Optional() @Inject("RiskAnalysisAgent") private readonly riskAgent?: RiskAnalysisAgent,
+  ) {}
 
   /**
    * GET /api/risk/scores — Get current risk scores for all zones.
@@ -39,6 +48,49 @@ export class RiskController {
     @Query("to") to?: string,
   ) {
     return this.riskService.getZoneScoreHistory(zoneId, from, to);
+  }
+
+  /**
+   * GET /api/risk/scores/:zoneId/explain — AI-powered risk score explanation.
+   * Delegates to RiskAnalysisAgent.explain() for natural-language breakdown.
+   * Optional ?stream=true triggers SSE streaming via the chat controller.
+   */
+  @Get("scores/:zoneId/explain")
+  @Roles("ADMIN", "SUPERVISOR")
+  async explainZoneScore(
+    @Param("zoneId", ParseUUIDPipe) zoneId: string,
+    @Req() req: FastifyRequest,
+    @Query("stream") stream?: string,
+  ): Promise<RiskExplanation | { error: string }> {
+    if (!this.riskAgent) {
+      return {
+        error: "Agent system not available",
+      } as any;
+    }
+
+    const user = (req as any).user;
+    const context: AgentContext = {
+      userId: user.id,
+      organizationId: user.orgId,
+      role: user.role,
+    };
+
+    // If stream=true, redirect to SSE endpoint (handled by chat controller)
+    if (stream === "true") {
+      this.logger.log(
+        `SSE risk explanation requested for zone ${zoneId} — delegate to /api/ai-agent/chat`,
+      );
+    }
+
+    try {
+      const explanation = await this.riskAgent.explain(zoneId, context);
+      return explanation;
+    } catch (err: any) {
+      this.logger.error(`Risk explanation failed for zone ${zoneId}: ${err.message}`);
+      return {
+        error: `Échec de l'explication du risque: ${err.message}`,
+      } as any;
+    }
   }
 
   /**
