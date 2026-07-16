@@ -339,3 +339,7 @@ export type { LicenseClaims, LicenseState, LicenseStatusDto } from "./types/lice
 // Schemas - API Key (Enterprise)
 export { createTenantApiKeySchema } from "./schemas/api-key.schema";
 export type { CreateTenantApiKeyInput } from "./schemas/api-key.schema";
+
+// Schemas - Webhook (Enterprise)
+export { createWebhookSubscriptionSchema, updateWebhookSubscriptionSchema } from "./schemas/webhook.schema";
+export type { CreateWebhookSubscriptionInput, UpdateWebhookSubscriptionInput } from "./schemas/webhook.schema";
