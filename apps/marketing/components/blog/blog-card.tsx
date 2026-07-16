@@ -6,7 +6,7 @@ interface BlogCardProps {
 }
 
 export function BlogCard({ post }: BlogCardProps) {
-  const readTime = post.metadata?.readTime ?? 0;
+  const readTime = Math.max(1, Math.ceil((post.content?.length ?? 0) / 200));
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:shadow-lg hover:-translate-y-1">

@@ -10,30 +10,31 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@repo/design": "workspace:*",
+    "@tailwindcss/typography": "^0.5",
+    "autoprefixer": "^10.5.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.11.0",
+    "motion": "^12.42.2",
     "next": "^14.2.15",
+    "next-intl": "^4.13.2",
+    "postcss": "^8.5.12",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "next-intl": "^4.13.2",
-    "velite": "^0.4.0",
     "satori": "^0.28.0",
     "sharp": "^0.35.3",
-    "clsx": "^2.1.1",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "3",
     "tailwindcss-animate": "^1.0.7",
-    "@tailwindcss/typography": "^0.5",
-    "lucide-react": "^1.11.0",
-    "motion": "^12.42.2",
-    "@repo/design": "workspace:*",
-    "autoprefixer": "^10.5.0",
-    "postcss": "^8.5.12"
+    "velite": "^0.4.0"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^20.14.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "typescript": "5.9.2",
-    "turnstile-types": "^1.2.3"
+    "turnstile-types": "^1.2.3",
+    "typescript": "5.9.2"
   }
 }

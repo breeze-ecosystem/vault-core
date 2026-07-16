@@ -78,7 +78,7 @@ export default async function BlogPostPage({ params }: Props) {
         description={post.excerpt}
         datePublished={post.date}
         author="Oversight AI Team"
-        image={post.cover ?? undefined}
+        image={post.cover?.src}
       />
       <BreadcrumbListJsonLd
         items={[

@@ -82,7 +82,7 @@ export function TestimonialCarousel() {
               exit="exit"
               transition={{ duration: 0.4, ease: 'easeOut' }}
             >
-              <TestimonialCard testimonial={TESTIMONIALS[activeIndex]} />
+              <TestimonialCard testimonial={TESTIMONIALS[activeIndex]!} />
             </motion.div>
           </AnimatePresence>
 

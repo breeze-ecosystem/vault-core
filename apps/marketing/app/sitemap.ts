@@ -36,7 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const alts = alternatesForPath('');
     const langAlts: Record<string, string> = {};
     for (const l of LOCALES) {
-      langAlts[l] = alts[l];
+      if (alts[l]) langAlts[l] = alts[l];
     }
     langAlts['x-default'] = `${BASE_URL}/en`;
 

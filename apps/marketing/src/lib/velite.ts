@@ -5,18 +5,18 @@ export type Post = (typeof allPosts)[number];
 export function getPostsByLocale(locale: string) {
   return allPosts
     .filter((post) => post.locale === locale)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) as Post[];
 }
 
 export function getPostBySlug(locale: string, slug: string) {
-  return allPosts.find((post) => post.locale === locale && post.slug === slug);
+  return allPosts.find((post) => post.locale === locale && post.slug === slug) as Post | undefined;
 }
 
 export function getAllSlugsByLocale() {
   const slugs: Record<string, string[]> = {};
   for (const post of allPosts) {
     if (!slugs[post.locale]) slugs[post.locale] = [];
-    slugs[post.locale].push(post.slug);
+    slugs[post.locale]!.push(post.slug);
   }
   return slugs;
 }

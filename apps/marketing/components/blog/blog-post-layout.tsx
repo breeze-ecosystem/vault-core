@@ -10,7 +10,7 @@ interface BlogPostLayoutProps {
 }
 
 export function BlogPostLayout({ post, relatedPosts }: BlogPostLayoutProps) {
-  const readTime = post.metadata?.readTime ?? 0;
+  const readTime = Math.max(1, Math.ceil((post.content?.length ?? 0) / 200));
 
   return (
     <article>

@@ -6,7 +6,7 @@ export default defineConfig({
       name: 'Post',
       pattern: 'content/blog/**/*.mdx',
       schema: s.object({
-        title: s.string().max(120),
+        title: s.string().max(100),
         slug: s.slug('posts'),
         date: s.isodate(),
         locale: s.string(),
@@ -19,4 +19,4 @@ export default defineConfig({
       }),
     },
   },
-});
+}) as unknown as Record<string, unknown>;
