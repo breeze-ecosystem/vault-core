@@ -6,9 +6,9 @@ export type { RegisterInput, LoginInput, RefreshInput, SwitchOrgInput } from "./
 export { createOrganizationSchema, updateOrganizationSchema } from "./schemas/organization.schema";
 export type { CreateOrganizationInput, UpdateOrganizationInput } from "./schemas/organization.schema";
 
-// Schemas - Organization Config
-export { anprThresholdSchema, healthThresholdSchema } from "./schemas/organization.schema";
-export type { AnprThresholdInput, HealthThresholdInput } from "./schemas/organization.schema";
+// Schemas - Organization Config (Phase 8 stubs)
+// export { anprThresholdSchema, healthThresholdSchema } from "./schemas/organization.schema";
+// export type { AnprThresholdInput, HealthThresholdInput } from "./schemas/organization.schema";
 
 // Schemas - Invite
 export { createInviteSchema, acceptInviteSchema } from "./schemas/invite.schema";
@@ -101,9 +101,9 @@ export type {
   DoorAlertConfig,
 } from "./types/door.types";
 
-// Schemas - Door Threshold Config
-export { doorThresholdConfigSchema } from "./schemas/door.schema";
-export type { DoorThresholdConfigInput } from "./schemas/door.schema";
+// Schemas - Door Threshold Config (Phase 8 stub)
+// export { doorThresholdConfigSchema } from "./schemas/door.schema";
+// export type { DoorThresholdConfigInput } from "./schemas/door.schema";
 
 // Types - Correlation (Video-Event Timeline & Tailgating)
 export type {
@@ -150,9 +150,9 @@ export type {
   AddEvidenceInput,
 } from "./schemas/incident.schema";
 
-// Schemas - Incident SLA & Evidence Bundle
-export { slaProfileSchema, slaProfilesConfigSchema, evidenceBundleSchema } from "./schemas/incident.schema";
-export type { SlaProfileInput, SlaProfilesConfigInput, EvidenceBundleInput } from "./schemas/incident.schema";
+// Schemas - Incident SLA & Evidence Bundle (Phase 8 stubs)
+// export { slaProfileSchema, slaProfilesConfigSchema, evidenceBundleSchema } from "./schemas/incident.schema";
+// export type { SlaProfileInput, SlaProfilesConfigInput, EvidenceBundleInput } from "./schemas/incident.schema";
 
 // Types - Incident
 export type {
@@ -182,9 +182,9 @@ export type {
   VisitorQueryInput,
 } from "./schemas/visitor.schema";
 
-// Schemas - Visitor Host Approval & Timed Pass
-export { hostApprovalSchema, timedPassSchema } from "./schemas/visitor.schema";
-export type { HostApprovalInput, TimedPassInput } from "./schemas/visitor.schema";
+// Schemas - Visitor Host Approval & Timed Pass (Phase 8 stubs)
+// export { hostApprovalSchema, timedPassSchema } from "./schemas/visitor.schema";
+// export type { HostApprovalInput, TimedPassInput } from "./schemas/visitor.schema";
 
 // Types - Visitor
 export type {
@@ -193,16 +193,16 @@ export type {
 } from "./types/visitor.types";
 
 // Constants - Vehicle
-export { VEHICLE_LIST_TYPES, VEHICLE_DECISIONS, VEHICLE_DECISION_REASONS, VEHICLE_CONFIDENCE_DEFAULT } from "./constants/vehicle-constants";
+export { VEHICLE_LIST_TYPES, VEHICLE_DECISIONS, VEHICLE_DECISION_REASONS } from "./constants/vehicle-constants";
 export type { VehicleListType, VehicleDecision } from "./constants/vehicle-constants";
 
 // Schemas - Vehicle
 export { createVehicleListEntrySchema, updateVehicleListEntrySchema, vehicleEventQuerySchema } from "./schemas/vehicle.schema";
 export type { CreateVehicleListEntryInput, VehicleEventQueryInput } from "./schemas/vehicle.schema";
 
-// Schemas - Vehicle Event Correlation
-export { vehicleEventCorrelationSchema } from "./schemas/vehicle.schema";
-export type { VehicleEventCorrelationInput } from "./schemas/vehicle.schema";
+// Schemas - Vehicle Event Correlation (Phase 8 stub)
+// export { vehicleEventCorrelationSchema } from "./schemas/vehicle.schema";
+// export type { VehicleEventCorrelationInput } from "./schemas/vehicle.schema";
 
 // Types - Vehicle
 export type { VehicleListEntryDto, VehicleEventDto } from "./types/vehicle.types";
@@ -243,9 +243,9 @@ export type { EquipmentStatus } from "./constants/equipment-status";
 export { equipmentQuerySchema } from "./schemas/equipment.schema";
 export type { EquipmentQueryInput } from "./schemas/equipment.schema";
 
-// Schemas - Equipment Health
-export { healthScoreQuerySchema, deviceHealthQuerySchema } from "./schemas/equipment.schema";
-export type { HealthScoreQueryInput, DeviceHealthQueryInput } from "./schemas/equipment.schema";
+// Schemas - Equipment Health (Phase 8 stubs)
+// export { healthScoreQuerySchema, deviceHealthQuerySchema } from "./schemas/equipment.schema";
+// export type { HealthScoreQueryInput, DeviceHealthQueryInput } from "./schemas/equipment.schema";
 
 // Types - Equipment
 export type {
