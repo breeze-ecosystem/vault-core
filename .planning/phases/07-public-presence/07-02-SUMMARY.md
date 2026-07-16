@@ -98,6 +98,16 @@ None — no external service configuration required.
 - Image can be built with: `docker build -f docker/website.Dockerfile -t oversight-marketing .`
 - Service can be deployed with: `docker compose up -d marketing`
 
+## Self-Check: PASSED
+
+- [x] All 3 tasks executed and committed
+- [x] `docker/website.Dockerfile` — exists with multi-stage build (3 stages, port 3200)
+- [x] `docker-compose.yml` — `marketing:` service defined with correct build config and healthcheck
+- [x] `Caddyfile` — `oversighthub.com` routes to marketing:3200, `app.oversighthub.com` routes to api+dashboard
+- [x] No `:80` catch-all block remains in Caddyfile
+- [x] SUMMARY.md created with substantive content
+- [x] All 4 commits present in git log
+
 ---
 
 *Phase: 07-public-presence*
