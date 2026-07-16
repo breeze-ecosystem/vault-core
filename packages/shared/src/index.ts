@@ -330,7 +330,7 @@ export { LICENSE_VERSION, LICENSE_STATUS, GRACE_PERIOD_DAYS_DEFAULT, TRIAL_DURAT
 export type { LicenseStatus } from "./constants/license.constants";
 
 // Schemas - License
-export { generateLicenseSchema, activateLicenseSchema, createApiKeySchema } from "./schemas/license.schema";
+export { generateLicenseSchema, activateLicenseSchema, createApiKeySchema, CURRENCY_OPTIONS } from "./schemas/license.schema";
 export type { GenerateLicenseInput, ActivateLicenseInput, CreateApiKeyInput } from "./schemas/license.schema";
 
 // Types - License

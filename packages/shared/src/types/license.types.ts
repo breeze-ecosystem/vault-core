@@ -6,6 +6,7 @@ export interface LicenseClaims {
   maxDoors: number;
   gracePeriodDays: number;
   licenseVersion: number;
+  currency?: string;
 }
 
 export type LicenseState = "trial" | "active" | "grace" | "expired" | "no_license";

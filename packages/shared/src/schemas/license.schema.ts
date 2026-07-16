@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const CURRENCY_OPTIONS = ["USD", "EUR", "XOF", "GBP", "JPY"] as const;
+
 export const generateLicenseSchema = z.object({
   organizationId: z.string().uuid("ID d'organisation invalide"),
   maxCameras: z.number().int().min(0, "Le nombre de caméras doit être positif"),
@@ -12,6 +14,7 @@ export const generateLicenseSchema = z.object({
     .max(90, "La période de grâce ne peut pas dépasser 90 jours")
     .default(7),
   licenseVersion: z.number().int().default(1),
+  currency: z.enum(CURRENCY_OPTIONS).default("USD"),
 });
 
 export const activateLicenseSchema = z.object({
