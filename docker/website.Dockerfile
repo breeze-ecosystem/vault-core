@@ -8,7 +8,7 @@ ENV NODE_ENV=development
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY packages/shared/package.json packages/shared/
 COPY packages/design/package.json packages/design/
-COPY packages/typescript-config/package.json packages/typescript-config/
+COPY packages/typescript-config/ packages/typescript-config/
 COPY apps/marketing/package.json apps/marketing/
 
 RUN pnpm install --frozen-lockfile

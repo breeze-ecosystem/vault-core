@@ -9,7 +9,7 @@ ENV NODE_ENV=development
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY packages/shared/package.json packages/shared/
-COPY packages/typescript-config/package.json packages/typescript-config/
+COPY packages/typescript-config/ packages/typescript-config/
 COPY packages/eslint-config/package.json packages/eslint-config/
 COPY apps/api/package.json apps/api/
 
