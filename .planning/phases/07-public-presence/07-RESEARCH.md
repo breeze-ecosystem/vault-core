@@ -872,19 +872,22 @@ app.oversighthub.com {
 | A5 | All 6 locales can use `generateStaticParams` without excessive build times | Architecture Pattern | Low — each locale adds ~6x build time for SSG pages, but velite blog content is per-locale filtered |
 | A6 | `@next/third-parties` Google Fonts approach works with next-intl | Standard Stack | Low — Google Fonts loading is orthogonal to i18n |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Blog content localization strategy (D-13)**
+1. **Blog content localization strategy (D-13)** — RESOLVED
+   - **Decision:** Use same slug across locales for the canonical post. Locale prefix ensures uniqueness. Translating only the content, not the URL.
    - What we know: Canonical posts in English, professionally translated to 6 locales. Each locale in `content/blog/{locale}/`.
    - What's unclear: Will translated posts share the same slug (e.g., `/en/blog/hello-world` and `/fr/blog/hello-world`) or use translated slugs?
    - Recommendation: Use same slug for consistency. The locale prefix ensures uniqueness. Translate only the content, not the URL.
 
-2. **Analytics self-hosting: Plausible vs Umami (D-24)**
+2. **Analytics self-hosting: Plausible vs Umami (D-24)** — RESOLVED
+   - **Decision:** Deferred to agent discretion. Plan 07-09 implements Plausible-compatible analytics script. Docker service can be added as follow-up.
    - What we know: Privacy-focused, self-hosted, no cookie consent banner.
    - What's unclear: Which is preferred? Plausible requires Postgres (already available) or ClickHouse. Umami is a single binary with SQLite/Postgres.
    - Recommendation: Defer to agent's discretion. Either can be added as a Docker service. Umami has simpler resource requirements for a marketing site (1 container, 1 DB).
 
-3. **Contact form spam rate limiting**
+3. **Contact form spam rate limiting** — RESOLVED
+   - **Decision:** 5 requests per 10 minutes per IP for `/api/contact`, applied via `@fastify/rate-limit` with custom key generator.
    - What we know: Turnstile handles bot prevention. Rate limiting is mentioned (D-19 reuses existing API rate limiting).
    - What's unclear: Should the contact endpoint have a separate, stricter rate limit from the main API (which has 200/60s)?
    - Recommendation: Use a more restrictive rate limit for `/api/contact` (e.g., 5 requests per 10 minutes per IP). This can be applied via `@fastify/rate-limit` with a custom key generator.
