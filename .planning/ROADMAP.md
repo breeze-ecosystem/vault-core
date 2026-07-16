@@ -52,7 +52,7 @@ v1.0 delivered the unified physical security intelligence platform — access co
 - [x] **Phase 6: Premium Experience** — 2026 design system, Dashboard redesign (3 key pages + global uplift), Mobile guard-first design, dark/light mode (completed 2026-07-15)
 - [x] **Phase 7: Public Presence** — Marketing landing page, pricing page, MDX blog, multi-language (6 locales), SEO, contact form (completed 2026-07-16)
 - [ ] **Phase 8: Feature Deepening** — Access control, door state machine, visitor management, incident management, ANPR/LPR, analytics dashboards, equipment health
-- [ ] **Phase 9: AI Intelligence** — Natural language event search, AI incident auto-summaries, per-zone risk scoring, recurring pattern detection, AI security assistant
+- [x] **Phase 9: AI Intelligence** — Natural language event search, AI incident auto-summaries, per-zone risk scoring, recurring pattern detection, AI security assistant (completed 2026-07-16)
 - [ ] **Phase 10: Enterprise Grade** — SSO/SAML, compliance reporting, public REST API, webhooks, multi-currency, unified command center, guard mobile workflows
 
 ## Phase Details
@@ -263,7 +263,7 @@ Plans:
 **Wave 4** (Frontend — parallel)
 
 - [x] 09-07-PLAN.md — Dashboard UI: Command Center + Patterns + Risk enhancement (FTR-08, FTR-10, FTR-11)
-- [ ] 09-08-PLAN.md — Mobile Chat + API client (FTR-08, FTR-09)
+- [x] 09-08-PLAN.md — Mobile Chat + API client (FTR-08, FTR-09)
 
 **UI hint**: yes
 
@@ -295,5 +295,5 @@ Plans:
 | 6. Premium Experience | 6/6 | Complete   | 2026-07-15 |
 | 7. Public Presence | 9/9 | Complete   | 2026-07-16 |
 | 8. Feature Deepening | 0/8 | Planned | - |
-| 9. AI Intelligence | 7/8 | In Progress|  |
+| 9. AI Intelligence | 8/8 | Complete   | 2026-07-16 |
 | 10. Enterprise Grade | 0/TBD | Not started | - |
