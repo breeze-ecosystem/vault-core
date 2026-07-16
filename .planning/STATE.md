@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Commercial Platform — Summary
 status: executing
-stopped_at: Phase 9 context gathered
-last_updated: "2026-07-16T07:42:25.692Z"
+stopped_at: Completed 09-05-PLAN.md
+last_updated: "2026-07-16T07:55:43.742Z"
 last_activity: 2026-07-16
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 45
-  completed_plans: 41
+  completed_plans: 42
   percent: 71
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 09 (ai-intelligence) — EXECUTING
-Plan: 4 of 8
+Plan: 5 of 8
 Status: Ready to execute
 Last activity: 2026-07-16
 
-Progress: [█████████░] 91%
+Progress: [█████████░] 93%
 Last activity: 2026-07-15 -- Phase 05 execution started
 
 Progress: [██████████] 100%
@@ -69,6 +69,7 @@ Progress: [██████████] 100%
 | Phase 09-ai-intelligence P02 | 3min | 2 tasks | 13 files |
 | Phase 09-ai-intelligence P03 | 5min | 3 tasks | 10 files |
 | Phase 09-ai-intelligence P04 | 8min | 3 tasks | 15 files |
+| Phase 09-ai-intelligence P05 | 7min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -314,6 +315,7 @@ completed: 2026-07-15
 - [Phase ?]: YAMNet WHITELIST of 16 security-relevant audio classes with alert severity mapping (CRITICAL/HIGH/MEDIUM/INFO) — covers gunshot, explosion, alarm, siren, glass breaking, shout, scream, dog bark, etc. at confidence threshold 0.3
 - [Phase ?]: Faster-Whisper defaults to language=fr per D-37 (Oversight Hub primary deployment language is French) — language parameter configurable per request
 - [Phase 09-ai-intelligence]: Fastify SSE fallback: @Get() + FastifyReply.raw.writeHead() with SSE framing — @Sse() decorator not compatible with Fastify adapter — Fastify SSE fallback: @Get() + FastifyReply.raw.writeHead() with SSE framing — @Sse() decorator not compatible with Fastify adapter
+- [Phase 09-ai-intelligence]: Used Redis key pattern agent:conv:{orgId}:{sessionId} with 90-day TTL for tenant-isolated conversation storage — Organization-scoped by construction — the key includes orgId, so tenant isolation is enforced at the storage layer without requiring cross-org validation on every read
 
 ## Performance
 
@@ -608,6 +610,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-16T07:41:58.257Z
-Stopped at: Phase 9 context gathered
+Last session: 2026-07-16T07:55:43.198Z
+Stopped at: Completed 09-05-PLAN.md
 Resume file: None

@@ -257,7 +257,7 @@ Plans:
 
 **Wave 3** (Services + Integration — parallel)
 
-- [ ] 09-05-PLAN.md — Agent Services: Memory + Tracing + Guardrails + MCP (FTR-08, FTR-09, FTR-10, FTR-11)
+- [x] 09-05-PLAN.md — Agent Services: Memory + Tracing + Guardrails + MCP (FTR-08, FTR-09, FTR-10, FTR-11)
 - [ ] 09-06-PLAN.md — Backend Integration: Qdrant + Patterns + AppModule + API client (FTR-08, FTR-09, FTR-10, FTR-11)
 
 **Wave 4** (Frontend — parallel)
