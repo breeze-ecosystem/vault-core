@@ -8,13 +8,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/use-auth";
 import { useTranslation } from "@/lib/i18n/context";
 import {
-  fetchSites,
+  fetchOrganizations,
   fetchRiskScores,
   fetchSiteRiskSummaries,
+  type Organization,
   type RiskScoreDto,
   type SiteRiskSummary,
-  type Site,
 } from "@/lib/api";
+import { RiskExplanationPanel } from "@/components/risk-explanation-panel";
+import { Button } from "@/components/ui/button";
+import { Zap } from "lucide-react";
 import {
   AreaChart,
   Area,
@@ -107,19 +110,26 @@ function tr(t: (key: string) => string, key: string, vars?: Record<string, strin
 export default function RiskDashboardPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [sites, setSites] = useState<Site[]>([]);
+  const [sites, setSites] = useState<Organization[]>([]);
   const [selectedSiteId, setSelectedSiteId] = useState<string>("");
   const [scores, setScores] = useState<RiskScoreDto[]>([]);
   const [summaries, setSummaries] = useState<SiteRiskSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Expliquer panel state
+  const [explainingZone, setExplainingZone] = useState<{
+    zoneId: string;
+    zoneName: string;
+    score: number;
+  } | null>(null);
+
   // Load sites on mount
   useEffect(() => {
     async function loadSites() {
       try {
-        const result = await fetchSites({ limit: 100 });
-        const sitesData: Site[] = result.data || [];
+        const result = await fetchOrganizations({ limit: 100 });
+        const sitesData: Organization[] = result.data || [];
         setSites(sitesData);
         if (sitesData.length > 0 && sitesData[0]?.id) {
           setSelectedSiteId(sitesData[0].id);
@@ -368,6 +378,7 @@ export default function RiskDashboardPage() {
                         <th className="px-2 py-2 text-right font-medium">{t("risk.currentScore")}</th>
                         <th className="px-2 py-2 text-right font-medium">{t("risk.smoothedScore")}</th>
                         <th className="px-2 py-2 text-right font-medium">{t("risk.riskLevel")}</th>
+                        <th className="px-2 py-2 text-center font-medium">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -411,6 +422,23 @@ export default function RiskDashboardPage() {
                               >
                                 {t(`risk.levels.${score.riskLevel}`)}
                               </Badge>
+                            </td>
+                            <td className="px-2 py-2 text-center">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="gap-1 text-xs"
+                                onClick={() =>
+                                  setExplainingZone({
+                                    zoneId: score.zoneId,
+                                    zoneName: score.zoneName,
+                                    score: score.smoothedScore,
+                                  })
+                                }
+                              >
+                                <Zap className="h-3 w-3" />
+                                Expliquer ce score
+                              </Button>
                             </td>
                           </tr>
                         ))}
@@ -490,6 +518,19 @@ export default function RiskDashboardPage() {
             <p className="text-center text-sm text-muted-foreground">{t("risk.noData")}</p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Risk Explanation Panel */}
+      {explainingZone && (
+        <div className="fixed bottom-0 left-0 right-0 z-40">
+          <RiskExplanationPanel
+            zoneId={explainingZone.zoneId}
+            zoneName={explainingZone.zoneName}
+            currentScore={explainingZone.score}
+            isOpen={true}
+            onClose={() => setExplainingZone(null)}
+          />
+        </div>
       )}
     </div>
   );
