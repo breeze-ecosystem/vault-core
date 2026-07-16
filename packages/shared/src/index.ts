@@ -72,9 +72,9 @@ export type {
   CreateCameraDoorMapInput,
 } from "./schemas/access.schema";
 
-// Schemas - Credential Lifecycle
-export { revokeCredentialSchema, reissueCredentialSchema } from "./schemas/credential.schema";
-export type { RevokeCredentialInput, ReissueCredentialInput } from "./schemas/credential.schema";
+// Schemas - Credential Lifecycle (Phase 8 stub — file not yet in repo)
+// export { revokeCredentialSchema, reissueCredentialSchema } from "./schemas/credential.schema";
+// export type { RevokeCredentialInput, ReissueCredentialInput } from "./schemas/credential.schema";
 
 // Types
 export type { TokenPayload, AuthResponse } from "./types/auth.types";
@@ -129,8 +129,8 @@ export type {
 export { INCIDENT_STATUS } from "./constants/incident-status";
 export type { IncidentStatus } from "./constants/incident-status";
 
-// Constants - Incident Phase 8
-export { SLA_SEVERITY_DEFAULTS, INCIDENT_EVIDENCE_TYPES } from "./constants/incident-constants";
+// Constants - Incident Phase 8 (file not yet in repo)
+// export { SLA_SEVERITY_DEFAULTS, INCIDENT_EVIDENCE_TYPES } from "./constants/incident-constants";
 
 // Schemas - Incident
 export {
