@@ -21,6 +21,8 @@ import {
   ShieldCheck,
   Building2,
   Zap,
+  FileText,
+  Globe,
   type LucideIcon,
 } from "lucide-react";
 import { hasMinRole, type Role } from "@repo/shared";
@@ -92,6 +94,9 @@ const groups: NavGroup[] = [
       { label: "Audit", href: "/audit", icon: Shield, minRole: "ADMIN" as Role },
       { label: "Gouvernance", href: "/gouvernance", icon: ShieldCheck, minRole: "ADMIN" as Role },
       { label: "Licences", href: "/licences", icon: Key, minRole: "ADMIN" as Role },
+      { label: "API Keys", href: "/api-keys", icon: Key, minRole: "ADMIN" as Role },
+      { label: "Webhooks", href: "/webhooks", icon: Globe, minRole: "ADMIN" as Role },
+      { label: "Conformité", href: "/conformite", icon: FileText, minRole: "ADMIN" as Role },
     ],
   },
   {

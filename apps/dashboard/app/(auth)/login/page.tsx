@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { login } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Shield } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Eye, EyeOff, Shield, LogIn } from "lucide-react";
+import { fetchIdpConfig } from "@/lib/api";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -11,6 +13,15 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [hasSso, setHasSso] = useState(false);
+  const [ssoLoading, setSsoLoading] = useState(true);
+
+  useEffect(() => {
+    fetchIdpConfig()
+      .then((config) => setHasSso(!!config?.isActive))
+      .catch(() => {})
+      .finally(() => setSsoLoading(false));
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -114,6 +125,28 @@ export default function LoginPage() {
                 "Se connecter"
               )}
             </Button>
+
+            {!ssoLoading && hasSso && (
+              <>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator className="w-full" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground">ou</span>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-10 rounded-lg font-medium"
+                  onClick={() => { window.location.href = "/api/auth/sso/login"; }}
+                >
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Se connecter avec SSO
+                </Button>
+              </>
+            )}
           </form>
         </div>
 
