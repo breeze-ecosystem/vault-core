@@ -651,19 +651,19 @@ export class WebhookProcessor extends WorkerHost {
 | A4 | HMAC signing secret should be stored encrypted at rest using PostgreSQL `pgp_sym_encrypt` (existing GovernanceService pattern) | Architecture Patterns | If encryption key is unavailable, secrets stored in plaintext in DB |
 | A5 | Self-hosted single-org model means IdP config can be loaded once at startup (not per-request) | Common Pitfalls | If admin instance manages multiple orgs, need per-request strategy resolution |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **OIDC client registration: dynamic vs. static**
+1. **OIDC client registration: dynamic vs. static** — RESOLVED: Manual entry (clientId + clientSecret in dashboard) for initial delivery. DCR deferred to future enhancement. See D-06.
    - What we know: `openid-client` supports both `client.discovery()` (auto-fetch server metadata from issuer URL) and manual client registration
    - What's unclear: Whether to support dynamic client registration (DCR) or require manual clientId/clientSecret entry in dashboard
    - Recommendation: Start with manual entry (clientId + clientSecret in dashboard) — simpler for enterprise IdPs like Azure AD that require pre-registration. Add DCR as a future enhancement.
 
-2. **Webhook payload schema standardization**
+2. **Webhook payload schema standardization** — RESOLVED: Common envelope per CloudEvents spec pattern. See D-14.
    - What we know: Each event type (alert.created, incident.escalated, etc.) has a different payload shape
    - What's unclear: Whether to standardize all webhook payloads with a common envelope (`{ event, data, timestamp }`) or pass through raw event data
    - Recommendation: Standardize with a common envelope — follow the CloudEvents spec pattern (`{ specversion, type, source, id, time, data }`). This makes receiver-side parsing consistent across event types.
 
-3. **NFC feature on iOS**
+3. **NFC feature on iOS** — RESOLVED: NFC documented as requiring physical device + entitlements. QR check-in as iOS fallback. See RESEARCH.md Common Pitfalls #6.
    - What we know: `react-native-nfc-manager` supports iOS but Apple restricts NFC to iPhone 7+ and requires specific entitlements
    - What's unclear: Whether the project's Apple Developer account has NFC entitlements approved
    - Recommendation: NFC badge validation is documented as requiring physical device + entitlements. Flag NFC as an optional feature that may require additional Apple Developer Program setup. QR check-in is the fallback for iOS without NFC.

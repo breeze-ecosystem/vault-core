@@ -53,7 +53,7 @@ v1.0 delivered the unified physical security intelligence platform — access co
 - [x] **Phase 7: Public Presence** — Marketing landing page, pricing page, MDX blog, multi-language (6 locales), SEO, contact form (completed 2026-07-16)
 - [ ] **Phase 8: Feature Deepening** — Access control, door state machine, visitor management, incident management, ANPR/LPR, analytics dashboards, equipment health
 - [x] **Phase 9: AI Intelligence** — Natural language event search, AI incident auto-summaries, per-zone risk scoring, recurring pattern detection, AI security assistant (completed 2026-07-16)
-- [ ] **Phase 10: Enterprise Grade** — SSO/SAML, compliance reporting, public REST API, webhooks, multi-currency, unified command center, guard mobile workflows (planned)
+- [ ] **Phase 10: Enterprise Grade** — SSO/SAML, compliance reporting, public REST API, webhooks, multi-currency, unified command center, guard mobile workflows (7 plans, planned)
 
 ## Phase Details
 
@@ -280,7 +280,7 @@ Plans:
   4. External system receives webhook deliveries for configured event types (alert created, incident escalated, door forced) with automatic retry logic and delivery logs visible in the dashboard
   5. Operator views the unified command center — a single full-screen view with a live camera grid, real-time door state map, alert stream, and incident queue — and responds without switching between pages
 
-**Plans**: 6 plans (3 waves)
+**Plans**: 7 plans (4 waves)
 
 Plans:
 **Wave 1** (Foundation)
@@ -292,7 +292,10 @@ Plans:
 - [ ] 10-04-PLAN.md — Compliance + Extensions: PDF reports (SOC2/ISO/Access Review), data classification, multi-currency, white-labeling (ENT-02, ENT-03, ENT-07)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 10-05-PLAN.md — AppModule Wiring + Dashboard UI: module registration, SSO/API keys/webhooks/compliance/branding pages, login SSO button, nav + i18n (ENT-01 through ENT-07)
+- [ ] 10-05-PLAN.md — AppModule Wiring + API Client: module registration, dashboard API fetch functions (ENT-01 through ENT-07)
+- [ ] 10-07-PLAN.md — Dashboard UI: SSO/API keys/webhooks/compliance/branding pages, login SSO button, nav + i18n (ENT-01 through ENT-07)
+
+**Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 10-06-PLAN.md — Command Center + Guard Mobile: real-time WebSocket feed, NFC badge scan, QR check-in, photo capture, door control (ENT-08, ENT-09)
 
 **UI hint**: yes
@@ -310,4 +313,4 @@ Plans:
 | 7. Public Presence | 9/9 | Complete   | 2026-07-16 |
 | 8. Feature Deepening | 0/8 | Planned | - |
 | 9. AI Intelligence | 8/8 | Complete   | 2026-07-16 |
-| 10. Enterprise Grade | 0/6 | Planned | - |
+| 10. Enterprise Grade | 0/7 | Planned | - |
