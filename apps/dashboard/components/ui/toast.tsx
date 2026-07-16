@@ -15,6 +15,9 @@ export function toast(message: string, type: Toast["type"] = "info") {
   addToastFn?.(message, type);
 }
 
+toast.success = (message: string) => toast(message, "success");
+toast.error = (message: string) => toast(message, "error");
+
 export function ToastContainer() {
   const [toasts, setToasts] = useState<Toast[]>([]);
 

@@ -4,7 +4,8 @@ import { useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ComplianceReportSelector } from "@/components/compliance/ComplianceReportSelector";
-import { generateComplianceReport, type ComplianceReportType } from "@/lib/api";
+import { generateComplianceReport } from "@/lib/api";
+import type { ComplianceReportType } from "@/lib/api";
 
 export default function ConformitePage() {
   const [generating, setGenerating] = useState(false);

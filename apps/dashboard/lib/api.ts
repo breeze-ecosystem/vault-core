@@ -2662,6 +2662,7 @@ export interface IdpConfig {
   isActive?: boolean;
   ssoEnforced?: boolean;
   clientId?: string;
+  clientSecret?: string;
   issuerUrl?: string;
   entryPoint?: string;
 }
@@ -2687,6 +2688,8 @@ export async function saveIdpConfig(data: import("@repo/shared").CreateIdpConfig
 }
 
 // ─── Tenant API Key Types ───
+
+export type ApiKey = TenantApiKey;
 
 export interface TenantApiKey {
   id: string;
@@ -2752,9 +2755,9 @@ export async function fetchApiKeyUsage(id: string): Promise<ApiKeyUsageResponse>
 export interface WebhookSubscription {
   id: string;
   organizationId: string;
-  url: string;
-  events: string[];
-  secret: string | null; // Masked — only first 8 + last 4 chars
+  targetUrl: string;
+  eventType: string;
+  secret: string | null;
   isActive: boolean;
   retryCount: number;
   timeoutMs: number;
@@ -2765,13 +2768,13 @@ export interface WebhookSubscription {
 export interface WebhookDelivery {
   id: string;
   subscriptionId: string;
-  event: string;
+  eventType: string;
   url: string;
   status: "pending" | "delivered" | "failed" | "retrying";
   statusCode: number | null;
   responseBody: string | null;
   durationMs: number | null;
-  attempts: number;
+  attemptNumber: number;
   nextRetryAt: string | null;
   deliveredAt: string | null;
   createdAt: string;
@@ -2844,10 +2847,12 @@ export async function retryWebhookDelivery(subscriptionId: string, deliveryId: s
 
 // ─── Compliance API Functions ───
 
-export async function generateComplianceReport(data: import("@repo/shared").GenerateComplianceReportInput): Promise<void> {
+export type ComplianceReportType = "soc2" | "iso27001" | "access-review";
+
+export async function generateComplianceReport(reportType: ComplianceReportType, dateRange?: { from: string; to: string }): Promise<void> {
   const res = await fetchWithAuth(`${API_URL}/api/compliance/reports/generate`, {
     method: "POST",
-    body: JSON.stringify(data),
+    body: JSON.stringify({ reportType, dateRange }),
   });
   if (!res.ok) throw new Error("Échec de la génération du rapport de conformité");
   const blob = await res.blob();

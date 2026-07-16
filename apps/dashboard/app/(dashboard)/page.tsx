@@ -159,9 +159,9 @@ export default function OverviewPage() {
             />
             <MetricHero
               title="Sites actifs"
-              value={stats?.sites.active ?? 0}
+              value={stats?.organizations.active ?? 0}
               icon={MapPin}
-              description={`${stats?.sites.total ?? 0} total`}
+              description={`${stats?.organizations.total ?? 0} total`}
             />
             <MetricHero
               title="Utilisateurs"
@@ -290,7 +290,7 @@ export default function OverviewPage() {
                     <div className="p-3">
                       <p className="truncate text-sm font-medium">{camera.name}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {camera.site?.name || "Aucun site"}
+                        {camera.organization?.name || "Aucun site"}
                       </p>
                     </div>
                   </motion.div>

@@ -30,7 +30,7 @@ export function SlaProfileGrid({ orgId }: SlaProfileGridProps) {
         const data = await fetchSlaProfiles(orgId);
         setProfiles(data);
       } catch {
-        toast.error("Échec du chargement des profils SLA");
+        toast("Échec du chargement des profils SLA", "error");
       } finally {
         setLoading(false);
       }
@@ -48,9 +48,9 @@ export function SlaProfileGrid({ orgId }: SlaProfileGridProps) {
     setSaving(true);
     try {
       await updateSlaProfiles(orgId, profiles);
-      toast.success("Profils SLA mis à jour");
+      toast("Profils SLA mis à jour", "success");
     } catch {
-      toast.error("Échec de la mise à jour");
+      toast("Échec de la mise à jour", "error");
     } finally {
       setSaving(false);
     }

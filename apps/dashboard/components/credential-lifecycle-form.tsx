@@ -30,10 +30,10 @@ export function CredentialLifecycleForm({ credential, orgId, onDone }: Credentia
         badgeNumber: badgeNumber || undefined,
         validUntil: validUntil ? new Date(validUntil).toISOString() : undefined,
       });
-      toast.success("Justificatif créé avec succès");
+      toast("Justificatif créé avec succès", "success");
       onDone();
     } catch {
-      toast.error("Échec de la création");
+      toast("Échec de la création", "error");
     } finally {
       setSaving(false);
     }
@@ -44,10 +44,10 @@ export function CredentialLifecycleForm({ credential, orgId, onDone }: Credentia
     setSaving(true);
     try {
       await revokeCredential(credential.id, reason);
-      toast.success("Justificatif révoqué");
+      toast("Justificatif révoqué", "success");
       onDone();
     } catch {
-      toast.error("Échec de la révocation");
+      toast("Échec de la révocation", "error");
     } finally {
       setSaving(false);
     }
@@ -58,10 +58,10 @@ export function CredentialLifecycleForm({ credential, orgId, onDone }: Credentia
     setSaving(true);
     try {
       await reissueCredential(credential.id, new Date(validUntil).toISOString());
-      toast.success("Justificatif réémis");
+      toast("Justificatif réémis", "success");
       onDone();
     } catch {
-      toast.error("Échec de la réémission");
+      toast("Échec de la réémission", "error");
     } finally {
       setSaving(false);
     }
@@ -80,7 +80,7 @@ export function CredentialLifecycleForm({ credential, orgId, onDone }: Credentia
               <label className="block text-xs text-muted-foreground mb-1">Type</label>
               <select
                 value={type}
-                onChange={(e) => setType(e.target.value)}
+                onChange={(e) => setType(e.target.value as "BADGE" | "PIN" | "MOBILE" | "QR")}
                 className="w-full rounded border border-input bg-background px-3 py-2 text-sm"
               >
                 <option value="BADGE">Badge</option>

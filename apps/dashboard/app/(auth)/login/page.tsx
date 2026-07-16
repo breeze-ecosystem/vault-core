@@ -18,7 +18,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     fetchIdpConfig()
-      .then((config) => setHasSso(!!config?.isActive))
+      .then((config) => setHasSso('isActive' in (config ?? {}) ? !!(config as any).isActive : false))
       .catch(() => {})
       .finally(() => setSsoLoading(false));
   }, []);

@@ -206,7 +206,7 @@ export default function ChronologiePage() {
     setSearchLoading(true);
     try {
       const result = await searchTimeline({
-        siteId,
+        organizationId: siteId,
         from: filterFrom || undefined,
         to: filterTo || undefined,
         credentialId: filterCredential || undefined,
@@ -232,7 +232,7 @@ export default function ChronologiePage() {
     const nextPage = searchPage + 1;
     try {
       const result = await searchTimeline({
-        siteId,
+        organizationId: siteId,
         from: filterFrom || undefined,
         to: filterTo || undefined,
         credentialId: filterCredential || undefined,

@@ -39,7 +39,7 @@ export function EvidenceBundleList({ incidentId }: EvidenceBundleListProps) {
       const data = await fetchIncidentEvidence(incidentId);
       setEvidence(data);
     } catch {
-      toast.error("Échec du chargement des preuves");
+      toast("Échec du chargement des preuves", "error");
     } finally {
       setLoading(false);
     }
@@ -53,9 +53,9 @@ export function EvidenceBundleList({ incidentId }: EvidenceBundleListProps) {
     try {
       await removeIncidentEvidence(incidentId, evidenceId);
       setEvidence((prev) => prev.filter((e) => e.id !== evidenceId));
-      toast.success("Preuve retirée");
+      toast("Preuve retirée", "success");
     } catch {
-      toast.error("Échec du retrait");
+      toast("Échec du retrait", "error");
     }
   };
 

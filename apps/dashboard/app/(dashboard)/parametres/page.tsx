@@ -215,7 +215,7 @@ function ProfileTab({ user }: { user: any }) {
           <CardContent>
             <LicenseStatusBadge state={licenseStatus.licenseState} />
             <div className="mt-2">
-              <LicenseExpiryCountdown state={licenseStatus.licenseState} expiresAt={licenseStatus.expiresAt} graceEndsAt={licenseStatus.graceEndsAt} trialEndsAt={licenseStatus.trialEndsAt} />
+              <LicenseExpiryCountdown state={licenseStatus.licenseState} expiresAt={licenseStatus.expiresAt} graceEndsAt={licenseStatus.graceEndsAt} />
             </div>
             <div className="mt-4 space-y-3">
               <LicenseUsageBars current={usage.cameras.current} max={usage.cameras.max} label="Caméras" />

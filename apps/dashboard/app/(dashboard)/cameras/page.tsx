@@ -10,7 +10,7 @@ import { GlassCard } from "@/components/glass-card";
 import { CameraGrid } from "@/components/camera-grid";
 import {
   fetchCameras,
-  fetchSites,
+  fetchOrganizations,
   createCamera,
   updateCamera,
   deleteCamera,
@@ -23,7 +23,7 @@ import {
   updateCameraPrompt,
   deleteCameraPrompt,
   type Camera,
-  type Site,
+  type Organization,
   type CameraPrompt,
 } from "@/lib/api";
 import { toast } from "@/components/ui/toast";
@@ -68,16 +68,16 @@ export default function CamerasPage() {
   const [previewSnapshot, setPreviewSnapshot] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [liveCamera, setLiveCamera] = useState<Camera | null>(null);
-  const [sites, setSites] = useState<Site[]>([]);
+  const [sites, setSites] = useState<Organization[]>([]);
   const [activeStreams, setActiveStreams] = useState<string[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [camerasData, setCamerasData] = useState<Camera[]>([]);
   const [camerasLoading, setCamerasLoading] = useState(true);
   const [camerasError, setCamerasError] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: "", rtspUrl: "", siteId: "", resolution: "", fps: 25, captureInterval: 5 });
+  const [form, setForm] = useState({ name: "", rtspUrl: "", organizationId: "", resolution: "", fps: 25, captureInterval: 5 });
 
   useEffect(() => {
-    fetchSites({ limit: 100 }).then((r) => setSites(r.data)).catch(() => {});
+    fetchOrganizations({ limit: 100 }).then((r) => setSites(r.data)).catch(() => {});
     fetchActiveStreams().then(setActiveStreams).catch(() => {});
   }, [refreshKey]);
 
@@ -102,12 +102,12 @@ export default function CamerasPage() {
     return camerasData.filter(
       (c) =>
         c.name.toLowerCase().includes(q) ||
-        c.site?.name?.toLowerCase().includes(q)
+        c.organization?.name?.toLowerCase().includes(q)
     );
   }, [camerasData, debouncedSearch]);
 
   function resetForm() {
-    setForm({ name: "", rtspUrl: "", siteId: "", resolution: "", fps: 25, captureInterval: 5 });
+    setForm({ name: "", rtspUrl: "", organizationId: "", resolution: "", fps: 25, captureInterval: 5 });
     setEditingId(null);
     setShowForm(false);
   }
@@ -116,7 +116,7 @@ export default function CamerasPage() {
     setForm({
       name: camera.name,
       rtspUrl: camera.rtspUrl,
-      siteId: camera.siteId,
+      organizationId: camera.organizationId,
       resolution: camera.resolution ?? "",
       fps: camera.fps,
       captureInterval: camera.captureInterval ?? 5,
@@ -128,7 +128,7 @@ export default function CamerasPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const data: any = { name: form.name, rtspUrl: form.rtspUrl, siteId: form.siteId, fps: form.fps, captureInterval: form.captureInterval };
+      const data: any = { name: form.name, rtspUrl: form.rtspUrl, organizationId: form.organizationId, fps: form.fps, captureInterval: form.captureInterval };
       if (form.resolution) data.resolution = form.resolution;
       if (editingId) {
         await updateCamera(editingId, data);
@@ -226,7 +226,7 @@ export default function CamerasPage() {
             </div>
             <div>
               <label className="mb-1 block text-sm text-muted-foreground">Site</label>
-              <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" required value={form.siteId} onChange={(e) => setForm({ ...form, siteId: e.target.value })}>
+              <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" required value={form.organizationId} onChange={(e) => setForm({ ...form, organizationId: e.target.value })}>
                 <option value="">Selectionner un site</option>
                 {sites.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
@@ -363,12 +363,6 @@ export default function CamerasPage() {
           >
             <CameraGrid
               cameras={filteredCameras}
-              loading={camerasLoading}
-              emptyMessage={
-                debouncedSearch || statusFilter
-                  ? "Aucune caméra ne correspond aux filtres"
-                  : "Aucune caméra enregistrée"
-              }
             />
             {!camerasLoading && filteredCameras.length === 0 && (debouncedSearch || statusFilter) && (
               <div className="flex justify-center mt-4">

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { createIncident, fetchSites, type Site } from "@/lib/api";
+import { createIncident, fetchOrganizations, type Organization } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n/context";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
@@ -18,14 +18,14 @@ export default function NewIncidentPage() {
   const [description, setDescription] = useState("");
   const [siteId, setSiteId] = useState("");
   const [sourceType, setSourceType] = useState("manual");
-  const [sites, setSites] = useState<Site[]>([]);
+  const [sites, setSites] = useState<Organization[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetchSites({ limit: 100 });
+        const res = await fetchOrganizations({ limit: 100 });
         const sitesData = res.data;
         setSites(sitesData);
         if (sitesData.length > 0) {

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/toast";
-import { fetchIdpConfig, updateIdpConfig, type IdpConfig } from "@/lib/api";
+import { fetchIdpConfig, saveIdpConfig, type IdpConfig } from "@/lib/api";
 
 export function SsoConfigForm() {
   const [config, setConfig] = useState<IdpConfig | null>(null);
@@ -21,15 +21,15 @@ export function SsoConfigForm() {
   useEffect(() => {
     fetchIdpConfig()
       .then((data) => {
-        if (data) {
-          setConfig(data);
-          setProtocol(data.protocol as "saml" | "oidc");
-          setMetadataUrl(data.metadataUrl || "");
-          setEntityId(data.entityId || "oversight-hub");
-          setClientId(data.clientId || "");
-          setClientSecret(data.clientSecret || "");
-          setIssuerUrl(data.issuerUrl || "");
-          setSsoEnforced(data.ssoEnforced || false);
+        if (data && "protocol" in data) {
+          setConfig(data as IdpConfig);
+          setProtocol((data as IdpConfig).protocol ?? "saml");
+          setMetadataUrl((data as IdpConfig).metadataUrl ?? "");
+          setEntityId((data as IdpConfig).entityId ?? "oversight-hub");
+          setClientId((data as IdpConfig).clientId ?? "");
+          setClientSecret((data as IdpConfig).clientSecret ?? "");
+          setIssuerUrl((data as IdpConfig).issuerUrl ?? "");
+          setSsoEnforced((data as IdpConfig).ssoEnforced ?? false);
         }
       })
       .catch(() => {})
@@ -40,7 +40,7 @@ export function SsoConfigForm() {
     e.preventDefault();
     setSaving(true);
     try {
-      await updateIdpConfig({
+      await saveIdpConfig({
         protocol,
         metadataUrl: protocol === "saml" ? metadataUrl : undefined,
         entityId: protocol === "saml" ? entityId : undefined,

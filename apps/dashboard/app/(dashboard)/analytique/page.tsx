@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/use-auth";
 import { useTranslation } from "@/lib/i18n/context";
 import {
-  fetchSites,
+  fetchOrganizations,
   fetchZoneAnalytics,
   fetchIntrusionEvents,
   fetchLoiteringEvents,
@@ -20,7 +20,7 @@ import {
   type LoiteringEventDto,
   type AbnormalActivityDto,
   type AnalyticsTrendPoint,
-  type Site,
+  type Organization,
 } from "@/lib/api";
 import {
   LineChart,
@@ -73,7 +73,7 @@ function LoadingSkeleton() {
 export default function AnalyticsPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [sites, setSites] = useState<Site[]>([]);
+  const [sites, setSites] = useState<Organization[]>([]);
   const [selectedSiteId, setSelectedSiteId] = useState<string>("");
   const [activeTab, setActiveTab] = useState("zone-activity");
   const [granularity, setGranularity] = useState<"hourly" | "daily">("hourly");
@@ -94,8 +94,8 @@ export default function AnalyticsPage() {
   useEffect(() => {
     async function loadSites() {
       try {
-        const result = await fetchSites({ limit: 100 });
-        const sitesData: Site[] = result.data || [];
+        const result = await fetchOrganizations({ limit: 100 });
+        const sitesData: Organization[] = result.data || [];
         setSites(sitesData);
         const firstSite = sitesData[0];
         if (firstSite) {

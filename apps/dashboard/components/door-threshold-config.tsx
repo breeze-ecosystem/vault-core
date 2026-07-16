@@ -39,10 +39,10 @@ export function DoorThresholdConfig({
         heldOpenThresholdMs,
         settlingTimeoutMs,
       });
-      toast.success("Seuils mis à jour avec succès");
+      toast("Seuils mis à jour avec succès", "success");
       onSaved();
     } catch {
-      toast.error("Échec de la mise à jour des seuils");
+      toast("Échec de la mise à jour des seuils", "error");
     } finally {
       setSaving(false);
     }
@@ -57,10 +57,10 @@ export function DoorThresholdConfig({
         heldOpenThresholdMs: null as any,
         settlingTimeoutMs: null as any,
       });
-      toast.success("Seuils réinitialisés aux valeurs par défaut");
+      toast("Seuils réinitialisés aux valeurs par défaut", "success");
       onSaved();
     } catch {
-      toast.error("Échec de la réinitialisation");
+      toast("Échec de la réinitialisation", "error");
     } finally {
       setSaving(false);
     }

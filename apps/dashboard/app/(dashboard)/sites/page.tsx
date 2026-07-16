@@ -6,11 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/table";
 import {
-  fetchSites,
-  createSite,
-  updateSite,
-  deleteSite,
-  type Site,
+  fetchOrganizations,
+  createOrganization,
+  updateOrganization,
+  deleteOrganization,
+  type Organization,
 } from "@/lib/api";
 import { toast } from "@/components/ui/toast";
 import { Plus, Trash2 } from "lucide-react";
@@ -27,7 +27,7 @@ export default function SitesPage() {
     setShowForm(false);
   }
 
-  function startEdit(site: Site) {
+  function startEdit(site: Organization) {
     setForm({
       name: site.name,
       address: site.address ?? "",
@@ -43,10 +43,10 @@ export default function SitesPage() {
     try {
       const data = { name: form.name, address: form.address || undefined, city: form.city || undefined, country: form.country };
       if (editingId) {
-        await updateSite(editingId, data);
+        await updateOrganization(editingId, data);
         toast("Site mis à jour", "success");
       } else {
-        await createSite(data);
+        await createOrganization(data);
         toast("Site créé", "success");
       }
       resetForm();
@@ -56,10 +56,10 @@ export default function SitesPage() {
     }
   }
 
-  async function handleDelete(site: Site) {
+  async function handleDelete(site: Organization) {
     if (!confirm(`Supprimer le site "${site.name}" ? Cette action est réversible (désactivation).`)) return;
     try {
-      await deleteSite(site.id);
+        await deleteOrganization(site.id);
       toast("Site désactivé", "success");
       setRefreshKey((k) => k + 1);
     } catch (e: any) {
@@ -118,23 +118,23 @@ export default function SitesPage() {
       <DataTable
         key={refreshKey}
         columns={[
-          { key: "name", label: "Nom", render: (s: Site) => (
+          { key: "name", label: "Nom", render: (s: Organization) => (
             <span className="font-medium">{s.name}</span>
           )},
-          { key: "city", label: "Ville", render: (s: Site) => s.city ?? "—" },
-          { key: "country", label: "Pays", render: (s: Site) => countryLabels[s.country] ?? s.country },
-          { key: "cameras", label: "Caméras", render: (s: Site) => (
+          { key: "city", label: "Ville", render: (s: Organization) => s.city ?? "—" },
+          { key: "country", label: "Pays", render: (s: Organization) => countryLabels[s.country] ?? s.country },
+          { key: "cameras", label: "Caméras", render: (s: Organization) => (
             <Badge variant="outline">{s._count?.cameras ?? 0}</Badge>
           )},
-          { key: "users", label: "Utilisateurs", render: (s: Site) => (
+          { key: "users", label: "Utilisateurs", render: (s: Organization) => (
             <Badge variant="outline">{s._count?.users ?? 0}</Badge>
           )},
-          { key: "isActive", label: "Statut", render: (s: Site) => (
+          { key: "isActive", label: "Statut", render: (s: Organization) => (
             <Badge variant={s.isActive ? "success" : "destructive"}>
               {s.isActive ? "Actif" : "Inactif"}
             </Badge>
           )},
-          { key: "actions", label: "", render: (s: Site) => (
+          { key: "actions", label: "", render: (s: Organization) => (
             <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
               <Button size="sm" variant="ghost" onClick={() => startEdit(s)}>Modifier</Button>
               <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDelete(s)}>
@@ -143,7 +143,7 @@ export default function SitesPage() {
             </div>
           )},
         ]}
-        fetchFn={fetchSites}
+        fetchFn={fetchOrganizations}
       />
     </div>
   );

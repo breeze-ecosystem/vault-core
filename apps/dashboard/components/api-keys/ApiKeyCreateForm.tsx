@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/toast";
-import { createApiKey } from "@/lib/api";
+import { createTenantApiKey } from "@/lib/api";
 
 interface ApiKeyCreateFormProps {
   onCreated: (key: string) => void;
@@ -50,8 +50,8 @@ export function ApiKeyCreateForm({ onCreated, onCancel }: ApiKeyCreateFormProps)
     }
     setSaving(true);
     try {
-      const result = await createApiKey({ name: name.trim(), rateLimit, scopes });
-      onCreated(result.key);
+      const result = await createTenantApiKey({ name: name.trim(), rateLimit, scopes });
+      onCreated(result.rawKey);
       toast("Clé API créée avec succès", "success");
     } catch (e: any) {
       toast(e.message, "error");

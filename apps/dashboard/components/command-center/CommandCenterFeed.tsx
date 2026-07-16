@@ -86,7 +86,8 @@ export function CommandCenterFeed({
   const feedRef = useRef<HTMLDivElement>(null);
 
   const connect = useCallback(() => {
-    if (!user?.orgId) return;
+    const userOrgId = (user as any)?.orgId;
+    if (!userOrgId) return;
 
     const token = /* Try to get the access token */
       typeof window !== "undefined"
@@ -95,7 +96,7 @@ export function CommandCenterFeed({
 
     const socket = io(`${process.env.NEXT_PUBLIC_API_URL || ""}`, {
       path: "/ws/socket.io",
-      auth: { token, orgId: user.orgId },
+      auth: { token, orgId: userOrgId },
       transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionAttempts: Infinity,
@@ -105,7 +106,7 @@ export function CommandCenterFeed({
 
     socket.on("connect", () => {
       setConnected(true);
-      socket.emit("subscribe:site", { orgId: user.orgId });
+      socket.emit("subscribe:site", { orgId: userOrgId });
     });
 
     socket.on("disconnect", () => {
@@ -194,7 +195,7 @@ export function CommandCenterFeed({
     });
 
     socketRef.current = socket;
-  }, [user?.orgId]);
+  }, [user]);
 
   const addEvent = useCallback((event: FeedEvent) => {
     setEvents((prev) => {
@@ -305,14 +306,14 @@ export function CommandCenterFeed({
         ) : (
           <div ref={feedRef} className="flex flex-col">
             {filteredEvents.map((event) => {
-              const sevConf = severityConfig[event.severity] || severityConfig.info;
+              const sevConf = severityConfig[event.severity] ?? severityConfig.info;
               return (
                 <div
                   key={event.id}
-                  className={`flex items-start gap-2.5 px-3 py-2 border-l-2 ${sevConf.border} ${sevConf.bg} hover:bg-accent/30 transition-colors border-b border-border/30 last:border-b-0`}
+                  className={`flex items-start gap-2.5 px-3 py-2 border-l-2 ${sevConf!.border} ${sevConf!.bg} hover:bg-accent/30 transition-colors border-b border-border/30 last:border-b-0`}
                 >
                   {/* Type icon */}
-                  <div className={`mt-0.5 shrink-0 ${sevConf.icon}`}>
+                  <div className={`mt-0.5 shrink-0 ${sevConf!.icon}`}>
                     {typeIcons[event.type] || <Activity className="h-3.5 w-3.5" />}
                   </div>
 
