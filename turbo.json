@@ -22,6 +22,21 @@
     },
     "prisma:migrate": {
       "cache": false
+    },
+    "marketing#build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**", ".velite/**"]
+    },
+    "marketing#dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "marketing#lint": {
+      "dependsOn": ["^lint"]
+    },
+    "marketing#check-types": {
+      "dependsOn": ["^check-types"]
     }
   }
 }
