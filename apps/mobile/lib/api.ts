@@ -335,3 +335,154 @@ export async function captureSnapshot(cameraId: string): Promise<{ image: string
   if (!res.ok) throw new Error("Impossible de capturer l'image");
   return res.json();
 }
+
+// ─── Phase 8: Incident Response ───
+
+export interface MobileIncidentDto {
+  id: string;
+  title: string;
+  severity: string;
+  status: string;
+  zoneName?: string;
+  createdAt: string;
+  slaMinutes: number;
+  assignedToId?: string;
+}
+
+export async function fetchMyIncidents(): Promise<MobileIncidentDto[]> {
+  const res = await fetchWithAuth(`${API_BASE}/incidents?assignedToMe=true`);
+  if (!res.ok) throw new Error("Impossible de charger les incidents");
+  const data = await res.json();
+  return data.data || data;
+}
+
+export async function fetchMobileIncident(id: string): Promise<MobileIncidentDto> {
+  const res = await fetchWithAuth(`${API_BASE}/incidents/${id}`);
+  if (!res.ok) throw new Error("Impossible de charger l'incident");
+  return res.json();
+}
+
+export async function updateMobileIncidentStatus(id: string, status: string, reason?: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_BASE}/incidents/${id}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status, reason }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Impossible de mettre à jour le statut");
+  }
+}
+
+// ─── Phase 9: AI Agent Chat ───
+
+export interface MobileAgentChatResponse {
+  response: string;
+  sessionId: string;
+}
+
+export interface MobileAgentStatus {
+  ollamaAvailable: boolean;
+  agentsCount: number;
+}
+
+/** Synchrone — POST /api/ai/agent-chat (pas de streaming) */
+export async function agentChat(message: string): Promise<MobileAgentChatResponse> {
+  const res = await fetchWithAuth(`${API_BASE}/ai/agent-chat`, {
+    method: "POST",
+    body: JSON.stringify({ message }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Échec de la communication avec l'assistant IA");
+  }
+  return res.json();
+}
+
+/** SSE streaming pour React Native — utilise fetch() avec streaming ReadableStream */
+export function createAgentChatSSE(
+  message: string,
+  sessionId: string,
+  onToken: (token: string) => void,
+  onDone: () => void,
+  onError: (err: Error) => void,
+): AbortController {
+  const controller = new AbortController();
+
+  (async () => {
+    try {
+      const url = `${API_BASE}/ai-agent/chat`;
+      const { getAccessTokenAsync } = await import("@/lib/auth-storage");
+      const token = await getAccessTokenAsync();
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        "Accept": "text/event-stream",
+      };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ message, sessionId }),
+        signal: controller.signal,
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Échec de la communication avec l'assistant IA");
+      }
+
+      if (!res.body) {
+        throw new Error("Pas de réponse du serveur");
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6).trim();
+            if (data === "[DONE]") {
+              onDone();
+              return;
+            }
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.token) {
+                onToken(parsed.token);
+              }
+            } catch {
+              // Ligne non-JSON — ignorer
+            }
+          } else if (line.startsWith("event: done") || line.trim() === "") {
+            // Lignes de contrôle SSE — continuer
+          }
+        }
+      }
+
+      onDone();
+    } catch (err: any) {
+      if (err.name === "AbortError") return;
+      onError(err instanceof Error ? err : new Error("Erreur de connexion SSE"));
+    }
+  })();
+
+  return controller;
+}
+
+/** Vérifie la disponibilité du service IA */
+export async function getAgentStatus(): Promise<MobileAgentStatus> {
+  const res = await fetchWithAuth(`${API_BASE}/ai-agent/status`);
+  if (!res.ok) {
+    throw new Error("Service IA indisponible");
+  }
+  return res.json();
+}
