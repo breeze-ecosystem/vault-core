@@ -4,13 +4,13 @@ milestone: v2.0
 milestone_name: Commercial Platform — Summary
 status: executing
 stopped_at: Phase 9 context gathered
-last_updated: "2026-07-16T07:24:05.464Z"
+last_updated: "2026-07-16T07:31:41.429Z"
 last_activity: 2026-07-16
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 45
-  completed_plans: 39
+  completed_plans: 40
   percent: 71
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 09 (ai-intelligence) — EXECUTING
-Plan: 2 of 8
+Plan: 3 of 8
 Status: Ready to execute
 Last activity: 2026-07-16
 
-Progress: [█████████░] 87%
+Progress: [█████████░] 89%
 Last activity: 2026-07-15 -- Phase 05 execution started
 
 Progress: [██████████] 100%
@@ -67,6 +67,7 @@ Progress: [██████████] 100%
 | Phase 05-monetization P02 | 8min | 3 tasks | 14 files |
 | Phase 05-monetization P03 | 31min | 3 tasks | 12 files |
 | Phase 09-ai-intelligence P02 | 3min | 2 tasks | 13 files |
+| Phase 09-ai-intelligence P03 | 5min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -308,6 +309,9 @@ completed: 2026-07-15
 - [Phase ?]: SkillRegistry uses NestJS DiscoveryService for auto-registration — Zero-config auto-discovery on module init — no manual skill registration required
 - [Phase ?]: AiAgentModule coexists alongside AiModule as separate sibling module — Separate BullMQ queues (ai-agent vs ai-summaries) per D-09 coexistence requirement
 - [Phase ?]: All 6 system prompts are French-first with XML injection protection — <user_query> boundary tags prevent prompt injection per threat model T-09-03
+- [Phase ?]: Used supervision.ByteTrack (NOT bytetrack PyPI package) per RESEARCH.md Pitfall 2 to implement cross-frame tracking integrated with ultralytics detection format
+- [Phase ?]: YAMNet WHITELIST of 16 security-relevant audio classes with alert severity mapping (CRITICAL/HIGH/MEDIUM/INFO) — covers gunshot, explosion, alarm, siren, glass breaking, shout, scream, dog bark, etc. at confidence threshold 0.3
+- [Phase ?]: Faster-Whisper defaults to language=fr per D-37 (Oversight Hub primary deployment language is French) — language parameter configurable per request
 
 ## Performance
 
@@ -602,6 +606,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-16T07:23:44.824Z
+Last session: 2026-07-16T07:31:26.111Z
 Stopped at: Phase 9 context gathered
 Resume file: None

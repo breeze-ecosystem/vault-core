@@ -252,7 +252,7 @@ Plans:
 
 **Wave 2** (Core — parallel)
 
-- [ ] 09-03-PLAN.md — Python AI Preprocessor: YOLOv12 + ByteTrack + YAMNet + Whisper (FTR-08, FTR-11)
+- [x] 09-03-PLAN.md — Python AI Preprocessor: YOLOv12 + ByteTrack + YAMNet + Whisper (FTR-08, FTR-11)
 - [ ] 09-04-PLAN.md — NestJS Agent Core: LLM provider + Orchestrator + 6 agents + SSE (FTR-08, FTR-09, FTR-10, FTR-11)
 
 **Wave 3** (Services + Integration — parallel)
@@ -295,5 +295,5 @@ Plans:
 | 6. Premium Experience | 6/6 | Complete   | 2026-07-15 |
 | 7. Public Presence | 9/9 | Complete   | 2026-07-16 |
 | 8. Feature Deepening | 0/8 | Planned | - |
-| 9. AI Intelligence | 2/8 | In Progress|  |
+| 9. AI Intelligence | 3/8 | In Progress|  |
 | 10. Enterprise Grade | 0/TBD | Not started | - |
