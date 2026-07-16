@@ -12,6 +12,11 @@ import { PricingCard } from '@/components/pricing/pricing-card';
 import { tiers } from '@/components/pricing/pricing-tier-data';
 import { FeatureComparisonTable } from '@/components/pricing/feature-comparison-table';
 import { FAQSection } from '@/components/pricing/faq-section';
+import {
+  SoftwareApplicationJsonLd,
+  BreadcrumbListJsonLd,
+  FAQPageJsonLd,
+} from '@/src/lib/seo';
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -46,77 +51,43 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-function FAQPageJsonLd() {
-  const faqData = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: 'How does your pricing model work?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'We offer simple, predictable license-based pricing with three tiers: Starter, Professional, and Enterprise. Each tier includes a specific set of features and device limits. There are no per-camera fees, no hidden costs, and no long-term contracts required.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Is there a free trial available?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes, all plans include a 14-day free trial with no credit card required. You get full access to all features in your chosen tier, allowing you to evaluate the platform with your real security infrastructure before making a commitment.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Can I deploy Oversight Hub on-premise?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes, all tiers support on-premise deployment. Oversight Hub is self-hosted via Docker Compose on your infrastructure — no mandatory cloud dependency. This ensures your video data and access logs remain under your control, which is essential for organizations with strict data residency requirements.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'What kind of support do you offer?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Starter plans include standard support via email. Professional plans add priority support with faster response times. Enterprise plans include a dedicated support engineer, priority SLAs, and personalized onboarding assistance to ensure a smooth deployment.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Can I customize the platform for my specific needs?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Professional and Enterprise tiers support custom integrations via our REST API and webhook system. Enterprise customers additionally get access to custom feature development, white-labeling options, and dedicated engineering time for bespoke requirements.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Is Oversight Hub compliant with security standards?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes, Oversight Hub is built with security as a foundation. Features include immutable audit logs with hash-chain integrity, role-based access control (RBAC) with fine-grained permissions, encrypted data at rest and in transit, and optional on-premise deployment.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'How does migration work if I\'m already using another system?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'We provide a structured migration process for new customers. Our team will work with you to assess your current setup, plan the migration timeline, and ensure minimal disruption to your security operations.',
-        },
-      },
-    ],
-  };
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(faqData) }}
-    />
-  );
-}
+const pricingFaqQuestions = [
+  {
+    question: 'How does your pricing model work?',
+    answer:
+      'We offer simple, predictable license-based pricing with three tiers: Starter, Professional, and Enterprise. Each tier includes a specific set of features and device limits. There are no per-camera fees, no hidden costs, and no long-term contracts required.',
+  },
+  {
+    question: 'Is there a free trial available?',
+    answer:
+      'Yes, all plans include a 14-day free trial with no credit card required. You get full access to all features in your chosen tier, allowing you to evaluate the platform with your real security infrastructure before making a commitment.',
+  },
+  {
+    question: 'Can I deploy Oversight Hub on-premise?',
+    answer:
+      'Yes, all tiers support on-premise deployment. Oversight Hub is self-hosted via Docker Compose on your infrastructure — no mandatory cloud dependency. This ensures your video data and access logs remain under your control, which is essential for organizations with strict data residency requirements.',
+  },
+  {
+    question: 'What kind of support do you offer?',
+    answer:
+      'Starter plans include standard support via email. Professional plans add priority support with faster response times. Enterprise plans include a dedicated support engineer, priority SLAs, and personalized onboarding assistance to ensure a smooth deployment.',
+  },
+  {
+    question: 'Can I customize the platform for my specific needs?',
+    answer:
+      'Professional and Enterprise tiers support custom integrations via our REST API and webhook system. Enterprise customers additionally get access to custom feature development, white-labeling options, and dedicated engineering time for bespoke requirements.',
+  },
+  {
+    question: 'Is Oversight Hub compliant with security standards?',
+    answer:
+      'Yes, Oversight Hub is built with security as a foundation. Features include immutable audit logs with hash-chain integrity, role-based access control (RBAC) with fine-grained permissions, encrypted data at rest and in transit, and optional on-premise deployment.',
+  },
+  {
+    question: "How does migration work if I'm already using another system?",
+    answer:
+      'We provide a structured migration process for new customers. Our team will work with you to assess your current setup, plan the migration timeline, and ensure minimal disruption to your security operations.',
+  },
+];
 
 export default async function PricingPage({ params }: Props) {
   const { locale } = await params;
@@ -124,7 +95,14 @@ export default async function PricingPage({ params }: Props) {
 
   return (
     <>
-      <FAQPageJsonLd />
+      <FAQPageJsonLd questions={pricingFaqQuestions} />
+      <SoftwareApplicationJsonLd />
+      <BreadcrumbListJsonLd
+        items={[
+          { name: 'Home', url: `https://oversighthub.com/${locale}` },
+          { name: 'Pricing', url: `https://oversighthub.com/${locale}/pricing` },
+        ]}
+      />
       <Header />
       <main>
         {/* Page heading */}

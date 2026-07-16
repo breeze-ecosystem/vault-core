@@ -2,6 +2,7 @@ import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/src/i18n/routing';
+import { OrganizationJsonLd, WebSiteJsonLd } from '@/src/lib/seo';
 
 const rtlLocales = new Set(['ar']);
 
@@ -22,6 +23,8 @@ export default async function LocaleLayout({ children, params }: Props) {
     <html lang={locale} dir={direction} suppressHydrationWarning>
       <body className="bg-background text-foreground">
         <NextIntlClientProvider messages={messages}>
+          <OrganizationJsonLd />
+          <WebSiteJsonLd />
           {children}
         </NextIntlClientProvider>
       </body>

@@ -13,6 +13,7 @@ import {
   getPostBySlug,
   getAllSlugsByLocale,
 } from '@/src/lib/velite';
+import { BlogPostingJsonLd, BreadcrumbListJsonLd } from '@/src/lib/seo';
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
@@ -68,8 +69,24 @@ export default async function BlogPostPage({ params }: Props) {
 
   const relatedPosts = getPostsByLocale(locale);
 
+  const postUrl = `https://oversighthub.com/${locale}/blog/${slug}`;
+
   return (
     <>
+      <BlogPostingJsonLd
+        headline={post.title}
+        description={post.excerpt}
+        datePublished={post.date}
+        author="Oversight AI Team"
+        image={post.cover ?? undefined}
+      />
+      <BreadcrumbListJsonLd
+        items={[
+          { name: 'Home', url: `https://oversighthub.com/${locale}` },
+          { name: 'Blog', url: `https://oversighthub.com/${locale}/blog` },
+          { name: post.title, url: postUrl },
+        ]}
+      />
       <Header />
       <main>
         <Section variant="default" className="!py-12 md:!py-20">
