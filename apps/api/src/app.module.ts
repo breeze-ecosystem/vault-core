@@ -33,6 +33,7 @@ import { AiModule } from './modules/ai/ai.module';
 import { EquipmentModule } from './modules/equipment/equipment.module';
 import { GovernanceModule } from './modules/governance/governance.module';
 import { LicenseModule } from './modules/license/license.module';
+import { ContactModule } from './modules/contact/contact.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { RiskModule } from './modules/risk/risk.module';
 import { PatternsModule } from './modules/patterns/patterns.module';
@@ -96,6 +97,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     MaintenanceModule,
     FeatureGateModule,
     LicenseModule,
+    ContactModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
