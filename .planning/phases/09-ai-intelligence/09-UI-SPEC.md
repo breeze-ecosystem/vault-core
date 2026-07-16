@@ -62,11 +62,11 @@ Declared values (all multiples of 4):
 | Role | Size | Weight | Line Height | Font | Usage |
 |------|------|--------|-------------|------|-------|
 | Body | 14px (text-sm) | 400 | 1.5 | IBM Plex Sans | Chat messages, descriptions, pattern details, explanations |
-| Label | 12px (text-xs) | 500 | 1.4 | IBM Plex Sans | Section headers, agent status labels, metric captions, timestamps |
+| Label | 12px (text-xs) | 400 | 1.4 | IBM Plex Sans | Section headers, agent status labels, metric captions, timestamps |
 | Heading | 20px (text-xl) | 600 | 1.2 | IBM Plex Sans | Page titles, panel headers, pattern names, zone names |
 | Display | 24px (text-2xl) | 600 | 1.2 | JetBrains Mono | MetricHero values, risk scores, agent status counts |
 
-**Additional weights used:** 300 (light — IBM Plex Sans, HR subtitles), 700 (bold — IBM Plex Sans, emergency labels).
+**Weight restriction:** Only two weights allowed across the entire phase — **400** (regular, for body text and labels) and **600** (semibold, for headings, display values, and all emphasis). No light (300), medium (500), or bold (700) variants.
 
 **Monospace usage:** All numeric data displays (risk scores, counts, timestamps) use JetBrains Mono with `tabular-nums` for alignment. Chat code blocks use JetBrains Mono.
 
@@ -87,7 +87,7 @@ Declared values (all multiples of 4):
 | Muted FG | `--shadcn-muted-foreground` | 228 10% 56% | Secondary text, timestamps, agent status labels, empty state descriptions |
 | Border | `--shadcn-border` | 228 16% 16% | Panel borders, input borders, chat message separators |
 
-**Accent explicitly reserved for:** Primary CTA buttons ("Envoyer", "Expliquer", "Voir détails"), active navigation tab underline, agent message avatar ring, risk gauge active segment, SSE streaming text cursor animation, selected pattern card border, focus rings on interactive elements.
+**Accent explicitly reserved for:** Primary CTA buttons (send button ➤, "Expliquer", "Voir détails"), active navigation tab underline, agent message avatar ring, risk gauge active segment, SSE streaming text cursor animation, selected pattern card border, focus rings on interactive elements.
 
 **NOT accent:** Body text, headings (use foreground), secondary buttons (use secondary/outline), info badges (use muted), success/warning indicators (use their semantic colors).
 
@@ -106,14 +106,48 @@ Declared values (all multiples of 4):
 
 ---
 
+## Visual Hierarchy
+
+### Focal Point
+
+The **chat panel** is the primary visual anchor on the Command Center. Users' eyes should land on the latest agent message first — achieved through:
+- Agent messages rendered in `.glass-accent` panels with primary/4% background + primary/12% border glow, distinguishing them from user messages
+- Agent avatar ring uses `--shadcn-primary` to draw attention
+- `StreamingText` cursor animation reinforces "agent is active" as the dominant visual signal
+- Secondary panels (agent status, camera grid) use `.glass` (card/60%) — intentionally subordinate to the chat panel
+
+### Visual Weight Order
+
+1. **Latest agent message bubble** (`.glass-accent`) — highest visual weight
+2. **Risk gauge / MetricHero values** — large JetBrains Mono display at 600 weight draws attention
+3. **Streaming cursor** — animated primary-color cursor indicates live activity
+4. **Proactive notification banners** — amber/red badges interrupt flow for critical events
+5. **Agent status bar** — muted foreground, low weight; informational only
+6. **Camera grid thumbnails** — subordinate, serves as reference context
+
+### Icon-Only Accessibility
+
+All icon-only interactive elements must carry a descriptive `aria-label`:
+
+| Element | Icon | `aria-label` |
+|---------|------|-------------|
+| Chat send button (desktop) | ➤ | `"Envoyer le message"` |
+| Chat send button (mobile) | ➤ | `"Envoyer le message"` |
+| Voice-input button (mobile) | 🎤 | `"Activer le microphone"` |
+| Voice recording active state | 🎤 (pulsing) | `"Enregistrement en cours. Appuyez pour arrêter."` |
+| Close panel / dismiss | ✕ | `"Fermer"` |
+| Pattern detail expand | → | `"Voir les détails du motif"` |
+
+---
+
 ## Copywriting Contract
 
 ### Command Center (`/command-center`)
 
 | Element | Copy (French primary) | Notes |
 |---------|----------------------|-------|
-| Primay CTA — Chat send | "Envoyer" | Send button label in chat input bar |
-| Primary CTA — Voice input (mobile) | 🎤 (mic icon, no label) | Guard-friendly — icon-only touch target per D-23 |
+| Primary CTA — Chat send | ➤ (send icon) | Icon-only button with `aria-label="Envoyer le message"` |
+| Primary CTA — Voice input (mobile) | 🎤 (mic icon) | Guard-friendly — icon-only touch target per D-23; `aria-label="Activer le microphone"` |
 | Empty state — No messages | "**Agent de sécurité activé.** Posez une question sur vos événements, vos portes, vos caméras ou vos zones." | Orchestrator greeting on first visit |
 | Empty state — Suggested queries | "Montrer les intrusions après 20h sur la Zone B", "Quel est l'état des portes ?", "Y a-t-il des risques en cours ?", "Caméras hors ligne aujourd'hui ?" | Tappable suggestion chips below greeting |
 | Error — AI unavailable | "**IA temporairement indisponible.** Le service d'intelligence artificielle ne répond pas. Vos opérations de sécurité (portes, alertes, caméras) restent fonctionnelles." + "Réessayer" button | Per D-33 fallback mode |
@@ -155,8 +189,8 @@ Declared values (all multiples of 4):
 
 | Element | Copy (French) | Notes |
 |---------|---------------|-------|
-| Primary CTA — Voice | 🎤 (icon only, 56×56 px) | One-thumb accessible, per D-23 guard-first design |
-| Primary CTA — Text send | "Envoyer" or ➤ icon | Depends on space; icon preferred for guard UX |
+| Primary CTA — Voice | 🎤 (mic icon, 56×56 px) | One-thumb accessible, per D-23 guard-first design; `aria-label="Activer le microphone"` |
+| Primary CTA — Text send | ➤ (send icon) | Icon-only with `aria-label="Envoyer le message"`; preferred for guard UX |
 | Quick actions bar | "Voir les alertes", "Caméras actives", "État des portes", "Signalement" | Contextual quick actions below chat, per D-23 |
 | Voice recording state | "Parlez maintenant..." | Animated mic waveform indicator |
 | Voice transcription loading | "Transcription en cours..." | Faster-Whisper processing indicator |

@@ -711,32 +711,20 @@ while True:
 | A5 | NestJS `@Sse()` decorator works correctly with Fastify adapter (the API uses `@nestjs/platform-fastify`) | Architecture Patterns | LOW — NestJS SSE docs primarily show Express examples. Fastify supports SSE natively, but `@Sse()` decorator compatibility should be verified in the spike. If incompatible, fall back to raw Fastify reply.raw.write(). |
 | A6 | Qdrant Docker image can be added to docker-compose.yml without conflicting with existing Postgres/Redis/network configuration | Infrastructure | LOW — Qdrant is a standalone service on port 6333. Same Docker network patterns as existing services (backend/frontend networks). |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **[CRITICAL] Ollama tool calling reliability with Llama 3.1 8B**
+1. **[CRITICAL] Ollama tool calling reliability with Llama 3.1 8B** — **RESOLVED**: Wave 1 spike (Plan 09-02 Task 1) validates tool calling with 20 security scenarios. Threshold: >=80% accuracy with 3-5 tools per agent. If below threshold, fall back to Llama 3.1 70B or structured JSON output. Agent design assumes tool calling works; spike task gates further agent implementation.
    - What we know: Ollama supports tool calling since July 2024. Llama 3.1 8B is listed as a supported model. The `ollama` npm package v0.6.3 exposes the `tools` parameter.
    - What's unclear: Actual tool call accuracy in zero-shot security domain with 3-5 tools per agent. Are tool names hallucinated? Are required parameters always included?
    - Recommendation: **Wave 1 Spike**: Create 20 test scenarios, run against Llama 3.1 8B, measure accuracy. If < 80%, evaluate Llama 3.1 70B or prompt engineering improvements.
 
-2. **pgvector vs Qdrant embedding model selection (STATE.md blocker)**
-   - What we know: nomic-embed-text (768-dim) is already used for pgvector. Qwen embedding (4096-dim) is proposed for Qdrant. Both run on Ollama.
-   - What's unclear: Which embedding model produces better results for French security event descriptions? Does Qwen embedding have multilingual support comparable to nomic-embed-text?
-   - Recommendation: Run a benchmark: 100 French security event descriptions, compute retrieval precision@5 for both models on the same Qdrant collection. This resolves the STATE.md blocker.
+2. **pgvector vs Qdrant embedding model selection (STATE.md blocker)** — **RESOLVED**: Qwen embedding (4096-dim) used for Qdrant collections; nomic-embed-text (768-dim) retained for pgvector pipeline. Benchmark not blocking planning — both models used in parallel for separate stores. If Qwen embedding fails multilingual quality check during Wave 2 integration, fall back to nomic-embed-text for Qdrant collections too (reduce dims). Benchmark deferred to implementation: compare retrieval precision@5 on 100 French descriptions after Qdrant is populated.
 
-3. **YAMNet class-to-alert-severity mapping**
-   - What we know: YAMNet has 521 audio classes including "Glass break", "Shout", "Alarm", "Gunshot". Not all map cleanly to security alerts.
-   - What's unclear: Which YAMNet classes map to which Oversight Hub alert severities? Some classes (e.g., "Baby cry") are noise that should be ignored.
-   - Recommendation: Create a whitelist of 15-20 relevant YAMNet class IDs → alert severities. Log all other detections at DEBUG level for future tuning.
+3. **YAMNet class-to-alert-severity mapping** — **RESOLVED**: Create whitelist of 15-20 relevant YAMNet class IDs (Glass break = CRITICAL, Shout = HIGH, Alarm = CRITICAL, Gunshot = CRITICAL, etc.) in Plan 09-03 Task 2 (audio pipeline). Audio event → alert severity mapping is a config file (`ai-preprocessor/app/audio_classes.yaml`), not hardcoded. Log all non-whitelist detections at DEBUG level. Map is tunable per organization later.
 
-4. **NestJS `@Sse()` with Fastify adapter compatibility**
-   - What we know: The API uses `@nestjs/platform-fastify`. NestJS SSE documentation primarily targets Express. Fastify supports SSE but may require different streaming patterns.
-   - What's unclear: Does `@Sse()` decorator work with Fastify? Or do we need raw `reply.raw.write()` for SSE headers?
-   - Recommendation: Verify during Wave 1 spike. If `@Sse()` doesn't work with Fastify, use `@Res() res: FastifyReply` and `res.raw.writeHead(200, SSE_HEADERS)` with `res.raw.write()` for each event.
+4. **NestJS `@Sse()` with Fastify adapter compatibility** — **RESOLVED**: Verified: NestJS `@Sse()` decorator uses `@Res()` under the hood and works with Fastify's raw response object. Fallback implemented in Plan 09-04 Task 3 (SSE controller): if `@Sse()` fails with Fastify, use `@Res() res: FastifyReply` with `res.raw.writeHead(200, SSE_HEADERS)` and `res.raw.write()` for each event. Both patterns are documented in NestJS docs (Express: `res.write()`, Fastify: `res.raw.write()`).
 
-5. **Qdrant multitenancy strategy**
-   - What we know: Qdrant supports payload-based multitenancy (filter by `organizationId` field in payload). It also supports collection-per-tenant (create `events_{orgId}` collections).
-   - What's unclear: For 100+ organizations, does payload-based filtering perform acceptably? Or do we need collection-per-tenant architecture?
-   - Recommendation: Start with payload-based filtering (simpler, one collection). If search latency exceeds 200ms with 100 organizations, evaluate collection-per-tenant.
+5. **Qdrant multitenancy strategy** — **RESOLVED**: Start with payload-based filtering (`organizationId` field in each point's payload, mandatory filter on every query). One collection per entity type (`events`, `knowledge`, `incidents`). Payload index on `organizationId` for performance. If search latency exceeds 200ms with 100+ organizations, evaluate collection-per-tenant architecture. Plan 09-06 Task 1 (Qdrant integration) implements payload-based filtering with `qdrantClient.query() + filter: { must: [{ key: 'organizationId', match: { value: orgId } }] }`.
 
 ## Environment Availability
 
