@@ -262,7 +262,7 @@ Plans:
 
 **Wave 4** (Frontend — parallel)
 
-- [ ] 09-07-PLAN.md — Dashboard UI: Command Center + Patterns + Risk enhancement (FTR-08, FTR-10, FTR-11)
+- [x] 09-07-PLAN.md — Dashboard UI: Command Center + Patterns + Risk enhancement (FTR-08, FTR-10, FTR-11)
 - [ ] 09-08-PLAN.md — Mobile Chat + API client (FTR-08, FTR-09)
 
 **UI hint**: yes
@@ -295,5 +295,5 @@ Plans:
 | 6. Premium Experience | 6/6 | Complete   | 2026-07-15 |
 | 7. Public Presence | 9/9 | Complete   | 2026-07-16 |
 | 8. Feature Deepening | 0/8 | Planned | - |
-| 9. AI Intelligence | 6/8 | In Progress|  |
+| 9. AI Intelligence | 7/8 | In Progress|  |
 | 10. Enterprise Grade | 0/TBD | Not started | - |
