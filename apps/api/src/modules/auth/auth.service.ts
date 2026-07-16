@@ -309,6 +309,24 @@ export class AuthService {
     }));
   }
 
+  /**
+   * Exchange an SSO-authenticated user for JWT tokens.
+   * Called by SsoController after Passport validates the SAML/OIDC assertion.
+   */
+  async exchangeSsoUser(user: { id: string; email: string; orgId: string; role: string }) {
+    const result = await this.createTokens(user.id, user.email, user.orgId, user.role);
+    return {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        orgId: user.orgId,
+        role: user.role,
+      },
+    };
+  }
+
   async createTokens(userId: string, email: string, orgId: string, role: string) {
     const accessSecret = this.config.get<string>("JWT_ACCESS_SECRET", "change-me-access-secret-in-prod");
     const refreshSecret = this.config.get<string>("JWT_REFRESH_SECRET", "change-me-refresh-secret-in-prod");

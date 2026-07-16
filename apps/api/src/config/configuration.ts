@@ -75,4 +75,13 @@ export default () => ({
     privateKeyPath: process.env.LICENSE_PRIVATE_KEY_PATH || '',
     version: parseInt(process.env.LICENSE_VERSION || '1', 10),
   },
+
+  sso: {
+    samlIdpMetadataUrl: process.env.SAML_IDP_METADATA_URL || '',
+    samlEntityId: process.env.SAML_ENTITY_ID || 'oversight-hub',
+    samlCert: process.env.SAML_CERT || '',
+    oidcClientId: process.env.OIDC_CLIENT_ID || '',
+    oidcClientSecret: process.env.OIDC_CLIENT_SECRET || '',
+    oidcIssuerUrl: process.env.OIDC_ISSUER_URL || '',
+  },
 });
