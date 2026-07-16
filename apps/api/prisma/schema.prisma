@@ -381,13 +381,16 @@ model VehicleList {
 // ─── Phase 2: Equipment Health & Governance Models ───
 
 model RetentionPolicy {
-  id            String   @id @default(uuid())
-  eventType     String   @unique
-  tableType     String   // 'timescaledb' or 'prisma'
-  retentionDays Int
-  enabled       Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                String   @id @default(uuid())
+  eventType         String   @unique
+  tableType         String   // 'timescaledb' or 'prisma'
+  retentionDays     Int
+  enabled           Boolean  @default(true)
+  classification    String?  // 'PII', 'security', 'audit', 'operational'
+  exportBeforePurge Boolean  @default(false)
+  exportFormat      String?  // 'PDF' or 'CSV'
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@index([eventType])
   @@index([enabled])
@@ -409,6 +412,9 @@ model Organization {
   planTier         String?  // 'FREE' | 'PROFESSIONAL' | 'ENTERPRISE'
   trialStartDate   DateTime?
   trialEndDate     DateTime?
+  logoUrl         String?  // White-label: custom logo URL
+  primaryColor    String?  // White-label: hex color (#RRGGBB)
+  displayName     String?  // White-label: custom display name
   slaProfiles Json @default("{}")
   anprConfidenceThreshold Int @default(70)
   healthThresholds Json @default("{}")
@@ -698,6 +704,7 @@ model License {
   organizationId String
   licenseJwt     String
   status         LicenseStatus @default(PENDING)
+  currency       String        @default("USD")
   activatedAt    DateTime?
   expiresAt      DateTime
   maxCameras     Int
@@ -730,6 +737,75 @@ model LicenseApiKey {
   @@index([organizationId])
   @@index([isActive])
   @@index([keyHash])
+}
+
+// ─── Phase 10: Enterprise — Tenant API Keys ───
+
+model TenantApiKey {
+  id             String    @id @default(uuid())
+  name           String
+  keyHash        String    @unique
+  keyPrefix      String
+  scopes         Json      @default("[]")
+  rateLimit      Int       @default(300)
+  isActive       Boolean   @default(true)
+  lastUsedAt     DateTime?
+  expiresAt      DateTime?
+  revokedAt      DateTime?
+  organizationId String
+  createdById    String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  createdBy    User         @relation(fields: [createdById], references: [id])
+
+  @@index([organizationId])
+  @@index([isActive])
+  @@index([keyHash])
+}
+
+// ─── Phase 10: Enterprise — Webhook Subscriptions ───
+
+model WebhookSubscription {
+  id             String   @id @default(uuid())
+  eventType      String
+  targetUrl      String
+  signingSecret  String
+  isActive       Boolean  @default(true)
+  organizationId String
+  createdById    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization  Organization      @relation(fields: [organizationId], references: [id])
+  createdBy     User              @relation(fields: [createdById], references: [id])
+  deliveries    WebhookDelivery[]
+
+  @@index([organizationId])
+  @@index([eventType, organizationId])
+}
+
+// ─── Phase 10: Enterprise — Webhook Delivery Logs ───
+
+model WebhookDelivery {
+  id              String   @id @default(uuid())
+  subscriptionId  String
+  eventType       String
+  payload         Json
+  statusCode      Int?
+  responseBody    String?
+  attemptNumber   Int      @default(0)
+  nextRetryAt     DateTime?
+  organizationId  String
+  createdAt       DateTime @default(now())
+
+  subscription  WebhookSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  organization  Organization        @relation(fields: [organizationId], references: [id])
+
+  @@index([subscriptionId])
+  @@index([organizationId])
+  @@index([createdAt])
 }
 
 // ─── Phase 9: AI Intelligence — Agent Trace Model ───

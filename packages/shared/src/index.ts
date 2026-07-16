@@ -260,6 +260,8 @@ export type {
 export {
   createRetentionPolicySchema,
   updateRetentionPolicySchema,
+  CLASSIFICATION_LABELS,
+  EXPORT_FORMATS,
 } from "./schemas/governance.schema";
 export type {
   CreateRetentionPolicyInput as CreateRetentionPolicyInput,
@@ -333,3 +335,7 @@ export type { GenerateLicenseInput, ActivateLicenseInput, CreateApiKeyInput } fr
 
 // Types - License
 export type { LicenseClaims, LicenseState, LicenseStatusDto } from "./types/license.types";
+
+// Schemas - API Key (Enterprise)
+export { createTenantApiKeySchema } from "./schemas/api-key.schema";
+export type { CreateTenantApiKeyInput } from "./schemas/api-key.schema";
