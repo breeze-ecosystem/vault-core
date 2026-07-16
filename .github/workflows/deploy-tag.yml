@@ -1,0 +1,18 @@
+name: Deploy to Coolify
+
+on:
+  push:
+    tags:
+      - v2.0.0-beta
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Coolify Deployment
+        run: |
+          curl -s -X POST \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"uuid": "wt83ltw31zjpksrut7hi7cfp"}' \
+            "https://coolify.digitsoftafrica.com/api/v1/deploy"

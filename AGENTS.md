@@ -410,19 +410,16 @@ require('./dist/src/main.js');
 
 ### 2. Ne JAMAIS déployer manuellement après un git push
 
-Le tag `v2.0.0-beta` déclenche **automatiquement** un déploiement sur Coolify. Push le tag seulement :
+Le GitHub Actions workflow `.github/workflows/deploy-tag.yml` déclenche **automatiquement** un déploiement sur Coolify quand le tag `v2.0.0-beta` est pushé.
 
+NE PAS utiliser `curl` pour déployer manuellement — ça crée des déploiements en conflit.
+
+Pour déployer, il suffit de push le tag :
 ```bash
 git tag -d v2.0.0-beta && git tag v2.0.0-beta HEAD && git push origin v2.0.0-beta -f
 ```
 
-Si l'auto-deploy ne se déclenche pas (rare), utiliser l'API Coolify :
-```bash
-curl -X POST -H "Authorization: Bearer $(grep COOLIFY_API_TOKEN .env | cut -d= -f2)" \
-  -H "Content-Type: application/json" \
-  -d '{"uuid":"wt83ltw31zjpksrut7hi7cfp"}' \
-  "https://coolify.digitsoftafrica.com/api/v1/deploy"
-```
+Le secret `COOLIFY_API_TOKEN` est déjà configuré dans les secrets GitHub du repository.
 
 ### 3. Projets et ressources Coolify
 
