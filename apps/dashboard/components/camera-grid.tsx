@@ -1,78 +1,95 @@
 "use client";
 
 import { motion } from "motion/react";
+import { Video, VideoOff } from "lucide-react";
+import { GlassCard } from "@/components/glass-card";
 import { cn } from "@/lib/utils";
-import { containerVariants, itemVariants } from "@/components/page-transition";
-import { CameraCardPremium } from "@/components/camera-card-premium";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { Video, Plus } from "lucide-react";
-import Link from "next/link";
+
+interface CameraThumbnail {
+  id: string;
+  name: string;
+  status: "ONLINE" | "OFFLINE" | "MAINTENANCE" | "DEGRADED";
+  snapshotUrl?: string | null;
+}
 
 interface CameraGridProps {
-  cameras: Array<{
-    id: string;
-    name: string;
-    status: string;
-    lastSnapshotUrl?: string | null;
-    site?: { name: string } | null;
-  }>;
-  loading?: boolean;
-  emptyMessage?: string;
-  filter?: (camera: any) => boolean;
+  cameras: CameraThumbnail[];
+  onCameraClick?: (cameraId: string) => void;
   className?: string;
 }
 
+const statusOverlay: Record<string, { color: string; label: string }> = {
+  ONLINE: { color: "bg-green-500", label: "En ligne" },
+  OFFLINE: { color: "bg-red-500", label: "Hors ligne" },
+  MAINTENANCE: { color: "bg-amber-500", label: "Maintenance" },
+  DEGRADED: { color: "bg-orange-500", label: "Dégradé" },
+};
+
 export function CameraGrid({
   cameras,
-  loading = false,
-  emptyMessage = "Aucune caméra enregistrée",
-  filter,
+  onCameraClick,
   className,
 }: CameraGridProps) {
-  const filtered = filter ? cameras.filter(filter) : cameras;
-
-  if (loading) {
-    return (
-      <div className={cn("grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4", className)}>
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="rounded-xl overflow-hidden border bg-card">
-            <Skeleton className="aspect-video rounded-none" />
-            <div className="p-3 space-y-2">
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-3 w-1/2" />
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (filtered.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <Video className="h-12 w-12 text-muted-foreground/20 mb-3" />
-        <p className="text-sm text-muted-foreground">{emptyMessage}</p>
-        <Link href="/cameras?action=add">
-          <Button variant="outline" size="sm" className="mt-3 gap-2">
-            <Plus className="h-4 w-4" />
-            Ajouter une caméra
-          </Button>
-        </Link>
-      </div>
-    );
-  }
-
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className={cn("grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4", className)}
-    >
-      {filtered.map((camera) => (
-        <CameraCardPremium key={camera.id} camera={camera} />
-      ))}
-    </motion.div>
+    <GlassCard variant="default" className={cn("p-4", className)}>
+      <h3 className="text-sm font-semibold mb-3">Caméras</h3>
+      <div className="grid grid-cols-2 gap-2">
+        {cameras.length === 0 && (
+          <div className="col-span-2 flex flex-col items-center justify-center gap-2 py-8 text-center">
+            <VideoOff className="h-8 w-8 text-muted-foreground opacity-40" />
+            <p className="text-xs text-muted-foreground">
+              Aucune caméra disponible
+            </p>
+          </div>
+        )}
+        {cameras.map((camera, i) => {
+          const status = statusOverlay[camera.status] ?? statusOverlay.OFFLINE;
+          const st = status!;
+          return (
+            <motion.button
+              key={camera.id}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.05, duration: 0.3 }}
+              onClick={() => onCameraClick?.(camera.id)}
+              className={cn(
+                "group relative aspect-video rounded-lg overflow-hidden border transition-all duration-200",
+                "hover:border-primary/50 hover:ring-1 hover:ring-primary/30",
+                camera.status === "ONLINE"
+                  ? "border-border/40 bg-secondary/30"
+                  : "border-border/20 bg-secondary/20 opacity-70"
+              )}
+            >
+              {camera.snapshotUrl ? (
+                <img
+                  src={camera.snapshotUrl}
+                  alt={camera.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary/50 to-secondary/20">
+                  <Video className="h-6 w-6 text-muted-foreground/40" />
+                </div>
+              )}
+              {/* Status dot overlay */}
+              <div className="absolute top-1.5 right-1.5 flex items-center gap-1">
+                <div
+                  className={cn(
+                    "h-2 w-2 rounded-full ring-1 ring-black/20",
+                    st.color
+                  )}
+                />
+              </div>
+              {/* Name overlay */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-1.5">
+                <p className="text-[10px] text-white font-medium truncate leading-tight">
+                  {camera.name}
+                </p>
+              </div>
+            </motion.button>
+          );
+        })}
+      </div>
+    </GlassCard>
   );
 }
