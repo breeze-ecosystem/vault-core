@@ -9,7 +9,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { LicenseKeyManager } from "./license-key-manager";
 import type { LicenseClaims } from "@repo/shared";
 import type { LicenseStatusResponse, UsageInfo, ApiKeyResult } from "./license.types";
-import { TRIAL_DURATION_DAYS } from "@repo/shared";
+import { TRIAL_DURATION_DAYS, CURRENCY_OPTIONS } from "@repo/shared";
 import { v4 as uuidv4 } from "uuid";
 import * as jwt from "jsonwebtoken";
 import * as crypto from "crypto";
@@ -26,6 +26,7 @@ export class LicenseService {
 
   /**
    * Generate a new signed license JWT and store it in the database with PENDING status.
+   * Supports multi-currency: USD, EUR, XOF, GBP, JPY (D-16, D-17).
    */
   async generateLicense(dto: {
     organizationId: string;
@@ -34,8 +35,12 @@ export class LicenseService {
     expiresAt: string;
     gracePeriodDays?: number;
     licenseVersion?: number;
+    currency?: string;
   }) {
     const privateKey = this.keyManager.getPrivateKey();
+
+    // Validate and normalize currency
+    const currency = this.normalizeCurrency(dto.currency);
 
     const claims: LicenseClaims = {
       organizationId: dto.organizationId,
@@ -45,6 +50,7 @@ export class LicenseService {
       maxDoors: dto.maxDoors,
       gracePeriodDays: dto.gracePeriodDays ?? 7,
       licenseVersion: dto.licenseVersion ?? 1,
+      currency,
     };
 
     const licenseJwt = jwt.sign(claims, privateKey, {
@@ -63,10 +69,27 @@ export class LicenseService {
         maxDoors: dto.maxDoors,
         gracePeriodDays: dto.gracePeriodDays ?? 7,
         licenseVersion: dto.licenseVersion ?? 1,
+        currency,
       },
     });
 
     return { licenseJwt, claims };
+  }
+
+  /**
+   * Validate and normalize a currency code.
+   * Defaults to USD if not provided.
+   * @throws BadRequestException for invalid currency values.
+   */
+  private normalizeCurrency(currency?: string): string {
+    const c = currency ?? "USD";
+    const validCurrencies = CURRENCY_OPTIONS as readonly string[];
+    if (!validCurrencies.includes(c)) {
+      throw new BadRequestException(
+        `Devise invalide. Valeurs acceptées: ${validCurrencies.join(", ")}`,
+      );
+    }
+    return c;
   }
 
   /**
@@ -102,11 +125,18 @@ export class LicenseService {
       throw new BadRequestException("Cette licence a expiré");
     }
 
+    // Extract and store currency from JWT claims if present
+    const jwtCurrency = (claims as any).currency;
+
     // Activate all PENDING license records for this org that match the JWT
     // (typically there's one, but handle batch gracefully)
     await this.prisma.license.updateMany({
       where: { organizationId: orgId, status: "PENDING" },
-      data: { status: "ACTIVE", activatedAt: new Date() },
+      data: {
+        status: "ACTIVE",
+        activatedAt: new Date(),
+        ...(jwtCurrency ? { currency: jwtCurrency } : {}),
+      },
     });
 
     return { status: "active" as const, claims };

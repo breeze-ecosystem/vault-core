@@ -9,10 +9,11 @@ import {
   Query,
   Req,
 } from '@nestjs/common';
-import { FastifyRequest } from 'fastify';
+import type { FastifyRequest } from 'fastify';
 import { OrganizationService } from './organization.service';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { RequiresFeature } from '../../common/decorators/feature-gate.decorator';
 import { AuditService } from '../audit/audit.service';
 import { createOrganizationSchema, updateOrganizationSchema } from '@repo/shared';
 
@@ -90,6 +91,40 @@ export class OrganizationController {
     });
 
     return result;
+  }
+
+  @Patch('branding')
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @RequiresFeature('custom_branding')
+  async updateBranding(
+    @Body() body: { logoUrl?: string; primaryColor?: string; displayName?: string },
+    @Req() req: FastifyRequest,
+  ) {
+    const orgId = (req as any).user.orgId;
+    const result = await this.organizationService.updateBranding(orgId, body);
+
+    await this.auditService.log({
+      userId: (req as any).user?.id,
+      action: 'UPDATE',
+      entity: 'organization',
+      entityId: orgId,
+      changes: Object.keys(body).reduce((acc, key) => {
+        acc[key] = { new: (body as any)[key] };
+        return acc;
+      }, {} as Record<string, { new: unknown }>),
+      request: req,
+    });
+
+    return result;
+  }
+
+  @Get('branding')
+  async getBranding(@Req() req: FastifyRequest) {
+    const orgId = (req as any).user?.orgId;
+    if (!orgId) {
+      return { logoUrl: null, primaryColor: null, displayName: null, name: null };
+    }
+    return this.organizationService.getBranding(orgId);
   }
 
   @Delete(':id')
