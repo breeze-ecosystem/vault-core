@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light-mode first (marketing default) */
+    --marketing-bg: 0 0% 100%;
+    --marketing-bg-secondary: 210 20% 98%;
+    --marketing-bg-card: 0 0% 100%;
+    --marketing-bg-dark: 222 47% 11%;
+    --marketing-foreground: 222 47% 11%;
+    --marketing-muted: 215 16% 47%;
+    --marketing-muted-light: 215 20% 65%;
+    --marketing-border: 214 32% 91%;
+    --marketing-border-strong: 215 20% 65%;
+    --marketing-primary: 190 90% 50%;
+    --marketing-primary-hover: 190 90% 45%;
+    --marketing-primary-foreground: 0 0% 100%;
+    --marketing-ring: 190 90% 50%;
+    --marketing-success: 160 84% 39%;
+    --marketing-destructive: 0 84% 60%;
+    --marketing-warning: 35 92% 50%;
+    --marketing-radius-sm: 0.375rem;
+    --marketing-radius: 0.5rem;
+    --marketing-radius-lg: 0.75rem;
+    --marketing-radius-xl: 1rem;
+    --marketing-container: 1280px;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: hsl(var(--marketing-primary) / 0.3);
+    color: hsl(var(--marketing-foreground));
+  }
+
+  /* Animated grid background for hero */
+  .bg-grid {
+    background-image:
+      linear-gradient(hsl(var(--marketing-primary) / 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--marketing-primary) / 0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--marketing-muted-light) / 0.3);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--marketing-muted-light) / 0.5);
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
