@@ -10,6 +10,10 @@ export type { CreateOrganizationInput, UpdateOrganizationInput } from "./schemas
 export { createInviteSchema, acceptInviteSchema } from "./schemas/invite.schema";
 export type { CreateInviteInput, AcceptInviteInput } from "./schemas/invite.schema";
 
+// Schemas - Contact
+export { contactSchema } from "./schemas/contact.schema";
+export type { ContactInput } from "./schemas/contact.schema";
+
 // Constants
 export { ROLES, ROLE_HIERARCHY, hasMinRole } from "./constants/roles";
 export type { Role } from "./constants/roles";
