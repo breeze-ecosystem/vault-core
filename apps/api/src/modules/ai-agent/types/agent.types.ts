@@ -31,3 +31,11 @@ export interface SkillDefinition {
   description: string;
   inputSchema: ZodTypeAny;
 }
+
+export interface AgentChatMessage {
+  role: "user" | "assistant" | "system" | "tool";
+  content: string;
+  timestamp?: string;
+  toolName?: string;
+  metadata?: Record<string, unknown>;
+}
