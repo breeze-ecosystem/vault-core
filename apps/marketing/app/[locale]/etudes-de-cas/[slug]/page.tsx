@@ -62,7 +62,7 @@ export default async function CaseStudyDetailPage({ params }: Props) {
     notFound();
   }
 
-  const results = study.results?.map((r) => ({
+  const results = study.results?.map((r: { metric: string; value: string }) => ({
     metric: r.metric,
     value: r.value,
   }));
