@@ -111,13 +111,13 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 04-03-PLAN.md — Navigation & Layout Refresh (Wave 2)
-- [ ] 04-04-PLAN.md — Landing Section Component Rewrites (Wave 2)
+- [x] 04-03-PLAN.md — Navigation & Layout Refresh (Wave 2)
+- [x] 04-04-PLAN.md — Landing Section Component Rewrites (Wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [ ] 04-05-PLAN.md — Homepage Rewrite & Existing Page Refresh (Wave 3)
-- [ ] 04-06-PLAN.md — i18n Messages & Content Infrastructure (Wave 3)
+- [x] 04-06-PLAN.md — i18n Messages & Content Infrastructure (Wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -153,5 +153,5 @@ Plans:
 | 1. Infrastructure Foundation | 3/3 | Complete | 2026-07-17 |
 | 2. Hardware Integration | 0/5 | Not started | - |
 | 3. Visitor Kiosk | 4/4 | Complete | 2026-07-17 |
-| 4. Marketing Site Redesign | 2/10 | In Progress|  |
+| 4. Marketing Site Redesign | 5/10 | In Progress|  |
 | 5. Bug Fixing & Cross-Platform Polish | 0/0 | Not started | - |
