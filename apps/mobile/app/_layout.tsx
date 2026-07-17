@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import * as Sentry from "@sentry/react-native";
 import { AuthProvider } from "@/lib/auth-context";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { I18nProvider } from "@/lib/i18n";
 import { IS_CONFIG_VALID } from "@/lib/config";
 import { Shield } from "lucide-react-native";
 import { colors } from "@repo/design";
@@ -35,7 +36,8 @@ export default Sentry.wrap(function RootLayout() {
 
   return (
     <ErrorBoundary>
-      <AuthProvider>
+      <I18nProvider>
+        <AuthProvider>
         <Stack
           screenOptions={{
             headerStyle: { backgroundColor: colors.dark.surface },
@@ -53,6 +55,7 @@ export default Sentry.wrap(function RootLayout() {
           <Stack.Screen name="notifications" options={{ title: "Notifications", headerBackTitle: "Paramètres" }} />
         </Stack>
       </AuthProvider>
+    </I18nProvider>
     </ErrorBoundary>
   );
 });
