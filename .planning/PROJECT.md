@@ -35,6 +35,8 @@ Correlate every physical security event with video evidence and AI analysis in r
 - Multi-app delivery (NestJS API, Next.js Dashboard, Expo Mobile) — v1.0
 - Edge agent health monitoring — v1.0
 - Multi-site site management — v1.0
+- Public landing page — marketing website with product presentation, pricing, blog, SEO — Phase 04
+- International branding — AI-first positioning, modern design system, global appeal — Phase 04
 - Access control (badges, QR, mobile credentials, anti-passback, zone rules) — v1.0
 - Door management (forced, held open, unsecured, desynchronized) — v1.0
 - Access event journal correlated with video clips — v1.0
@@ -50,8 +52,8 @@ Correlate every physical security event with video evidence and AI analysis in r
 - [ ] Backend feature deepening — every existing feature made production-grade (not just "it works")
 - [ ] Premium Dashboard UI/UX — complete redesign, visual-first, modern 2026 design language
 - [ ] Premium Mobile UI/UX — complete redesign for guard/operator workflows
-- [ ] Public landing page — marketing website with product presentation, pricing, blog, SEO
-- [ ] International branding — AI-first positioning, modern design system, global appeal
+- [x] Public landing page — marketing website with product presentation, pricing, blog, SEO
+- [x] International branding — AI-first positioning, modern design system, global appeal
 - [ ] Subscription & billing system — Stripe/PayPal, plans, invoices, payment management
 - [ ] License management — provisioning, activation, revocation, tenant association
 - [ ] Visitor management (pre-registration, host assignment, check-in/out) — deepened
@@ -121,4 +123,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 ---
-*Last updated: 2026-07-17 — start of milestone v3.0*
+*Last updated: 2026-07-17 — Phase 04 complete (marketing site redesign)*
