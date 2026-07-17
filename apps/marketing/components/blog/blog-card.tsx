@@ -1,5 +1,5 @@
-import { cn } from '@/src/lib/utils';
 import type { Post } from '@/.velite';
+import { GlassPanel } from '@/components/shared/glass-panel';
 
 interface BlogCardProps {
   post: Post;
@@ -9,7 +9,7 @@ export function BlogCard({ post }: BlogCardProps) {
   const readTime = Math.max(1, Math.ceil((post.content?.length ?? 0) / 200));
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+    <GlassPanel as="article" hover className="group relative flex flex-col overflow-hidden">
       {/* Thumbnail */}
       <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5">
         <div className="absolute inset-0 flex items-center justify-center text-primary/30">
@@ -41,7 +41,7 @@ export function BlogCard({ post }: BlogCardProps) {
         </div>
 
         {/* Title */}
-        <h3 className="mb-2 text-lg font-semibold text-foreground">
+        <h3 className="mb-2 text-lg font-display text-white">
           <a
             href={`/blog/${post.slug}`}
             className="after:absolute after:inset-0 hover:text-primary transition-colors"
@@ -51,12 +51,12 @@ export function BlogCard({ post }: BlogCardProps) {
         </h3>
 
         {/* Excerpt */}
-        <p className="mb-4 flex-1 text-sm leading-relaxed text-muted">
+        <p className="mb-4 flex-1 text-sm text-[#94a3b8]">
           {post.excerpt}
         </p>
 
         {/* Date + Read time */}
-        <div className="flex items-center gap-3 text-xs text-muted-light">
+        <div className="flex items-center gap-3 text-xs text-[#64748b]">
           <time dateTime={post.date}>
             {new Date(post.date).toLocaleDateString('en-US', {
               year: 'numeric',
@@ -72,6 +72,6 @@ export function BlogCard({ post }: BlogCardProps) {
           )}
         </div>
       </div>
-    </article>
+    </GlassPanel>
   );
 }

@@ -61,7 +61,7 @@ export default async function BlogIndexPage({ params }: Props) {
       <Header />
       <main>
         {/* Page Heading */}
-        <Section variant="default" className="!pb-0">
+        <Section variant="dark" className="!pb-0">
           <Container>
             <PageHeader
               heading="Blog"

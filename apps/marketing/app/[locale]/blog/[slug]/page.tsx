@@ -89,8 +89,8 @@ export default async function BlogPostPage({ params }: Props) {
       />
       <Header />
       <main>
-        <Section variant="default" className="!py-12 md:!py-20">
-          <Container className="max-w-4xl">
+        <Section variant="dark" className="!py-12 md:!py-20">
+          <Container className="max-w-3xl mx-auto">
             <BlogPostLayout post={post} relatedPosts={relatedPosts} />
           </Container>
         </Section>

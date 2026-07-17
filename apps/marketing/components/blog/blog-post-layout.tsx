@@ -21,7 +21,7 @@ export function BlogPostLayout({ post, relatedPosts }: BlogPostLayoutProps) {
           <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
             {post.category}
           </span>
-          <time dateTime={post.date} className="text-muted">
+          <time dateTime={post.date} className="text-[#94a3b8]">
             {new Date(post.date).toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'long',
@@ -30,14 +30,14 @@ export function BlogPostLayout({ post, relatedPosts }: BlogPostLayoutProps) {
           </time>
           {readTime > 0 && (
             <>
-              <span aria-hidden="true" className="text-muted-light">&middot;</span>
-              <span className="text-muted">{readTime} min read</span>
+              <span aria-hidden="true" className="text-[#64748b]">&middot;</span>
+              <span className="text-[#94a3b8]">{readTime} min read</span>
             </>
           )}
         </div>
 
         {/* Title */}
-        <h1 className="mb-6 text-[40px] font-semibold leading-[1.1] text-foreground max-sm:text-[24px] sm:max-lg:text-[32px]">
+        <h1 className="mb-6 text-[40px] font-display font-semibold leading-[1.1] text-white max-sm:text-[24px] sm:max-lg:text-[32px]">
           {post.title}
         </h1>
 
@@ -57,8 +57,8 @@ export function BlogPostLayout({ post, relatedPosts }: BlogPostLayoutProps) {
         </div>
       </div>
 
-      {/* Article Body (Prose) */}
-      <div className="prose prose-lg prose-slate max-w-none prose-headings:font-semibold prose-headings:text-foreground prose-p:text-muted prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-code:rounded prose-code:bg-secondary prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-pre:bg-dark prose-pre:text-dark-foreground prose-pre:border prose-pre:border-border">
+        {/* Article Body (Prose) */}
+      <div className="prose prose-lg prose-invert max-w-none prose-headings:font-display prose-headings:font-semibold prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-code:rounded prose-code:bg-white/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-pre:bg-[#0c1020] prose-pre:border prose-pre:border-white/10 prose-strong:text-white">
         <MDXContent code={post.content} />
       </div>
 
