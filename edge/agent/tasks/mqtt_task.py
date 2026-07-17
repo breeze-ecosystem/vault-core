@@ -152,10 +152,74 @@ async def mqtt_handler(
         }
         await _buffer_or_publish(client, topic, payload)
 
-    # Store helpers on the module so the serial and http tasks can use them
+    # ── Phase 2: OSDP publish helpers ────────────────────────────
+
+    async def publish_osdp_event(
+        client: aiomqtt.Client | None,
+        door_id: str,
+        event_type: str,
+        badge_number: str | None = None,
+        direction: str | None = None,
+        tampered: bool = False,
+        controller_serial: str | None = None,
+    ) -> None:
+        """Publish rich OSDP event to ``site/{site_id}/door/{door_id}/event``."""
+        topic = f"site/{site_id}/door/{door_id}/event"
+        payload = {
+            "event_type": event_type,
+            "door_id": door_id,
+            "badge_number": badge_number,
+            "direction": direction,
+            "tampered": tampered,
+            "controller_serial": controller_serial,
+            "timestamp": "",
+            "sequence": next_seq(door_id),
+        }
+        await _buffer_or_publish(client, topic, payload)
+
+    async def publish_controller_discovery(
+        client: aiomqtt.Client | None,
+        controller_id: str,
+        serial_number: str,
+        manufacturer: str,
+        model: str,
+    ) -> None:
+        """Publish controller discovery to ``site/{site_id}/controller/{controller_id}/discovery``."""
+        topic = f"site/{site_id}/controller/{controller_id}/discovery"
+        payload = {
+            "controller_id": controller_id,
+            "serial_number": serial_number,
+            "manufacturer": manufacturer,
+            "model": model,
+            "timestamp": "",
+            "sequence": next_seq(controller_id),
+        }
+        await _buffer_or_publish(client, topic, payload)
+
+    async def publish_onvif_event(
+        client: aiomqtt.Client | None,
+        camera_id: str,
+        event_type: str,
+        details: dict | None = None,
+    ) -> None:
+        """Publish ONVIF event to ``site/{site_id}/onvif/{camera_id}/event``."""
+        topic = f"site/{site_id}/onvif/{camera_id}/event"
+        payload = {
+            "event_type": event_type,
+            "camera_id": camera_id,
+            "details": details or {},
+            "timestamp": "",
+            "sequence": next_seq(camera_id),
+        }
+        await _buffer_or_publish(client, topic, payload)
+
+    # Store helpers on the module so tasks can use them
     mqtt_handler.publish_door_state = publish_door_state  # type: ignore[attr-defined]
     mqtt_handler.publish_badge_read = publish_badge_read  # type: ignore[attr-defined]
     mqtt_handler.publish_controller_health = publish_controller_health  # type: ignore[attr-defined]
+    mqtt_handler.publish_osdp_event = publish_osdp_event  # type: ignore[attr-defined]
+    mqtt_handler.publish_controller_discovery = publish_controller_discovery  # type: ignore[attr-defined]
+    mqtt_handler.publish_onvif_event = publish_onvif_event  # type: ignore[attr-defined]
     # Expose the buffer so main.py can access it if needed
     mqtt_handler.buffer = buffer  # type: ignore[attr-defined]
 

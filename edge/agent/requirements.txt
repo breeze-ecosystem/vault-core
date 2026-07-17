@@ -3,6 +3,14 @@ aiomqtt>=2.5.1
 pyserial-asyncio>=0.6
 aiohttp>=3.14.1
 
+# Phase 2: OSDP protocol
+libosdp>=3.2.5
+# Phase 2: ONVIF camera provisioning
+onvif-zeep>=0.2.12
+zeep>=4.0
+# Phase 2: Camera snapshot processing
+Pillow>=10.0
+
 # Config
 pydantic-settings>=2.0
 
