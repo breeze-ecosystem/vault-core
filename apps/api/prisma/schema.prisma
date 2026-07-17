@@ -134,6 +134,7 @@ model Door {
   organization Organization   @relation(fields: [organizationId], references: [id])
   zone         Zone           @relation(fields: [zoneId], references: [id])
   cameraMaps   CameraDoorMap[]
+  controller   Controller? @relation(fields: [controllerId], references: [id])
 
   @@index([organizationId])
   @@index([zoneId])
@@ -436,6 +437,7 @@ model Organization {
   licenses          License[]
   apiKeys           LicenseApiKey[]
   tenantApiKeys     TenantApiKey[]
+  controllers       Controller[]
   idpConfig         IdpConfig?
   webhookSubscriptions WebhookSubscription[]
   webhookDeliveries    WebhookDelivery[]
@@ -453,7 +455,17 @@ model Camera {
   isRecording     Boolean      @default(false)
   lastSnapshotUrl String?
   lastHeartbeat   DateTime?
-  createdAt       DateTime     @default(now())
+  // Phase 2: PTZ capabilities (JSON — flexible schema per camera model)
+  ptzCapabilities   Json?
+  // Phase 2: ONVIF provisioning fields
+  onvifAddress      String?
+  onvifUsername     String?
+  onvifPassword     String?
+  onvifProfileToken String?
+  onvifSerialNumber String?
+  // Phase 2: PTZ presets (JSON array of { token, name, snapshotUrl })
+  ptzPresets        Json?
+  createdAt         DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
   organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -462,6 +474,26 @@ model Camera {
   cameraDoorMaps CameraDoorMap[]
 
   @@index([organizationId])
+}
+
+model Controller {
+  id              String    @id @default(uuid())
+  name            String?
+  serialNumber    String?
+  manufacturer    String?
+  model           String?
+  firmwareVersion String?
+  organizationId  String
+  siteId          String?
+  serialPort      String?
+  osdpAddress     Int?
+  secureChannel   Boolean   @default(true)
+  status          String    @default("PENDING")
+  lastSeen        DateTime?
+  doors           Door[]
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  @@index([organizationId])
+  @@index([status])
 }
 
 model User {
