@@ -6,15 +6,15 @@ current_phase: 3
 current_phase_name: Visitor Kiosk
 status: planning
 stopped_at: Phase 3 UI-SPEC approved
-last_updated: "2026-07-17T17:05:06.694Z"
+last_updated: "2026-07-17T17:13:00.000Z"
 last_activity: 2026-07-17
-last_activity_desc: Plan 03-02 (kiosk backend) complete
+last_activity_desc: Plan 03-03 (kiosk frontend core) complete
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 12
-  completed_plans: 5
-  percent: 20
+   completed_plans: 6
+   percent: 50
 ---
 
 # Project State
@@ -29,25 +29,25 @@ See: .planning/PROJECT.md (updated 2026-07-17)
 ## Current Position
 
 Phase: 3 of 5 (Visitor Kiosk)
-Plan: 2/4 plans (03-02 complete)
+Plan: 3/4 plans (03-03 complete)
 Status: In progress
-Last activity: 2026-07-17 — Plan 03-02 (kiosk backend) complete
+Last activity: 2026-07-17 — Plan 03-03 (kiosk frontend core) complete
 
-Progress: [███████░░░] 70%
+Progress: [████████░░] 75%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 2
-- Average duration: 25 min
-- Total execution time: 0.8 hours
+- Total plans completed: 3
+- Average duration: 19 min
+- Total execution time: 0.95 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 003 Kiosk | 1 | 2 | 25 min |
+| 003 Kiosk | 2 | 3 | 16 min |
 
 **Recent Trend:**
 
@@ -77,6 +77,10 @@ Recent decisions affecting current work:
 - [03-02 Kiosk Backend]: KioskModule imports VisitorModule directly for VisitorService injection (no circular deps)
 - [03-02 Kiosk Backend]: KioskAuthGuard validates X-API-Key (SHA-256) OR JWT with @Public() skip pattern
 - [03-02 Kiosk Backend]: ZPL generation is hand-rolled (no node-zpl dependency) — template is simple enough
+- [03-03 Kiosk Frontend]: API client routes through KioskController endpoints (/kiosk/...), not direct @Roles-guarded visitor endpoints
+- [03-03 Kiosk Frontend]: instascan requires webpack fs:false fallback + manual type declarations (pre-2017 Emscripten-compiled library)
+- [03-03 Kiosk Frontend]: QR decode handler fetches visit status to route check-in vs check-out paths
+- [03-03 Kiosk Frontend]: French (fr) is default locale per D-27, toggled via welcome screen buttons
 
 ### Pending Todos
 
@@ -99,6 +103,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-17T17:05:06.694Z
-Stopped at: Plan 03-02 complete (kiosk backend)
-Resume file: .planning/phases/003-visitor-kiosk/03-02-SUMMARY.md
+Last session: 2026-07-17T17:13:00.000Z
+Stopped at: Plan 03-03 complete (kiosk frontend core)
+Resume file: .planning/phases/003-visitor-kiosk/03-03-SUMMARY.md

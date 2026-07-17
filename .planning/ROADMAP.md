@@ -77,13 +77,13 @@ Plans:
   3. Visitor scans their badge QR code at check-out — exit timestamp is recorded, host receives check-out notification
   4. Kiosk deploys as standalone Docker container with CUPS printing bundled — boots directly into fullscreen kiosk mode on startup with no manual intervention
 
-**Plans**: 2/4 plans executed
+**Plans**: 3/4 plans executed
 
 Plans:
 
 - [x] 03-01-PLAN.md — Kiosk App Scaffold + Docker Infrastructure (KIO-04)
 - [x] 03-02-PLAN.md — NestJS Kiosk Backend — Auth + Print Endpoint (KIO-02, KIO-04)
-- [ ] 03-03-PLAN.md — Kiosk Frontend — Core UI Components (KIO-01, KIO-03)
+- [x] 03-03-PLAN.md — Kiosk Frontend — Core UI Components (KIO-01, KIO-03)
 - [ ] 03-04-PLAN.md — Kiosk Frontend — Printing, Success, Check-out, Error Screens (KIO-01, KIO-02, KIO-03)
 
 **UI hint**: yes
@@ -124,6 +124,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Infrastructure Foundation | 3/3 | Complete | 2026-07-17 |
 | 2. Hardware Integration | 0/5 | Not started | - |
-| 3. Visitor Kiosk | 2/4 | In Progress|  |
+| 3. Visitor Kiosk | 3/4 | In Progress|  |
 | 4. Marketing Site Redesign | 0/0 | Not started | - |
 | 5. Bug Fixing & Cross-Platform Polish | 0/0 | Not started | - |
