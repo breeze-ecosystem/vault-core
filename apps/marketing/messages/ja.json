@@ -2,9 +2,12 @@
   "__locale": "ja",
   "__note": "English content as placeholder. Professional Japanese translation pending per D-13.",
   "nav": {
-    "home": "Home",
-    "pricing": "Pricing",
+    "produits": "製品",
+    "solutions": "ソリューション",
+    "etudesDeCas": "導入事例",
+    "demo": "デモ",
     "blog": "Blog",
+    "tarifs": "Tarifs",
     "contact": "Contact"
   },
   "cta": {
@@ -158,5 +161,64 @@
     "company": "Company",
     "legal": "Legal",
     "copyright": "© 2026 Oversight AI. All rights reserved."
+  },
+  "produits": {
+    "heading": "物理セキュリティソリューション",
+    "subheading": "ビデオ、アクセス制御、AI分析のための統合プラットフォーム — 最新のセキュリティチーム向けに設計。",
+    "cta": "詳細を見る",
+    "video": {
+      "name": "ビデオインテリジェンス",
+      "description": "AI分析、異常検知、イベント相関を備えたリアルタイムビデオ監視。",
+      "features": ["リアルタイム映像分析", "AIによる異常検知", "マルチカメラ相関", "クリップのエクスポートと共有"]
+    },
+    "accessControl": {
+      "name": "アクセス制御",
+      "description": "動的ルールを使用して、一元管理されたダッシュボードからバッジ、ドア、アクセスゾーンを管理。",
+      "features": ["バッジとID管理", "リアルタイムドア制御", "動的アクセスルール", "完全なアクセス履歴"]
+    },
+    "aiAnalytics": {
+      "name": "AI分析",
+      "description": "機械学習を活用した予測分析、不審な行動の検出、自動レポート。",
+      "features": ["行動検出", "予測分析", "自動レポート", "カスタマイズ可能なダッシュボード"]
+    },
+    "analytics": {
+      "name": "レポートと分析",
+      "description": "トレンドの可視化、コンプライアンスレポートの生成、主要なセキュリティパフォーマンス指標の追跡。",
+      "features": ["トレンドと統計", "コンプライアンスレポート", "カスタム指標", "PDFおよびCSVエクスポート"]
+    }
+  },
+  "solutions": {
+    "heading": "業界別ソリューション",
+    "subheading": "各業界の固有の課題に対応するカスタマイズされたソリューション。",
+    "cta": "詳しく見る",
+    "enterprise": {
+      "name": "エンタープライズキャンパス",
+      "description": "ビデオ、アクセス、AIを統合したソリューションでマルチビルディングキャンパスを保護。",
+      "challenges": ["管理すべき数百のドアとバッジ", "地理的に分散した複数拠点", "複雑な規制コンプライアンス"],
+      "outcomes": ["セキュリティインシデント40%削減", "50以上の建物を一元管理", "運用コスト60%削減"]
+    },
+    "critical": {
+      "name": "クリティカルインフラストラクチャ",
+      "description": "強化された物理セキュリティと継続的なAI監視で機密サイトを保護。",
+      "challenges": ["高いセキュリティ脅威レベル", "厳格なコンプライアンス要件", "24時間365日の可用性の必要性"],
+      "outcomes": ["リアルタイムの脅威検出", "自動化された規制コンプライアンス", "応答時間70%短縮"]
+    }
+  },
+  "caseStudies": {
+    "heading": "導入事例",
+    "subheading": "組織がOversight Hubをどのように活用して物理セキュリティを変革しているかをご覧ください。",
+    "readMore": "導入事例を読む",
+    "results": "主な成果",
+    "related": "関連事例",
+    "empty": "まだ導入事例はありません。後日再度ご確認ください。"
+  },
+  "demo": {
+    "heading": "Oversight Hubの動作を見る",
+    "subheading": "アカウントを作成せずに、完全なセキュリティシナリオをステップバイステップで体験。",
+    "startTour": "ツアーを開始",
+    "next": "次へ",
+    "previous": "前へ",
+    "step": "ステップ {current} / {total}",
+    "startOver": "最初から"
   }
 }

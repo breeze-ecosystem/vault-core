@@ -1,8 +1,11 @@
 {
   "nav": {
-    "home": "Accueil",
-    "pricing": "Tarifs",
+    "produits": "Produits",
+    "solutions": "Solutions",
+    "etudesDeCas": "Études de cas",
+    "demo": "Démo",
     "blog": "Blog",
+    "tarifs": "Tarifs",
     "contact": "Contact"
   },
   "cta": {
@@ -156,5 +159,64 @@
     "company": "Entreprise",
     "legal": "Légal",
     "copyright": "© 2026 Oversight AI. Tous droits réservés."
+  },
+  "produits": {
+    "heading": "Nos solutions de sécurité physique",
+    "subheading": "Une plateforme unifiée pour la vidéo, le contrôle d'accès et l'analyse IA — conçue pour les équipes de sécurité modernes.",
+    "cta": "En savoir plus",
+    "video": {
+      "name": "Video Intelligence",
+      "description": "Surveillance vidéo en temps réel avec analyse IA, détection d'anomalies et corrélation d'événements.",
+      "features": ["Analyse vidéo en temps réel", "Détection d'anomalies par IA", "Corrélation multi-caméras", "Export et partage d'extraits"]
+    },
+    "accessControl": {
+      "name": "Contrôle d'accès",
+      "description": "Gérez les badges, les portes et les zones d'accès depuis un tableau de bord centralisé avec des règles dynamiques.",
+      "features": ["Gestion des badges et identités", "Contrôle de portes en temps réel", "Règles d'accès dynamiques", "Historique complet des accès"]
+    },
+    "aiAnalytics": {
+      "name": "Analytique IA",
+      "description": "Analyse prédictive, détection de comportements suspects et rapports automatisés alimentés par l'apprentissage automatique.",
+      "features": ["Détection de comportements", "Analyse prédictive", "Rapports automatisés", "Tableaux de bord personnalisables"]
+    },
+    "analytics": {
+      "name": "Rapports & Analytics",
+      "description": "Visualisez les tendances, générez des rapports de conformité et suivez les indicateurs clés de performance de votre sécurité.",
+      "features": ["Tendances et statistiques", "Rapports de conformité", "Indicateurs personnalisés", "Export PDF et CSV"]
+    }
+  },
+  "solutions": {
+    "heading": "Solutions par secteur",
+    "subheading": "Des solutions adaptées aux défis uniques de chaque secteur d'activité.",
+    "cta": "Explorer",
+    "enterprise": {
+      "name": "Campus d'entreprise",
+      "description": "Sécurisez vos campus multi-bâtiments avec une solution unifiée qui intègre vidéo, accès et IA.",
+      "challenges": ["Centaines de portes et badges à gérer", "Sites multiples répartis géographiquement", "Conformité réglementaire complexe"],
+      "outcomes": ["Réduction de 40% des incidents de sécurité", "Gestion centralisée de 50+ bâtiments", "Économies de 60% sur les opérations"]
+    },
+    "critical": {
+      "name": "Infrastructure critique",
+      "description": "Protégez vos sites sensibles avec une sécurité physique renforcée et une surveillance IA continue.",
+      "challenges": ["Menaces de sécurité élevées", "Exigences strictes de conformité", "Besoin de disponibilité 24/7"],
+      "outcomes": ["Détection des menaces en temps réel", "Conformité réglementaire automatisée", "Temps de réponse réduit de 70%"]
+    }
+  },
+  "caseStudies": {
+    "heading": "Études de cas",
+    "subheading": "Découvrez comment les organisations utilisent Oversight Hub pour transformer leur sécurité physique.",
+    "readMore": "Lire l'étude complète",
+    "results": "Résultats clés",
+    "related": "Études de cas similaires",
+    "empty": "Aucune étude de cas pour le moment. Revenez bientôt."
+  },
+  "demo": {
+    "heading": "Voir Oversight Hub en action",
+    "subheading": "Suivez un scénario de sécurité complet, étape par étape, sans créer de compte.",
+    "startTour": "Lancer la visite",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "step": "Étape {current} sur {total}",
+    "startOver": "Recommencer"
   }
 }

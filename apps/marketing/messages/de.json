@@ -2,9 +2,12 @@
   "__locale": "de",
   "__note": "English content as placeholder. Professional German translation pending per D-13.",
   "nav": {
-    "home": "Home",
-    "pricing": "Pricing",
+    "produits": "Produkte",
+    "solutions": "Lösungen",
+    "etudesDeCas": "Fallstudien",
+    "demo": "Demo",
     "blog": "Blog",
+    "tarifs": "Tarife",
     "contact": "Contact"
   },
   "cta": {
@@ -158,5 +161,64 @@
     "company": "Company",
     "legal": "Legal",
     "copyright": "© 2026 Oversight AI. All rights reserved."
+  },
+  "produits": {
+    "heading": "Unsere Lösungen für physische Sicherheit",
+    "subheading": "Eine einheitliche Plattform für Video, Zugangskontrolle und KI-Analyse — entwickelt für moderne Sicherheitsteams.",
+    "cta": "Mehr erfahren",
+    "video": {
+      "name": "Video Intelligence",
+      "description": "Echtzeit-Videoüberwachung mit KI-Analyse, Anomalieerkennung und Ereigniskorrelation.",
+      "features": ["Echtzeit-Videoanalyse", "KI-gestützte Anomalieerkennung", "Multi-Kamera-Korrelation", "Clip-Export und Freigabe"]
+    },
+    "accessControl": {
+      "name": "Zugangskontrolle",
+      "description": "Verwalten Sie Ausweise, Türen und Zugangszonen über ein zentrales Dashboard mit dynamischen Regeln.",
+      "features": ["Ausweis- und Identitätsverwaltung", "Echtzeit-Türsteuerung", "Dynamische Zugangsregeln", "Vollständiger Zugriffsverlauf"]
+    },
+    "aiAnalytics": {
+      "name": "KI-Analytik",
+      "description": "Prädiktive Analysen, Erkennung verdächtigen Verhaltens und automatisierte Berichte, unterstützt durch maschinelles Lernen.",
+      "features": ["Verhaltenserkennung", "Prädiktive Analysen", "Automatisierte Berichte", "Anpassbare Dashboards"]
+    },
+    "analytics": {
+      "name": "Berichte & Analysen",
+      "description": "Visualisieren Sie Trends, erstellen Sie Compliance-Berichte und verfolgen Sie wichtige Sicherheitsleistungsindikatoren.",
+      "features": ["Trends und Statistiken", "Compliance-Berichte", "Benutzerdefinierte Indikatoren", "PDF- und CSV-Export"]
+    }
+  },
+  "solutions": {
+    "heading": "Lösungen nach Branche",
+    "subheading": "Maßgeschneiderte Lösungen für die besonderen Herausforderungen jeder Branche.",
+    "cta": "Erkunden",
+    "enterprise": {
+      "name": "Unternehmenscampus",
+      "description": "Sichern Sie Ihre Multi-Gebäude-Campusse mit einer einheitlichen Lösung, die Video, Zugang und KI integriert.",
+      "challenges": ["Verwaltung hunderter Türen und Ausweise", "Mehrere geografisch verteilte Standorte", "Komplexe regulatorische Anforderungen"],
+      "outcomes": ["40% weniger Sicherheitsvorfälle", "Zentrale Verwaltung von 50+ Gebäuden", "60% Kosteneinsparungen im Betrieb"]
+    },
+    "critical": {
+      "name": "Kritische Infrastruktur",
+      "description": "Schützen Sie Ihre sensiblen Standorte mit verstärkter physischer Sicherheit und kontinuierlicher KI-Überwachung.",
+      "challenges": ["Hohe Sicherheitsbedrohungslage", "Strenge Compliance-Anforderungen", "Bedarf an 24/7-Verfügbarkeit"],
+      "outcomes": ["Echtzeit-Bedrohungserkennung", "Automatisierte Einhaltung von Vorschriften", "70% schnellere Reaktionszeit"]
+    }
+  },
+  "caseStudies": {
+    "heading": "Fallstudien",
+    "subheading": "Entdecken Sie, wie Organisationen Oversight Hub nutzen, um ihre physische Sicherheit zu transformieren.",
+    "readMore": "Zur vollständigen Fallstudie",
+    "results": "Wichtige Ergebnisse",
+    "related": "Ähnliche Fallstudien",
+    "empty": "Noch keine Fallstudien. Schauen Sie bald wieder vorbei."
+  },
+  "demo": {
+    "heading": "Sehen Sie Oversight Hub in Aktion",
+    "subheading": "Folgen Sie einem vollständigen Sicherheitsszenario Schritt für Schritt, ohne ein Konto zu erstellen.",
+    "startTour": "Tour starten",
+    "next": "Weiter",
+    "previous": "Zurück",
+    "step": "Schritt {current} von {total}",
+    "startOver": "Neu starten"
   }
 }
