@@ -106,6 +106,26 @@ async def main() -> None:
         )
     )
 
+    # ── OSDP protocol task ───────────────────────────────────────
+    from tasks.osdp_task import osdp_task  # noqa: PLC0415
+
+    tasks.append(
+        asyncio.create_task(
+            osdp_task(shutdown, settings, mqtt_handler, message_queue),
+            name="osdp",
+        )
+    )
+
+    # ── ONVIF provisioning task ──────────────────────────────────
+    from tasks.onvif_task import onvif_task  # noqa: PLC0415
+
+    tasks.append(
+        asyncio.create_task(
+            onvif_task(shutdown, settings),
+            name="onvif-provision",
+        )
+    )
+
     log.info("Spawned %d tasks — entering event loop", len(tasks))
 
     try:

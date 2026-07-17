@@ -46,6 +46,20 @@ export type { CreateSiteInput, UpdateSiteInput } from "./schemas/site.schema";
 export { createCameraSchema, updateCameraSchema } from "./schemas/camera.schema";
 export type { CreateCameraInput, UpdateCameraInput } from "./schemas/camera.schema";
 
+// Schemas - PTZ
+export { ptzContinuousSchema, ptzGotoPresetSchema, ptzSavePresetSchema } from "./schemas/camera.schema";
+export type { PtzContinuousInput, PtzGotoPresetInput, PtzSavePresetInput } from "./schemas/camera.schema";
+
+// Schemas - Controller
+export { enrollControllerSchema } from "./schemas/controller.schema";
+export type { EnrollControllerInput } from "./schemas/controller.schema";
+
+// Types - Controller
+export type { ControllerDto, ControllerStatus } from "./types/controller.types";
+
+// Constants - Controller
+export { CONTROLLER_STATUS } from "./constants/controller-status";
+
 // Schemas - Alert
 export { createAlertSchema, updateAlertSchema } from "./schemas/alert.schema";
 export type { CreateAlertInput, UpdateAlertInput } from "./schemas/alert.schema";
@@ -93,6 +107,9 @@ export type {
 export { updateAlertConfigSchema, emergencyOverrideSchema } from "./schemas/door.schema";
 export type { UpdateAlertConfigInput, EmergencyOverrideInput } from "./schemas/door.schema";
 
+export { doorCommandSchema, createDoorMonitoringSchema } from "./schemas/door.schema";
+export type { DoorCommandInput, CreateDoorMonitoringInput } from "./schemas/door.schema";
+
 // Types - Door Monitoring
 export type {
   DoorStateDto,
@@ -100,6 +117,12 @@ export type {
   EmergencyOverrideEvent,
   DoorAlertConfig,
 } from "./types/door.types";
+
+// Types - Door Commands & OSDP Events
+export type { DoorCommandResponse, OsdpEventDto, CommandState } from "./types/door.types";
+
+// Types - Camera
+export type { PTZPreset, PTZCapabilities } from "./types/camera.types";
 
 // Schemas - Door Threshold Config (Phase 8 stub)
 // export { doorThresholdConfigSchema } from "./schemas/door.schema";

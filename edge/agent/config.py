@@ -43,7 +43,22 @@ class Settings(BaseSettings):
     HEALTH_CHECK_INTERVAL: int = 30
     ONVIF_DISCOVERY_INTERVAL: int = 300
 
-    model_config = SettingsConfigDict(env_file=".env")
+    # ── OSDP ──────────────────────────────────────────────────────
+    OSDP_SC_ENABLED: bool = True
+    OSDP_SCBK: str = ""  # 32 hex bytes for Secure Channel Base Key
+
+    # ── ONVIF ─────────────────────────────────────────────────────
+    ONVIF_USERNAME: str = "admin"
+    ONVIF_PASSWORD: str = ""
+    ONVIF_PULLPOINT_INTERVAL: int = 10  # seconds between PullMessages calls
+
+    # ── Camera Snapshot ───────────────────────────────────────────
+    SNAPSHOT_STORAGE_PATH: str = "/app/snapshots"
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="ignore",  # tolerate extra env vars from project root .env
+    )
 
     @model_validator(mode="before")
     @classmethod

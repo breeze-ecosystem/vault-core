@@ -23,3 +23,21 @@ export const updateCameraSchema = z.object({
 
 export type CreateCameraInput = z.infer<typeof createCameraSchema>;
 export type UpdateCameraInput = z.infer<typeof updateCameraSchema>;
+
+export const ptzContinuousSchema = z.object({
+  pan: z.number().min(-1).max(1),
+  tilt: z.number().min(-1).max(1),
+  zoom: z.number().min(-1).max(1),
+});
+
+export const ptzGotoPresetSchema = z.object({
+  presetToken: z.string().min(1),
+});
+
+export const ptzSavePresetSchema = z.object({
+  name: z.string().min(1).max(64),
+});
+
+export type PtzContinuousInput = z.infer<typeof ptzContinuousSchema>;
+export type PtzGotoPresetInput = z.infer<typeof ptzGotoPresetSchema>;
+export type PtzSavePresetInput = z.infer<typeof ptzSavePresetSchema>;

@@ -212,3 +212,338 @@ async def _report_discovered(discovered: list[dict], settings) -> None:
 
 # Import needed for the time module used in _send_probe
 import time  # noqa: E402
+
+
+# ── ONVIF Camera Provisioning ────────────────────────────────────────────
+
+
+async def provision_camera(ip: str, port: int, username: str, password: str) -> dict | None:
+    """Query an ONVIF camera for full device information and capabilities.
+
+    Uses ``onvif-zeep`` in an executor thread to call:
+      - ``GetDeviceInformation()`` — manufacturer, model, serial, firmware
+      - ``GetCapabilities()`` — feature support (PTZ, Events)
+      - ``create_media_service().GetProfiles()`` — profile tokens
+      - ``GetStreamUri()`` — RTSP stream URL
+
+    Args:
+        ip: Camera IP address.
+        port: Camera ONVIF port (typically 80).
+        username: ONVIF user name.
+        password: ONVIF password.
+
+    Returns:
+        Dict with keys: manufacturer, model, serial_number, firmware_version,
+        rtsp_url, profiles, has_ptz, has_events, ip, onvif_port, site_group.
+        Returns ``None`` if provisioning fails.
+    """
+    loop = asyncio.get_event_loop()
+
+    def _query() -> dict | None:
+        """Synchronous ONVIF query run in executor thread."""
+        try:
+            from onvif import ONVIFCamera  # noqa: PLC0415
+        except ImportError:
+            log.error("ONVIF: onvif-zeep not installed — cannot provision camera")
+            return None
+
+        try:
+            cam = ONVIFCamera(ip, port, username, password)
+        except Exception as exc:
+            log.warning("ONVIF: failed to connect to %s:%d — %s", ip, port, exc)
+            return None
+
+        try:
+            info = cam.devicemgmt.GetDeviceInformation()
+        except Exception as exc:
+            log.warning("ONVIF: GetDeviceInformation failed for %s:%d — %s", ip, port, exc)
+            return None
+
+        try:
+            caps = cam.devicemgmt.GetCapabilities()
+        except Exception as exc:
+            log.warning("ONVIF: GetCapabilities failed for %s:%d — %s", ip, port, exc)
+            caps = None
+
+        # Check for PTZ and Events support in capabilities string
+        caps_str = str(caps) if caps else ""
+        has_ptz = "PTZ" in caps_str
+        has_events = "Events" in caps_str
+
+        # Get media profiles and stream URI
+        profiles: list[str] = []
+        rtsp_url: str | None = None
+        try:
+            media_service = cam.create_media_service()
+            profile_objs = media_service.GetProfiles()
+            for p in profile_objs:
+                token = getattr(p, "token", "") or ""
+                if token:
+                    profiles.append(token)
+
+            if profiles:
+                stream_uri = media_service.GetStreamUri({
+                    "StreamSetup": {
+                        "Stream": "RTP-Unicast",
+                        "Transport": {"Protocol": "RTSP"},
+                    },
+                    "ProfileToken": profiles[0],
+                })
+                rtsp_url = getattr(stream_uri, "Uri", None)
+        except Exception as exc:
+            log.debug("ONVIF: media service query failed for %s:%d — %s", ip, port, exc)
+
+        # D-03: Extract location/site metadata from GetDeviceInformation
+        # Some manufacturers include a Location field; fallback to "default"
+        site_group = "default"
+        try:
+            location = getattr(info, "Location", None)
+            if location:
+                site_group = str(location).strip()
+        except Exception:
+            pass
+
+        return {
+            "manufacturer": getattr(info, "Manufacturer", "Unknown"),
+            "model": getattr(info, "Model", "Unknown"),
+            "serial_number": getattr(info, "SerialNumber", ""),
+            "firmware_version": getattr(info, "FirmwareVersion", ""),
+            "rtsp_url": rtsp_url or "",
+            "profiles": profiles,
+            "has_ptz": has_ptz,
+            "has_events": has_events,
+            "ip": ip,
+            "onvif_port": port,
+            "site_group": site_group,
+        }
+
+    return await loop.run_in_executor(None, _query)
+
+
+async def probe_ptz_capabilities(
+    ip: str,
+    port: int,
+    username: str,
+    password: str,
+    profile_token: str,
+) -> dict:
+    """Probe ONVIF PTZ capabilities for a camera profile.
+
+    Creates a PTZ service and probes for absolute/continuous/relative
+    move support and preset availability.
+
+    Args:
+        ip: Camera IP address.
+        port: Camera ONVIF port.
+        username: ONVIF user name.
+        password: ONVIF password.
+        profile_token: Media profile token to probe.
+
+    Returns:
+        Dict with boolean keys: has_absolute_move, has_continuous_move,
+        has_relative_move, has_presets.
+    """
+    loop = asyncio.get_event_loop()
+
+    def _probe() -> dict:
+        """Synchronous PTZ probe run in executor thread."""
+        result = {
+            "has_absolute_move": False,
+            "has_continuous_move": False,
+            "has_relative_move": False,
+            "has_presets": False,
+        }
+
+        try:
+            from onvif import ONVIFCamera  # noqa: PLC0415
+        except ImportError:
+            log.error("ONVIF: onvif-zeep not installed — cannot probe PTZ")
+            return result
+
+        try:
+            cam = ONVIFCamera(ip, port, username, password)
+            ptz = cam.create_ptz_service()
+
+            # PTZ service object has methods; check for supported operations
+            # by inspecting the service's binding methods
+            ptz_methods = dir(ptz)
+
+            result["has_absolute_move"] = "AbsoluteMove" in ptz_methods
+            result["has_continuous_move"] = "ContinuousMove" in ptz_methods
+            result["has_relative_move"] = "RelativeMove" in ptz_methods
+
+            # Probe presets by calling GetPresets — if it fails, no presets
+            try:
+                presets = ptz.GetPresets({"ProfileToken": profile_token})
+                result["has_presets"] = len(presets) > 0
+            except Exception:
+                result["has_presets"] = False
+
+        except Exception as exc:
+            log.debug("ONVIF: PTZ probe failed for %s:%d — %s", ip, port, exc)
+
+        return result
+
+    return await loop.run_in_executor(None, _probe)
+
+
+async def subscribe_onvif_events(
+    ip: str,
+    port: int,
+    username: str,
+    password: str,
+    profile_token: str,
+    pullpoint_url: str,
+    callback: callable,
+) -> asyncio.Task | None:
+    """Subscribe to ONVIF PullPoint events with automatic renew loop.
+
+    Creates an asyncio Task that manages a PullPointSubscription for
+    the camera, calling ``PullMessages()`` periodically and renewing
+    the subscription before it expires.
+
+    Args:
+        ip: Camera IP address.
+        port: Camera ONVIF port.
+        username: ONVIF user name.
+        password: ONVIF password.
+        profile_token: Media profile token to subscribe.
+        pullpoint_url: PullPoint URL (empty string for auto-discovery).
+        callback: Async callback receiving ``(event_type: str, details: dict)``.
+
+    Returns:
+        An ``asyncio.Task`` running the event loop, or ``None`` if
+        subscription setup fails.
+    """
+    try:
+        from onvif import ONVIFCamera  # noqa: PLC0415
+    except ImportError:
+        log.error("ONVIF: onvif-zeep not installed — cannot subscribe to events")
+        return None
+
+    loop = asyncio.get_event_loop()
+
+    def _create_subscription():
+        """Synchronous subscription creation in executor thread."""
+        try:
+            cam = ONVIFCamera(ip, port, username, password)
+            events = cam.create_events_service()
+
+            # Create PullPoint subscription
+            subscription = events.CreatePullPointSubscription({
+                "ProfileToken": profile_token,
+            })
+            return cam, events, subscription
+        except Exception as exc:
+            log.warning("ONVIF: event subscription failed for %s:%d — %s", ip, port, exc)
+            return None
+
+    result = await loop.run_in_executor(None, _create_subscription)
+    if result is None:
+        return None
+
+    cam, events, subscription = result
+
+    # Extract the subscription reference and timeout
+    sub_ref = None
+    initial_timeout = 600  # Default 10 minutes
+    try:
+        sub_ref = subscription.SubscriptionReference
+        if hasattr(subscription, "CurrentTimeout"):
+            from datetime import timedelta  # noqa: PLC0415
+            timeout = subscription.CurrentTimeout
+            if isinstance(timeout, timedelta):
+                initial_timeout = int(timeout.total_seconds())
+    except Exception:
+        pass
+
+    async def _event_loop():
+        """Async event loop running PullMessages and renew."""
+        timeout = initial_timeout
+        renew_interval = max(timeout // 2, 30)  # Renew at half the timeout
+        last_renew = loop.time()
+
+        while not asyncio.get_event_loop().is_closed():
+            try:
+                # Pull messages
+                pull_result = await loop.run_in_executor(
+                    None,
+                    lambda: events.PullMessages({
+                        "SubscriptionReference": sub_ref,
+                        "MessageLimit": 10,
+                        "Timeout": "PT10S",
+                    }) if sub_ref else None,
+                )
+
+                if pull_result:
+                    # Process received events
+                    notifications = getattr(pull_result, "NotificationMessage", [])
+                    for notification in notifications:
+                        try:
+                            event_type = "unknown"
+                            details = {}
+
+                            # Extract event properties
+                            source = getattr(notification, "Source", None)
+                            if source:
+                                details["source"] = str(source)
+
+                            data = getattr(notification, "Data", None)
+                            if data:
+                                details["data"] = str(data)
+
+                            property_ = getattr(notification, "Property", None)
+                            if property_:
+                                details["property"] = str(property_)
+
+                            # Determine event type from topic
+                            topic = getattr(notification, "Topic", None)
+                            if topic:
+                                topic_str = str(topic)
+                                details["topic"] = topic_str
+                                if "Motion" in topic_str:
+                                    event_type = "motion"
+                                elif "Tamper" in topic_str or "tamper" in topic_str:
+                                    event_type = "tamper"
+                                elif "VideoLoss" in topic_str:
+                                    event_type = "video_loss"
+                                elif "LineCrossing" in topic_str:
+                                    event_type = "line_crossing"
+                                elif "Intrusion" in topic_str:
+                                    event_type = "intrusion"
+                                elif "PresetReached" in topic_str:
+                                    event_type = "preset_reached"
+
+                            if callback:
+                                await callback(event_type, details)
+                        except Exception as exc:
+                            log.debug("ONVIF: event processing error — %s", exc)
+
+                # Renew subscription at half the timeout interval
+                elapsed = loop.time() - last_renew
+                if elapsed >= renew_interval and sub_ref:
+                    try:
+                        await loop.run_in_executor(
+                            None,
+                            lambda: events.Renew({
+                                "SubscriptionReference": sub_ref,
+                            }),
+                        )
+                        last_renew = loop.time()
+                        log.debug("ONVIF: renewed event subscription for %s:%d", ip, port)
+                    except Exception as exc:
+                        log.warning(
+                            "ONVIF: subscription renew failed for %s:%d — %s",
+                            ip, port, exc,
+                        )
+
+            except asyncio.CancelledError:
+                break
+            except Exception as exc:
+                log.debug("ONVIF: PullMessages error for %s:%d — %s", ip, port, exc)
+
+            await asyncio.sleep(10)  # Pull interval
+
+    task = asyncio.get_event_loop().create_task(_event_loop())
+    log.info("ONVIF: event subscription active for %s:%d (timeout=%ds)", ip, port, initial_timeout)
+    return task
