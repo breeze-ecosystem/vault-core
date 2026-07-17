@@ -31,3 +31,22 @@ export interface DoorAlertConfig {
   settlingTimeoutMs: number;
   desyncMaxRetries: number;
 }
+
+export interface DoorCommandResponse {
+  status: 'sent' | 'acknowledged' | 'failed';
+  doorId: string;
+  timestamp: string;
+}
+
+export interface OsdpEventDto {
+  eventType: 'badge_read' | 'door_state' | 'tamper' | 'forced_open';
+  doorId: string;
+  badgeNumber?: string;
+  direction?: 'ingress' | 'egress';
+  tampered?: boolean;
+  controllerSerial?: string;
+  timestamp: string;
+  sequence: number;
+}
+
+export type CommandState = 'idle' | 'sending' | 'sent' | 'acknowledged' | 'failed';
