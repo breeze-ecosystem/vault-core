@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { useTranslation } from "@/lib/i18n";
 
 type ScanState = "idle" | "scanning" | "success" | "error";
 
@@ -24,10 +25,11 @@ interface CheckInResult {
 }
 
 export function QrScanner({ onCheckIn, onError }: QrScannerProps) {
+  const { t } = useTranslation();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanState, setScanState] = useState<ScanState>("idle");
   const [result, setResult] = useState<CheckInResult | null>(null);
-  const [message, setMessage] = useState("Prêt à scanner");
+  const [message, setMessage] = useState(t("scanner.ready"));
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleBarCodeScanned = useCallback(
@@ -35,16 +37,16 @@ export function QrScanner({ onCheckIn, onError }: QrScannerProps) {
       if (scanState !== "idle") return;
 
       setScanState("scanning");
-      setMessage("Vérification du code...");
+      setMessage(t("scanner.verifying"));
 
       try {
         // Delegate to parent for actual API call
         onCheckIn(data);
         setScanState("success");
-        setMessage("Visitor check-in réussi");
+        setMessage(t("scanner.success"));
       } catch (err: any) {
         setScanState("error");
-        const msg = err.message || "QR code invalide";
+        const msg = err.message || t("scanner.invalidQr");
         setErrorMessage(msg);
         onError?.(msg);
       }
@@ -56,9 +58,9 @@ export function QrScanner({ onCheckIn, onError }: QrScannerProps) {
     return (
       <View style={styles.container}>
         <View style={styles.centerContent}>
-          <Text style={styles.heading}>Permission caméra</Text>
+          <Text style={styles.heading}>{t("scanner.cameraPermission")}</Text>
           <Text style={styles.bodyText}>
-            Autorisez l'accès à la caméra pour scanner les QR codes.
+            {t("scanner.cameraPermissionDesc")}
           </Text>
         </View>
       </View>
@@ -69,16 +71,16 @@ export function QrScanner({ onCheckIn, onError }: QrScannerProps) {
     return (
       <View style={styles.container}>
         <View style={styles.centerContent}>
-          <Text style={styles.heading}>Caméra non autorisée</Text>
+          <Text style={styles.heading}>{t("scanner.cameraDenied")}</Text>
           <Text style={styles.bodyText}>
-            L'accès à la caméra est requis pour le scan de QR codes.
+            {t("scanner.cameraDeniedDesc")}
           </Text>
           <TouchableOpacity
             style={styles.permissionButton}
             onPress={requestPermission}
           >
             <Text style={styles.permissionButtonText}>
-              Autoriser la caméra
+              {t("scanner.authorizeCamera")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -93,16 +95,16 @@ export function QrScanner({ onCheckIn, onError }: QrScannerProps) {
           <View style={styles.successIcon}>
             <Text style={styles.checkmark}>✓</Text>
           </View>
-          <Text style={styles.successTitle}>Check-in confirmé</Text>
+          <Text style={styles.successTitle}>{t("scanner.checkinConfirm")}</Text>
           {result?.visitorName && (
             <>
               <Text style={styles.visitorName}>{result.visitorName}</Text>
               {result.hostName && (
-                <Text style={styles.hostText}>Hôte: {result.hostName}</Text>
+                <Text style={styles.hostText}>{t("scanner.host", { name: result.hostName })}</Text>
               )}
               {result.checkInTime && (
                 <Text style={styles.timeText}>
-                  Heure: {result.checkInTime}
+                  {t("scanner.time", { time: result.checkInTime })}
                 </Text>
               )}
             </>
@@ -112,10 +114,10 @@ export function QrScanner({ onCheckIn, onError }: QrScannerProps) {
             onPress={() => {
               setScanState("idle");
               setResult(null);
-              setMessage("Prêt à scanner");
+              setMessage(t("scanner.ready"));
             }}
           >
-            <Text style={styles.resetButtonText}>Scanner un autre code</Text>
+            <Text style={styles.resetButtonText}>{t("scanner.scanAnother")}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -129,19 +131,19 @@ export function QrScanner({ onCheckIn, onError }: QrScannerProps) {
           <View style={styles.errorIcon}>
             <Text style={styles.crossmark}>✕</Text>
           </View>
-          <Text style={styles.errorTitle}>Erreur</Text>
+          <Text style={styles.errorTitle}>{t("scanner.error")}</Text>
           <Text style={styles.bodyText}>
-            {errorMessage || "QR code invalide ou déjà utilisé."}
+            {errorMessage || t("scanner.invalidOrUsed")}
           </Text>
           <TouchableOpacity
             style={styles.resetButton}
             onPress={() => {
               setScanState("idle");
               setErrorMessage(null);
-              setMessage("Prêt à scanner");
+              setMessage(t("scanner.ready"));
             }}
           >
-            <Text style={styles.resetButtonText}>Réessayer</Text>
+            <Text style={styles.resetButtonText}>{t("scanner.retry")}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -167,7 +169,7 @@ export function QrScanner({ onCheckIn, onError }: QrScannerProps) {
             <View style={styles.scanFrameCornerBR} />
           </View>
           <Text style={styles.scanHint}>
-            Placez le QR code dans le cadre
+            {t("scanner.placeQrInFrame")}
           </Text>
         </View>
       </CameraView>

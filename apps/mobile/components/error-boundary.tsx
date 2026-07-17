@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Component, type ReactNode, type ErrorInfo } from "react";
 import * as Sentry from "@sentry/react-native";
+import { I18nContext, type I18nContextValue } from "@/lib/i18n/context";
 
 interface Props {
   children: ReactNode;
@@ -12,6 +13,9 @@ interface State {
 }
 
 export class ErrorBoundary extends Component<Props, State> {
+  static contextType = I18nContext;
+  declare context: I18nContextValue;
+
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -36,10 +40,10 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <View style={styles.container}>
-          <Text style={styles.title}>Une erreur est survenue</Text>
+          <Text style={styles.title}>{this.context?.t("errors.boundaryTitle") || "Une erreur est survenue"}</Text>
           <Text style={styles.message}>{this.state.error?.message}</Text>
           <TouchableOpacity style={styles.button} onPress={this.handleReset}>
-            <Text style={styles.buttonText}>Réessayer</Text>
+            <Text style={styles.buttonText}>{this.context?.t("errors.retry") || "Réessayer"}</Text>
           </TouchableOpacity>
         </View>
       );

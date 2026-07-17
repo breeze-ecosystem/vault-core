@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import type { AlertItem } from "@/lib/api";
 import { severityColors } from "@/lib/constants";
 import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { useTranslation } from "@/lib/i18n";
 import { AlertTriangle, AlertCircle, Info, OctagonAlert } from "lucide-react-native";
 
 interface AlertCardProps {
@@ -19,6 +20,7 @@ const severityIcons: Record<string, React.ReactNode> = {
 };
 
 export const AlertCard = memo(function AlertCard({ alert }: AlertCardProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const color = severityColors[alert.severity] ?? colors.textMuted;
 
@@ -35,7 +37,7 @@ export const AlertCard = memo(function AlertCard({ alert }: AlertCardProps) {
         <View style={styles.content}>
           <Text style={styles.title} numberOfLines={2}>{alert.title}</Text>
           <Text style={styles.camera}>
-            {alert.camera?.name ?? "Caméra inconnue"}
+            {alert.camera?.name ?? t("alerts.unknownCamera")}
           </Text>
         </View>
         <Text style={styles.time}>

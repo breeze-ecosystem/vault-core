@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { colors, typography } from "@repo/design";
+import { useTranslation } from "@/lib/i18n";
 import type { MobileIncidentDto } from "@/lib/api";
 
 interface MobileIncidentCardProps {
@@ -16,23 +17,16 @@ const SEVERITY_COLORS: Record<string, string> = {
   INFO: "#6B7280",
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  open: "Ouvert",
-  triage: "En cours",
-  investigating: "Investigation",
-  resolved: "Résolu",
-  closed: "Fermé",
-};
-
 export const MobileIncidentCard = memo(function MobileIncidentCard({ incident, onPress }: MobileIncidentCardProps) {
+  const { t } = useTranslation();
   const severityColor = SEVERITY_COLORS[incident.severity] || SEVERITY_COLORS.INFO;
   const created = new Date(incident.createdAt);
   const now = new Date();
   const diffMs = now.getTime() - created.getTime();
   const diffMins = Math.floor(diffMs / 60000);
   const timeAgo = diffMins < 60
-    ? `Il y a ${diffMins} min`
-    : `Il y a ${Math.floor(diffMins / 60)}h`;
+    ? t("incidents.timeAgo", { minutes: diffMins })
+    : t("incidents.timeAgoHours", { hours: Math.floor(diffMins / 60) });
 
   const slaElapsed = Math.round(diffMs / 60000);
   const slaTarget = incident.slaMinutes;
@@ -57,14 +51,14 @@ export const MobileIncidentCard = memo(function MobileIncidentCard({ incident, o
         </View>
         {slaTarget > 0 && (
           <Text style={styles.sla}>
-            ⏱️ SLA: {slaElapsed}/{slaTarget} min
+            {t("incidents.sla", { elapsed: slaElapsed, target: slaTarget })}
           </Text>
         )}
       </View>
       <View style={styles.badgeContainer}>
         <View style={[styles.statusDot, { backgroundColor: severityColor }]} />
         <Text style={styles.statusText}>
-          {STATUS_LABELS[incident.status] || incident.status}
+          {t(`incidents.status.${incident.status}`) || incident.status}
         </Text>
       </View>
     </TouchableOpacity>

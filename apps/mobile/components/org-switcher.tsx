@@ -11,10 +11,12 @@ import {
 import { Building2, Check } from "lucide-react-native";
 import { useAuth } from "@/lib/auth-context";
 import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { useTranslation } from "@/lib/i18n";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 export function OrgSwitcher() {
+  const { t } = useTranslation();
   const { organization, organizations, switchOrganization } = useAuth();
   const [visible, setVisible] = useState(false);
 
@@ -36,7 +38,7 @@ export function OrgSwitcher() {
       <TouchableOpacity
         style={styles.trigger}
         onPress={() => setVisible(true)}
-        accessibilityLabel="Changer d'organisation"
+        accessibilityLabel={t("settings.changeOrg")}
         accessibilityRole="button"
       >
         <Building2 size={20} color={colors.text} />
@@ -59,7 +61,7 @@ export function OrgSwitcher() {
             onPress={() => {}}
           >
             <View style={styles.handle} />
-            <Text style={styles.title}>Organisations</Text>
+            <Text style={styles.title}>{t("settings.organization")}</Text>
             <ScrollView
               style={styles.scrollArea}
               showsVerticalScrollIndicator={false}
@@ -71,7 +73,7 @@ export function OrgSwitcher() {
                     key={org.id}
                     style={styles.orgItem}
                     onPress={() => handleSelect(org.id)}
-                    accessibilityLabel={`${org.name}${isCurrent ? " (actuelle)" : ""}`}
+                    accessibilityLabel={`${org.name}${isCurrent ? ` ${t("settings.current")}` : ""}`}
                     accessibilityRole="button"
                   >
                     <View style={styles.orgItemLeft}>
@@ -98,7 +100,7 @@ export function OrgSwitcher() {
                     {isCurrent && (
                       <View style={styles.currentIndicator}>
                         <Check size={16} color={colors.primary} />
-                        <Text style={styles.currentLabel}>(actuelle)</Text>
+                        <Text style={styles.currentLabel}>{t("settings.current")}</Text>
                       </View>
                     )}
                   </TouchableOpacity>

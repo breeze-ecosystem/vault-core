@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { useTranslation } from "@/lib/i18n";
 
 type CaptureState = "preview" | "capturing" | "review";
 
@@ -17,6 +18,7 @@ interface PhotoCaptureProps {
 }
 
 export function PhotoCapture({ onPhotoCaptured, onError }: PhotoCaptureProps) {
+  const { t } = useTranslation();
   const [permission, requestPermission] = useCameraPermissions();
   const [captureState, setCaptureState] = useState<CaptureState>("preview");
   const [photoUri, setPhotoUri] = useState<string | null>(null);
@@ -36,11 +38,11 @@ export function PhotoCapture({ onPhotoCaptured, onError }: PhotoCaptureProps) {
         setPhotoUri(photo.uri);
         setCaptureState("review");
       } else {
-        throw new Error("Impossible de capturer la photo");
+        throw new Error(t("photo.captureFailed"));
       }
     } catch (err: any) {
       setCaptureState("preview");
-      const msg = err.message || "Erreur de capture";
+      const msg = err.message || t("photo.captureError");
       onError?.(msg);
     }
   }, [onError]);
@@ -65,9 +67,9 @@ export function PhotoCapture({ onPhotoCaptured, onError }: PhotoCaptureProps) {
     return (
       <View style={styles.container}>
         <View style={styles.centerContent}>
-          <Text style={styles.heading}>Permission caméra</Text>
+          <Text style={styles.heading}>{t("photo.cameraPermission")}</Text>
           <Text style={styles.bodyText}>
-            Autorisation requise pour capturer des photos.
+            {t("photo.permissionRequired")}
           </Text>
         </View>
       </View>
@@ -79,14 +81,13 @@ export function PhotoCapture({ onPhotoCaptured, onError }: PhotoCaptureProps) {
     return (
       <View style={styles.container}>
         <View style={styles.centerContent}>
-          <Text style={styles.heading}>Caméra non autorisée</Text>
+          <Text style={styles.heading}>{t("photo.cameraDenied")}</Text>
           <Text style={styles.bodyText}>
-            L'accès à la caméra est requis pour capturer des preuves
-            photographiques.
+            {t("photo.cameraDeniedDesc")}
           </Text>
           <TouchableOpacity style={styles.permissionButton} onPress={retryPermission}>
             <Text style={styles.permissionButtonText}>
-              Autoriser la caméra
+              {t("photo.authorizeCamera")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -100,13 +101,13 @@ export function PhotoCapture({ onPhotoCaptured, onError }: PhotoCaptureProps) {
       <View style={styles.container}>
         <Image source={{ uri: photoUri }} style={styles.previewImage} />
         <View style={styles.reviewActions}>
-          <Text style={styles.reviewTitle}>Photo capturée</Text>
+          <Text style={styles.reviewTitle}>{t("photo.captured")}</Text>
           <View style={styles.buttonRow}>
             <TouchableOpacity style={styles.retakeButton} onPress={retakePhoto}>
-              <Text style={styles.retakeButtonText}>Reprendre</Text>
+              <Text style={styles.retakeButtonText}>{t("photo.retake")}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.confirmButton} onPress={confirmPhoto}>
-              <Text style={styles.confirmButtonText}>Utiliser</Text>
+              <Text style={styles.confirmButtonText}>{t("photo.use")}</Text>
             </TouchableOpacity>
           </View>
         </View>

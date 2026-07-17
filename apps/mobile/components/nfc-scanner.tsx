@@ -10,6 +10,7 @@ import {
   Platform,
 } from "react-native";
 import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { useTranslation } from "@/lib/i18n";
 import { validateBadge } from "@/lib/api";
 import { NfcTech } from "react-native-nfc-manager";
 
@@ -41,8 +42,9 @@ interface NfcScannerProps {
 }
 
 export function NfcScanner({ onBadgeScanned, onError }: NfcScannerProps) {
+  const { t } = useTranslation();
   const [state, setState] = useState<NfcState>("initializing");
-  const [message, setMessage] = useState("Initialisation NFC...");
+  const [message, setMessage] = useState(t("nfc.initializing"));
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [badgeResult, setBadgeResult] = useState<{
     name?: string;
@@ -80,18 +82,18 @@ export function NfcScanner({ onBadgeScanned, onError }: NfcScannerProps) {
 
   const initNfc = useCallback(async () => {
     setState("initializing");
-    setMessage("Initialisation NFC...");
+    setMessage(t("nfc.initializing"));
 
     const available = await initNfcManager();
     if (!available) {
       setState("unsupported");
-      setMessage("NFC non disponible");
+      setMessage(t("nfc.unsupported"));
       return;
     }
 
     setNfcAvailable(true);
     setState("idle");
-    setMessage("Approchez un badge");
+    setMessage(t("nfc.approachBadge"));
   }, []);
 
   useEffect(() => {
@@ -114,12 +116,12 @@ export function NfcScanner({ onBadgeScanned, onError }: NfcScannerProps) {
 
     try {
       setState("scanning");
-      setMessage("Scannez un badge...");
+      setMessage(t("nfc.scanning"));
       setErrorMessage(null);
 
       // Request NFC technology
       await NfcManager.requestTechnology(NfcTech.NfcA, {
-        alertMessage: "Approchez un badge NFC",
+        alertMessage: t("nfc.approachBadgePrompt"),
       });
 
       // Read tag
@@ -127,7 +129,7 @@ export function NfcScanner({ onBadgeScanned, onError }: NfcScannerProps) {
       const tagId = tag?.id;
 
       if (!tagId) {
-        throw new Error("Impossible de lire le badge");
+        throw new Error(t("nfc.readFailed"));
       }
 
       // Cancel technology after reading
@@ -137,7 +139,7 @@ export function NfcScanner({ onBadgeScanned, onError }: NfcScannerProps) {
       Vibration.vibrate(100);
 
       // Validate badge against server
-      setMessage("Validation du badge...");
+      setMessage(t("nfc.validating"));
       const result = await validateBadge(tagId);
 
       if (result.valid) {
@@ -147,7 +149,7 @@ export function NfcScanner({ onBadgeScanned, onError }: NfcScannerProps) {
           granted: true,
         });
         setState("success");
-        setMessage("Badge valide !");
+        setMessage(t("nfc.valid"));
         Vibration.vibrate([0, 100, 50, 100]); // Success haptic pattern
         onBadgeScanned(tagId);
       } else {
@@ -155,22 +157,22 @@ export function NfcScanner({ onBadgeScanned, onError }: NfcScannerProps) {
           granted: false,
         });
         setState("error");
-        setMessage("Badge refusé");
+        setMessage(t("nfc.refused"));
         Vibration.vibrate([0, 200, 100, 200, 100, 200]); // Error haptic pattern
       }
     } catch (err: any) {
       await NfcManager.cancelTechnologyRequest().catch(() => {});
       setState("error");
-      const msg = err.message || "Erreur de lecture NFC";
+      const msg = err.message || t("nfc.readError");
       setErrorMessage(msg);
-      setMessage("Erreur de lecture");
+      setMessage(t("nfc.readErrorTitle"));
       onError?.(msg);
     }
   }, [nfcAvailable, onBadgeScanned, onError]);
 
   const reset = useCallback(() => {
     setState("idle");
-    setMessage("Approchez un badge");
+    setMessage(t("nfc.approachBadge"));
     setErrorMessage(null);
     setBadgeResult(null);
   }, []);
@@ -191,10 +193,9 @@ export function NfcScanner({ onBadgeScanned, onError }: NfcScannerProps) {
       <View style={styles.container}>
         <View style={styles.centerContent}>
           <Text style={styles.iconText}>📡</Text>
-          <Text style={styles.heading}>NFC non disponible</Text>
+          <Text style={styles.heading}>{t("nfc.unsupported")}</Text>
           <Text style={styles.bodyText}>
-            Cet appareil ne prend pas en charge la technologie NFC. Utilisez le
-            scan QR comme alternative.
+            {t("nfc.unsupportedDesc")}
           </Text>
         </View>
       </View>
@@ -208,18 +209,18 @@ export function NfcScanner({ onBadgeScanned, onError }: NfcScannerProps) {
           <View style={styles.successIcon}>
             <Text style={styles.checkmark}>✓</Text>
           </View>
-          <Text style={styles.successTitle}>Badge valide</Text>
+          <Text style={styles.successTitle}>{t("nfc.validBadge")}</Text>
           {badgeResult.name && (
             <Text style={styles.userName}>{badgeResult.name}</Text>
           )}
           {badgeResult.accessLevel && (
             <Text style={styles.accessLevel}>
-              Niveau: {badgeResult.accessLevel}
+              {t("nfc.level", { level: badgeResult.accessLevel })}
             </Text>
           )}
-          <Text style={styles.grantedText}>Accès autorisé</Text>
+          <Text style={styles.grantedText}>{t("nfc.accessGranted")}</Text>
           <TouchableOpacity style={styles.resetButton} onPress={reset}>
-            <Text style={styles.resetButtonText}>Scanner un autre badge</Text>
+            <Text style={styles.resetButtonText}>{t("nfc.scanAnother")}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -235,21 +236,21 @@ export function NfcScanner({ onBadgeScanned, onError }: NfcScannerProps) {
           </View>
           {badgeResult?.granted === false ? (
             <>
-              <Text style={styles.errorTitle}>Badge refusé</Text>
+              <Text style={styles.errorTitle}>{t("nfc.badgeRefused")}</Text>
               <Text style={styles.bodyText}>
-                Ce badge n'est pas autorisé. Vérifiez les autorisations.
+                {t("nfc.badgeNotAuthorized")}
               </Text>
             </>
           ) : (
             <>
-              <Text style={styles.errorTitle}>Erreur de lecture</Text>
+              <Text style={styles.errorTitle}>{t("nfc.readErrorTitle")}</Text>
               <Text style={styles.bodyText}>
-                {errorMessage || "Impossible de lire le badge NFC."}
+                {errorMessage || t("nfc.readErrorDetail")}
               </Text>
             </>
           )}
           <TouchableOpacity style={styles.resetButton} onPress={reset}>
-            <Text style={styles.resetButtonText}>Réessayer</Text>
+            <Text style={styles.resetButtonText}>{t("nfc.retry")}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -274,7 +275,7 @@ export function NfcScanner({ onBadgeScanned, onError }: NfcScannerProps) {
         ) : (
           <TouchableOpacity style={styles.startButton} onPress={startScan}>
             <Text style={styles.nfcIcon}>📡</Text>
-            <Text style={styles.startButtonText}>Commencer le scan</Text>
+            <Text style={styles.startButtonText}>{t("nfc.startScan")}</Text>
           </TouchableOpacity>
         )}
         <Text style={styles.statusText}>{message}</Text>

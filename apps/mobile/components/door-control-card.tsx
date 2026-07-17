@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { useTranslation } from "@/lib/i18n";
 import { controlDoor } from "@/lib/api";
 import {
   Lock,
@@ -24,26 +25,26 @@ interface DoorControlCardProps {
   onError?: (error: string) => void;
 }
 
-const stateConfig: Record<
-  string,
-  { label: string; color: string; icon: React.ReactNode }
-> = {
-  open: {
-    label: "Ouverte",
-    color: "#10b981",
-    icon: <DoorOpen size={20} color="#10b981" />,
-  },
-  closed: {
-    label: "Fermée",
-    color: "#f59e0b",
-    icon: <DoorClosed size={20} color="#f59e0b" />,
-  },
-  locked: {
-    label: "Verrouillée",
-    color: "#ef4444",
-    icon: <Lock size={20} color="#ef4444" />,
-  },
-};
+function useStateConfig() {
+  const { t } = useTranslation();
+  return {
+    open: {
+      label: t("guard.doorState.open"),
+      color: "#10b981",
+      icon: <DoorOpen size={20} color="#10b981" />,
+    },
+    closed: {
+      label: t("guard.doorState.closed"),
+      color: "#f59e0b",
+      icon: <DoorClosed size={20} color="#f59e0b" />,
+    },
+    locked: {
+      label: t("guard.doorState.locked"),
+      color: "#ef4444",
+      icon: <Lock size={20} color="#ef4444" />,
+    },
+  } as Record<string, { label: string; color: string; icon: React.ReactNode }>;
+}
 
 export const DoorControlCard = memo(function DoorControlCard({
   doorId,
@@ -52,7 +53,9 @@ export const DoorControlCard = memo(function DoorControlCard({
   onStateChange,
   onError,
 }: DoorControlCardProps) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState<string | null>(null);
+  const stateConfig = useStateConfig();
 
   const config = stateConfig[currentState] || stateConfig.closed;
 
@@ -61,14 +64,14 @@ export const DoorControlCard = memo(function DoorControlCard({
       // Show confirmation for critical actions
       if (action === "lock" || action === "close") {
         Alert.alert(
-          "Confirmer l'action",
+          t("guard.confirmAction"),
           action === "lock"
-            ? `Voulez-vous verrouiller ${doorName} ?`
-            : `Voulez-vous fermer ${doorName} ?`,
+            ? t("guard.confirmLock", { name: doorName })
+            : t("guard.confirmClose", { name: doorName }),
           [
-            { text: "Annuler", style: "cancel" },
+            { text: t("guard.cancel"), style: "cancel" },
             {
-              text: "Confirmer",
+              text: t("guard.confirm"),
               style: action === "lock" ? "destructive" : "default",
               onPress: () => executeAction(action),
             },
@@ -88,7 +91,7 @@ export const DoorControlCard = memo(function DoorControlCard({
         await controlDoor(doorId, action);
         onStateChange?.(doorId, action === "unlock" ? "open" : action);
       } catch (err: any) {
-        const msg = err.message || "Erreur de contrôle";
+        const msg = err.message || t("guard.controlError");
         onError?.(msg);
       } finally {
         setLoading(null);
@@ -131,7 +134,7 @@ export const DoorControlCard = memo(function DoorControlCard({
             <>
               <Unlock size={16} color="#10b981" />
               <Text style={[styles.actionLabel, { color: "#10b981" }]}>
-                Ouvrir
+                {t("guard.open")}
               </Text>
             </>
           )}
@@ -149,7 +152,7 @@ export const DoorControlCard = memo(function DoorControlCard({
             <>
               <DoorClosed size={16} color="#f59e0b" />
               <Text style={[styles.actionLabel, { color: "#f59e0b" }]}>
-                Fermer
+                {t("guard.close")}
               </Text>
             </>
           )}
@@ -167,7 +170,7 @@ export const DoorControlCard = memo(function DoorControlCard({
             <>
               <Lock size={16} color="#ef4444" />
               <Text style={[styles.actionLabel, { color: "#ef4444" }]}>
-                Verrouiller
+                {t("guard.lock")}
               </Text>
             </>
           )}

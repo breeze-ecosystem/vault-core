@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import type { CameraItem } from "@/lib/api";
 import { statusColors, statusLabels } from "@/lib/constants";
 import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { useTranslation } from "@/lib/i18n";
 import { Camera } from "lucide-react-native";
 
 interface CameraCardProps {
@@ -11,9 +12,10 @@ interface CameraCardProps {
 }
 
 export const CameraCard = memo(function CameraCard({ camera }: CameraCardProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const color = statusColors[camera.status] ?? colors.textMuted;
-  const label = statusLabels[camera.status] ?? camera.status;
+  const label = t(`common.statusLabels.${camera.status?.toLowerCase()}`) || statusLabels[camera.status] || camera.status;
 
   return (
     <TouchableOpacity
@@ -28,7 +30,7 @@ export const CameraCard = memo(function CameraCard({ camera }: CameraCardProps) 
         <View style={styles.content}>
           <Text style={styles.name} numberOfLines={1}>{camera.name}</Text>
           <Text style={styles.site}>
-            {camera.site?.name ?? "Site inconnu"}
+            {camera.site?.name ?? t("cameras.unknownSite")}
           </Text>
         </View>
         <View style={styles.statusWrap}>
