@@ -104,16 +104,31 @@ Plans:
 
 Plans:
 
+**Wave 1**
+
 - [ ] 04-01-PLAN.md — CSS & Design Token Foundation (Wave 1)
 - [ ] 04-02-PLAN.md — Shared UI Components (Wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 04-03-PLAN.md — Navigation & Layout Refresh (Wave 2)
 - [ ] 04-04-PLAN.md — Landing Section Component Rewrites (Wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 04-05-PLAN.md — Homepage Rewrite & Existing Page Refresh (Wave 3)
 - [ ] 04-06-PLAN.md — i18n Messages & Content Infrastructure (Wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 04-07-PLAN.md — Products Section (Wave 4)
 - [ ] 04-08-PLAN.md — Solutions Section (Wave 4)
 - [ ] 04-09-PLAN.md — Case Studies Section (Wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 04-10-PLAN.md — Interactive Demo Tour (Wave 5)
+
 **UI hint**: yes
 
 ### Phase 5: Bug Fixing & Cross-Platform Polish
