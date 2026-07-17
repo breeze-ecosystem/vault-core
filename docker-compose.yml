@@ -106,15 +106,55 @@ services:
 
   # ─── MQTT Broker for Door Controller Communication ───
 
+  # Init container: generates self-signed CA + server certificates on first start
+  mosquitto-init:
+    image: alpine:3
+    container_name: oversight-mosquitto-init
+    volumes:
+      - mosquitto_certs:/certs
+      - ./scripts:/scripts:ro
+    entrypoint: ["/bin/sh", "/scripts/generate-mqtt-certs.sh"]
+    restart: no
+
   mosquitto:
     image: eclipse-mosquitto:2.0
     container_name: oversight-mosquitto
-    expose:
-      - "1883"
-      - "9001"
+    depends_on:
+      mosquitto-init:
+        condition: service_completed_successfully
+    ports:
+      - "8883:8883"
     volumes:
+      - mosquitto_certs:/mosquitto/certs:ro
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/config/acl:/mosquitto/config/acl:ro
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
+    environment:
+      MOSQUITTO_PASSWORD: ${MOSQUITTO_PASSWORD:-CHANGE_ME_MOSQUITTO_PASSWORD}
+    restart: unless-stopped
+
+  # ─── Edge Agent ─────────────────────────────────────────────────────────────────
+  edge-agent:
+    build:
+      context: ./edge/agent
+    container_name: oversight-edge-agent
+    network_mode: host
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+      - /dev/ttyAMA0:/dev/ttyAMA0
+    environment:
+      MQTT_BROKER_HOST: ${MQTT_BROKER_HOST:-localhost}
+      MQTT_BROKER_PORT: ${MQTT_BROKER_PORT:-8883}
+      MQTT_USERNAME: ${MQTT_USERNAME:?MQTT_USERNAME is required}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:?MQTT_PASSWORD is required}
+      MQTT_TLS_CA_CERT: ${MQTT_TLS_CA_CERT:-/etc/ssl/certs/ca.crt}
+      EDGE_SUPERVISION_URL: ${EDGE_SUPERVISION_URL:-http://localhost:4000}
+      EDGE_AGENT_SECRET: ${EDGE_AGENT_SECRET:?EDGE_AGENT_SECRET is required}
+      EDGE_SITE_ID: ${EDGE_SITE_ID:?EDGE_SITE_ID is required}
+      EDGE_AGENT_ID: ${EDGE_AGENT_ID:-edge-unknown}
+      SERIAL_PORTS: ${SERIAL_PORTS:-/dev/ttyUSB0,/dev/ttyAMA0}
+      SERIAL_BAUD: ${SERIAL_BAUD:-9600}
     restart: unless-stopped
 
   # ─── Qdrant Vector Database ───
@@ -141,6 +181,7 @@ services:
 volumes:
   mosquitto_data:
   mosquitto_log:
+  mosquitto_certs:
   qdrant_data:
 
 networks:
