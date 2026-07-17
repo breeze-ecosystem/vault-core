@@ -9,7 +9,7 @@ type PageHeaderProps = {
 export function PageHeader({ heading, subheading, className }: PageHeaderProps) {
   return (
     <div className={cn('mx-auto max-w-3xl text-center', className)}>
-      <h1 className="text-display mb-4 text-foreground md:text-[40px] sm:text-[32px] max-sm:text-[24px]">
+      <h1 className="font-display text-display mb-4 text-foreground">
         {heading}
       </h1>
       {subheading && (

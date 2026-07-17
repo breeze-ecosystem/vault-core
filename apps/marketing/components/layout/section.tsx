@@ -11,9 +11,9 @@ type SectionProps = {
 };
 
 const variantStyles: Record<SectionVariant, string> = {
-  default: 'bg-white',
-  alt: 'bg-secondary',
-  dark: 'bg-dark text-white',
+  default: 'bg-[#070912]',
+  alt: 'bg-[#0c1020]',
+  dark: 'bg-[#070912]',
 };
 
 export function Section({ id, variant = 'default', children, className }: SectionProps) {
