@@ -4,17 +4,17 @@
 
 Oversight Hub is a commercial SaaS platform that delivers AI-powered physical security intelligence — unifying video surveillance, access control, and operational security into a single, premium experience. Sold via subscription and license to security teams, IT, facilities, and operations worldwide, it correlates real-world events (badges, doors, vehicles, incidents, anomalies) with video evidence and automated decision workflows. It replaces fragmented point solutions with an integrated platform that is visually stunning, intuitive, and AI-first.
 
-## Current Milestone: v2.0 Commercial Platform
+## Current Milestone: v3.0 Production Readiness & Hardware Integration
 
-**Goal:** Transform the v1.0 technical prototype into a production-grade, premium SaaS platform ready for international sale — with deep, polished features, a modern 2026 visual identity, a public marketing website, and subscription/license monetization.
+**Goal:** Transformer le prototype en un outil 100% fonctionnel et production-ready — zéro bug, hardware connecté, site marketing premium, et expérience cross-platform stable.
 
 **Target features:**
-- Complete architecture refactor — scalable, multi-tenant, production-grade NestJS patterns
-- Deep feature rebuild — every feature taken from "basic/prototype" to production depth
-- Premium UI/UX redesign — Dashboard + Mobile with modern 2026 design, visual-first, intuitive
-- Public landing page — marketing site, pricing, blog, SEO, international branding
-- Subscription & licensing — Stripe/PayPal billing, plan management, license provisioning
-- AI-first branding — positioning as ultra-advanced, international, modern platform
+- 🔧 Bug fixing général — tous les bugs, incohérences, comportements incomplets corrigés
+- 🎨 Refonte site marketing — design moderne Linear/Vercel-style, contenu enrichi, storytelling produit
+- 🌐 Traduction complète — finaliser toutes les locales du site marketing
+- 🚪 Intégration hardware — portes, contrôleurs d'accès, caméras, badges, scanners
+- 🏭 Production readiness — protocoles standards (OSDP/Wiegand/ONVIF), Edge Agent robuste, validation terrain
+- 📱 Polish cross-platform — Dashboard + Mobile stables, cohérents, sans régression
 
 ## Core Value
 
@@ -121,4 +121,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 ---
-*Last updated: 2026-07-15 — start of milestone v2.0*
+*Last updated: 2026-07-17 — start of milestone v3.0*
