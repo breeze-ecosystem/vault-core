@@ -14,7 +14,7 @@ v3.0 transforms Oversight Hub from a polished SaaS platform into a production-re
 
 ## Phases
 
-- [ ] **Phase 1: Infrastructure Foundation** — Edge Agent async rewrite, MQTT security, Docker networking for hardware
+- [x] **Phase 1: Infrastructure Foundation** — Edge Agent async rewrite, MQTT security, Docker networking for hardware
 - [ ] **Phase 2: Hardware Integration** — OSDP door protocol and ONVIF camera auto-discovery
 - [ ] **Phase 3: Visitor Kiosk** — Self-check-in/out touchscreen with badge printing and QR scanning
 - [ ] **Phase 4: Marketing Site Redesign** — Premium design, enriched content, 6-language translation, interactive demo
@@ -90,7 +90,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure Foundation | 0/3 | Planned | - |
+| 1. Infrastructure Foundation | 3/3 | Complete | 2026-07-17 |
 | 2. Hardware Integration | 0/0 | Not started | - |
 | 3. Visitor Kiosk | 0/0 | Not started | - |
 | 4. Marketing Site Redesign | 0/0 | Not started | - |
