@@ -14,6 +14,7 @@ import {
   type VisitorDto,
 } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n/context";
+import { toast } from "@/components/ui/toast";
 import { Plus, LogIn, LogOut, XCircle, ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 const statusColors: Record<string, string> = {
@@ -66,8 +67,8 @@ export default function VisitorsPage() {
       });
       setVisits(result.data);
       setVisitsTotal(result.total);
-    } catch {
-      // Error handled silently
+    } catch (e: any) {
+      toast(e.message || "Échec du chargement des visites", "error");
     } finally {
       setVisitsLoading(false);
     }
@@ -83,8 +84,8 @@ export default function VisitorsPage() {
       });
       setVisitors(result.data);
       setVisitorsTotal(result.total);
-    } catch {
-      // Error handled silently
+    } catch (e: any) {
+      toast(e.message || "Échec du chargement des visiteurs", "error");
     } finally {
       setVisitorsLoading(false);
     }
@@ -103,8 +104,8 @@ export default function VisitorsPage() {
     try {
       await checkInVisit(visitId);
       await loadVisits();
-    } catch {
-      // Error handled silently
+    } catch (e: any) {
+      toast(e.message || "Échec de l'enregistrement", "error");
     } finally {
       setActionLoading(null);
     }
@@ -115,8 +116,8 @@ export default function VisitorsPage() {
     try {
       await checkOutVisit(visitId);
       await loadVisits();
-    } catch {
-      // Error handled silently
+    } catch (e: any) {
+      toast(e.message || "Échec de l'enregistrement", "error");
     } finally {
       setActionLoading(null);
     }
@@ -127,8 +128,8 @@ export default function VisitorsPage() {
     try {
       await cancelVisit(visitId);
       await loadVisits();
-    } catch {
-      // Error handled silently
+    } catch (e: any) {
+      toast(e.message || "Échec de l'annulation", "error");
     } finally {
       setActionLoading(null);
     }

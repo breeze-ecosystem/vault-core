@@ -209,9 +209,9 @@ export default function CommandCenterPage() {
           <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
             <AlertTriangle className="h-12 w-12 text-destructive" />
             <p className="text-sm text-destructive">{error}</p>
-            <p className="text-xs text-muted-foreground">
+            <Button variant="outline" size="sm" onClick={() => window.location.reload()} className="mt-2">
               Réessayer
-            </p>
+            </Button>
           </div>
         </div>
       </PageTransition>
@@ -302,8 +302,7 @@ export default function CommandCenterPage() {
             <CameraGrid
               cameras={cameras}
               onCameraClick={(cameraId) => {
-                // Could open camera detail modal
-                console.log("Camera clicked:", cameraId);
+                // Could open camera detail modal — no-op for now
               }}
             />
 
@@ -339,7 +338,7 @@ export default function CommandCenterPage() {
           <CameraGrid
             cameras={cameras}
             onCameraClick={(cameraId) => {
-              console.log("Camera clicked:", cameraId);
+              // Could open camera detail modal — no-op for now
             }}
           />
         </div>

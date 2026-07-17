@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   fetchCameraHealth,
   fetchReaderHealth,
@@ -66,7 +67,7 @@ export default function EquipmentOverviewPage() {
       setReaders(rds);
       setControllers(ctrls);
     } catch {
-      // Silently handle — data will retry on next interval
+      // Data will retry on next interval
     } finally {
       setLoading(false);
     }
@@ -79,6 +80,35 @@ export default function EquipmentOverviewPage() {
   const controllerStats = countStatuses(
     controllers.map((c) => ({ status: c.connection_stability === "stable" ? "ONLINE" : "OFFLINE" })),
   );
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Santé des équipements"
+          description="Surveillance en temps réel de l'état des équipements — actualisation toutes les 30s"
+        />
+        {[1, 2, 3].map((i) => (
+          <Card key={i}>
+            <CardHeader>
+              <Skeleton className="h-6 w-32" />
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                {[1, 2, 3].map((j) => (
+                  <div key={j} className="rounded-lg bg-muted p-3 text-center">
+                    <Skeleton className="h-8 w-12 mx-auto mb-2" />
+                    <Skeleton className="h-3 w-16 mx-auto" />
+                  </div>
+                ))}
+              </div>
+              <Skeleton className="h-9 w-full" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

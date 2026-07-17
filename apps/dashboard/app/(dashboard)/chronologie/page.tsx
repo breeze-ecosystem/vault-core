@@ -34,9 +34,6 @@ import {
   Filter,
 } from "lucide-react";
 
-if (!process.env.NEXT_PUBLIC_API_URL) {
-  console.error("NEXT_PUBLIC_API_URL is not defined.");
-}
 const WS_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 function formatRelativeTime(iso: string): string {

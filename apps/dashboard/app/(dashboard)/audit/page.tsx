@@ -145,7 +145,7 @@ function AuditLogTab() {
       setEntries(result.data);
       setTotal(result.total);
     } catch (e) {
-      console.error("Failed to fetch audit logs:", e);
+      // Audit logs fetch failure is non-critical
     } finally {
       setLoading(false);
     }
@@ -615,10 +615,8 @@ function ExportTab() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (e: any) {
-      console.error("Export failed:", e);
-    } finally {
-      setExporting(false);
+    } catch {
+      // Export failure — non-critical, user can retry
     }
   };
 

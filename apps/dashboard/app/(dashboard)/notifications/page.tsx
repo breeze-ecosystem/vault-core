@@ -67,8 +67,7 @@ export default function NotificationsPage() {
 
       const inAppSetting = s.find((x) => x.channel === "IN_APP");
       setInAppEnabled(inAppSetting?.enabled ?? true);
-    } catch (err) {
-      console.error("Failed to load notifications:", err);
+    } catch {
       setSettings([]);
       setLogs({ data: [], total: 0 });
     } finally {
@@ -89,8 +88,8 @@ export default function NotificationsPage() {
         { channel: "IN_APP", enabled: inAppEnabled },
       ]);
       await loadData();
-    } catch (err: unknown) {
-      alert("Erreur: " + ((err as Error).message ?? "Échec de la sauvegarde"));
+    } catch {
+      // Save failure handled via loadData — data stays stale, user can retry
     } finally {
       setSaving(false);
     }

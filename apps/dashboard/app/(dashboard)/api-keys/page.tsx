@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Plus } from "lucide-react";
 import { fetchApiKeys, revokeApiKey, type ApiKey } from "@/lib/api";
 import { ApiKeyTable } from "@/components/api-keys/ApiKeyTable";
@@ -88,7 +89,11 @@ export default function ApiKeysPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-sm text-muted-foreground">Chargement...</p>
+              <div className="space-y-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-12 w-full" />
+                ))}
+              </div>
             ) : (
               <ApiTable keys={keys} onRevoke={handleRevoke} />
             )}

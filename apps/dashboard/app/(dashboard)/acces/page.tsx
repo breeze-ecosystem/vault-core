@@ -11,6 +11,7 @@ import {
   type CredentialDto,
 } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n/context";
+import { toast } from "@/components/ui/toast";
 import { Plus } from "lucide-react";
 
 const typeLabels: Record<string, string> = {
@@ -120,14 +121,14 @@ export default function AccesPage() {
               className="text-red-600 hover:text-red-800"
               onClick={async (e) => {
                 e.stopPropagation();
-                if (confirm("Désactiver ce justificatif ?")) {
-                  try {
-                    await deactivateCredential(item.id);
-                    setRefreshKey((k) => k + 1);
-                  } catch (err: any) {
-                    // ignore
+                  if (confirm("Désactiver ce justificatif ?")) {
+                    try {
+                      await deactivateCredential(item.id);
+                      setRefreshKey((k) => k + 1);
+                    } catch (err: any) {
+                      toast(err.message || "Échec de la désactivation", "error");
+                    }
                   }
-                }
               }}
             >
               Désactiver

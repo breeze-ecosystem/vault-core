@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Plus } from "lucide-react";
 import { fetchWebhookSubscriptions, type WebhookSubscription } from "@/lib/api";
 import { WebhookSubscriptionForm } from "@/components/webhooks/WebhookSubscriptionForm";
@@ -58,7 +59,11 @@ export default function WebhooksPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-sm text-muted-foreground">Chargement...</p>
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-16 w-full rounded-lg" />
+                ))}
+              </div>
             ) : subscriptions.length === 0 ? (
               <p className="text-sm text-muted-foreground">Aucun abonnement webhook configuré.</p>
             ) : (

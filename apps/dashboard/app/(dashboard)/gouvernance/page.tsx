@@ -280,7 +280,11 @@ export default function GovernancePage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-sm text-muted-foreground">Chargement...</p>
+            <div className="space-y-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
           ) : policies.length === 0 ? (
             <div className="rounded-lg border border-dashed p-6 text-center">
               <p className="text-sm text-muted-foreground">Aucune politique de rétention configurée</p>

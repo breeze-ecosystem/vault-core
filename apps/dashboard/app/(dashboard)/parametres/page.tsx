@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "@/components/ui/toast";
 import { updateUser, changePassword, getLicenseStatus, getLicenseUsage } from "@/lib/api";
@@ -286,7 +287,15 @@ function ApiKeysTab() {
       <Card>
         <CardHeader><CardTitle className="text-lg">Clés API actives</CardTitle></CardHeader>
         <CardContent>
-          {loading ? <p className="text-sm text-muted-foreground">Chargement...</p> : <ApiKeyTable keys={keys} onRevoke={handleRevoke} />}
+          {loading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : (
+            <ApiKeyTable keys={keys} onRevoke={handleRevoke} />
+          )}
         </CardContent>
       </Card>
     </div>
@@ -327,7 +336,13 @@ function WebhooksTab() {
       <Card>
         <CardHeader><CardTitle className="text-lg">Abonnements</CardTitle></CardHeader>
         <CardContent>
-          {loading ? <p className="text-sm text-muted-foreground">Chargement...</p> : subscriptions.length === 0 ? (
+          {loading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          ) : subscriptions.length === 0 ? (
             <p className="text-sm text-muted-foreground">Aucun abonnement webhook configuré.</p>
           ) : (
             <div className="space-y-3">

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ComplianceReportSelector } from "@/components/compliance/ComplianceReportSelector";
 import { generateComplianceReport } from "@/lib/api";
 import type { ComplianceReportType } from "@/lib/api";
+import { toast } from "@/components/ui/toast";
 
 export default function ConformitePage() {
   const [generating, setGenerating] = useState(false);
@@ -15,7 +16,7 @@ export default function ConformitePage() {
     try {
       await generateComplianceReport(reportType, dateRange);
     } catch (e: any) {
-      console.error("Report generation failed:", e);
+      toast(e.message || "Échec de la génération du rapport", "error");
     } finally {
       setGenerating(false);
     }
