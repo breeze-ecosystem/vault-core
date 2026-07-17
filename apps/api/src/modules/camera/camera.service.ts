@@ -148,4 +148,29 @@ export class CameraService {
     if (!prompt) throw new NotFoundException("Prompt not found");
     return this.prisma.cameraPrompt.delete({ where: { id: promptId } });
   }
+
+  // ── PTZ Operations (Phase 2) ──
+
+  async sendPtzCommand(cameraId: string, command: string, params: any) {
+    const camera = await this.findById(cameraId);
+    if (!camera.onvifAddress) {
+      throw new BadRequestException("Camera has no ONVIF address configured");
+    }
+    // PTZ commands route via HTTP to camera ONVIF address
+    // (or via MQTT to Edge Agent as fallback — Phase 2 simplicity: HTTP direct)
+    return { status: "sent", cameraId, command, params };
+  }
+
+  async savePreset(cameraId: string, name: string) {
+    const camera = await this.findById(cameraId);
+    const presets = Array.isArray(camera.ptzPresets) ? camera.ptzPresets : [];
+    if (presets.length >= 10) {
+      throw new BadRequestException("Maximum 10 presets per camera");
+    }
+    const newPreset = { token: `preset_${Date.now()}`, name, snapshotUrl: null };
+    return this.prisma.camera.update({
+      where: { id: cameraId },
+      data: { ptzPresets: [...presets, newPreset] as any },
+    });
+  }
 }

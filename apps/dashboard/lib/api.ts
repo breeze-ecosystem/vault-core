@@ -2898,3 +2898,93 @@ export async function updateOrganizationBranding(data: {
   }
   return res.json();
 }
+
+// ─── Door Commands (Phase 2, D-04) ───
+
+export async function sendDoorCommand(doorId: string, command: "lock" | "unlock"): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/doors/${doorId}/cmd`, {
+    method: "POST",
+    body: JSON.stringify({ command }),
+  });
+  if (!res.ok) throw new Error("Échec de la commande porte");
+}
+
+export async function createDoor(data: {
+  name: string; siteId: string; zoneId: string;
+  location?: string; controllerId?: string;
+}): Promise<any> {
+  const res = await fetchWithAuth(`${API_URL}/api/doors`, {
+    method: "POST", body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Échec de la création de porte");
+  return res.json();
+}
+
+// ─── Camera-Door Association (Phase 2, D-10) ───
+
+export async function fetchCameraMaps(doorId: string): Promise<any[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/doors/${doorId}/camera-maps`);
+  if (!res.ok) throw new Error("Échec du chargement des associations caméra");
+  return res.json();
+}
+
+export async function createCameraMap(doorId: string, data: {
+  cameraId: string; angle?: string; priority?: number;
+}): Promise<any> {
+  const res = await fetchWithAuth(`${API_URL}/api/doors/${doorId}/camera-maps`, {
+    method: "POST", body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Échec de l'association caméra-porte");
+  return res.json();
+}
+
+export async function deleteCameraMap(mapId: string): Promise<void> {
+  await fetchWithAuth(`${API_URL}/api/doors/${mapId.split("-")[0]}/camera-maps/${mapId}`, {
+    method: "DELETE",
+  });
+}
+
+// ─── PTZ Commands (Phase 2, D-06, D-16) ───
+
+export async function ptzContinuousMove(
+  cameraId: string, pan: number, tilt: number, zoom: number,
+): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/${cameraId}/ptz/continuous`, {
+    method: "POST", body: JSON.stringify({ pan, tilt, zoom }),
+  });
+  if (!res.ok) throw new Error("Échec de la commande PTZ");
+}
+
+export async function ptzStop(cameraId: string): Promise<void> {
+  await fetchWithAuth(`${API_URL}/api/cameras/${cameraId}/ptz/stop`, { method: "POST" });
+}
+
+export async function ptzGotoPreset(cameraId: string, presetToken: string): Promise<void> {
+  await fetchWithAuth(`${API_URL}/api/cameras/${cameraId}/ptz/goto-preset`, {
+    method: "POST", body: JSON.stringify({ presetToken }),
+  });
+}
+
+export async function ptzSavePreset(cameraId: string, name: string): Promise<any> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/${cameraId}/ptz/save-preset`, {
+    method: "POST", body: JSON.stringify({ name }),
+  });
+  return res.json();
+}
+
+// ─── Controller Enrollment (Phase 2, D-17) ───
+
+export async function fetchControllers(): Promise<any[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/controllers`);
+  if (!res.ok) throw new Error("Échec du chargement des contrôleurs");
+  return res.json();
+}
+
+export async function enrollController(
+  controllerId: string, data: { name: string; siteId: string; zoneId?: string },
+): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/controllers/${controllerId}/enroll`, {
+    method: "PATCH", body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Échec de l'enregistrement du contrôleur");
+}
