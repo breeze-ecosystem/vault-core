@@ -162,7 +162,7 @@ Plans:
 - [x] 05-05-PLAN.md — Mobile i18n Framework + Migration (POL-04)
 
 **Wave 5** *(blocked on Wave 4)*
-- [ ] 05-06-PLAN.md — Mobile Parity Batch 1: API Functions + 8 Simple Screens (POL-02)
+- [x] 05-06-PLAN.md — Mobile Parity Batch 1: API Functions + 8 Simple Screens (POL-02)
 
 **Wave 6** *(blocked on Wave 5)*
 - [ ] 05-07-PLAN.md — Mobile Parity Batch 2: 11 Complex Screens + Navigation (POL-02)
@@ -178,4 +178,4 @@ Plans:
 | 2. Hardware Integration | 0/5 | Not started | - |
 | 3. Visitor Kiosk | 4/4 | Complete | 2026-07-17 |
 | 4. Marketing Site Redesign | 10/10 | Complete   | 2026-07-17 |
-| 5. Bug Fixing & Cross-Platform Polish | 5/8 | In Progress|  |
+| 5. Bug Fixing & Cross-Platform Polish | 6/8 | In Progress|  |
