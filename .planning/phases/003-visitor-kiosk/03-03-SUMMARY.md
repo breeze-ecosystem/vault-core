@@ -150,6 +150,14 @@ None — no external service configuration required for this plan.
 - After 03-04: Docker + CUPS deployment in Plan 03-05
 - The `handleConfirm` and `handleQRDecoded` handler functions contain the print flow that will connect to 03-04's printing screen component
 
+## Self-Check: PASSED
+
+- [x] All 7 created files exist on disk
+- [x] Both modified files exist on disk (page.tsx, next.config.js)
+- [x] All 6 commits verified in git log
+- [x] Static build succeeds (`pnpm --filter @repo/kiosk build`)
+- [x] No missing dependencies or unresolved TypeScript errors
+
 ---
 
 *Phase: 003-visitor-kiosk*
