@@ -573,3 +573,283 @@ export async function uploadIncidentPhoto(incidentId: string, photoUri: string):
   }
   return res.json();
 }
+
+// ─── Phase 06: Feature Parity — API Client Functions ───
+
+export interface AuditLogEntry {
+  id: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  userId: string | null;
+  userName: string | null;
+  details: Record<string, unknown> | null;
+  ipAddress: string | null;
+  timestamp: string;
+}
+
+export async function fetchAuditLogs(params?: {
+  entity?: string;
+  action?: string;
+  userId?: string;
+  from?: string;
+  to?: string;
+  page?: number;
+  limit?: number;
+}): Promise<PaginatedResponse<AuditLogEntry>> {
+  const search = new URLSearchParams();
+  if (params?.entity) search.set("entity", params.entity);
+  if (params?.action) search.set("action", params.action);
+  if (params?.userId) search.set("userId", params.userId);
+  if (params?.from) search.set("from", params.from);
+  if (params?.to) search.set("to", params.to);
+  if (params?.page) search.set("page", String(params.page));
+  if (params?.limit) search.set("limit", String(params.limit));
+  const qs = search.toString();
+  const res = await fetchWithAuth(`${API_BASE}/audit/logs${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des journaux d'audit");
+  return res.json();
+}
+
+export interface ApiKey {
+  id: string;
+  name: string;
+  key: string;
+  status: "active" | "revoked";
+  lastUsed: string | null;
+  createdAt: string;
+  expiresAt: string | null;
+}
+
+export async function fetchApiKeys(params?: {
+  page?: number;
+  limit?: number;
+}): Promise<PaginatedResponse<ApiKey>> {
+  const search = new URLSearchParams();
+  if (params?.page) search.set("page", String(params.page));
+  if (params?.limit) search.set("limit", String(params.limit));
+  const qs = search.toString();
+  const res = await fetchWithAuth(`${API_BASE}/api-keys${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des clés API");
+  return res.json();
+}
+
+export async function createApiKey(data: { name: string; scopes?: string[] }): Promise<ApiKey> {
+  const res = await fetchWithAuth(`${API_BASE}/api-keys`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || "Erreur lors de la création de la clé API");
+  }
+  return res.json();
+}
+
+export async function revokeApiKey(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_BASE}/api-keys/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Erreur lors de la révocation de la clé API");
+}
+
+export interface ComplianceReport {
+  id: string;
+  title: string;
+  status: "compliant" | "non_compliant" | "pending";
+  generatedAt: string;
+  period: string;
+  metrics: Record<string, number>;
+}
+
+export async function fetchComplianceReports(params?: {
+  page?: number;
+  limit?: number;
+}): Promise<PaginatedResponse<ComplianceReport>> {
+  const search = new URLSearchParams();
+  if (params?.page) search.set("page", String(params.page));
+  if (params?.limit) search.set("limit", String(params.limit));
+  const qs = search.toString();
+  const res = await fetchWithAuth(`${API_BASE}/compliance/reports${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des rapports de conformité");
+  return res.json();
+}
+
+export interface WebhookSubscription {
+  id: string;
+  name: string;
+  url: string;
+  events: string[];
+  status: "active" | "disabled";
+  lastDelivery: string | null;
+  createdAt: string;
+}
+
+export async function fetchWebhooks(params?: {
+  page?: number;
+  limit?: number;
+}): Promise<PaginatedResponse<WebhookSubscription>> {
+  const search = new URLSearchParams();
+  if (params?.page) search.set("page", String(params.page));
+  if (params?.limit) search.set("limit", String(params.limit));
+  const qs = search.toString();
+  const res = await fetchWithAuth(`${API_BASE}/webhooks/subscriptions${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des webhooks");
+  return res.json();
+}
+
+export async function createWebhook(data: { name: string; url: string; events: string[] }): Promise<WebhookSubscription> {
+  const res = await fetchWithAuth(`${API_BASE}/webhooks/subscriptions`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || "Erreur lors de la création du webhook");
+  }
+  return res.json();
+}
+
+export async function updateWebhook(id: string, data: { name?: string; url?: string; events?: string[]; status?: string }): Promise<WebhookSubscription> {
+  const res = await fetchWithAuth(`${API_BASE}/webhooks/subscriptions/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || "Erreur lors de la mise à jour du webhook");
+  }
+  return res.json();
+}
+
+export async function deleteWebhook(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_BASE}/webhooks/subscriptions/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Erreur lors de la suppression du webhook");
+}
+
+export async function testWebhook(id: string): Promise<{ success: boolean; statusCode: number }> {
+  const res = await fetchWithAuth(`${API_BASE}/webhooks/subscriptions/${id}/test`, { method: "POST" });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || "Erreur lors du test du webhook");
+  }
+  return res.json();
+}
+
+export interface SchemaDefinition {
+  id: string;
+  name: string;
+  version: string;
+  schema: Record<string, unknown>;
+  isActive: boolean;
+}
+
+export async function fetchSchemas(params?: {
+  page?: number;
+  limit?: number;
+}): Promise<PaginatedResponse<SchemaDefinition>> {
+  const search = new URLSearchParams();
+  if (params?.page) search.set("page", String(params.page));
+  if (params?.limit) search.set("limit", String(params.limit));
+  const qs = search.toString();
+  const res = await fetchWithAuth(`${API_BASE}/schemas${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des schémas");
+  return res.json();
+}
+
+export interface EquipmentItem {
+  id: string;
+  name: string;
+  type: string;
+  status: "ONLINE" | "OFFLINE" | "DEGRADED";
+  siteId: string;
+  siteName: string | null;
+  lastHeartbeat: string | null;
+  metrics: Record<string, unknown>;
+}
+
+export async function fetchEquipment(params?: {
+  siteId?: string;
+  type?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+}): Promise<PaginatedResponse<EquipmentItem>> {
+  const search = new URLSearchParams();
+  if (params?.siteId) search.set("siteId", params.siteId);
+  if (params?.type) search.set("type", params.type);
+  if (params?.status) search.set("status", params.status);
+  if (params?.page) search.set("page", String(params.page));
+  if (params?.limit) search.set("limit", String(params.limit));
+  const qs = search.toString();
+  const res = await fetchWithAuth(`${API_BASE}/equipment${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des équipements");
+  return res.json();
+}
+
+export interface MaintenanceTicket {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  priority: string;
+  assignedTo: string | null;
+  createdAt: string;
+  resolvedAt: string | null;
+}
+
+export async function fetchMaintenanceTickets(params?: {
+  status?: string;
+  priority?: string;
+  page?: number;
+  limit?: number;
+}): Promise<PaginatedResponse<MaintenanceTicket>> {
+  const search = new URLSearchParams();
+  if (params?.status) search.set("status", params.status);
+  if (params?.priority) search.set("priority", params.priority);
+  if (params?.page) search.set("page", String(params.page));
+  if (params?.limit) search.set("limit", String(params.limit));
+  const qs = search.toString();
+  const res = await fetchWithAuth(`${API_BASE}/maintenance/tickets${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des tickets de maintenance");
+  return res.json();
+}
+
+export async function createMaintenanceTicket(data: { title: string; description?: string; priority?: string }): Promise<MaintenanceTicket> {
+  const res = await fetchWithAuth(`${API_BASE}/maintenance/tickets`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || "Erreur lors de la création du ticket de maintenance");
+  }
+  return res.json();
+}
+
+export interface SecurityPattern {
+  id: string;
+  name: string;
+  description: string | null;
+  type: string;
+  severity: string;
+  detectedAt: string;
+  status: "active" | "resolved";
+}
+
+export async function fetchPatterns(params?: {
+  deviceType?: string;
+  severity?: string;
+  resolved?: string;
+  page?: number;
+  limit?: number;
+}): Promise<PaginatedResponse<SecurityPattern>> {
+  const search = new URLSearchParams();
+  if (params?.deviceType) search.set("deviceType", params.deviceType);
+  if (params?.severity) search.set("severity", params.severity);
+  if (params?.resolved) search.set("resolved", params.resolved);
+  if (params?.page) search.set("page", String(params.page));
+  if (params?.limit) search.set("limit", String(params.limit));
+  const qs = search.toString();
+  const res = await fetchWithAuth(`${API_BASE}/patterns${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des schémas de sécurité");
+  return res.json();
+}
