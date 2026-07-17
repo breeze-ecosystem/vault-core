@@ -351,6 +351,9 @@ importers:
       '@types/react-dom':
         specifier: 19.1.7
         version: 19.1.7(@types/react@19.1.10)
+      autoprefixer:
+        specifier: ^10
+        version: 10.5.0(postcss@8.5.12)
       tailwindcss:
         specifier: ^3
         version: 3.4.19(yaml@2.9.0)
