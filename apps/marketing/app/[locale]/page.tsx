@@ -22,10 +22,19 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
 
+  const title =
+    locale === 'fr'
+      ? "OVERSIGHT AI - Intelligence de sécurité physique pilotée par l'IA"
+      : 'OVERSIGHT AI - AI-Powered Physical Security Intelligence';
+
+  const description =
+    locale === 'fr'
+      ? "Corrélez chaque événement de contrôle d'accès, alerte de porte et flux vidéo dans une plateforme unifiée avec analyse IA en temps réel."
+      : 'Correlate every access event, door alert, and camera feed in one unified platform with real-time AI analysis.';
+
   return {
-    title: 'OVERSIGHT AI - AI-Powered Physical Security Intelligence',
-    description:
-      'Correlate every access event, door alert, and camera feed in one unified platform with real-time AI analysis.',
+    title,
+    description,
     alternates: {
       canonical: `https://oversighthub.com/${locale}`,
       languages: Object.fromEntries(
@@ -33,9 +42,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ),
     },
     openGraph: {
-      title: 'OVERSIGHT AI - AI-Powered Physical Security Intelligence',
-      description:
-        'Correlate every access event, door alert, and camera feed in one unified platform with real-time AI analysis.',
+      title,
+      description,
       url: `https://oversighthub.com/${locale}`,
       siteName: 'Oversight AI',
       locale: locale === 'en' ? 'en_US' : locale === 'fr' ? 'fr_FR' : locale,
