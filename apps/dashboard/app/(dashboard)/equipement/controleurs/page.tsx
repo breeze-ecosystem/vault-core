@@ -1,15 +1,25 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { io, type Socket } from "socket.io-client";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "@/components/ui/toast";
 import {
   fetchControllerHealth,
   fetchControllerHealthHistory,
+  fetchControllers,
+  enrollController,
+  fetchZones,
   type ControllerHealthDto,
 } from "@/lib/api";
-import { Cpu, Battery, History } from "lucide-react";
+import { Cpu, Battery, History, Plus } from "lucide-react";
+
+const WS_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 function batteryIcon(level: number | null | undefined) {
   if (level === null || level === undefined) return "—";
@@ -98,16 +108,116 @@ function HistoryModal({ controllerId, onClose }: HistoryModalProps) {
   );
 }
 
+// ── Enroll Modal (D-17) ──
+
+interface EnrollModalProps {
+  controller: any;
+  zones: any[];
+  onClose: () => void;
+  onEnroll: (id: string, data: { name: string; siteId: string; zoneId?: string }) => void;
+}
+
+function EnrollModal({ controller, zones, onClose, onEnroll }: EnrollModalProps) {
+  const [name, setName] = useState(
+    controller.manufacturer
+      ? `${controller.manufacturer} ${controller.model || ""}`.trim()
+      : "",
+  );
+  const [siteId, setSiteId] = useState("");
+  const [zoneId, setZoneId] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleEnroll = async () => {
+    setLoading(true);
+    await onEnroll(controller.id, { name, siteId, zoneId: zoneId || undefined });
+    setLoading(false);
+  };
+
+  // Extract site IDs from zones
+  const siteIds = [...new Set(zones.map((z: any) => z.siteId))];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+      <div className="w-full max-w-md rounded-xl border border-border bg-background p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <h3 className="text-lg font-semibold mb-4">Configuration du contrôleur</h3>
+        <div className="space-y-4">
+          <div>
+            <Label>Nom du contrôleur</Label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ex: Contrôleur Entrée principale"
+            />
+          </div>
+          <div>
+            <Label>Site</Label>
+            <select
+              value={siteId}
+              onChange={(e) => setSiteId(e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="">Sélectionner un site...</option>
+              {siteIds.map((sid) => (
+                <option key={sid as string} value={sid as string}>
+                  {sid as string}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <Label>Zone (optionnel)</Label>
+            <select
+              value={zoneId}
+              onChange={(e) => setZoneId(e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="">Aucune zone</option>
+              {zones
+                .filter((z: any) => !siteId || z.siteId === siteId)
+                .map((z: any) => (
+                  <option key={z.id} value={z.id}>
+                    {z.name}
+                  </option>
+                ))}
+            </select>
+          </div>
+        </div>
+        <div className="mt-6 flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose}>
+            Annuler
+          </Button>
+          <Button
+            onClick={handleEnroll}
+            disabled={!name || !siteId || loading}
+          >
+            {loading ? "Enregistrement..." : "Enregistrer"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ControllerHealthPage() {
   const [controllers, setControllers] = useState<ControllerHealthDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterBattery, setFilterBattery] = useState<string>("");
   const [historyController, setHistoryController] = useState<string | null>(null);
+  const [pendingControllers, setPendingControllers] = useState<any[]>([]);
+  const [zones, setZones] = useState<any[]>([]);
+  const [enrollTarget, setEnrollTarget] = useState<any | null>(null);
+  const [showEnrollModal, setShowEnrollModal] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
-      const data = await fetchControllerHealth();
-      setControllers(data);
+      const [healthData, pendingData, zoneList] = await Promise.all([
+        fetchControllerHealth(),
+        fetchControllers().catch(() => []),
+        fetchZones().catch(() => []),
+      ]);
+      setControllers(healthData);
+      setPendingControllers(pendingData.filter((c: any) => c.status === "PENDING"));
+      setZones(zoneList);
     } catch {
       // Silently handle
     } finally {
@@ -121,6 +231,41 @@ export default function ControllerHealthPage() {
     return () => clearInterval(interval);
   }, [loadData]);
 
+  // ── Socket.IO Connection for real-time controller events ──
+
+  useEffect(() => {
+    const socket: Socket = io(`${WS_URL}/ws/doors`, {
+      transports: ["websocket"],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+    });
+
+    socket.on("controller:discovery", (payload: any) => {
+      setPendingControllers((prev) => {
+        // Avoid duplicates
+        if (prev.some((c) => c.id === payload.controllerId || c.serialNumber === payload.serialNumber)) {
+          return prev;
+        }
+        return [...prev, { ...payload, id: payload.controllerId, status: "PENDING" }];
+      });
+      toast("Nouveau contrôleur détecté", "info");
+    });
+
+    socket.on("controller:status", (payload: any) => {
+      // Update pending controller status if it was enrolled
+      setPendingControllers((prev) =>
+        prev.map((c) =>
+          c.id === payload.controllerId ? { ...c, status: payload.status } : c,
+        ),
+      );
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
   const filtered = controllers.filter((c) => {
     if (filterBattery === "low") return c.battery_level !== null && c.battery_level !== undefined && c.battery_level < 20;
     if (filterBattery === "medium") return c.battery_level !== null && c.battery_level !== undefined && c.battery_level >= 20 && c.battery_level <= 50;
@@ -128,12 +273,79 @@ export default function ControllerHealthPage() {
     return true;
   });
 
+  // ── Enroll Handler ──
+
+  async function handleEnroll(controllerId: string, data: { name: string; siteId: string; zoneId?: string }) {
+    try {
+      await enrollController(controllerId, data);
+      toast("Contrôleur configuré", "success");
+      setShowEnrollModal(false);
+      setEnrollTarget(null);
+      loadData();
+    } catch (e: any) {
+      toast(e.message || "Échec de l'enregistrement", "error");
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Santé des contrôleurs"
         description="État en temps réel des contrôleurs de porte — batterie, stabilité, charge système"
       />
+
+      {/* Pending Controllers Section (D-17) */}
+      {pendingControllers.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            Contrôleurs en attente ({pendingControllers.length})
+          </h3>
+          <Card>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/50">
+                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Série</th>
+                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Fabricant</th>
+                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Statut</th>
+                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pendingControllers.map((ctrl) => (
+                      <tr
+                        key={ctrl.id || ctrl.serialNumber}
+                        className="border-b border-border transition-colors hover:bg-muted/30"
+                      >
+                        <td className="px-4 py-3 font-mono text-xs">
+                          {ctrl.serialNumber || ctrl.id?.substring(0, 8) || "—"}
+                        </td>
+                        <td className="px-4 py-3">{ctrl.manufacturer || "—"}</td>
+                        <td className="px-4 py-3">
+                          <Badge variant="outline">En attente</Badge>
+                        </td>
+                        <td className="px-4 py-3">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setEnrollTarget(ctrl);
+                              setShowEnrollModal(true);
+                            }}
+                          >
+                            Configurer
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Battery filter */}
       <div className="flex gap-1 rounded-lg bg-muted p-1 w-fit">
@@ -268,6 +480,19 @@ export default function ControllerHealthPage() {
         <HistoryModal
           controllerId={historyController}
           onClose={() => setHistoryController(null)}
+        />
+      )}
+
+      {/* Enroll Modal */}
+      {showEnrollModal && enrollTarget && (
+        <EnrollModal
+          controller={enrollTarget}
+          zones={zones}
+          onClose={() => {
+            setShowEnrollModal(false);
+            setEnrollTarget(null);
+          }}
+          onEnroll={handleEnroll}
         />
       )}
     </div>
