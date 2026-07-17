@@ -43,12 +43,19 @@ Plans:
 **Depends on**: Phase 1
 **Requirements**: HWR-01, HWR-02, HWR-03, HWR-04, HWR-05
 **Success Criteria** (what must be TRUE):
-  1. OSDP door controllers (via Edge Agent bridge) report real-time events (badge read, door state change, tamper alert) that appear in the platform event journal within 500ms
-  2. Security operator can lock/unlock an OSDP door and change zone assignments from the Dashboard — command reaches the controller within 1 second
-  3. ONVIF cameras on the local LAN are auto-discovered via WS-Discovery and auto-provisioned with RTSP streams, PTZ capabilities, and event subscriptions — zero manual IP configuration
-  4. PTZ controls (pan, tilt, zoom, preset recall) are available in the Dashboard camera view for ONVIF Profile S/T cameras
-  5. All hardware-to-platform communication uses authenticated MQTT with TLS — no unencrypted hardware traffic traverses the network
-**Plans**: TBD
+   1. OSDP door controllers (via Edge Agent bridge) report real-time events (badge read, door state change, tamper alert) that appear in the platform event journal within 500ms
+   2. Security operator can lock/unlock an OSDP door and change zone assignments from the Dashboard — command reaches the controller within 1 second
+   3. ONVIF cameras on the local LAN are auto-discovered via WS-Discovery and auto-provisioned with RTSP streams, PTZ capabilities, and event subscriptions — zero manual IP configuration
+   4. PTZ controls (pan, tilt, zoom, preset recall) are available in the Dashboard camera view for ONVIF Profile S/T cameras
+   5. All hardware-to-platform communication uses authenticated MQTT with TLS — no unencrypted hardware traffic traverses the network
+**Plans**: 5 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Edge Agent OSDP protocol + ONVIF enhancement with site grouping (D-03), replace-on-discovery (D-15), PTZ probing, snapshot capture (HWR-01, HWR-03)
+- [ ] 02-02-PLAN.md — Prisma schema (Camera PTZ/ONVIF fields, Controller model, Door FK) + shared package extensions (schemas, types, constants, barrel) + schema push (HWR-01, HWR-02, HWR-03)
+- [ ] 02-03-PLAN.md — NestJS backend: MqttService OSDP routing, Controller module, Door API (commands, CameraDoorMap CRUD), PTZ endpoints, TimescaleDB 90-day retention (D-18), Socket.IO events, api.ts (HWR-01, HWR-02, HWR-03)
+- [ ] 02-04-PLAN.md — Dashboard door controls (card with auto-retry D-11, zone dropdown), bulk ops, controller enrollment, event enrichment with inline thumbnail (D-09) (HWR-02, HWR-03)
+- [ ] 02-05-PLAN.md — Dashboard PTZ overlay controls (directional pad, zoom, presets) (HWR-03)
 
 ### Phase 3: Visitor Kiosk
 **Goal**: Visitors can autonomously check in and out at a lobby kiosk with badge printing and QR code scanning
@@ -91,7 +98,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Infrastructure Foundation | 3/3 | Complete | 2026-07-17 |
-| 2. Hardware Integration | 0/0 | Not started | - |
+| 2. Hardware Integration | 0/5 | Not started | - |
 | 3. Visitor Kiosk | 0/0 | Not started | - |
 | 4. Marketing Site Redesign | 0/0 | Not started | - |
 | 5. Bug Fixing & Cross-Platform Polish | 0/0 | Not started | - |
