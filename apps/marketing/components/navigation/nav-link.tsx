@@ -9,24 +9,37 @@ type NavLinkProps = {
   href: string;
   children: ReactNode;
   className?: string;
+  isExternal?: boolean;
 };
 
-export function NavLink({ href, children, className }: NavLinkProps) {
+export function NavLink({ href, children, className, isExternal }: NavLinkProps) {
   const pathname = usePathname();
   const isActive = pathname === href || pathname.startsWith(href + '/');
 
+  const classes = cn(
+    'relative inline-flex items-center text-sm font-semibold transition-colors',
+    'after:absolute after:-bottom-0.5 after:left-0 after:h-0.5 after:w-0 after:bg-cyan-400 after:transition-all after:duration-200',
+    isActive
+      ? 'text-cyan-400 after:w-full'
+      : 'text-white/70 hover:text-white hover:after:w-full',
+    className,
+  );
+
+  if (isExternal) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={classes}
+      >
+        {children}
+      </a>
+    );
+  }
+
   return (
-    <Link
-      href={href}
-      className={cn(
-        'relative inline-flex items-center text-sm font-medium transition-colors',
-        'after:absolute after:-bottom-0.5 after:left-0 after:h-0.5 after:w-0 after:bg-cyan-500 after:transition-all after:duration-200 hover:after:w-full',
-        isActive
-          ? 'text-cyan-500 after:w-full'
-          : 'text-foreground/70 hover:text-foreground',
-        className,
-      )}
-    >
+    <Link href={href} className={classes}>
       {children}
     </Link>
   );
