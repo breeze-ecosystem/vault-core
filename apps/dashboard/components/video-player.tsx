@@ -3,11 +3,23 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from '@/lib/i18n/context';
 import { Video, VideoOff, Maximize, Minimize, Loader2 } from 'lucide-react';
+import { PTZControls } from './cameras/ptz-controls';
+import { ptzContinuousMove, ptzStop, ptzGotoPreset, ptzSavePreset } from '@/lib/api';
+
+interface PTZPreset {
+  token: string;
+  name: string;
+  snapshotUrl: string | null;
+}
 
 interface VideoPlayerProps {
   cameraId: string;
   cameraName: string;
   streamUrl?: string;
+  // Phase 2 additions: PTZ overlay support (D-06)
+  hasPtz?: boolean;
+  ptzPresets?: PTZPreset[];
+  userRole?: string;
 }
 
 type ConnectionState = 'connecting' | 'connected' | 'offline';
@@ -22,6 +34,9 @@ export default function VideoPlayer({
   cameraId,
   cameraName,
   streamUrl,
+  hasPtz,
+  ptzPresets,
+  userRole,
 }: VideoPlayerProps) {
   const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -32,7 +47,10 @@ export default function VideoPlayer({
   const [connectionState, setConnectionState] =
     useState<ConnectionState>('connecting');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showPtz, setShowPtz] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const hidePtzTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastPtzCommand = useRef(0);
 
   // ── Cleanup ──────────────────────────────────────────────────────────
   const cleanup = useCallback(() => {
@@ -165,6 +183,64 @@ export default function VideoPlayer({
     return () => document.removeEventListener('fullscreenchange', handler);
   }, []);
 
+  // ── PTZ Handler Functions (Phase 2, D-06) ───────────────────────────
+  const handlePtzMove = useCallback(
+    async (pan: number, tilt: number, zoom: number) => {
+      // Rate limit: max 5 commands/second (200ms gap)
+      const now = Date.now();
+      if (now - lastPtzCommand.current < 200) return;
+      lastPtzCommand.current = now;
+      try {
+        await ptzContinuousMove(cameraId, pan, tilt, zoom);
+      } catch {
+        // Silently handle
+      }
+    },
+    [cameraId],
+  );
+
+  const handlePtzStop = useCallback(async () => {
+    try {
+      await ptzStop(cameraId);
+    } catch {
+      // Silently handle
+    }
+  }, [cameraId]);
+
+  const handlePtzGotoPreset = useCallback(async (presetToken: string) => {
+    try {
+      await ptzGotoPreset(cameraId, presetToken);
+    } catch {
+      // Silently handle
+    }
+  }, [cameraId]);
+
+  const handlePtzSavePreset = useCallback(async (name: string) => {
+    try {
+      await ptzSavePreset(cameraId, name);
+    } catch {
+      // Silently handle
+    }
+  }, [cameraId]);
+
+  // ── PTZ Overlay Auto-Hide Logic ─────────────────────────────────────
+  const showPtzOverlay = useCallback(() => {
+    setShowPtz(true);
+    if (hidePtzTimer.current) clearTimeout(hidePtzTimer.current);
+  }, []);
+
+  const startHideTimer = useCallback(() => {
+    if (hidePtzTimer.current) clearTimeout(hidePtzTimer.current);
+    hidePtzTimer.current = setTimeout(() => setShowPtz(false), 4000);
+  }, []);
+
+  // Cleanup hide timer on unmount
+  useEffect(() => {
+    return () => {
+      if (hidePtzTimer.current) clearTimeout(hidePtzTimer.current);
+    };
+  }, []);
+
   // ── Quality indicator color ──────────────────────────────────────────
   const qualityColor: Record<ConnectionState, string> = {
     connected: 'bg-green-500',
@@ -245,6 +321,31 @@ export default function VideoPlayer({
           <Maximize className="h-4 w-4" />
         )}
       </button>
+
+      {/* ── PTZ Controls Overlay (Phase 2) — role-gated per D-16 ────── */}
+      {hasPtz && userRole && ['ADMIN', 'SUPER_ADMIN', 'SUPERVISOR'].includes(userRole) && (
+        <div
+          className={`absolute inset-0 transition-opacity duration-300 ${
+            showPtz ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+          onMouseEnter={showPtzOverlay}
+          onMouseMove={showPtzOverlay}
+          onMouseLeave={startHideTimer}
+          onTouchStart={showPtzOverlay}
+        >
+          <PTZControls
+            cameraId={cameraId}
+            hasPtz={hasPtz}
+            presets={ptzPresets}
+            userRole={userRole}
+            onMove={handlePtzMove}
+            onStop={handlePtzStop}
+            onGotoPreset={handlePtzGotoPreset}
+            onSavePreset={handlePtzSavePreset}
+            disabled={connectionState !== 'connected'}
+          />
+        </div>
+      )}
     </div>
   );
 }
