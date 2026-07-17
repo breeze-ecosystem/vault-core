@@ -1,0 +1,31 @@
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║                   Mosquitto ACL — Per-Site Topic Rules                       ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+#
+# ACL pattern per site agent:
+#   user agent-{siteId}
+#   topic read    site/{siteId}/door/+/cmd
+#   topic write   site/{siteId}/door/+/state
+#   topic write   site/{siteId}/reader/+/badge
+#   topic write   site/{siteId}/controller/+/health
+#
+# Each agent can only read/write topics within its own site namespace (T-INF-04).
+# Edge Agent writes: state, badge, health
+# Edge Agent reads:  cmd (door commands from API)
+#
+# Replace {siteId} with the actual site identifier when adding a new agent.
+# The agent MQTT username MUST match the pattern agent-{siteId}.
+
+# ─── Sample Entry: Site ABC ─────────────────────────────────────────────────────
+user agent-site-abc
+topic read site/abc/door/+/cmd
+topic write site/abc/door/+/state
+topic write site/abc/reader/+/badge
+topic write site/abc/controller/+/health
+
+# ─── Sample Entry: Site XYZ ─────────────────────────────────────────────────────
+user agent-site-xyz
+topic read site/xyz/door/+/cmd
+topic write site/xyz/door/+/state
+topic write site/xyz/reader/+/badge
+topic write site/xyz/controller/+/health
