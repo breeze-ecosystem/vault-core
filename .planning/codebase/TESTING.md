@@ -1,234 +1,136 @@
-# Testing Patterns
+# Testing
 
-**Analysis Date:** 2026-07-14
+> Generated: 2026-07-17
 
 ## Test Framework
 
-**Runner:**
-- **Jest** `^29.7.0` with `ts-jest` `^29.2.5`
-- Config: `apps/api/jest.config.js`
+| Stack | Framework | Version | Config File |
+|-------|-----------|---------|-------------|
+| API (NestJS) | Jest (ts-jest) | 29.7.0 / 29.2.5 | `apps/api/jest.config.js` |
+| Dashboard (Next.js) | Not configured | — | — |
+| Mobile (Expo) | Not configured | — | — |
+| Shared Package | Not configured | — | — |
+| AI Preprocessor (Python) | Not configured | — | — |
+| Edge Agent (Python) | Not configured | — | — |
 
-**Assertion Library:**
-- Jest built-in (`expect`)
-
-**NestJS Testing Utilities:**
-- `@nestjs/testing` `^10.4.8` — provides `Test.createTestingModule` for module isolation
-
-**Run Commands:**
-```bash
-pnpm --filter @repo/api test              # Run all API tests
-pnpm --filter @repo/api test:watch        # Watch mode
-pnpm --filter @repo/api test:cov          # Coverage report
-```
-
-## Test File Organization
-
-**Location:**
-- Co-located with source files: `apps/api/src/modules/[entity]/[entity].service.spec.ts`
-- Only the `apps/api` package has tests
-
-**Current test files (5 total):**
-```
-apps/api/src/modules/
-  ├── auth/auth.service.spec.ts       (258 lines)
-  ├── user/user.service.spec.ts       (255 lines)
-  ├── alert/alert.service.spec.ts     (287 lines)
-  ├── site/site.service.spec.ts       (208 lines)
-  └── camera/camera.service.spec.ts   (324 lines)
-```
-
-**No tests exist for:**
-- Controllers (`*.controller.ts`) — no HTTP-level tests
-- Guards, pipes, filters, decorators
-- Dashboard (`apps/dashboard/`) — no Next.js component tests
-- Mobile (`apps/mobile/`) — no React Native tests
-- Shared package (`packages/shared/`) — no schema/constant tests
-- UI package (`packages/ui/`) — no component tests
-- Gateway/WebSocket (`notification.gateway.ts`) — no integration tests
-- BullMQ processors (`inference.processor.ts`, `notifications.processor.ts`)
+**Only the API application has test infrastructure.** Dashboard, Mobile, Shared, AI Preprocessor, and Edge Agent have no test runner, no test scripts, and no test files.
 
 ## Test Structure
 
-**Suite Organization:**
-Each test file follows a strict 4-section structure with horizontal-rule comments:
+**File naming:** `*.spec.ts` — co-located with the service under test:
+```
+apps/api/src/modules/auth/auth.service.spec.ts    # Tests for auth.service.ts
+apps/api/src/modules/user/user.service.spec.ts     # Tests for user.service.ts
+apps/api/src/modules/camera/camera.service.spec.ts # Tests for camera.service.ts
+apps/api/src/modules/site/site.service.spec.ts     # Tests for site.service.ts
+apps/api/src/modules/alert/alert.service.spec.ts   # Tests for alert.service.ts
+```
+
+**Run Commands** (from `apps/api/`):
+```bash
+pnpm test              # jest --config jest.config.js
+pnpm test:watch        # jest --config jest.config.js --watch
+pnpm test:cov          # jest --config jest.config.js --coverage
+```
+
+**Test Structure Pattern:**
+All test files follow an identical structure with horizontal-rule section separators:
+
+1. Imports
+2. `// ── Mocks ──` section — mock objects for PrismaService and other dependencies
+3. `// ── Test Data ──` section — mock data objects used across tests
+4. `// ── Tests ──` section — the `describe`/`it` blocks
 
 ```typescript
-// ── Import-Laden ─────────────────────────────────────────────────────────
+// auth.service.spec.ts — structural example
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
-import { AlertService } from './alert.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import { AuthService } from './auth.service';
 
-// ── Mocks ────────────────────────────────────────────────────────────────
-const mockPrismaService = {
-  alert: {
-    findMany: jest.fn(),
-    findUnique: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    count: jest.fn(),
-  },
-};
+const mockPrismaService = { ... }; // all model methods mocked
 
-// ── Test Data ────────────────────────────────────────────────────────────
-const mockAlert = {
-  id: 'alert-uuid-1',
-  title: 'Intrusion détectée',
-  severity: 'HIGH',
-  status: 'OPEN',
-  // ...
-};
+const mockUser = { id: 'user-uuid-1', email: 'admin@oversight.sn', ... };
 
-// ── Tests ────────────────────────────────────────────────────────────────
-describe('AlertService', () => {
-  let service: AlertService;
+describe('AuthService', () => {
+  let service: AuthService;
 
   beforeEach(async () => {
     jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        AlertService,
+        AuthService,
         { provide: PrismaService, useValue: mockPrismaService },
       ],
     }).compile();
-    service = module.get<AlertService>(AlertService);
+    service = module.get<AuthService>(AuthService);
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  // Nested describe blocks for each method
   describe('findAll', () => {
-    it('should return paginated alerts with total count', async () => {
-      mockPrismaService.alert.findMany.mockResolvedValue([mockAlert]);
-      mockPrismaService.alert.count.mockResolvedValue(1);
-      const result = await service.findAll();
-      expect(result).toEqual({ data: [mockAlert], total: 1, page: 1, limit: 20 });
-    });
+    it('should return paginated results', async () => { ... });
   });
 });
 ```
 
-**Key Patterns:**
-- **Setup:** `beforeEach` with `jest.clearAllMocks()` before each test, `Test.createTestingModule` compiles a fresh module
-- **Teardown:** No explicit teardown (NestJS testing module handles cleanup)
-- **Assertions:** Primarily `expect().toEqual()`, `expect().toHaveProperty()`, `expect().rejects.toThrow()`, `expect().toHaveBeenCalledWith()`
-- **Method isolation:** Each service method tested under its own nested `describe` block
-- **Always includes:** `it('should be defined')` — basic DI smoke test
+**Suite Organization per File:**
+- Top-level `describe('ServiceName')` for the service
+- `it('should be defined')` — bare-minimum definition check
+- `describe('methodName')` blocks for each service method
+- Each describe contains:
+  - Happy-path test
+  - Edge case tests (empty results, null checks)
+  - Error-case tests (not found throws, validation failures)
 
-**Test naming convention:**
-- Suite: `describe('ServiceName', ...)`
-- Method suites: `describe('methodName', ...)`
-- Cases: `it('should [expected behavior]', ...)` — descriptive, English/French mixed
+## Mocking Strategy
 
-## Mocking
+**Framework:** Jest manual mocks via `jest.fn()`
 
-**Framework:** Jest manual mocks — no `@nestjs/testing` auto-mocking
+**Pattern:** Mock objects created at module scope, provided via NestJS TestingModule:
 
-**Pattern — Mock objects provided via `useValue`:**
 ```typescript
 const mockPrismaService = {
   user: {
     findUnique: jest.fn(),
+    findMany: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    count: jest.fn(),
   },
-  refreshToken: {
-    findUnique: jest.fn(),
-    create: jest.fn(),
-    updateMany: jest.fn(),
+  camera: {
+    findMany: jest.fn(),
+    // ...
   },
 };
-
-// In beforeEach:
-const module = await Test.createTestingModule({
-  providers: [
-    AuthService,
-    { provide: PrismaService, useValue: mockPrismaService },
-    { provide: JwtService, useValue: mockJwtService },
-    { provide: ConfigService, useValue: mockConfigService },
-  ],
-}).compile();
 ```
 
-**Pattern — Module-level `jest.mock()` for external libraries:**
-```typescript
-jest.mock('bcryptjs', () => ({
-  __esModule: true,
-  ...jest.requireActual('bcryptjs'),
-  hash: jest.fn(),
-  compare: jest.fn(),
-}));
-```
-Then in tests: `(bcrypt.compare as jest.Mock).mockResolvedValue(true);`
+**What is mocked:**
+- `PrismaService` — all model methods are mocked at the top level
+- `JwtService` — `sign()` is mocked to return a fixed token string
+- `ConfigService` — `get()` is mocked to return defaults
+- `bcryptjs` — `hash()` and `compare()` are mocked via `jest.mock()` at module level:
+  ```typescript
+  jest.mock('bcryptjs', () => ({
+    __esModule: true,
+    ...jest.requireActual('bcryptjs'),
+    compare: jest.fn(),
+    hash: jest.fn(),
+  }));
+  ```
 
-**Pattern — `jest.spyOn()` for specific method overrides:**
-```typescript
-const hashSpy = jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashed' as never);
-// ... assertions ...
-hashSpy.mockRestore();
-```
+**What is NOT mocked:**
+- NestJS `TestingModule` itself — real dependency injection container is used
+- `Test.createTestingModule` compiles real modules with provided stubs
 
-**What to Mock:**
-- All external dependencies (PrismaService, JwtService, ConfigService)
-- Cryptographic functions (bcryptjs)
-- Any module-level import with side effects
-
-**What NOT to Mock:**
-- The service under test itself
-- NestJS exception classes (real `NotFoundException`, `UnauthorizedException` are thrown)
-- Data structures / plain objects
-
-## Fixtures and Factories
-
-**Test Data Pattern:**
-All test data is defined as module-level constants in a `// ── Test Data ──` section:
-```typescript
-const mockUser = {
-  id: 'user-uuid-1',
-  email: 'admin@oversight.sn',
-  password: 'hashed-password',
-  firstName: 'Ousmane',
-  lastName: 'Diallo',
-  role: 'ADMIN' as const,
-  isActive: true,
-};
-
-const mockUserSafe = {  // Password excluded for safe responses
-  id: 'user-uuid-1',
-  email: 'admin@oversight.sn',
-  firstName: 'Ousmane',
-  lastName: 'Diallo',
-  role: 'ADMIN',
-  isActive: true,
-  siteId: 'site-uuid-1',
-  createdAt: new Date(),
-};
-
-const createData = {
-  name: 'New Site',
-  city: 'Thiès',
-  country: 'SN',
-};
-```
-
-**Location:**
-- Test data is always in-line within the `.spec.ts` file
-- No separate fixture files or factories exist
-- No shared test data across test files (each file is self-contained)
-
-**Naming:**
-- `mockX` — mock service/object: `mockPrismaService`, `mockJwtService`
-- `mockY` — test entity data: `mockUser`, `mockAlert`, `mockCamera`
-- `mockYSafe` — entity with password excluded: `mockUserSafe`
-- `createData` / `updateData` — input data for create/update operations
+**Mock setup in `beforeEach`:**
+- `jest.clearAllMocks()` resets all mock call counts
+- Mock return values configured per-test via `mockResolvedValue()` or `mockImplementation()`
 
 ## Coverage
 
-**Requirements:** No enforcement in CI pipeline (no coverage thresholds configured)
-
-**Config in `apps/api/jest.config.js`:**
+**Configuration** (`apps/api/jest.config.js`):
 ```javascript
 collectCoverageFrom: [
   'src/**/*.ts',
@@ -238,45 +140,45 @@ collectCoverageFrom: [
 ],
 ```
 
-**View Coverage:**
-```bash
-pnpm --filter @repo/api test:cov
-```
+- Coverage collection is configured but **no threshold is enforced**.
+- Excludes entry point (`main.ts`), all module definition files (`*.module.ts`), and declaration files (`*.d.ts`).
+- Coverage is only generated when running `pnpm test:cov`.
+- **Dashboard, Mobile, and Shared packages have no coverage configuration at all.**
 
-**Current coverage gap analysis:**
-- Only 5 service files have tests (auth, user, alert, site, camera)
-- No controller, guard, pipe, filter, decorator, gateway, or processor tests
-- No tests in dashboard, mobile, shared, or UI packages
+**Current coverage state:**
+- Only 5 service files have tests out of 43+ service files in `apps/api/src/modules/`
+- Test files only exist for: `auth.service`, `user.service`, `camera.service`, `site.service`, `alert.service`
+- Untested services include: `ai.service`, `access.service`, `analytics.service`, `audit.service`, `chat.service`, `compliance.service`, `correlation.service`, `dashboard.service`, `door.service`, `equipment.service`, `incident.service`, `inference.service`, `ingestion.service`, `license.service`, `notifications.service`, `organization.service`, `risk.service`, `sso.service`, `supervision.service`, `visitor.service`, `webhook.service`, and more
+- No controller tests, no e2e tests, no integration tests exist
 
-## Test Types
+## CI Integration
 
-**Unit Tests (only type currently present):**
-- Scope: Service classes in isolation
-- Approach: Mock all dependencies, test one service method per `describe` block
-- File: `*.service.spec.ts` co-located with source
+- **No CI configuration detected.** No `.github/workflows/` directory exists.
+- No automated test runs, no coverage gates, no lint checks in CI.
+- No pre-commit hooks or Husky configuration found.
+- No `test` task defined in root `turbo.json` — `test` is only available in `apps/api/package.json`.
 
-**Integration Tests:**
-- Not used
+## Test Patterns
 
-**E2E Tests:**
-- Not used
+### NestJS TestingModule Pattern
+All tests use `@nestjs/testing` to create an isolated module with mocked providers:
 
-## Common Patterns
-
-**Async Testing:**
 ```typescript
-it('should return a user by id', async () => {
-  mockPrismaService.user.findUnique.mockResolvedValue(mockUserSafe);
-  const result = await service.findById('user-uuid-1');
-  expect(result).toEqual(mockUserSafe);
-  expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
-    where: { id: 'user-uuid-1' },
-    select: { /* ... */ },
-  });
-});
+const module: TestingModule = await Test.createTestingModule({
+  providers: [
+    AuthService,
+    { provide: PrismaService, useValue: mockPrismaService },
+    { provide: JwtService, useValue: mockJwtService },
+    { provide: ConfigService, useValue: mockConfigService },
+  ],
+}).compile();
+
+service = module.get<AuthService>(AuthService);
 ```
 
-**Error Testing:**
+### Standard Error Throwing Pattern
+Testing that NotFoundException is thrown when entity not found:
+
 ```typescript
 it('should throw NotFoundException if user not found', async () => {
   mockPrismaService.user.findUnique.mockResolvedValue(null);
@@ -284,49 +186,71 @@ it('should throw NotFoundException if user not found', async () => {
 });
 ```
 
-**Paginated Response Testing:**
+### Prisma Call Verification Pattern
+Verifying the exact arguments passed to Prisma:
+
 ```typescript
-it('should apply pagination (page and limit)', async () => {
-  mockPrismaService.alert.findMany.mockResolvedValue([]);
-  mockPrismaService.alert.count.mockResolvedValue(0);
-  const result = await service.findAll({ page: 2, limit: 10 });
-  expect(mockPrismaService.alert.findMany).toHaveBeenCalledWith(
-    expect.objectContaining({ skip: 10, take: 10 }),
-  );
-  expect(result).toEqual({ data: [], total: 0, page: 2, limit: 10 });
+expect(mockPrismaService.user.findMany).toHaveBeenCalledWith(
+  expect.objectContaining({
+    orderBy: { createdAt: 'desc' },
+    select: expect.objectContaining({
+      id: true, email: true,
+    }),
+  }),
+);
+
+expect(mockPrismaService.refreshToken.update).toHaveBeenCalledWith({
+  where: { id: storedToken.id },
+  data: { isRevoked: true },
 });
 ```
 
-**Token Rotation / Security Testing:**
+### Return Value Assertion Pattern
 ```typescript
-it('should revoke all user tokens and throw if token reuse detected', async () => {
-  mockPrismaService.refreshToken.findUnique.mockResolvedValue({
-    ...storedToken, isRevoked: true,
-  });
-  mockPrismaService.refreshToken.updateMany.mockResolvedValue({ count: 3 });
-  await expect(service.refresh('reused-uuid')).rejects.toThrow(UnauthorizedException);
-  expect(mockPrismaService.refreshToken.updateMany).toHaveBeenCalledWith({
-    where: { userId: 'user-uuid-1' },
-    data: { isRevoked: true },
-  });
+const result = await service.login('admin@oversight.sn', 'password123');
+expect(result).toHaveProperty('accessToken');
+expect(result).toHaveProperty('refreshToken');
+expect(result.organization.name).toBe('Test Org');
+expect(result.user.email).toBe('admin@oversight.sn');
+```
+
+### Pagination Assertion Pattern
+```typescript
+const result = await service.findAll({ page: 2, limit: 10 });
+expect(mockPrismaService.alert.findMany).toHaveBeenCalledWith(
+  expect.objectContaining({ skip: 10, take: 10 }),
+);
+expect(result).toEqual({ data: [], total: 0, page: 2, limit: 10 });
+```
+
+### Async Spy Pattern (for mocking library methods used as async)
+```typescript
+it('should hash the password before saving', async () => {
+  const hashSpy = jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashed' as never);
+  await service.register(registerData);
+  expect(hashSpy).toHaveBeenCalledWith(registerData.password, 10);
+  hashSpy.mockRestore();
 });
 ```
 
-## Adding New Tests
+### Test Data Organization
+Test data objects defined once at module scope, reused across tests:
 
-When adding a new service to `apps/api/src/modules/[entity]/`, create `[entity].service.spec.ts` following this template:
+```typescript
+const mockCamera = {
+  id: 'cam-uuid-1',
+  name: 'Entrée Principale',
+  rtspUrl: 'rtsp://10.0.0.1:554/stream',
+  status: 'ONLINE',
+  ...
+};
 
-1. Imports at top
-2. `jest.mock()` for external libs if needed
-3. `// ── Mocks ──` section with mock objects
-4. `// ── Test Data ──` section with mock entities and input data
-5. `// ── Tests ──` section with:
-   - `describe('ServiceName', ...)` — top-level suite
-   - `beforeEach` creating testing module with `jest.clearAllMocks()`
-   - `it('should be defined')` — DI sanity check
-   - Nested `describe('methodName', ...)` for each service method
-   - At least: success case, not-found error case, and pagination case (for list methods)
+const createData = { name: 'Nouvelle Caméra', rtspUrl: '...', ... };
+const updateData = { name: 'Caméra Mise à Jour' };
+```
+
+Mock data uses French-language field values consistent with the application domain (Senegalese context).
 
 ---
 
-*Testing analysis: 2026-07-14*
+*Testing analysis: 2026-07-17*

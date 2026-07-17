@@ -1,260 +1,131 @@
 # Codebase Concerns
 
-**Analysis Date:** 2026-07-14
+**Analysis Date:** 2026-07-17
 
-## Tech Debt
+## Technical Debt
 
-### TypeScript `any` Proliferation
+| Area | Issue | Impact | Priority | Location |
+|------|-------|--------|----------|----------|
+| **Monolithic API client** | `api.ts` is a 2900-line monofile mixing type definitions, API functions, and business logic for the entire dashboard | Maintainability: any change requires navigating a massive file; encourages copy-paste; high merge conflict surface | High | `apps/dashboard/lib/api.ts` |
+| **Duplicate notification modules** | Two separate module directories exist for notifications with near-identical responsibilities | Confusion about which module is active; risk of split logic; unnecessary complexity | High | `apps/api/src/modules/notification/` vs `apps/api/src/modules/notifications/` |
+| **Massive service files** | Several service files exceed 500 lines, mixing query logic, state machines, and event handling | Reduced readability; difficult to test in isolation; single-responsibility violation | Medium | `apps/api/src/modules/ai/ai.service.ts` (742 lines), `apps/api/src/modules/incident/incident.service.ts` (728 lines), `apps/api/src/modules/door/door.service.ts` (598 lines), `apps/api/src/modules/analytics/analytics.service.ts` (517 lines), `apps/api/src/modules/notifications/notifications.service.ts` (525 lines) |
+| **Deferred implementations across codebase** | Multiple features have stub implementations with TODO comments marking deferred logic | Incomplete features shipped; edge cases not handled; future rework required | High | See "Known Stubs" section below |
+| **Dual validation burden** | Both Zod schemas (`packages/shared/`) and class-validator DTOs (`apps/api/src/common/dto/`) must be kept in sync | Maintenance overhead; risk of validation drift between shared schemas and API DTOs | Medium | `packages/shared/src/schemas/` and `apps/api/src/common/dto/index.ts` |
+| **Bidirectional state machine duplication** | Door state machine logic appears both in `door.service.ts` and a separate `door-state-machine.ts` module | Risk of logic divergence; unclear responsibility boundary | Medium | `apps/api/src/modules/door/door.service.ts`, `apps/api/src/modules/door/door-state-machine.ts` |
+| **Type safety violations with `as any`** | Several areas use `(req as any).apiKeyInfo` and `Record<string, unknown>` where clauses instead of proper typed extensions | Runtime errors masked by type erasure; no compile-time safety | Medium | `apps/api/src/modules/api-key/v1.controller.ts` (lines 49, 71, 137, 204, 264-270, 308), `apps/api/src/modules/api-key/guards/tenant-api-key.guard.ts` (line 106) |
+| **Session storage for JWT tokens** | Dashboard stores access tokens and user data in `sessionStorage` | XSS-vulnerable; no httpOnly protection; tokens persist in browser memory | High | `apps/dashboard/lib/auth-client.ts` (lines 39-43) |
+| **Rate limiter fails open** | When Redis is unavailable, the per-key rate limiter in TenantApiKeyGuard logs a warning but allows the request through | Rate limit bypass during Redis outages | Medium | `apps/api/src/modules/api-key/guards/tenant-api-key.guard.ts` (lines 88-89) |
+| **Global rate limiter double-counting** | Both Fastify global rate limiter and TenantApiKeyGuard per-key rate limiter apply to v1 endpoints | Stricter rate limiting than intended on v1 routes | Low | `apps/api/src/main.ts` (lines 51-55), `apps/api/src/app.module.ts` (lines 122-126) |
+| **AI Agent module has no tests** | The 37-file AI Agent module has zero unit or integration tests | High risk of regressions; no safety net for AI agent refactors | Critical | `apps/api/src/modules/ai-agent/` |
 
-- Issue: Ubiquitous use of `as any` and `any` types (~86 instances) across controllers, services, and guards, bypassing the type system.
-- Files: `apps/api/src/modules/*/**.controller.ts`, `apps/api/src/modules/notifications/notifications.service.ts`, `apps/api/src/modules/supervision/supervision.service.ts`, `apps/api/src/modules/audit/audit.service.ts`, `apps/api/src/main.ts`, `apps/api/src/common/guards/jwt-auth.guard.ts`
-- Impact: Loss of compile-time safety; `(req as any).user` and `(req as any).user.id` patterns on every controller action silently break if the request object structure changes. Method parameter types like `data: any` (`apps/dashboard/lib/api.ts:219`, `apps/dashboard/lib/api.ts:239`) on update functions mean callers can pass arbitrary shapes.
-- Fix Approach: Create a typed `AuthenticatedRequest` interface extending `FastifyRequest` with a `user: JwtPayload` field. Apply it via a custom decorator or pipe. Replace `any` config casts with explicit Record types. Use generics for notification configs instead of `config: any`.
+### Known Stubs / Deferred Implementations
 
-### Monolithic Dashboard API Layer
+| Stub | Location | Details |
+|------|----------|---------|
+| Door remote control | `apps/api/src/modules/api-key/v1.controller.ts:122` | `// TODO: delegate to DoorService.remoteControl() in full implementation` |
+| Incident status update | `apps/api/src/modules/api-key/v1.controller.ts:243` | `// TODO: full validation via Zod schema in production` |
+| Confirmation token validation | `apps/api/src/modules/ai-agent/guardrails/action-confirmation.guard.ts:84` | `// TODO (future): Validate the confirmation token against a Redis-stored pending action` |
+| Qdrant vector DB wiring | `apps/api/src/modules/ai-agent/memory/conversation.memory.ts:98` | `// TODO (Plan 06): Wire Qdrant client` |
+| Edge agent camera data | `edge/agent/agent.py:295` | `# TODO: query local API for real camera data` |
+| Edge agent alert data | `edge/agent/agent.py:300` | `# TODO: query local API for real alert data` |
+| AI agent skill count | `apps/api/src/modules/ai-agent/sse/chat.controller.ts:100` | Hardcoded `skillsRegistered: 0` |
 
-- Issue: `apps/dashboard/lib/api.ts` is 467 lines mixing type definitions, parameterized fetch helpers, and action functions in one file.
-- Impact: Hard to discover functions, high risk of merge conflicts, functions that accept `data: any` (`updateSite`, `updateCamera`) undermine type safety.
-- Fix Approach: Split into `types/` (models, DTOs), `api/` (one file per resource: cameras, alerts, sites, users, notifications, chat), and `lib/http.ts` for `fetchWithAuth` re-export.
+## Known Bugs / Issues
 
-### Notification Module Naming Confusion
+| Issue | Component | Severity | Status | Location |
+|-------|-----------|----------|--------|----------|
+| **Encryption key not validated** | SSO Service | High | Unconfirmed | `apps/api/src/config/configuration.ts:65-66` |
+| `ENCRYPTION_KEY` can be empty string; `sso.service.ts` stores clientSecret in plaintext when missing | | | | `apps/api/src/modules/sso/sso.service.ts:88-98` |
+| **CSP disabled outside production** | API Server | Medium | Acknowledged | `apps/api/src/main.ts:44` |
+| `contentSecurityPolicy` is set to `false` unless `NODE_ENV === 'production'` | | | | |
+| **CORS defaults to wildcard** | Docker Compose | Medium | Acknowledged | `docker-compose.yml:33` |
+| Production compose sets `CORS_ORIGIN` default to `*` | | | | |
+| **V1 controller uses untyped request** | V1 API Controller | Low | Acknowledged | `apps/api/src/modules/api-key/v1.controller.ts:49` |
+| `(req as any).apiKeyInfo` bypasses type checking | | | | |
+| **Audit log `userId` coercion** | Audit Interceptor | Low | Acknowledged | `apps/api/src/modules/audit/audit.interceptor.ts:49` |
+| Falls back to `"system"` when no user — may miss broken auth | | | | |
+| **Mobile API URL default** | Mobile Config | Low | Unconfirmed | `apps/mobile/lib/config.ts:25` |
+| Falls back to `http://localhost:4000/api` — will not work in production | | | | |
+| **Edge agent `container_running()` returns False when Docker unavailable** | Edge Agent | Low | Acknowledged | `edge/agent/agent.py:126` |
+| All services show as offline if Docker API is inaccessible | | | | |
+| **Non-blocking update promise fire-and-forget** | Tenant API Key Guard | Low | Acknowledged | `apps/api/src/modules/api-key/guards/tenant-api-key.guard.ts:96-103` |
+| `lastUsedAt` update uses `.catch()` with no logging of unhandled promise rejections | | | | |
 
-- Issue: Two separate modules with overlapping names: `NotificationModule` (`apps/api/src/modules/notification/`) handling WebSocket/FCM push, and `NotificationsModule` (`apps/api/src/modules/notifications/`) handling email/webhook/in-app dispatch. The inference processor (`apps/api/src/modules/inference/inference.processor.ts`) dispatches to both.
-- Impact: New developers may modify the wrong module. Both registered in `apps/api/src/app.module.ts` with no clear ownership boundary.
-- Fix Approach: Consolidate into a single `notifications` module with sub-services for channels (email, push, webhook, in-app), or rename to clearly distinct names (`PushModule` vs `AlertNotificationsModule`).
+## Security Concerns
 
-### Hardcoded Seed Credentials
+| Concern | Area | Risk | Notes |
+|---------|------|------|-------|
+| **Optional encryption key** | SSO / Configuration | HIGH | `ENCRYPTION_KEY` defaults to `""` in config. The SSO service conditionally encrypts `clientSecret` via `pgp_sym_encrypt` only if the key is non-empty. Without it, client secrets are stored in plaintext in the database. The validation schema (`validation.ts`) does not require this key. |
+| **Session storage token persistence** | Dashboard Auth | HIGH | Access tokens stored in `sessionStorage` (`apps/dashboard/lib/auth-client.ts:39`). Any XSS vulnerability can exfiltrate tokens. No httpOnly/cookie-based token for dashboard sessions. |
+| **Rate limiter fail-open** | API Key Guard | MEDIUM | When Redis is unreachable, the per-key rate limiter silently allows all requests through (`tenant-api-key.guard.ts:88-89`). |
+| **SSO JIT provisioning without auth** | SSO Service | MEDIUM | `findOrCreateSsoUser` auto-creates users from external IdP data if they don't exist. If the IdP mapping is misconfigured or compromised, arbitrary users can be JIT-provisioned. |
+| **Helmet CSP disabled** | API Server | LOW | CSP is disabled outside production. In development/staging, the app is more vulnerable to XSS. |
+| **Unvalidated redirects in dashboard** | Dashboard API Client | LOW | The `fetchWithAuth` (implied) auto-redirects to `/login` on 401. If an attacker can trigger a 401 on a crafted request, they can force redirect. |
+| **SSH private key not found** | Docker Compose | LOW | Dockerfile mounts `/app/secrets/license-private.pem`. If this file doesn't exist, the container may fail to start (`docker-compose.prod.yml:78`). |
 
-- Issue: `apps/api/prisma/seed.ts` contains hardcoded sample passwords: `admin123` (lines 9, 58, 61), `super123` (line 75), `viewer123` (line 89). These are embedded in the version-controlled seed file.
-- Impact: If the `sample` seed mode is accidentally run in production or staging, accounts with weak, known passwords are created.
-- Fix Approach: Force all passwords in seed to come from environment variables with no default fallback. For sample mode, generate random passwords and log them.
+## Performance Issues
 
-### Supervision Data In-Memory Only
-
-- Issue: `apps/api/src/modules/supervision/supervision.service.ts` stores all client records in a `Map<string, ClientRecord>` (line 46). No persistence.
-- Impact: On every API restart, all edge client registrations, supervision tokens, and last-known-good state are wiped. Edge agents must re-register and receive new tokens, which may cause gaps in monitoring until the next heartbeat auto-registration.
-- Fix Approach: Persist client records to the database (add a `SupervisionClient` model to Prisma). Cache in-memory with DB as source of truth.
-
-### Dynamic `require()` Calls in Health Controller
-
-- Issue: `apps/api/src/modules/health/health.controller.ts` uses `require("os")` (line 30), `require("ioredis")` (line 52), `require("http")` (line 73, 107) dynamically at runtime instead of top-level imports.
-- Impact: These modules aren't statically analyzable; bundlers/treeshakers can't optimize them. Creates unnecessary connections in the Redis health check that are never cleaned up (line 62 disconnects, but the client object isn't closed).
-- Fix Approach: Import all modules at the top level. Use a shared Redis connection pool instead of creating a new instance per health check.
-
-## Known Bugs
-
-### Inference Processor Severity Mapping Ignores Prompt Config
-
-- Symptoms: `apps/api/src/modules/inference/inference.processor.ts:103-108` maps alert severity by doing naive string matching on the prompt text (`"urgent"→CRITICAL`), completely ignoring the `severity` field that was passed in from `FrameJob.prompts` (each prompt has `.severity` from the camera prompt config).
-- Files: `apps/api/src/modules/inference/inference.processor.ts:103-108`, `apps/api/src/modules/queue/queue.service.ts:10`
-- Trigger: A camera prompt configured with `severity: "LOW"` but containing the word "attention" will generate a `HIGH` severity alert instead.
-- Workaround: Avoid using the trigger words ("urgent", "danger", "critique", "important", "attention") in LOW-severity prompt text.
-
-### Health Check Redis Connection Leak
-
-- Symptoms: Each call to `GET /api/health/detailed` creates a new `ioredis` instance (`apps/api/src/modules/health/health.controller.ts:53`), disconnects it (line 62), but does not call `redis.quit()` — the client object is abandoned.
-- Files: `apps/api/src/modules/health/health.controller.ts:52-62`
-- Trigger: Calling the detailed health endpoint repeatedly.
-- Workaround: Rate-limit health checks externally (already mitigated somewhat by global rate limiting, but the `/health` route itself is `@Public()` with no specific rate limit).
-
-### Dashboard API URL Fallback to Empty String
-
-- Symptoms: When `NEXT_PUBLIC_API_URL` is not configured, both `apps/dashboard/lib/auth-client.ts:4` and `apps/dashboard/lib/api.ts:6` fall back to `""`, causing all API calls to fail silently with confusing network errors rather than clear configuration errors.
-- Files: `apps/dashboard/lib/auth-client.ts:1-6`, `apps/dashboard/lib/api.ts:3-6`
-- Trigger: Deploying the dashboard without setting the environment variable.
-- Workaround: The `console.error` on lines 2/3 warns at build time but does not prevent runtime usage.
-
-## Security Considerations
-
-### Supervision Heartbeat Auto-Registration
-
-- Risk: `POST /api/supervision/heartbeat` is marked `@Public()` (`apps/api/src/modules/supervision/supervision.controller.ts:77-78`). If `dto.clientId` is unknown, `SupervisionService.recordHeartbeat` auto-registers a new client and generates a supervision token (`apps/api/src/modules/supervision/supervision.service.ts:92-103`). Any actor on the network can register an edge client and receive a token that then grants access to `GET /api/supervision/clients`.
-- Impact: An attacker could flood the system with fake clients, pollute the supervision dashboard, and enumerate registered clients.
-- Current Mitigation: The `/clients` endpoint requires JWT or supervision token auth via `SupervisionOrJwtGuard` (line 37-61 of controller), but the newly auto-registered token would pass this check.
-- Recommendations: Require a shared pre-shared key (`EDGE_AGENT_SECRET` from `.env.example` line 252 is declared but never actually checked in the code) for heartbeat acceptance. Do not auto-register from heartbeat — require explicit registration via `/register` with the pre-shared key.
-
-### WebSocket Gateway CORS Wildcard
-
-- Risk: `apps/api/src/modules/notification/notification.gateway.ts:13` sets `cors: { origin: "*" }` on the WebSocket namespace. Any website can initiate WebSocket connections.
-- Impact: Cross-site WebSocket hijacking. While the gateway does validate JWT tokens on connection (`handleConnection`, line 27-42), a CSRF-like attack could leverage existing browser session state.
-- Current Mitigation: JWT token required in `handshake.auth.token` or `handshake.query.token`.
-- Recommendations: Restrict CORS to the dashboard and mobile app origins only. Validate origin header on WebSocket upgrade.
-
-### Password in Redis Healthcheck Command
-
-- Risk: `docker-compose.prod.yml:54` exposes `REDIS_PASSWORD` in the `redis-cli -a` command visible in process lists (`docker inspect`, `ps aux`).
-- Impact: Anyone with access to the Docker host can read the Redis password from process listings.
-- Recommendations: Use `REDISCLI_AUTH` environment variable or pass password via `--pass` with a file-based secret.
-
-### Session Storage Token Storage
-
-- Risk: `apps/dashboard/lib/auth-client.ts:35,59,81-83` stores JWT access tokens and user data in `sessionStorage`, which is accessible to any JavaScript running on the same origin.
-- Impact: An XSS vulnerability would allow token theft. Unlike `localStorage`, `sessionStorage` is cleared on tab close, but it persists across page navigations and refresh attacks.
-- Current Mitigation: Token lifespan is 15 minutes by default (`JWT_ACCESS_EXPIRY=15m`).
-- Recommendations: Use HttpOnly cookies for web clients where possible (the auth controller already sets `refreshToken` as HttpOnly cookie). Consider `SameSite=Strict` cookies for access tokens with BFF pattern.
-
-### Missing CSRF Protection
-
-- Risk: State-changing endpoints (POST/PATCH/DELETE on `/api/users`, `/api/sites`, `/api/cameras`, `/api/alerts`) rely solely on JWT Bearer tokens without CSRF tokens.
-- Impact: Cross-site request forgery is possible if an attacker can trick an authenticated user into submitting a form.
-- Current Mitigation: Bearer tokens are sent via `Authorization` header (not cookies), which is resistant to simple CSRF. However, the `refreshToken` cookie uses `sameSite: 'lax'` which allows some cross-site requests.
-- Recommendations: Implement CSRF protection on the auth cookie by using `sameSite: 'strict'` or adding a CSRF token requirement for cookie-based auth flows.
-
-### `Public()` Decorator on Health Endpoints Exposes System Info
-
-- Risk: `GET /api/health/detailed` (`apps/api/src/modules/health/health.controller.ts:27`) is marked `@Public()` and returns system metrics (memory usage, CPU cores, service status, Ollama models, node version) without authentication.
-- Impact: Information disclosure — an attacker can fingerprint the infrastructure, discover internal service topography (Redis, Ollama, AI preprocessor), and monitor resource usage.
-- Recommendations: Either add JWT auth with a minimum role requirement, or at minimum add a configurable shared secret header check.
-
-## Performance Bottlenecks
-
-### Video Player WebRTC — No TURN Server
-
-- Problem: `apps/dashboard/components/video-player.tsx:69` only configures a single Google STUN server (`stun:stun.l.google.com:19302`). No TURN server.
-- Cause: TURN relays are not configured in the infrastructure.
-- Impact: WebRTC connections fail for users behind symmetric NATs or restrictive firewalls (common in corporate and mobile networks). Falls back to HLS which adds 5-10s latency.
-- Improvement Path: Deploy a TURN server (coturn) or use a managed TURN service. Add it to the `iceServers` configuration in `video-player.tsx`.
-
-### Frame Queue Skip on Overload
-
-- Problem: `apps/api/src/modules/ingestion/ingestion.service.ts:68-72` skips frame capture when the BullMQ frame-processing queue has >3 waiting jobs.
-- Cause: Inference processing takes ~3 minutes per frame on CPU (comment on line 67), so a backlog builds quickly.
-- Impact: During high alert periods (multiple cameras detecting events simultaneously), frames are dropped, potentially missing critical detections. The queue can grow unbounded if inference is slower than ingestion.
-- Improvement Path: Implement priority-based queueing (critical/severe cameras first). Add horizontal scaling for inference workers. Monitor queue depth and alert on sustained backlog.
-
-### Health Check Creates Transient Redis/HTTP Connections
-
-- Problem: `apps/api/src/modules/health/health.controller.ts:52-62` creates a new `ioredis` instance and `http` clients on every detailed health check.
-- Cause: Services aren't injected — the controller manually creates connections.
-- Impact: Under frequent health polling, connection churn adds latency and may exhaust Redis connection limits.
-- Improvement Path: Inject a shared Redis client and reuse it for health checks. Cache results for a short TTL (e.g., 10s).
-
-### 300-Second Inference Timeout Blocks Worker
-
-- Problem: `apps/api/src/modules/inference/inference.service.ts:35` sets `AbortSignal.timeout(300000)` (5 minutes). The BullMQ worker processes frames sequentially (`apps/api/src/modules/inference/inference.processor.ts`).
-- Cause: Vision model inference on CPU can take several minutes.
-- Impact: A stuck inference call blocks the entire frame processing pipeline for up to 5 minutes before timing out, during which no frames from other cameras are processed.
-- Improvement Path: Configure BullMQ concurrency >1 so multiple frames can be processed in parallel. Reduce timeout to 60s for a single frame and let BullMQ retry logic handle timeouts.
+| Issue | Component | Impact | Location |
+|-------|-----------|--------|----------|
+| **ffmpeg spawn per frame capture** | Ingestion Service | MEDIUM | `apps/api/src/modules/ingestion/ingestion.service.ts:174` — Each `captureRtspFrame()` spawns a new ffmpeg process. This is CPU/IO intensive (10s timeout per frame). Camera prompts trigger inference which takes ~3min/frame on CPU per the code comments. |
+| **In-memory streams map unbounded** | Ingestion Service | LOW | `ingestion.service.ts:15` — `ActiveStream` processes and timers accumulate per camera with no max limit. A large number of cameras could exhaust Node.js event loop resources. |
+| **No request timeout on v1 endpoints** | V1 API Controller | LOW | v1 controller endpoints don't set timeouts; long Prisma queries could block. |
+| **Prompt loading at construction** | Orchestrator Service | LOW | `orchestrator.service.ts:32` — Loads prompt files synchronously from filesystem at class construction time. If prompts are missing, the service fails at boot. |
+| **Redis `KEYS` in conversation purge** | Conversation Memory | MEDIUM | `conversation.memory.ts:112` — Uses `redis.keys()` which is O(N) and blocks Redis on large datasets. Should use `SCAN` instead. |
+| **AI inference queue bottleneck** | Ingestion + Queue | MEDIUM | Code comment at `ingestion.service.ts:69` notes that each inference takes ~3min on CPU. Queue is limited to 3 waiting jobs per camera. |
+| **Large i18n dictionaries** | Dashboard | LOW | `fr.ts` and `en.ts` are both 811 lines each. This is manageable but could grow. |
 
 ## Fragile Areas
 
-### IngestionService — FFmpeg Process Management
+| Area | Reason | Risk | Location |
+|------|--------|------|----------|
+| **AI Agent module** | New module with 37 files, zero tests, multiple deferred implementations (Qdrant, confirmation tokens, skills registration), tightly coupled to Ollama availability | If Ollama is down, the entire agent module returns errors. No graceful degradation path for most operations. | `apps/api/src/modules/ai-agent/` |
+| **Ingestion Service** | Spawns subprocesses (ffmpeg) that can leak; in-memory state not recoverable after crash; camera state (isRecording) can get out of sync with actual running streams | Stream state desync on restart; zombie ffmpeg processes; missed frame captures | `apps/api/src/modules/ingestion/ingestion.service.ts` |
+| **V1 Public API** | New controller with stubbed methods, untyped request accessors, no rate limit isolation, no documentation on concurrency limits | Breaking changes if stubs are later implemented with different signatures; undocumented behavior | `apps/api/src/modules/api-key/v1.controller.ts` |
+| **Edge Agent** | Runs as long-lived Python process with Docker API dependency; schedule-based (not event-driven); camera/alert data is stubbed returning zeros | Edge reporting meaningless data for cameras/alerts; Docker API version mismatch; no reconnect logic for supervision URL | `edge/agent/agent.py` |
+| **MQTT Service** | Connection setup in `onModuleInit` with fire-and-forget error handling; if MQTT broker is down at boot, transport is permanently disabled for the container lifetime | Door controller communication silently disabled on deploy if broker is unavailable | `apps/api/src/mqtt/mqtt.service.ts` |
+| **SSR / CSP bypass** | `main.ts:44` disables CSP for non-production. If staging uses same config, XSS vector exists | Cross-site scripting in non-production environments | `apps/api/src/main.ts:44` |
+| **License service** | Mounts `secrets/license-private.pem` from host; if file is missing or invalid, license operations fail silently | License validation failures hard to diagnose | `docker-compose.prod.yml:78` |
+| **Multiple Redis connections** | Several services inject different Redis instances (`REDIS`, `REDIS_AGENT`, `REDIS_INCIDENT`) | Connection pool management; potential connection leaks if not properly configured | `apps/api/src/modules/ai-agent/memory/conversation.memory.ts:13`, `apps/api/src/modules/incident/incident.service.ts:18`, `apps/api/src/modules/door/door.service.ts:49` |
+| **Large single API client** | `api.ts` at 2900 lines in dashboard is a single point of failure for all API communication | Changes to API types affect all dashboard features; merge conflicts common; hard to review | `apps/dashboard/lib/api.ts` |
 
-- Files: `apps/api/src/modules/ingestion/ingestion.service.ts:99-208`
-- Why Fragile: Direct `child_process.spawn("ffmpeg", ...)` with user-provided RTSP URLs. FFmpeg processes can hang indefinitely if the RTSP stream stalls. The `null as any` cast on line 91 indicates the `process` field of `ActiveStream` is unused but kept in the interface. No process pool, no health monitoring of FFmpeg subprocesses.
-- Safe Modification: Wrap FFmpeg calls in a dedicated subprocess pool with health checks and automatic restart. Validate RTSP URLs before spawning. Add process monitoring with kill+restart on hang detection.
-- Test Coverage: None — the entire ingestion module has no tests.
+## Improvement Opportunities
 
-### Inference Service — Error Recovery Returns Empty Detections
-
-- Files: `apps/api/src/modules/inference/inference.service.ts:38-47`
-- Why Fragile: When the AI preprocessor returns an error (line 38-41) or the fetch fails (line 45-47), the method silently returns `{ detections: [] }`. The inference processor (`apps/api/src/modules/inference/inference.processor.ts:38`) checks `!det.detected` and skips — but the complete failure to analyze a frame is indistinguishable from "nothing detected."
-- Safe Modification: Throw on AI preprocessor failures so BullMQ's retry mechanism can re-attempt. Distinguish between "no detections" and "analysis failed."
-- Test Coverage: None.
-
-### In-Memory Alert Deduplication Lost on Restart
-
-- Files: `apps/api/src/modules/inference/inference.processor.ts:13-14`
-- Why Fragile: `recentAlerts: Map<string, number>` is an in-memory Map with a 5-minute dedup window. On process restart, the map is empty, and duplicate alerts can fire within the 5-minute window.
-- Safe Modification: Store dedup state in Redis with TTL matching the dedup window so it survives restarts.
-
-### Two Parallel Notification Systems
-
-- Files: `apps/api/src/modules/notification/` (WebSocket/FCM) and `apps/api/src/modules/notifications/` (Email/Webhook/In-App), with dispatch coordination in `apps/api/src/modules/inference/inference.processor.ts:68-97`.
-- Why Fragile: The inference processor dispatches to both independently. If one fails, the other may still succeed, leading to inconsistent notification delivery. The `NotificationsProcessor` (`apps/api/src/modules/notifications/notifications.processor.ts`) has a fallback for legacy websocket job types (line 27-30), indicating incomplete migration.
-- Safe Modification: Consolidate into one notification dispatch pipeline with a single queue processor that handles all channels and guarantees exactly-once delivery per channel.
-
-## Scaling Limits
-
-### In-Memory Supervision Client Store
-
-- Files: `apps/api/src/modules/supervision/supervision.service.ts:46`
-- Current Capacity: A JavaScript `Map` — effectively unbounded but not durable.
-- Limit: Lost on process restart. Cannot be shared across multiple API instances (horizontal scaling).
-- Scaling Path: Migrate to a database-backed store (PostgreSQL via Prisma) with in-memory caching. Use Redis pub/sub for multi-instance heartbeat fan-out.
-
-### BullMQ Frame Queue with Single Worker
-
-- Files: `apps/api/src/modules/inference/inference.processor.ts` (single `@Processor("frame-processing")`)
-- Current Capacity: Processes one frame at a time. With ~3 min inference time, max throughput is ~0.3 FPS per camera.
-- Limit: At 3+ cameras with active prompts, the queue saturates and frames are dropped (`apps/api/src/modules/ingestion/ingestion.service.ts:69-72`).
-- Scaling Path: Deploy additional API instances with BullMQ workers (concurrency >1). Offload inference to a dedicated GPU service with higher throughput.
-
-### Camera Streams Bound to Single API Instance
-
-- Files: `apps/api/src/modules/ingestion/ingestion.service.ts:15` — `streams: Map<string, ActiveStream>`
-- Current Capacity: All active camera ingestion processes run on a single Node.js instance.
-- Limit: Cannot scale ingestion beyond one machine. Memory grows with each active stream (FFmpeg subprocess + base64 image buffers).
-- Scaling Path: Shard camera ingestion across instances. Use a distributed lock (Redis) to assign cameras to instances. Decouple capture from analysis via the shared BullMQ queue.
-
-## Dependencies at Risk
-
-### `@fastify/helmet` CSP Partially Disabled
-
-- Risk: `apps/api/src/main.ts:42` disables CSP entirely in development (`contentSecurityPolicy: false`). In production, `undefined` triggers default strict CSP which may break Swagger UI or other inline resources.
-- Impact: Overly strict CSP could break documentation pages. Overly permissive CSP (development) provides no XSS protection.
-- Migration Plan: Configure explicit CSP with appropriate allowances for Swagger UI inline scripts and API-only endpoints.
-
-### Google STUN Server Dependency (Video Player)
-
-- Risk: `apps/dashboard/components/video-player.tsx:69` hardcodes `stun:stun.l.google.com:19302`. Google may rate-limit, deprecate, or remove this service.
-- Impact: All WebRTC ICE gathering fails if Google's STUN server is unavailable. Users fall back to HLS.
-- Migration Plan: Deploy a self-hosted STUN server (coturn) or add multiple STUN server URLs as fallback. Remove the hardcoded Google STUN dependency.
-
-### Expo SecureStore Dependency
-
-- Risk: `apps/mobile/lib/auth-storage.ts:1` imports `expo-secure-store`. On platforms where SecureStore is unavailable or misconfigured, token storage silently fails.
-- Impact: The synchronous `getAccessToken()` (line 16-20) wraps calls in try-catch and returns `null` on error, but the async versions do not — they may throw. This creates inconsistent error handling.
-- Migration Plan: Ensure all SecureStore calls use the async API uniformly. Handle errors at the call site with user-facing retry prompts.
-
-### Resend Email API — No Fallback Provider
-
-- Risk: `apps/api/src/modules/notifications/notifications.service.ts:16-31` single-provider dependency on Resend. If `RESEND_API_KEY` is missing, email notifications are silently disabled (line 31-32 logs a warning).
-- Impact: In production, a misconfigured Resend key means critical alert emails never reach users, with only a log warning.
-- Migration Plan: Add a configurable SMTP fallback (SMTP_* env vars already exist in `.env.example` but aren't implemented). Alert on startup if email notifications are enabled but no provider is configured.
-
-## Missing Critical Features
-
-### No Audit Trail on Authorization Failures
-
-- Problem: Failed login attempts, token validation failures, and forbidden access attempts are not logged to the audit trail (`apps/api/src/modules/auth/auth.controller.ts:43-59` only logs successful events).
-- Blocks: Security monitoring, brute-force detection, compliance requirements.
-- Priority: High. Add audit logging for failed auth events (`LOGIN_FAILED`, `TOKEN_INVALID`, `ACCESS_DENIED`) with IP/user-agent capture.
-
-### No Graceful Shutdown for FFmpeg Processes
-
-- Problem: `apps/api/src/modules/ingestion/ingestion.service.ts:249-253` calls `stopStream` for each active stream on `onModuleDestroy()`, but NestJS's shutdown sequence may not allow enough time for FFmpeg cleanup. FFmpeg processes can become zombies.
-- Blocks: Clean container restarts, zero-downtime deployments.
-- Priority: Medium. Add a shutdown grace period, SIGTERM handling with process reaping, and a dedicated shutdown hook in `main.ts`.
-
-### No Image/Video Content Upload Validation
-
-- Problem: Snapshot URLs from cameras are passed through without validation of content type, size, or source origin. The email notification service fetches arbitrary URLs to attach images (`apps/api/src/modules/notifications/notifications.service.ts:122-134`).
-- Blocks: Server-side request forgery (SSRF) protection, bandwidth abuse.
-- Priority: High. Validate snapshot URLs are from expected camera sources. Add size limits for email attachments. Implement URL allowlisting for SSRF prevention.
+| Opportunity | Area | Effort | Impact |
+|-------------|------|--------|--------|
+| **Split dashboard API client into domain modules** | Dashboard | Medium | High — 2900-line file reduced to manageable domain-specific modules (camera.api.ts, alert.api.ts, etc.) |
+| **Add test coverage to AI Agent module** | API Tests | High | High — 37 files with zero tests is a significant risk for a critical feature |
+| **Add test framework to Dashboard and Mobile** | Testing Infrastructure | High | High — zero tests across two entire applications |
+| **Implement Qdrant vector storage** | AI Agent Memory | Medium | High — semantic memory is currently Redis-only; vector search enables long-term agent recall |
+| **Add ENCRYPTION_KEY validation** | Configuration | Low | High — prevents accidental storage of plaintext SSO client secrets |
+| **Move access token to httpOnly cookie** | Dashboard Auth | Medium | High — eliminates XSS token theft vector |
+| **Implement proper confirmation token validation** | AI Agent Guardrails | Medium | High — destructive action confirmation is currently token-presence only |
+| **Replace Redis KEYS with SCAN** | Conversation Memory | Low | Medium — prevents Redis blocking on large conversation datasets |
+| **Add ffmpeg process cleanup and health checks** | Ingestion Service | Medium | Medium — prevents zombie processes and stream desync |
+| **Consolidate dual notification modules** | API Modules | Low | Medium — resolves confusion between `notification` and `notifications` |
+| **Add CSP policy for development mode** | API Server | Low | Medium — improves XSS protection in all environments |
+| **Add typed request extensions for v1 controller** | V1 API | Low | Medium — eliminates unsafe `as any` casts |
+| **Split large service files (>500 lines)** | API Services | High | Medium — improves maintainability of 6+ over-large service files |
+| **Implement edge agent real camera/alert queries** | Edge Agent | Medium | Medium — currently reports zeros for all camera and alert statistics |
+| **Add MQTT reconnection resilience** | MQTT Service | Low | Medium — transport disabled for full container lifetime if broker unavailable at boot |
+| **Reduce test gap across 34 untested modules** | API Tests | High | Very High — only 5 of 39 API modules have tests |
 
 ## Test Coverage Gaps
 
-### Untested Modules — Backend
-
-- What's Not Tested: Controllers (all modules), guards, pipes, filters, inference service/processor, ingestion service, chat service, dashboard service, notification services (both), supervision service, audit service, queue service, health controller.
-- Files: All files under `apps/api/src/modules/*/**.controller.ts`, `apps/api/src/modules/inference/`, `apps/api/src/modules/ingestion/`, `apps/api/src/modules/chat/`, `apps/api/src/modules/dashboard/`, `apps/api/src/modules/notification/`, `apps/api/src/modules/notifications/`, `apps/api/src/modules/supervision/`, `apps/api/src/modules/audit/`, `apps/api/src/modules/queue/`, `apps/api/src/modules/health/`
-- Risk: Bugs in critical paths (alert creation, notification dispatch, camera ingestion, user auth flows) are undetectable until production. Refactoring these modules without test safety nets is risky.
-- Priority: High. Start with integration tests for the alert → notification pipeline and camera ingestion → inference → alert lifecycle.
-
-### No Frontend Tests
-
-- What's Not Tested: The entire dashboard (`apps/dashboard/`) and mobile (`apps/mobile/`) applications — no `.test.ts`, `.spec.ts`, or `.test.tsx` files exist anywhere outside the API.
-- Risk: UI rendering errors, auth flow regressions, API contract mismatches between frontend and backend types.
-- Priority: Medium. Add component tests for critical UI flows: login, camera list, alert management. Add API contract tests to ensure frontend types match backend responses.
-
-### Service Tests Are Unit-Only
-
-- What's Not Tested: Integration between services. Each `.spec.ts` file (`apps/api/src/modules/*/*.service.spec.ts`) tests its service in isolation with mocked Prisma. There are no tests that verify end-to-end flows.
-- Files: `apps/api/src/modules/alert/alert.service.spec.ts`, `apps/api/src/modules/auth/auth.service.spec.ts`, `apps/api/src/modules/camera/camera.service.spec.ts`, `apps/api/src/modules/site/site.service.spec.ts`, `apps/api/src/modules/user/user.service.spec.ts`
-- Risk: Integration bugs — e.g., the inference processor's incorrect severity mapping — are invisible to unit tests because the prompt data shape is never validated end-to-end.
-- Priority: Medium. Add integration test suites that test alert creation through the full pipeline: ingestion → frame capture → inference → alert creation → notification dispatch.
+| Untested Area | What's Not Tested | Files | Risk | Priority |
+|---------------|-------------------|-------|------|----------|
+| AI Agent (37 files) | All agents, guards, LLM provider, MCP servers, orchestrator, conversation memory, Qdrant service | `apps/api/src/modules/ai-agent/**/*.ts` | Regressions in agent logic break operator workflows undetected | Critical |
+| Dashboard (entire app) | All React components, API client functions, auth context, i18n | `apps/dashboard/**/*.ts`, `apps/dashboard/**/*.tsx` | UI regressions and API integration bugs undetected | High |
+| Mobile (entire app) | All screens, components, API client, auth storage | `apps/mobile/**/*.ts`, `apps/mobile/**/*.tsx` | Mobile app crashes undetected before release | High |
+| SSO Module | OIDC/SAML strategies, JIT provisioning, config encryption | `apps/api/src/modules/sso/**/*.ts` | Auth bypass or SSO misconfiguration | High |
+| Door Module (partial) | State machine, MQTT handlers, forced-door detection | `apps/api/src/modules/door/door.service.ts`, `apps/api/src/modules/door/door-state-machine.ts` | Physical security logic failures | High |
+| V1 Public API | All endpoints, rate limiting, key validation | `apps/api/src/modules/api-key/**/*.ts` | Public API contract violations | Medium |
+| Webhook Module | SSRF protection, delivery retries, HMAC verification | `apps/api/src/modules/webhook/**/*.ts` | SSRF bypass or webhook delivery failures | Medium |
+| Ingestion Service | FFmpeg capture, queue backpressure, stream lifecycle | `apps/api/src/modules/ingestion/ingestion.service.ts` | Video pipeline failures | Medium |
+| Audit Module | Interceptor, processor, chain hashing, immutable log | `apps/api/src/modules/audit/**/*.ts` | Audit log integrity violations | Medium |
+| MQTT Service | Connection lifecycle, message routing, sequence validation | `apps/api/src/mqtt/mqtt.service.ts` | Door controller communication failures | Medium |
+| Compliance, License, Governance | Report generation, license validation, policy enforcement | `apps/api/src/modules/compliance/`, `apps/api/src/modules/license/`, `apps/api/src/modules/governance/` | Regulatory failures | Medium |
 
 ---
 
-*Concerns audit: 2026-07-14*
+*Analysis performed via automated codebase review: 2026-07-17*

@@ -1,355 +1,279 @@
-# Codebase Structure
+# Directory Structure
 
-**Analysis Date:** 2026-07-14
+> Generated: 2026-07-17
 
-## Directory Layout
+## Top-Level Layout
 
 ```
 oversight-hub/
-├── apps/                          # Application packages
-│   ├── api/                       # NestJS backend (Fastify adapter)
-│   │   ├── prisma/                # Database schema, migrations, seed
-│   │   │   ├── schema.prisma      # PostgreSQL data model
-│   │   │   ├── migrations/        # Prisma migration history
-│   │   │   └── seed.ts            # Admin user seeder
-│   │   └── src/
-│   │       ├── main.ts            # Bootstrap: NestJS + Fastify setup
-│   │       ├── app.module.ts      # Root module — imports all feature modules
-│   │       ├── common/            # Cross-cutting: guards, filters, pipes, decorators, DTOs
-│   │       │   ├── decorators/    # @Public(), @Roles()
-│   │       │   ├── dto/           # class-validator DTOs for Swagger
-│   │       │   ├── filters/       # AllExceptionsFilter
-│   │       │   ├── guards/        # JwtAuthGuard, RolesGuard
-│   │       │   └── pipes/         # ZodValidationPipe
-│   │       ├── config/            # Environment config (NestJS ConfigModule)
-│   │       │   ├── configuration.ts
-│   │       │   └── validation.ts
-│   │       └── modules/           # Feature modules (one directory per domain)
-│   │           ├── alert/         # Alert CRUD + lifecycle (acknowledge, resolve)
-│   │           ├── audit/         # Audit logging (user actions)
-│   │           ├── auth/          # Authentication (login, register, refresh, logout)
-│   │           │   └── strategies/ # JWT + JWT Refresh passport strategies
-│   │           ├── camera/        # Camera CRUD + prompts sub-resource
-│   │           ├── chat/          # AI chat endpoint
-│   │           ├── dashboard/     # Aggregated stats for dashboard overview
-│   │           ├── health/        # Health check (NestJS Terminus)
-│   │           ├── inference/     # Frame analysis queue processor
-│   │           ├── ingestion/     # RTSP stream management (start/stop/snapshot)
-│   │           ├── notification/  # Socket.IO gateway + notification dispatching
-│   │           ├── notifications/ # Notification settings + log endpoints
-│   │           ├── prisma/        # Database client (global singleton)
-│   │           ├── queue/         # BullMQ setup (frame-processing, notification queues)
-│   │           ├── site/          # Site CRUD
-│   │           ├── supervision/   # Edge agent heartbeat + health monitoring
-│   │           └── user/          # User CRUD + password change
-│   ├── dashboard/                 # Next.js 14 web admin interface
-│   │   ├── app/                   # App Router pages
-│   │   │   ├── layout.tsx         # Root layout: HTML, dark theme, I18nProvider, PWA
-│   │   │   ├── globals.css        # Tailwind + custom theme styles
-│   │   │   ├── (auth)/            # Auth route group (unauthenticated)
-│   │   │   │   └── login/         # Login page
-│   │   │   └── (dashboard)/       # Dashboard route group (authenticated)
-│   │   │       ├── layout.tsx     # AuthProvider + ProtectedLayout + DashboardLayout
-│   │   │       ├── page.tsx       # Overview/Home page
-│   │   │       ├── alertes/       # Alerts list page
-│   │   │       ├── cameras/       # Camera list page
-│   │   │       │   └── [id]/      # Camera detail pages
-│   │   │       ├── chat/          # AI Chat page
-│   │   │       ├── notifications/ # Notification settings page
-│   │   │       ├── parametres/    # Settings page
-│   │   │       ├── sites/         # Sites list page
-│   │   │       │   └── [id]/      # Site detail pages
-│   │   │       └── utilisateurs/  # User management page
-│   │   ├── components/            # React components
-│   │   │   ├── dashboard-layout.tsx  # Sidebar + content layout
-│   │   │   ├── sidebar.tsx           # Navigation sidebar
-│   │   │   ├── sidebar-provider.tsx  # Sidebar collapse state
-│   │   │   ├── header.tsx            # Top bar with user menu
-│   │   │   ├── protected-layout.tsx  # Auth gate redirect
-│   │   │   ├── page-header.tsx       # Reusable page title
-│   │   │   ├── stats-card.tsx        # Dashboard stat card
-│   │   │   ├── recent-activity.tsx   # Recent alerts list
-│   │   │   ├── language-switcher.tsx # French/English toggle
-│   │   │   ├── video-player.tsx      # RTSP stream player
-│   │   │   └── ui/                   # shadcn/ui primitives (15 components)
-│   │   │       ├── button.tsx, card.tsx, table.tsx, dialog/...
-│   │   │       ├── toast.tsx, tooltip.tsx, dropdown-menu.tsx, ...
-│   │   │       └── index.ts          # Barrel export
-│   │   ├── lib/                   # Client-side utilities
-│   │   │   ├── api.ts             # API client — all fetch functions, types
-│   │   │   ├── auth-client.ts     # Auth operations (login, logout, refresh, fetchWithAuth)
-│   │   │   ├── auth-context.tsx   # React Context auth provider
-│   │   │   ├── use-auth.ts        # useAuth hook re-export
-│   │   │   ├── nav-config.ts      # Sidebar navigation items + role filtering
-│   │   │   ├── utils.ts           # cn() utility (clsx + tailwind-merge)
-│   │   │   └── i18n/              # Internationalization
-│   │   │       ├── context.tsx    # I18nProvider + useI18n hook
-│   │   │       └── dictionaries/  # fr.ts (primary), en.ts, index.ts
-│   │   ├── types/                 # Dashboard-specific TypeScript types
-│   │   │   └── chat.ts
-│   │   ├── public/                # Static assets, PWA icons, sw.js
-│   │   ├── next.config.js
-│   │   ├── tailwind.config.ts
-│   │   └── components.json        # shadcn/ui config
-│   └── mobile/                    # Expo (React Native) mobile app
-│       ├── app/                   # Expo Router file-based routing
-│       │   ├── _layout.tsx        # Root Stack layout
-│       │   ├── index.tsx          # Splash/redirect
-│       │   ├── login.tsx          # Login screen
-│       │   ├── register.tsx       # Registration screen
-│       │   ├── (tabs)/            # Tab navigator group
-│       │   │   ├── _layout.tsx    # Tab bar config
-│       │   │   ├── index.tsx      # Dashboard/home tab
-│       │   │   ├── cameras.tsx    # Camera list tab
-│       │   │   ├── alerts.tsx     # Alerts tab
-│       │   │   ├── sites.tsx      # Sites tab
-│       │   │   ├── chat.tsx       # AI Chat tab
-│       │   │   └── settings.tsx   # Settings tab
-│       │   ├── camera/            # Camera detail modal
-│       │   ├── alert/             # Alert detail modal
-│       │   └── notifications.tsx  # Notification settings screen
-│       ├── components/            # React Native components
-│       │   ├── error-boundary.tsx
-│       │   └── ...
-│       ├── lib/                   # Mobile utilities
-│       │   ├── api.ts             # API client
-│       │   ├── auth-client.ts     # Auth operations
-│       │   ├── auth-context.tsx   # Auth provider
-│       │   ├── auth-storage.ts    # expo-secure-store wrapper
-│       │   ├── config.ts          # Environment config validation
-│       │   ├── constants.ts       # App-wide constants
-│       │   └── theme.ts           # Color tokens
-│       ├── assets/                # Images, fonts, icons
-│       ├── app.json               # Expo config
-│       ├── eas.json               # EAS Build/Submit config
-│       └── metro.config.js
-├── packages/                      # Shared workspace packages
-│   ├── shared/                    # @repo/shared — shared kernel
-│   │   └── src/
-│   │       ├── index.ts           # Barrel export — all public API
-│   │       ├── schemas/           # Zod validation schemas
-│   │       │   ├── auth.schema.ts     # register, login, refresh
-│   │       │   ├── alert.schema.ts    # create, update
-│   │       │   ├── camera.schema.ts   # create, update
-│   │       │   └── site.schema.ts     # create, update
-│   │       ├── types/             # TypeScript type definitions
-│   │       │   └── auth.types.ts      # TokenPayload, AuthResponse
-│   │       └── constants/         # Shared domain constants
-│   │           ├── roles.ts           # ROLES enum, ROLE_HIERARCHY, hasMinRole()
-│   │           ├── alert-severity.ts  # AlertSeverity enum
-│   │           ├── alert-status.ts    # AlertStatus enum
-│   │           └── camera-status.ts   # CameraStatus enum
-│   ├── ui/                        # @repo/ui — shared React components
-│   │   └── src/
-│   │       ├── button.tsx
-│   │       ├── card.tsx
-│   │       └── code.tsx
-│   ├── eslint-config/             # @repo/eslint-config — shared ESLint
-│   └── typescript-config/         # @repo/typescript-config — shared TS configs
-├── services/                      # Non-TypeScript backend services
-│   └── ai-preprocessor/           # Python FastAPI frame analysis service
-│       ├── Dockerfile
-│       ├── requirements.txt
-│       └── app/
-├── edge/                          # Edge deployment tooling
-│   ├── agent/                     # Python edge agent (health, backups, self-update)
-│   │   ├── agent.py
-│   │   ├── Dockerfile
-│   │   └── edge.config.example.json
-│   ├── configs/                   # go2rtc stream configs
-│   ├── go2rtc/                    # go2rtc binaries/config
-│   └── scripts/                   # Edge deployment scripts
-├── docker/                        # Dockerfiles for app services
-│   ├── api.Dockerfile             # Multi-stage build: deps → build → prod
-│   └── dashboard.Dockerfile       # Multi-stage build with standalone output
-├── docker-compose.yml             # Production Docker Compose (API + Dashboard + AI)
-├── docker-compose.prod.yml        # Extended production compose
-├── Caddyfile                      # Reverse proxy routing rules
-├── turbo.json                     # Turborepo pipeline config
-├── pnpm-workspace.yaml            # pnpm workspace definition
-├── package.json                   # Root package.json (scripts, devDeps, overrides)
-├── pnpm-lock.yaml                 # Lockfile
-├── .env.example                   # Environment variable reference
-├── backup.sh                      # Database backup script
-├── install.sh                     # Installation/bootstrap script
-├── update.sh                      # Update/deployment script
-├── .github/                       # GitHub Actions CI/CD
-├── docs/                          # Project documentation (PRD)
-└── .planning/                     # GSD planning artifacts
+├── .agents/                  # Agent skill configurations
+│   └── skills/               # Installed agent skills
+├── .claude/                  # Claude configuration
+│   └── skills/               # Claude skills
+├── .github/
+│   └── workflows/            # CI/CD GitHub Actions
+├── .planning/                # GSD planning artifacts
+│   ├── codebase/             # Codebase map documents
+│   ├── phases/               # Phase plans
+│   └── research/             # Research docs
+├── apps/                     # Application packages (pnpm workspace)
+│   ├── api/                  # NestJS backend (REST API + WebSocket)
+│   ├── dashboard/            # Next.js web dashboard
+│   ├── marketing/            # Next.js marketing site
+│   └── mobile/               # Expo React Native mobile app
+├── docker/                   # Dockerfiles for each app
+│   ├── api.Dockerfile
+│   ├── dashboard.Dockerfile
+│   └── website.Dockerfile
+├── edge/                     # Edge computing components
+│   ├── agent/                # Python edge health agent
+│   ├── configs/              # Edge device configurations
+│   ├── go2rtc/               # go2rtc streaming configs
+│   └── scripts/              # Edge deployment scripts
+├── packages/                 # Shared packages (pnpm workspace)
+│   ├── design/               # Design tokens (colors, typography, spacing)
+│   ├── eslint-config/        # Shared ESLint flat config (v9)
+│   ├── shared/               # Shared dtos, schemas, types, constants
+│   ├── typescript-config/    # Shared tsconfig variants (base, nextjs, react)
+│   └── ui/                   # Reusable React components
+├── services/                 # Independent microservices
+│   └── ai-preprocessor/      # Python FastAPI AI analysis service
+├── Caddyfile                 # Reverse proxy configuration
+├── docker-compose.yml        # Development/coolify Docker Compose
+├── docker-compose.prod.yml   # Self-contained production Docker Compose
+├── pnpm-workspace.yaml       # Monorepo workspace definition
+├── package.json              # Root package.json (scripts, devDeps)
+├── turbo.json                # Turborepo task pipeline configuration
+├── eas.json                  # Expo Application Services config
+├── .env.example              # Environment variable template
+├── app.json                  # Expo app config
+├── tsconfig.json             # Root TypeScript config
+├── backup.sh                 # Database backup script
+├── install.sh                # Installation script
+└── update.sh                 # Update script
 ```
 
-## Directory Purposes
+## Key Locations
 
-**`apps/api/`:**
-- Purpose: NestJS backend — REST API, WebSocket gateway, authentication, business logic
-- Contains: Feature modules (15+), Prisma schema, configuration, common cross-cutting code
-- Key files: `src/main.ts` (bootstrap), `src/app.module.ts` (root module), `prisma/schema.prisma` (data model)
-
-**`apps/dashboard/`:**
-- Purpose: Next.js 14 web admin dashboard — PWA-capable, dark-themed
-- Contains: App Router pages with route groups, shadcn/ui components, i18n dictionaries, client-side API layer
-- Key files: `app/layout.tsx` (root), `app/(dashboard)/layout.tsx` (auth gating), `lib/api.ts` (API client), `lib/auth-client.ts` (auth logic)
-
-**`apps/mobile/`:**
-- Purpose: React Native mobile app via Expo — cross-platform camera monitoring
-- Contains: Expo Router screens, tab navigation, auth with SecureStore
-- Key files: `app/_layout.tsx` (root navigator), `app/(tabs)/_layout.tsx` (tab config), `lib/auth-storage.ts` (secure token storage)
-
-**`packages/shared/`:**
-- Purpose: Shared kernel — Zod schemas, TypeScript types, domain constants consumed by all TypeScript apps
-- Contains: Validation schemas, role hierarchy logic, enum constants
-- Key files: `src/index.ts` (public API barrel), `src/constants/roles.ts` (RBAC hierarchy)
-
-**`packages/ui/`:**
-- Purpose: Shared React UI components (minimal — button, card, code)
-- Contains: Reusable TSX components
-- Key files: `src/button.tsx`
-
-**`services/ai-preprocessor/`:**
-- Purpose: Python FastAPI microservice for AI-powered frame analysis
-- Contains: Python app, Dockerfile, dependencies
-- Key files: `app/` (FastAPI routes + ML logic)
-
-**`edge/agent/`:**
-- Purpose: Python edge agent deployed on remote camera servers — health monitoring, backups, Docker self-update
-- Contains: Agent script, Dockerfile, example config
-- Key files: `agent.py` (main agent loop)
-
-**`docker/`:**
-- Purpose: Multi-stage Dockerfiles for API and Dashboard builds
-- Contains: `api.Dockerfile`, `dashboard.Dockerfile`
-- Key files: Both use a 3-stage build pattern (deps → build → production runner)
-
-**`docker-compose.yml`:**
-- Purpose: Production orchestration — API, Dashboard, AI Preprocessor services
-- Contains: Service definitions, health checks, environment variables, network configuration
-
-**`Caddyfile`:**
-- Purpose: Reverse proxy configuration — routes requests to API (REST + WebSocket) and Dashboard
-
-## Key File Locations
-
-**Entry Points:**
-- `apps/api/src/main.ts`: NestJS API bootstrap — Fastify, Helmet, CORS, rate limiting, Swagger
-- `apps/dashboard/app/layout.tsx`: Next.js root layout — HTML shell, theme, i18n, PWA registration
-- `apps/mobile/app/_layout.tsx`: Expo Router root layout — Stack navigator, auth provider
-
-**Configuration:**
-- `turbo.json`: Turborepo build pipeline — build, lint, check-types, dev, prisma tasks
-- `pnpm-workspace.yaml`: Workspace packages — `apps/*`, `packages/*`, `services/*`
-- `package.json` (root): `oversight-ai` monorepo — scripts, overrides, package manager pin
-- `apps/api/src/config/configuration.ts`: NestJS config — all environment variable mappings
-- `Caddyfile`: Reverse proxy routing
-
-**Core Logic:**
-- `apps/api/src/app.module.ts`: Root NestJS module — imports all feature modules, registers global guards/filters
-- `apps/api/src/common/guards/jwt-auth.guard.ts`: JWT authentication — allows public routes via `@Public()` decorator
-- `apps/api/src/common/guards/roles.guard.ts`: RBAC — compares user role against required roles using `ROLE_HIERARCHY`
-- `apps/dashboard/lib/api.ts`: Central API client — all dashboard data-fetching functions (468 lines)
-- `apps/dashboard/lib/auth-client.ts`: Auth client — login, logout, token refresh, `fetchWithAuth` auto-retry
-- `packages/shared/src/constants/roles.ts`: Role hierarchy definition — `SUPER_ADMIN > ADMIN > SUPERVISOR > OPERATOR > VIEWER`
-
-**Testing:**
-- `apps/api/jest.config.js`: Jest configuration
-- `apps/api/src/modules/auth/auth.service.spec.ts`: Auth service unit test
-- `apps/api/src/modules/alert/alert.service.spec.ts`: Alert service unit test
+| Path | Purpose | Key Files |
+|------|---------|-----------|
+| `apps/api/src/` | NestJS API application root | `main.ts`, `app.module.ts` |
+| `apps/api/src/modules/` | Feature modules (38 modules) | `auth/`, `camera/`, `alert/`, `dashboard/`, `ingestion/`, etc. |
+| `apps/api/src/common/` | Cross-cutting concerns | `decorators/`, `guards/`, `filters/`, `pipes/`, `middleware/`, `adapters/` |
+| `apps/api/src/config/` | Configuration | `configuration.ts`, `validation.ts` |
+| `apps/api/src/mqtt/` | MQTT client module | `mqtt.service.ts`, `mqtt.module.ts` |
+| `apps/api/prisma/` | Database schema and migrations | `schema.prisma`, `seed.ts`, `migrations/` |
+| `apps/api/migrations/` | Standalone DB migration scripts | (custom migration files) |
+| `apps/dashboard/app/` | Next.js App Router pages | `layout.tsx`, `(auth)/`, `(dashboard)/` |
+| `apps/dashboard/app/(dashboard)/` | Dashboard route group (26 sections) | `page.tsx` (overview), `cameras/`, `alertes/`, `incidents/`, etc. |
+| `apps/dashboard/components/` | Dashboard React components | `ui/` (shadcn), `camera-card-premium.tsx`, `alert-feed.tsx`, `sidebar.tsx`, etc. |
+| `apps/dashboard/lib/` | Dashboard utilities | `api.ts`, `auth-client.ts`, `auth-context.tsx`, `utils.ts`, `i18n/` |
+| `apps/dashboard/types/` | Additional TypeScript types | (custom type definitions) |
+| `apps/mobile/app/` | Expo Router screens | `_layout.tsx`, `(tabs)/`, `login.tsx`, `camera/[id].tsx`, `alert/[id].tsx` |
+| `apps/mobile/components/` | Mobile React Native components | (custom + UI components) |
+| `apps/mobile/lib/` | Mobile utilities | `api.ts`, `auth-client.ts`, `auth-context.tsx`, `auth-storage.ts`, `theme.ts` |
+| `apps/marketing/app/` | Marketing site Next.js pages | (public website pages) |
+| `apps/marketing/src/` | Marketing site source | `lib/`, `i18n/` |
+| `packages/shared/src/` | Shared kernel source | `schemas/`, `types/`, `constants/`, `index.ts` |
+| `packages/shared/src/constants/` | Shared constants | `roles.ts`, `alert-severity.ts`, `camera-status.ts`, `incident-status.ts`, `door-states.ts`, etc. |
+| `packages/shared/src/schemas/` | Zod validation schemas (27 files) | `auth.schema.ts`, `camera.schema.ts`, `alert.schema.ts`, `incident.schema.ts`, etc. |
+| `packages/shared/src/types/` | Shared TypeScript interfaces (17 files) | `auth.types.ts`, `access.types.ts`, `ai.types.ts`, `incident.types.ts`, etc. |
+| `packages/design/src/` | Design tokens | `colors.ts`, `typography.ts`, `spacing.ts`, `shadows.ts`, `marketing.ts` |
+| `packages/ui/src/` | Reusable UI components | `button.tsx`, `card.tsx`, `code.tsx` |
+| `packages/eslint-config/` | Shared ESLint configuration | `base.js`, `next.js`, `react-internal.js` |
+| `packages/typescript-config/` | Shared TypeScript config | `base.json`, `nextjs.json`, `react-library.json` |
+| `services/ai-preprocessor/app/` | FastAPI app | `main.py`, `config.py`, `models/`, `routes/` |
+| `edge/agent/` | Edge health monitoring agent | `agent.py`, `Dockerfile`, `requirements.txt` |
+| `docker/` | Dockerfiles for each service | `api.Dockerfile`, `dashboard.Dockerfile`, `website.Dockerfile` |
 
 ## Naming Conventions
 
-**Files:**
-- NestJS modules: `kebab-case` — `auth.controller.ts`, `alert.service.ts`, `jwt-auth.guard.ts`, `zod-validation.pipe.ts`
-- Next.js routes: `page.tsx`, `layout.tsx` (Next.js convention); route group directories in `(parentheses)` — `(auth)/`, `(dashboard)/`
-- Expo routes: `_layout.tsx` (layout), `index.tsx` (default page), `(tabs)/` (tab group)
-- Shared package: `kebab-case` — `auth.schema.ts`, `camera-status.ts`
-- Dockerfiles: `PascalCase` with dot notation — `api.Dockerfile`, `dashboard.Dockerfile`
+| Category | Convention | Examples |
+|----------|------------|----------|
+| **API files** | `*.service.ts`, `*.controller.ts`, `*.module.ts`, `*.spec.ts`, `*.gateway.ts`, `*.processor.ts`, `*.guard.ts`, `*.decorator.ts`, `*.pipe.ts`, `*.filter.ts`, `*.adapter.ts` | `auth.service.ts`, `health.controller.ts`, `roles.guard.ts` |
+| **Dashboard files** | `*.tsx` for components, `page.tsx` for routes, `layout.tsx` for layouts, kebab-case otherwise | `stats-card.tsx`, `alert-feed.tsx`, `page.tsx` |
+| **Mobile files** | `*.tsx` for screens, `[id].tsx` for dynamic routes, `_layout.tsx` for layout | `_layout.tsx`, `[id].tsx`, `index.tsx` |
+| **API routes** | Plural controllers (`auth`, `cameras`, `alerts`, `users`, `incidents`) | `@Controller('auth')`, `@Controller('cameras')` |
+| **Dashboard routes** | French names (French-first locale) | `/alertes`, `/cameras`, `/incidents`, `/portes`, `/parametres` |
+| **Shared schemas** | PascalCase + `Schema` suffix for schemas, `Input` suffix for types | `createCameraSchema`, `CreateCameraInput` |
+| **Shared constants** | `UPPER_SNAKE_CASE` | `ROLES`, `ROLE_HIERARCHY`, `ALERT_SEVERITY`, `CAMERA_STATUS` |
+| **Env variables** | `UPPER_SNAKE_CASE` | `DATABASE_URL`, `JWT_ACCESS_SECRET`, `OLLAMA_BASE_URL` |
 
-**Directories:**
-- NestJS modules: `lowercase` single-word — `auth/`, `alert/`, `camera/`, `ingestion/`
-- Next.js routes: `lowercase` — `alertes/`, `cameras/`, `utilisateurs/`, `parametres/` (French)
-- Dynamic routes: `[id]/` (bracket notation)
-- Route groups: `(groupName)/` (parenthesis notation)
-- Shared package sections: `lowercase` — `schemas/`, `types/`, `constants/`
+## Module Organization
 
-**Functions:**
-- camelCase throughout: `fetchDashboardStats`, `createSite`, `getAccessToken`, `handleRequest`
-- NestJS lifecycle: `onModuleInit`
-- React hooks: `useAuth`, `useI18n`
-- Decorators: `@Public()`, `@Roles(...)`
+### API Feature Modules (38 modules in `apps/api/src/modules/`)
 
-**Types/Interfaces:**
-- PascalCase: `DashboardStats`, `PaginatedResponse<T>`, `AuthResponse`, `TokenPayload`
-- DTOs: PascalCase with `Dto` suffix — `LoginDto`, `CreateCameraDto`, `UpdateUserDto`
+Each feature module follows this structure:
+```
+module-name/
+├── module-name.controller.ts   # Route definitions (@Controller, Swagger decorators)
+├── module-name.module.ts       # NestJS module configuration
+├── module-name.service.ts      # Business logic, Prisma queries
+└── module-name.spec.ts         # Unit tests (some modules)
+```
+
+Some modules include additional files:
+- `strategies/` — Passport strategies (e.g., `auth/strategies/`, `sso/`)
+- `*.processor.ts` — BullMQ queue processors (e.g., `ai.processor.ts`, `correlation.processor.ts`)
+- `*.gateway.ts` — Socket.IO WebSocket gateways (e.g., `notification.gateway.ts`)
+- `*.dto.ts` — Module-specific DTOs (e.g., `chat.dto.ts`)
+- `tenant-extension.ts` — Prisma tenant isolation extension
+
+**Module inventory:**
+
+| Module | Purpose | Controller Routes |
+|--------|---------|-------------------|
+| `access/` | Access control (credentials, zones, schedules, access levels) | `/api/access/*` |
+| `ai-agent/` | AI agent chat (SSE streaming) | `/api/ai-agent/*` |
+| `ai/` | AI query/summarize/assistant | `/api/ai/*` |
+| `alert/` | Alert management (CRUD, acknowledge, resolve) | `/api/alerts/*` |
+| `analytics/` | Zone/site analytics queries | `/api/analytics/*` |
+| `anpr/` | ANPR/vehicle plate recognition | `/api/anpr/*` |
+| `api-key/` | Tenant API key management (Enterprise) | `/api/api-keys/*` |
+| `audit/` | Immutable audit log (hash chain) | `/api/audit/*` |
+| `auth/` | Auth (register, login, refresh, logout, switch-org) | `/api/auth/*` |
+| `camera/` | Camera CRUD | `/api/cameras/*` |
+| `chat/` | AI camera chat (query video via LLM) | `/api/chat/*` |
+| `compliance/` | Compliance report generation | `/api/compliance/*` |
+| `contact/` | Public contact form submissions | `/api/contact/*` |
+| `correlation/` | Event correlation (timeline, tailgating) | `/api/correlation/*` |
+| `dashboard/` | Dashboard stats aggregation | `/api/dashboard/*` |
+| `door/` | Door state monitoring and control | `/api/doors/*` |
+| `equipment/` | Equipment health monitoring | `/api/equipment/*` |
+| `feature-gate/` | Feature flag evaluation | (internal guard) |
+| `governance/` | Data retention policies | `/api/governance/*` |
+| `health/` | System health checks | `/api/health/*` |
+| `incident/` | Incident management (CRUD, assign, resolve) | `/api/incidents/*` |
+| `inference/` | AI inference pipeline | `/api/inference/*` |
+| `ingestion/` | Video stream ingestion (RTSP → ffmpeg → AI) | `/api/ingestion/*` |
+| `license/` | License management (JWT-based) | `/api/licenses/*` |
+| `maintenance/` | Maintenance tickets (unified with incidents) | `/api/maintenance/*` |
+| `notification/` | Real-time WebSocket notification gateway | WebSocket events |
+| `notifications/` | Notification settings + logs + send | `/api/notifications/*` |
+| `organization/` | Organization CRUD + invites | `/api/organizations/*` |
+| `patterns/` | Security pattern detection | `/api/patterns/*` |
+| `prisma/` | Global Prisma client singleton | (no routes) |
+| `queue/` | BullMQ queue management | `/api/queue/*` |
+| `risk/` | Risk scoring and analytics | `/api/risk/*` |
+| `site/` | Site (organization) management | `/api/sites/*` |
+| `sso/` | SAML/OIDC SSO integration | `/api/auth/sso/*` |
+| `supervision/` | Edge agent health reports | `/api/supervision/*` |
+| `user/` | User CRUD + password management | `/api/users/*` |
+| `visitor/` | Visitor management (pre-register, check-in/out) | `/api/visitors/*` |
+| `webhook/` | Webhook subscriptions + deliveries | `/api/webhooks/*` |
+
+### Common Infrastructure (`apps/api/src/common/`)
+
+| Directory | Purpose | Files |
+|-----------|---------|-------|
+| `adapters/` | Custom NestJS adapters | `socket-io.adapter.ts` |
+| `decorators/` | Custom decorators | `public.decorator.ts`, `roles.decorator.ts`, `current-org.decorator.ts`, `feature-gate.decorator.ts`, `audited.decorator.ts` |
+| `dto/` | Shared class-validator DTOs for Swagger | `index.ts` |
+| `filters/` | Exception filters | `all-exceptions.filter.ts` |
+| `guards/` | Auth/authz guards | `jwt-auth.guard.ts`, `roles.guard.ts`, `tenant-isolation.guard.ts`, `feature-gate.guard.ts` |
+| `helpers/` | Helper utilities | `tenant-worker.ts` |
+| `middleware/` | Middleware | `tenant-context.middleware.ts`, `site-context.middleware.ts` |
+| `pipes/` | Validation pipes | `zod-validation.pipe.ts` |
+
+### Dashboard Route Groups (`apps/dashboard/app/`)
+
+```
+app/
+├── (auth)/                     # Unauthenticated routes
+│   ├── login/page.tsx
+│   └── register/page.tsx
+├── (dashboard)/                # Authenticated routes (26 sections)
+│   ├── acces/                  # Access control
+│   ├── alertes/                # Alerts
+│   ├── analytique/             # Analytics
+│   ├── api-keys/               # API keys
+│   ├── audit/                  # Audit logs
+│   ├── cameras/                # Cameras
+│   ├── chat/                   # AI chat
+│   ├── chronologie/            # Timeline
+│   ├── command-center/         # Command center
+│   ├── conformite/             # Compliance
+│   ├── equipement/             # Equipment
+│   ├── gouvernance/            # Data governance
+│   ├── ia/                     # AI settings
+│   ├── incidents/              # Incidents
+│   ├── licences/               # License management
+│   ├── maintenance/            # Maintenance
+│   ├── notifications/          # Notifications
+│   ├── parametres/             # Settings
+│   ├── patterns/               # Security patterns
+│   ├── portes/                 # Doors
+│   ├── risque/                 # Risk scoring
+│   ├── schemas/                # (content/schemas)
+│   ├── sites/                  # Sites
+│   ├── utilisateurs/           # Users
+│   ├── vehicules/              # Vehicles/ANPR
+│   ├── visiteurs/              # Visitors
+│   ├── webhooks/               # Webhooks
+│   ├── layout.tsx              # Dashboard group layout (AuthProvider + ProtectedLayout + DashboardLayout)
+│   └── page.tsx                # Overview page (default dashboard)
+├── invite/                     # Invite acceptance pages
+├── parametres/                 # Global settings
+├── globals.css                 # Global styles + Tailwind
+├── layout.tsx                  # Root layout (ThemeProvider + I18nProvider)
+└── not-found.tsx               # 404 page
+```
+
+### Mobile Screen Structure (`apps/mobile/app/`)
+
+```
+app/
+├── _layout.tsx              # Root layout (Stack navigator, AuthProvider, ErrorBoundary)
+├── index.tsx                 # Default redirect
+├── login.tsx                 # Login screen
+├── register.tsx              # Registration screen
+├── notifications.tsx         # Notification center
+├── (tabs)/
+│   ├── _layout.tsx           # Tab navigator layout
+│   ├── index.tsx             # Home/dashboard tab
+│   ├── alerts.tsx            # Alerts tab
+│   ├── cameras.tsx           # Cameras tab
+│   ├── incidents.tsx         # Incidents tab
+│   ├── chat.tsx              # AI chat tab
+│   ├── sites.tsx             # Sites tab
+│   ├── settings.tsx          # Settings tab
+│   ├── more.tsx              # More tab
+│   └── more/                 # Additional settings screens
+├── camera/[id].tsx           # Camera detail screen
+├── alert/[id].tsx            # Alert detail screen
+└── incident/                 # Incident detail screens
+```
 
 ## Where to Add New Code
 
-**New API Feature:**
-- Primary code: `apps/api/src/modules/{feature-name}/` — create `{feature}.module.ts`, `{feature}.controller.ts`, `{feature}.service.ts`
-- Register module: Import in `apps/api/src/app.module.ts`
-- Database changes: Update `apps/api/prisma/schema.prisma`, run `pnpm prisma:migrate`
-- Validation schemas: `packages/shared/src/schemas/{feature}.schema.ts` (if shared validation needed)
-- Tests: `apps/api/src/modules/{feature}/{feature}.service.spec.ts`
-- Export from shared: Add to `packages/shared/src/index.ts`
+### New API Feature Module
+1. Create directory: `apps/api/src/modules/<module-name>/`
+2. Create files following the pattern: `<name>.module.ts`, `<name>.controller.ts`, `<name>.service.ts`
+3. Import and register module in `apps/api/src/app.module.ts`
+4. Add shared schemas in `packages/shared/src/schemas/<name>.schema.ts`
+5. Add shared types in `packages/shared/src/types/<name>.types.ts`
+6. Add shared constants in `packages/shared/src/constants/<name>.ts`
+7. Export all new symbols in `packages/shared/src/index.ts`
 
-**New Dashboard Page:**
-- Primary code: `apps/dashboard/app/(dashboard)/{page-name}/page.tsx`
-- API client: Add functions to `apps/dashboard/lib/api.ts`
-- Navigation: Add item to `apps/dashboard/lib/nav-config.ts` (array of `NavItem`)
-- i18n keys: Add to `apps/dashboard/lib/i18n/dictionaries/fr.ts` and `en.ts`
+### New Dashboard Page
+1. Create route directory: `apps/dashboard/app/(dashboard)/<page-name>/`
+2. Create `page.tsx` with default export function component
+3. Add API function(s) in `apps/dashboard/lib/api.ts`
+4. Add components in `apps/dashboard/components/` (reusable) or locally in the page directory
+5. Add route entry in sidebar: update `apps/dashboard/lib/nav-config.ts`
 
-**New Mobile Screen:**
-- Primary code: `apps/mobile/app/{screen-name}.tsx` or `apps/mobile/app/(tabs)/{screen-name}.tsx`
-- API client: Add functions to `apps/mobile/lib/api.ts`
-- Auth state: Use existing `apps/mobile/lib/auth-context.tsx` and `apps/mobile/lib/auth-storage.ts`
+### New Mobile Screen
+1. Create route directory: `apps/mobile/app/<screen-name>/` (or `(tabs)/<screen-name>/`)
+2. Create `page.tsx` (Expo Router file-based)
+3. Register in tab navigator: update `apps/mobile/app/(tabs)/_layout.tsx`
+4. Add API function in `apps/mobile/lib/api.ts`
 
-**New Shared Type/Schema:**
-- Zod schema: `packages/shared/src/schemas/{name}.schema.ts`
-- TypeScript type: `packages/shared/src/types/{name}.types.ts`
-- Constants: `packages/shared/src/constants/{name}.ts`
-- Export: Add to `packages/shared/src/index.ts` (barrel file)
-- Rebuild: `pnpm --filter @repo/shared build` before consuming apps can see changes
-
-**New UI Component:**
-- Dashboard-specific: `apps/dashboard/components/{component-name}.tsx`
-- shadcn/ui: Use `npx shadcn-ui add` — writes to `apps/dashboard/components/ui/`
-- Shared component: `packages/ui/src/{component-name}.tsx`
-
-**New Infrastructure Service:**
-- Python service: `services/{service-name}/` with `Dockerfile`, `requirements.txt`, `app/`
-- Docker Compose: Add service definition to `docker-compose.yml`
-- Caddy routing: Add route rule to `Caddyfile` if HTTP-accessible
-
-## Special Directories
-
-**`.planning/`:**
-- Purpose: GSD workflow artifacts — plans, specs, codebase maps
-- Generated: Yes (by GSD commands)
-- Committed: Yes
-
-**`.claude/` and `.agents/`:**
-- Purpose: AI agent skills and configurations
-- Generated: Partially (project-specific skills)
-- Committed: Yes
-
-**`apps/api/prisma/migrations/`:**
-- Purpose: Prisma database migration history — auto-generated SQL
-- Generated: Yes (by `prisma migrate dev`)
-- Committed: Yes
-
-**`apps/dashboard/.next/`:**
-- Purpose: Next.js build output — server, static files, cache
-- Generated: Yes (by `next build`)
-- Committed: No (in `.gitignore`)
-
-**`apps/dashboard/public/`:**
-- Purpose: Static assets served by Next.js — PWA icons, manifest, service worker
-- Generated: Manual
-- Committed: Yes
-
-**`node_modules/`:**
-- Purpose: Package dependencies
-- Generated: Yes (by `pnpm install`)
-- Committed: No
+### New Shared Schema/Type
+1. Add Zod schema to `packages/shared/src/schemas/<domain>.schema.ts`
+2. Add TypeScript type to `packages/shared/src/types/<domain>.types.ts`
+3. Export from `packages/shared/src/index.ts`
+4. Rebuild shared package: `pnpm --filter @repo/shared build`
 
 ---
 
-*Structure analysis: 2026-07-14*
+*Structure analysis: 2026-07-17*

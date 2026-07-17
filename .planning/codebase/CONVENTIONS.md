@@ -1,289 +1,262 @@
 # Coding Conventions
 
-**Analysis Date:** 2026-07-14
+> Generated: 2026-07-17
 
 ## Naming Patterns
 
-**Files:**
-- kebab-case for most files: `stats-card.tsx`, `auth.service.ts`, `zod-validation.pipe.ts`
-- NestJS modules follow specific suffixes: `*.service.ts`, `*.controller.ts`, `*.module.ts`, `*.spec.ts`, `*.gateway.ts`, `*.decorator.ts`, `*.processor.ts`
-- Dashboard layouts: `layout.tsx`, page routes: `page.tsx`
-- Expo Router uses file-based routing with `_layout.tsx`, `index.tsx`, `[id].tsx`
-
-**Functions:**
-- camelCase: `findAll`, `findById`, `createTokens`, `fetchDashboardStats`, `hasMinRole`
-- Async functions: `async function fetchCameras()` or `async findAll()`
-- React hooks: `useAuth()`, `useSidebar()` — always prefixed with `use`
-- React components: `function StatsCard()` or arrow function `const Button = React.forwardRef(...)`
-
-**Variables:**
-- camelCase: `mockUser`, `refreshToken`, `isAuthenticated`, `onlineCount`
-- Destructuring used extensively in function parameters:
-  ```typescript
-  async findAll(filters?: { severity?: string; status?: string; page?: number; limit?: number })
-  ```
-
-**Types/Interfaces:**
-- PascalCase: `StatsCardProps`, `DashboardUser`, `PaginatedResponse<T>`, `CameraPrompt`, `AuthResult`, `StandardErrorResponse`
-- Prefer `interface` over `type` for object shapes; use `type` for unions, primitives, and utility types
-- Type imports use `import type { ... }` syntax in dashboard/mobile (e.g., `import type { LucideIcon } from "lucide-react"`)
-
-**Constants:**
-- UPPER_SNAKE_CASE for object constants: `ROLES`, `ROLE_HIERARCHY`, `ALERT_SEVERITY`, `CAMERA_STATUS`
-- NestJS metadata keys: `IS_PUBLIC_KEY`, `ROLES_KEY`, `AUDIT_LOG_KEY`
-
-**Enums/property values:**
-- UPPER_SNAKE_CASE string literals: `"CRITICAL"`, `"HIGH"`, `"OPEN"`, `"ACKNOWLEDGED"`
+| Category | Convention | Example |
+|----------|------------|---------|
+| Files (API) | `kebab-case` with NestJS suffixes | `auth.service.ts`, `auth.controller.ts`, `camera.module.ts`, `zod-validation.pipe.ts` |
+| Files (Dashboard) | `kebab-case` | `stats-card.tsx`, `page-header.tsx`, `auth-context.tsx` |
+| Files (Mobile) | `kebab-case` | `alert-card.tsx`, `error-boundary.tsx`, `auth-storage.ts` |
+| Files (Shared) | `kebab-case` | `auth.schema.ts`, `camera-status.ts`, `audit.types.ts` |
+| Functions/Methods | `camelCase` | `findAll()`, `findById()`, `createTokens()`, `handleLogin()` |
+| Async functions | `async function` or `async ()` | `async function fetchCameras()`, `async findAll()` |
+| React components | Named function declarations (Dashboard) | `export function StatsCard(...)` |
+| React components | Named function exports (Mobile) | `export default function LoginScreen()` |
+| React hooks | `camelCase` with `use` prefix | `useAuth()`, `useSidebar()`, `useI18n()` |
+| Variables | `camelCase` | `mockUser`, `refreshToken`, `isAuthenticated` |
+| Interfaces | `PascalCase` | `StatsCardProps`, `DashboardUser`, `PaginatedResponse<T>` |
+| Types (unions/primitives) | `type` keyword preferred over `interface` | `type Role = "ADMIN" | "OPERATOR"` |
+| Constants (objects) | `UPPER_SNAKE_CASE` | `ROLES`, `ROLE_HIERARCHY`, `ALERT_SEVERITY`, `CAMERA_STATUS` |
+| Constants (string literals) | `UPPER_SNAKE_CASE` | `"CRITICAL"`, `"OPEN"`, `"ACKNOWLEDGED"` |
+| Decorator metadata keys | `UPPER_SNAKE_CASE` | `IS_PUBLIC_KEY`, `ROLES_KEY`, `AUDIT_LOG_KEY` |
+| Test files | `*.spec.ts` (suffix) | `auth.service.spec.ts`, `user.service.spec.ts` |
+| Barrel exports | Named exports | `export { ROLES, ROLE_HIERARCHY } from "./constants/roles"` |
+| Dashboard pages | `page.tsx` | `app/(dashboard)/page.tsx` |
+| Dashboard layouts | `layout.tsx` | `app/layout.tsx`, `app/(dashboard)/layout.tsx` |
+| Expo Router screens | File-based routing with `_layout.tsx` | `app/_layout.tsx`, `app/(tabs)/_layout.tsx` |
 
 ## Code Style
 
-**Formatting:**
-- **Tool:** Prettier `^3.7.4` (configured at root `package.json` in `@repo/eslint-config`)
-- **No `.prettierrc` file** — uses Prettier defaults (2-space indent, double quotes, trailing commas, semicolons)
-- Format command: `prettier --write "**/*.{ts,tsx,md}"`
-
-**Linting:**
-- **Tool:** ESLint v9 (flat config) with `typescript-eslint` v8
-- **Shared config:** `@repo/eslint-config` in `packages/eslint-config/`
-  - `base.js` — TypeScript recommended + Turbo + Prettier compatibility
-  - `next.js` — extends base with Next.js + React + react-hooks plugins
-  - `react-internal.js` — extends base with React + react-hooks plugins (no Next.js)
-- **Key rules:**
-  - `turbo/no-undeclared-env-vars`: warn
-  - `react/react-in-jsx-scope`: off (new JSX transform)
-  - `@typescript-eslint/no-unused-vars`: warn (in mobile)
-  - `@typescript-eslint/no-explicit-any`: warn (in mobile)
-  - All errors downgraded to warnings via `eslint-plugin-only-warn`
-
-**Quotes:**
-- Most files use double quotes (`"`): `packages/shared/src/`, `apps/dashboard/`, `apps/mobile/`
-- Some API files use single quotes (`'`): `apps/api/src/modules/user/user.service.ts`, `apps/api/src/common/filters/all-exceptions.filter.ts`
-- **Inconsistency between apps** — the shared config and Prettier default to double quotes
-
-**Semicolons:**
-- Used consistently at end of statements in all TypeScript files
-
-**React Component Style:**
-- Dashboard (Next.js): named function declarations with explicit props interfaces
-  ```typescript
-  interface StatsCardProps { ... }
-  export function StatsCard({ title, value, ... }: StatsCardProps) { ... }
-  ```
-- Dashboard UI primitives (shadcn/ui pattern): `React.forwardRef` with `cva` variants
-  ```typescript
-  const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-    ({ className, variant, size, asChild = false, ...props }, ref) => { ... }
-  );
-  Button.displayName = "Button";
-  ```
-- Mobile (React Native): function declarations with `StyleSheet.create`
-  ```typescript
-  export function StatsCard({ title, value, subtitle, color }: StatsCardProps) { ... }
-  const styles = StyleSheet.create({ ... });
-  ```
+- **Formatter:** Prettier `^3.7.4` — uses Prettier defaults (2-space indent, double quotes, trailing commas, semicolons). No `.prettierrc` file. Format command: `prettier --write "**/*.{ts,tsx,md}"`
+- **Linter:** ESLint v9 (flat config) with shared config at `packages/eslint-config/`:
+  - `base.js` — JS recommended + `typescript-eslint` recommended + `eslint-config-prettier` + `eslint-plugin-turbo` + `eslint-plugin-only-warn`
+  - `next.js` — Extends base + React + React Hooks + `@next/eslint-plugin-next`
+  - `react-internal.js` — Extends base + React + React Hooks
+  - Mobile uses `@repo/eslint-config/base` with local overrides: `@typescript-eslint/no-unused-vars: "warn"`, `@typescript-eslint/no-explicit-any: "warn"`
+  - Dashboard uses `@repo/eslint-config/next-js`
+  - UI package uses `@repo/eslint-config/react-internal`
+  - All packages use flat config files named `eslint.config.mjs`
+- **Key Rules:**
+  - `turbo/no-undeclared-env-vars: "warn"` (in base config)
+  - `react/react-in-jsx-scope: "off"` (Next.js + React 19 JSX transform)
+  - React Hooks recommended rules enabled
+  - Rules downgraded to `warn` by `eslint-plugin-only-warn`
+  - `eslint-config-prettier` disables all formatting rules that conflict with Prettier
+- **Quote style inconsistency:** API files (`apps/api/src/`) use single quotes (`'`), while Dashboard (`apps/dashboard/`), Mobile (`apps/mobile/`), and Shared (`packages/shared/`) use double quotes (`"`). The Prettier config defaults to double quotes.
 
 ## Import Organization
 
 **Order:**
-1. Framework/external packages (`react`, `@nestjs/common`, `next/link`)
-2. Workspace packages (`@repo/shared`, `@repo/eslint-config`)
-3. Path aliases (`@/lib/utils`, `@/components/ui/card`)
-4. Relative imports (`../prisma/prisma.service`, `../../common/guards/jwt-auth.guard`)
-
-**Typical pattern (NestJS controller):**
-```typescript
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
-import { FastifyRequest } from 'fastify';
-import { CameraService } from './camera.service';
-import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
-import { createCameraSchema } from '@repo/shared';
-```
-
-**Typical pattern (Next.js page):**
-```typescript
-"use client";
-import { useEffect, useState } from "react";
-import { StatsCard } from "@/components/stats-card";
-import { Card, CardContent } from "@/components/ui/card";
-import { fetchDashboardStats, type DashboardStats } from "@/lib/api";
-```
+1. External packages (NestJS, React, Next.js, third-party)
+2. Internal project imports using path aliases
+3. Relative imports from same module
 
 **Path Aliases:**
-- All apps and packages use `@/*` mapping to their own root:
-  - `apps/api`: `@/*` → `src/*` (`apps/api/tsconfig.json`)
-  - `apps/dashboard`: `@/*` → `./*` (`apps/dashboard/tsconfig.json`)
-  - `apps/mobile`: `@/*` → `./*` (`apps/mobile/tsconfig.json`)
-- Workspace packages referenced as `@repo/shared`, `@repo/eslint-config`, etc.
+- `@/*` maps to `src/*` in API (`apps/api/tsconfig.json`), `apps/dashboard/` (via `tsconfig.json` paths), and `apps/mobile/` (via `tsconfig.json` paths)
+- Workspace packages: `@repo/shared`, `@repo/eslint-config`, `@repo/design`, `@repo/ui`
+
+**Pattern:**
+```typescript
+// API - external first
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import * as bcrypt from 'bcryptjs';
+
+// Dashboard - external first, then internal
+import { useEffect, useState } from "react";
+import { motion } from "motion/react";
+import { fetchDashboardStats } from "@/lib/api";
+import { cn } from "@/lib/utils";
+
+// Shared - barrel index with section headers
+// Schemas
+export { registerSchema } from "./schemas/auth.schema";
+export type { RegisterInput } from "./schemas/auth.schema";
+```
+
+**Type imports** use `import type { ... }` syntax in Dashboard and Mobile (e.g., `import type { LucideIcon } from "lucide-react"`, `import type { Metadata } from "next"`).
 
 ## Error Handling
 
-**Backend (NestJS):**
-- Use NestJS built-in exceptions: `NotFoundException`, `BadRequestException`, `ConflictException`, `UnauthorizedException`
-- Single-line guard clause pattern in services:
+**API (NestJS):**
+- Use NestJS built-in exceptions: `NotFoundException`, `BadRequestException`, `ConflictException`, `UnauthorizedException`, `ForbiddenException`
+- Single-line guard clause pattern:
   ```typescript
-  if (!user) throw new NotFoundException('User not found');
+  if (!user) {
+    throw new NotFoundException('User not found');
+  }
   ```
-- Global exception filter (`AllExceptionsFilter` in `apps/api/src/common/filters/all-exceptions.filter.ts`) wraps all uncaught errors in `StandardErrorResponse`
-- Validation errors via `ZodValidationPipe` (`apps/api/src/common/pipes/zod-validation.pipe.ts`):
+- Global exception filter (`apps/api/src/common/filters/all-exceptions.filter.ts`) catches all unhandled exceptions and returns standardized `StandardErrorResponse`:
   ```typescript
-  throw new BadRequestException({ message: "Validation failed", errors });
+  interface StandardErrorResponse {
+    statusCode: number;
+    error: string;
+    message: string | string[];
+    path: string;
+    timestamp: string;
+    details?: Record<string, unknown>;
+  }
   ```
-- Authentication failures: throw `UnauthorizedException` with descriptive messages
+- Validation errors via `ZodValidationPipe` (`apps/api/src/common/pipes/zod-validation.pipe.ts`) throw `BadRequestException` with field-level error details.
+- JWT guard throws `UnauthorizedException`; Roles guard throws `ForbiddenException`.
+- NestJS `Logger` used for unexpected errors with stack traces.
 
-**Frontend (Dashboard):**
-- API client functions (`apps/dashboard/lib/api.ts`) check `res.ok` and throw `Error` with messages
-- Components use explicit `error: string | null` state with error UI rendering:
+**Dashboard:**
+- API functions check `res.ok` and throw generic `Error` with French messages:
   ```typescript
-  const [error, setError] = useState<string | null>(null);
-  // ...
-  if (error) return <ErrorDisplay message={error} />;
+  if (!res.ok) throw new Error(result.message || "Registration failed");
+  if (!res.ok) throw new Error("Failed to fetch dashboard stats");
   ```
-- `fetchWithAuth` in `apps/dashboard/lib/auth-client.ts` handles 401 auto-redirect to `/login`
+- `fetchWithAuth` (`apps/dashboard/lib/auth-client.ts`) handles 401 auto-redirect to `/login`.
+- Components use explicit `error: string | null` state with conditional error UI rendering.
+- Toast notifications for user-facing errors.
 
-**Frontend (Mobile):**
-- Try/catch in auth init with graceful fallback: `console.warn("[auth] init error")`
-- `ErrorBoundary` component wraps the app root (`apps/mobile/components/error-boundary.tsx`)
-
-## Logging
-
-**Backend:**
-- NestJS `Logger` injected via constructor pattern:
-  ```typescript
-  private readonly logger = new Logger(ClassName.name);
-  ```
-- Methods: `this.logger.log(...)`, `this.logger.error(...)`, `this.logger.warn(...)`, `this.logger.debug(...)`
-- Log messages are in English: `"Database connected"`, `"Database connection failed: ..."`
-- Stack traces included for unexpected errors only
-
-**Frontend:**
-- `console.error` only for environment variable checks in `lib/api.ts` and `lib/auth-client.ts`
-- No logging framework in dashboard or mobile apps
-
-## Comments
-
-**Section Dividers:**
-- Horizontal rule comment style used in API test files and some source files:
-  ```typescript
-  // ── Section Name ──────────────────────────────────────────────────────────────
-  // ── Mocks ──
-  // ── Test Data ──
-  // ── Tests ──
-  ```
-  Also present in source files like `camera.controller.ts`: `// ── Camera Prompts ──`
-
-**JSDoc/TSDoc:**
-- Used on decorators and utility functions:
-  ```typescript
-  /**
-   * Decorator that marks an endpoint for automatic audit logging.
-   * Usage: @AuditLog('CREATE', 'camera')
-   */
-  ```
-- Used on shared constants:
-  ```typescript
-  /**
-   * Hierarchy: key can access everything that values can access.
-   * SUPER_ADMIN > ADMIN > SUPERVISOR > OPERATOR > VIEWER
-   */
-  ```
-
-**In-Code Comments:**
-- Brief explanatory comments for non-obvious logic:
-  ```typescript
-  // Soft delete — deactivate the user
-  // Rotate: revoke old, issue new
-  // Revoke ALL tokens for this user — possible token theft
-  ```
+**Mobile:**
+- API similar pattern with try/catch and French error messages.
+- `ErrorBoundary` class component (`apps/mobile/components/error-boundary.tsx`) wraps the app root.
+- `console.warn("[ErrorBoundary]", ...)` for client-side error logging.
 
 ## Function Design
 
 **Size:**
 - Most service methods are under 45 lines
 - Controllers are thin (10-20 lines per method)
-- Dashboard page components can be longer (100-250 lines) due to inline JSX
+- Dashboard page components can be 100-350 lines due to inline JSX
 
 **Parameters:**
-- Object parameters with inline type annotations preferred over positional args for 3+ params:
+- Object parameters with inline type annotations preferred for 3+ params:
   ```typescript
-  async findAll(filters?: { severity?: string; status?: string; page?: number; limit?: number })
+  async register(data: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    organizationName: string;
+  })
+  ```
+- Simple 1-2 param methods use positional:
+  ```typescript
+  async findById(id: string)
+  async login(email: string, password: string)
   ```
 
 **Return Values:**
 - Services return plain objects or Prisma query results directly
 - Paginated endpoints return `{ data, total, page, limit }` shape
 - Auth endpoints return `{ accessToken, refreshToken, user }` shape
-- Error endpoints return `StandardErrorResponse` from global filter
+- Error responses return `StandardErrorResponse` from global filter
 
-**Async:**
-- All I/O operations use `async/await`
-- `Promise.all` used for parallel independent operations:
-  ```typescript
-  const [data, total] = await Promise.all([
-    this.prisma.alert.findMany(...),
-    this.prisma.alert.count(...),
-  ]);
-  ```
+**Async:** All I/O operations use `async/await`. `Promise.all` used for parallel operations:
+```typescript
+const [cameras, count] = await Promise.all([
+  this.prisma.camera.findMany({ ... }),
+  this.prisma.camera.count({ ... }),
+]);
+```
 
 ## Module Design
 
 **Exports:**
 - Named exports preferred (`export function`, `export class`, `export const`)
-- Default exports used only for Next.js page components (`export default function OverviewPage()`)
-- Barrel file in `packages/shared/src/index.ts` re-exports from sub-modules with clear section headers
+- Default exports used only for Next.js page components (`export default function OverviewPage()`) and Expo Router screens (`export default function RootLayout()`)
+
+**Barrel Files:**
+- `packages/shared/src/index.ts` re-exports from sub-modules with clear section headers and comments for stubs
+- `apps/dashboard/components/ui/index.ts` re-exports all shadcn/ui components
 
 **NestJS Module Pattern:**
-Each feature module contains at minimum:
-```
-modules/[entity]/
-  ├── [entity].module.ts         # NestJS module declaration
-  ├── [entity].service.ts        # Business logic
-  ├── [entity].controller.ts     # HTTP endpoints
-  └── [entity].service.spec.ts   # Unit tests (optional)
-```
-
-**React Component Organization:**
-```
-components/
-  ├── [feature].tsx              # Feature-level components
-  └── ui/                        # Base UI primitives (shadcn/ui pattern)
-      ├── button.tsx
-      ├── card.tsx
-      └── badge.tsx
-lib/
-  ├── [utility].ts               # Shared utilities, API clients
-  └── [feature]-context.tsx      # React context providers
-app/
-  └── [route]/page.tsx           # Next.js page routes
+```typescript
+@Module({
+  controllers: [AuthController],
+  providers: [AuthService],
+  exports: [AuthService],
+})
+export class AuthModule {}
 ```
 
-## Styling
+**Global Module Pattern:**
+```typescript
+@Global()
+@Module({
+  providers: [PrismaService],
+  exports: [PrismaService],
+})
+export class PrismaModule {}
+```
 
-**Dashboard (Tailwind CSS):**
-- Utility-first with `cn()` helper in `apps/dashboard/lib/utils.ts` (clsx + tailwind-merge)
-- Dark theme by default (`<html className="dark">`)
-- Named semantic color tokens: `text-primary`, `bg-muted`, `border-input`
-- Custom utilities: `status-pulse` animation for online camera indicator
-- Component variants via `class-variance-authority` (cva):
+**shadcn/ui Component Pattern:**
+- `React.forwardRef` with `cva` (class-variance-authority) variant definitions:
   ```typescript
-  const buttonVariants = cva("...", { variants: { variant: {...}, size: {...} } });
+  const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+    ({ className, variant, size, asChild = false, ...props }, ref) => {
+      const Comp = asChild ? Slot : "button";
+      return (
+        <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+      );
+    }
+  );
+  Button.displayName = "Button";
   ```
 
-**Mobile (React Native StyleSheet):**
-- Theme tokens in `apps/mobile/lib/theme.ts` (colors, typography, spacing, borderRadius)
-- Styles defined at bottom of component files with `StyleSheet.create()`
-- Spread operator for typography presets:
+**Mobile Component Pattern:**
+- Function declarations with `StyleSheet.create` at bottom:
   ```typescript
-  value: { ...typography.mono, fontSize: 28 }
+  export function StatsCard({ title, value, subtitle, color }: StatsCardProps) {
+    return (
+      <View style={styles.card}>
+        ...
+      </View>
+    );
+  }
+  const styles = StyleSheet.create({ ... });
   ```
 
-## Zod vs class-validator
+**API Client Pattern:**
+- Centralized functions in `apps/dashboard/lib/api.ts` and `apps/mobile/lib/api.ts`
+- All use `fetchWithAuth()` which handles 401 with automatic token refresh
+- Typed interfaces for all API responses
 
-**Dual validation approach:**
-- `packages/shared/` defines Zod schemas (`registerSchema`, `createCameraSchema`, etc.)
-- `apps/api/src/common/dto/index.ts` defines class-validator DTOs for Swagger documentation
-- Controllers use `ZodValidationPipe` for runtime validation (`apps/api/src/common/pipes/zod-validation.pipe.ts`)
-- Swagger decorators use the class-validator DTO classes for OpenAPI generation
+**Zod Validation + Swagger DTO Dual Pattern:**
+- Shared Zod schemas in `packages/shared/src/schemas/` for runtime validation
+- Class-validator DTOs in `apps/api/src/common/dto/` for Swagger/OpenAPI generation
+- Controllers use `@Body(new ZodValidationPipe(schema))` for runtime validation + `@ApiBody({ type: DtoClass })` for Swagger
+
+## Comments & Documentation
+
+**When to Comment:**
+- Horizontal rule comment sections used as separator markers in tests and some source files:
+  ```typescript
+  // ── Mocks ──────────────────────────────────────────────────────────────────────
+  // ── Test Data ──────────────────────────────────────────────────────────────────
+  // ── Tests ──────────────────────────────────────────────────────────────────────
+  // ── register ────────────────────────────────────────────────────────────
+  ```
+- JSDoc on decorators, utility functions, and non-obvious logic:
+  ```typescript
+  /**
+   * Exchange an SSO-authenticated user for JWT tokens.
+   * Called by SsoController after Passport validates the SAML/OIDC assertion.
+   */
+  ```
+- Brief inline comments for rationale:
+  ```typescript
+  // Rotate: revoke old, issue new
+  // Single transaction: Org + User + Member (D-08)
+  // Soft delete — deactivate the user
+  ```
+- Phase-related stubs in shared package commented out with notes:
+  ```typescript
+  // Schemas - Organization Config (Phase 8 stubs)
+  // export { anprThresholdSchema } from "./schemas/organization.schema";
+  ```
+- `"use client"` directive at top of Dashboard interactive components
+
+**JSDoc/TSDoc:**
+- Used sparingly — mainly on decorator factory functions, shared exports, and complex utilities
+- ESLint config files include `@type` JSDoc annotations
 
 ---
 
-*Convention analysis: 2026-07-14*
+*Convention analysis: 2026-07-17*

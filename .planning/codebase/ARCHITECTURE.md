@@ -1,240 +1,225 @@
-<!-- refreshed: 2026-07-14 -->
 # Architecture
 
-**Analysis Date:** 2026-07-14
+> Generated: 2026-07-17
 
 ## System Overview
 
-```text
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                           Caddy Reverse Proxy (:80)                          │
-│        `/api/*` → api:4000  |  `/ws/*` → api:4000  |  `/*` → dashboard:3100 │
-└──────────────────────────────────┬───────────────────────────────────────────┘
-                                   │
-        ┌──────────────────────────┼──────────────────────────────┐
-        ▼                          ▼                              ▼
-┌───────────────────┐  ┌───────────────────────┐  ┌──────────────────────────┐
-│   NestJS API      │  │   Next.js Dashboard   │  │   Expo Mobile App         │
-│  (Fastify/4000)   │  │   (React 18/3100)     │  │   (Expo Router/file-routing)│
-│  `apps/api/`      │  │  `apps/dashboard/`    │  │  `apps/mobile/`           │
-└────┬──────┬───────┘  └───────────┬───────────┘  └─────────────┬────────────┘
-     │      │                      │                            │
-     │      ▼                      │                            │
-     │  ┌──────────────────┐       │                            │
-     │  │  BullMQ Queues    │       │                            │
-     │  │  (Redis-backed)   │       │                            │
-     │  │  - frame-processing│      │                            │
-     │  │  - notification   │       │                            │
-     │  └────────┬─────────┘       │                            │
-     │           │                  │                            │
-     ▼           ▼                  ▼                            ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                            Shared Package                                     │
-│  `packages/shared/` — Zod schemas, TypeScript types, constants (role hierarchy, │
-│  alert/camera enums), validation rules                                       │
-└──────────────────────────────────────────────────────────────────────────────┘
-     │           │                  │
-     ▼           ▼                  ▼
-┌──────────┐ ┌─────────┐ ┌──────────────────┐ ┌─────────┐
-│PostgreSQL│ │  Redis   │ │  AI Preprocessor │ │ Ollama  │
-│(Prisma)  │ │ (BullMQ, │ │  (Python/FastAPI │ │ (LLM)   │
-│          │ │ cache)   │ │  :8000)          │ │ :11434  │
-└──────────┘ └─────────┘ └──────────────────┘ └─────────┘
+Oversight Hub is a multi-tenant, AI-powered physical security intelligence platform deployed as a **monorepo** using **pnpm workspaces** and **Turborepo**. The system follows a **layered modular monolith** pattern with a NestJS API backend, two frontend clients (Next.js dashboard and Expo mobile app), a shared kernel package, and supporting AI/edge microservices. External dependencies include PostgreSQL (database), Redis (queues/cache), Ollama (local LLM), Qdrant (vector store), and Mosquitto (MQTT broker for door controllers).
 
-┌──────────────────────────────────────────────────────────┐
-│                  Edge Agent (Python)                      │
-│  `edge/agent/` — Health monitoring, backups, self-update │
-│  Deployed on edge servers, reports to supervision API    │
-└──────────────────────────────────────────────────────────┘
+The system is designed for self-hosted Docker Compose deployment behind Caddy reverse proxy, with an optional Coolify-managed production variant.
+
+## Architecture Pattern
+
+**Layered Modular Monolith (API) + Backend-for-Frontend (BFF) clients**
+
+- **API layer**: NestJS modular monolith with Fastify adapter — 38 feature modules, each bundled as controller + service + Prisma queries.
+- **Presentation layer**: Next.js dashboard (server-rendered React) and Expo mobile app (client-rendered React Native) — both consume the same REST API + WebSocket endpoints.
+- **Shared kernel**: Zod schemas, TypeScript interfaces, and constants in `packages/shared/` consumed by all TypeScript consumers.
+- **Microservices**: AI Preprocessor (Python FastAPI), Edge Agent (Python), and MQTT broker — each independently deployable.
+- **Event-driven**: BullMQ queues (Redis-backed) for async processing (frame analysis, notification dispatch, audit writes). Socket.IO for real-time WebSocket communication. EventEmitter2 for in-process event bus. MQTT for door controller hardware communication.
+
 ```
-
-## Component Responsibilities
-
-| Component | Responsibility | File |
-|-----------|----------------|------|
-| NestJS API | REST API, auth, business logic, real-time (WebSocket) | `apps/api/src/` |
-| Next.js Dashboard | Web admin interface, PWA | `apps/dashboard/` |
-| Expo Mobile | Cross-platform mobile app (iOS/Android) | `apps/mobile/` |
-| Shared Package | Zod schemas, TypeScript types, shared constants, role hierarchy | `packages/shared/src/` |
-| UI Package | Reusable React components (button, card, code) | `packages/ui/src/` |
-| AI Preprocessor | Python FastAPI service for frame analysis | `services/ai-preprocessor/` |
-| Edge Agent | Python service for edge server health monitoring | `edge/agent/` |
-| Caddy | Reverse proxy: routes to API (REST+WS) and Dashboard | `Caddyfile` |
-
-## Pattern Overview
-
-**Overall:** Modular monolith with shared-kernel monorepo
-
-**Key Characteristics:**
-- pnpm workspaces + Turborepo for builds
-- NestJS modular architecture (controllers, services, modules) with Fastify HTTP adapter
-- Next.js App Router with route groups for auth/dashboard separation
-- Role-Based Access Control (RBAC) via decorators and guards
-- Dual validation: Zod (shared schemas) for runtime validation + class-validator (NestJS DTOs) for Swagger/OpenAPI
-- Event-driven: BullMQ queues backed by Redis for frame processing and notification dispatch
-- WebSocket real-time layer via Socket.IO (notifications, chat)
+┌─────────────────────────────────────────────────────────────────┐
+│                      External Clients                            │
+│    Browser (Dashboard)              Mobile (iOS/Android)         │
+│    app.oversighthub.com             Expo App                     │
+└───────────────┬──────────────────────────────────┬──────────────┘
+                │ HTTPS/WS                         │ HTTPS
+                ▼                                  ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                    Caddy Reverse Proxy                            │
+│    /api/* → api:4000    /ws/* → api:4000    /* → dashboard:3100   │
+└─────────────────────────────────┬────────────────────────────────┘
+                                  │
+          ┌───────────────────────┼───────────────────────┐
+          ▼                       ▼                       ▼
+┌──────────────────┐ ┌───────────────────────┐ ┌──────────────────────┐
+│  marketing:3200  │ │   API (NestJS):4000    │ │ Dashboard (Next.js) │
+│  (Next.js)       │ │   REST + WebSocket     │ │     :3100           │
+│  www.oversight   │ │   38 feature modules   │ │  SSR + Client       │
+│  hub.com         │ │                       │ │                     │
+└──────────────────┘ └───────┬───────┬───────┘ └─────────────────────┘
+                             │       │
+           ┌─────────────────┘       └─────────────────┐
+           ▼                                            ▼
+┌─────────────────────┐                     ┌──────────────────────────┐
+│  External Services  │                     │   Internal Infra         │
+│  ┌──────────────┐   │                     │  ┌────────────────────┐  │
+│  │ Ollama (LLM) │   │                     │  │  PostgreSQL 16     │  │
+│  │ :11434       │   │                     │  │  (Prisma ORM)      │  │
+│  └──────────────┘   │                     │  └────────────────────┘  │
+│  ┌──────────────┐   │                     │  ┌────────────────────┐  │
+│  │ Qdrant       │   │                     │  │  Redis 7           │  │
+│  │ (vectors)    │   │                     │  │  (BullMQ + cache)  │  │
+│  │ :6333        │   │                     │  └────────────────────┘  │
+│  └──────────────┘   │                     │  ┌────────────────────┐  │
+│  ┌──────────────┐   │                     │  │  Mosquitto (MQTT)  │  │
+│  │ AI Preprocessor│  │                     │  │  :1883             │  │
+│  │ (FastAPI):8000│   │                     │  └────────────────────┘  │
+│  └──────────────┘   │                     └──────────────────────────┘
+│  ┌──────────────┐   │
+│  │ Edge Agent   │   │
+│  │ (Python)     │   │
+│  └──────────────┘   │
+└─────────────────────┘
+```
 
 ## Layers
 
-### API Layer (NestJS)
-- Purpose: REST API, authentication, business logic, real-time WebSocket gateway
-- Location: `apps/api/src/`
-- Contains: Feature modules (`modules/`), cross-cutting concerns (`common/`), app bootstrap (`main.ts`), configuration (`config/`)
-- Depends on: `@repo/shared` (schemas, types, constants), Prisma (database client), Redis (queue + cache), External AI services
-- Used by: Dashboard, Mobile app, Edge agent, external integrations
-
-### Presentation Layer (Dashboard)
-- Purpose: Web admin interface with role-aware navigation
-- Location: `apps/dashboard/`
-- Contains: Next.js App Router pages (`app/`), React components (`components/`), API client (`lib/api.ts`), auth client (`lib/auth-client.ts`), i18n (`lib/i18n/`), shadcn/ui components (`components/ui/`)
-- Depends on: `@repo/shared`, NestJS API
-- Used by: Administrators, operators, supervisors via browser
-
-### Presentation Layer (Mobile)
-- Purpose: Cross-platform mobile companion app
-- Location: `apps/mobile/`
-- Contains: Expo Router screens (`app/`), React Native components (`components/`), API client (`lib/api.ts`), auth with SecureStore
-- Depends on: NestJS API (REST endpoints)
-- Used by: Field operators via iOS/Android
-
-### Shared Kernel Layer
-- Purpose: Shared TypeScript types, validation schemas, constants, role hierarchy
-- Location: `packages/shared/src/`
-- Contains: Zod schemas (`schemas/`), TypeScript types (`types/`), constants (`constants/`)
-- Depends on: `zod` only
-- Used by: API, Dashboard, Mobile — all TypeScript consumers
-
-### Infrastructure Layer
-- Purpose: Deployment, routing, persistence, queues
-- Location: `docker-compose.yml`, `Caddyfile`, `docker/`, `apps/api/prisma/`
-- Contains: Docker Compose services, Caddy reverse proxy config, Dockerfiles, Prisma schema
-- Depends on: PostgreSQL, Redis, Ollama
-- Used by: All services at runtime
+| Layer | Responsibility | Location | Depends On |
+|-------|---------------|----------|------------|
+| **API (NestJS)** | REST API, authentication, business logic, WebSocket real-time, MQTT integration, BullMQ job processing | `apps/api/src/` | Prisma, Redis, Ollama, Qdrant, MQTT, external AI |
+| **Dashboard (Next.js)** | Web admin interface, role-aware UI, i18n, real-time notifications | `apps/dashboard/` | NestJS API (REST + WS) |
+| **Mobile (Expo)** | Cross-platform mobile companion for guards/operators | `apps/mobile/` | NestJS API (REST) |
+| **Marketing Site (Next.js)** | Public marketing site, contact forms, blog/content | `apps/marketing/` | NestJS API (contact endpoint) |
+| **Shared Kernel** | Zod schemas, TypeScript types, constants, role hierarchy | `packages/shared/src/` | zod only |
+| **UI Package** | Reusable React components (button, card, code) | `packages/ui/src/` | React, clsx |
+| **Design Package** | Design tokens (colors, typography, spacing, shadows) | `packages/design/src/` | None |
+| **AI Preprocessor** | Python FastAPI microservice for frame analysis (ANPR, object detection) | `services/ai-preprocessor/` | Ollama, Pillow, httpx |
+| **Edge Agent** | Python service for edge server health monitoring and go2rtc management | `edge/agent/` | Docker API, psutil, httpx |
+| **Infrastructure** | Docker Compose services, Caddy reverse proxy, Prisma schema/migrations | `docker/`, `Caddyfile`, `apps/api/prisma/` | PostgreSQL, Redis, Caddy |
 
 ## Data Flow
 
 ### Primary Request Path (Dashboard → API)
 
-1. User logs in via `apps/dashboard/app/(auth)/login/` page → `POST /api/auth/login`
-2. Dashboard auth client (`apps/dashboard/lib/auth-client.ts:18`) stores access token in `sessionStorage` and refresh token in HttpOnly cookie
-3. Authenticated requests use `fetchWithAuth()` (`apps/dashboard/lib/auth-client.ts:102`) — automatically attaches `Authorization: Bearer` header and refreshes on 401
-4. Data-fetching functions in `apps/dashboard/lib/api.ts` call API endpoints
-5. API validates via NestJS `ValidationPipe` (global, `apps/api/src/main.ts:116`) + `ZodValidationPipe` (`apps/api/src/common/pipes/zod-validation.pipe.ts:7`)
-6. Guards (`apps/api/src/common/guards/jwt-auth.guard.ts:11`) verify JWT; `RolesGuard` (`apps/api/src/common/guards/roles.guard.ts:12`) checks role hierarchy from `@repo/shared`
-7. Controller delegates to Service, Service uses Prisma (`apps/api/src/modules/prisma/prisma.service.ts`) to query PostgreSQL
-8. Response flows back; errors caught by `AllExceptionsFilter` (`apps/api/src/common/filters/all-exceptions.filter.ts:21`)
+1. User authenticates via `/api/auth/login` — returns JWT access token (15m) + refresh token (7d, HttpOnly cookie + response body)
+2. Dashboard stores access token in `sessionStorage`, refresh token in cookie
+3. All authenticated API calls use `fetchWithAuth()` (`apps/dashboard/lib/auth-client.ts:137`) which attaches `Authorization: Bearer <token>` header
+4. On 401 response, `fetchWithAuth` automatically calls `/api/auth/refresh` to rotate tokens, then retries the original request
+5. On refresh failure, redirects to `/login`
+6. NestJS `JwtAuthGuard` (`apps/api/src/common/guards/jwt-auth.guard.ts`) validates the JWT on every non-`@Public()` route
+7. `TenantIsolationGuard` (`apps/api/src/common/guards/tenant-isolation.guard.ts`) ensures data access is scoped to the user's organization
+8. `RolesGuard` (`apps/api/src/common/guards/roles.guard.ts`) checks role hierarchy against `@Roles()` decorator
+9. `FeatureGateGuard` (`apps/api/src/common/guards/feature-gate.guard.ts`) checks per-organization feature flags
+10. Controller delegates to Service → Prisma queries PostgreSQL → returns JSON response
+11. `AuditInterceptor` (`apps/api/src/modules/audit/audit.interceptor.ts`) asynchronously enqueues audit log entries to BullMQ `audit-write` queue
+12. `AllExceptionsFilter` (`apps/api/src/common/filters/all-exceptions.filter.ts`) catches all unhandled exceptions and returns `StandardErrorResponse`
 
 ### Real-time Notification Flow
 
-1. Alert triggered (e.g., AI detection in frame processing)
-2. `NotificationService` (`apps/api/src/modules/notification/notification.service.ts`) dispatches via BullMQ notification queue
-3. `NotificationGateway` (`apps/api/src/modules/notification/notification.gateway.ts`) pushes to connected Socket.IO clients
-4. Dashboard receives via `socket.io-client` (`apps/dashboard/package.json`), displays real-time toast
+1. Server: `NotificationGateway` (`apps/api/src/modules/notification/notification.gateway.ts`) uses Socket.IO to push alerts/notifications to connected dashboard clients
+2. Mobile: REST polling or SSE (for AI agent chat streaming)
+3. BullMQ queues: `ai-process`, `notification-send`, `audit-write`, `correlation-event` — processed by queue workers
+4. In-process events: `EventEmitter2` used for MQTT message routing and internal cross-module communication
 
 ### Video Ingestion Flow
 
-1. Camera configured with RTSP URL in Dashboard
-2. Operator starts stream via `POST /api/ingestion/:cameraId/start`
-3. `IngestionService` ( `apps/api/src/modules/ingestion/ingestion.service.ts`) begins frame capture from RTSP stream
-4. Frames dispatched to `frame-processing` BullMQ queue
-5. `InferenceProcessor` (`apps/api/src/modules/inference/inference.processor.ts`) sends frames to AI Preprocessor (`services/ai-preprocessor/`) or Ollama for analysis
-6. Alerts generated based on CameraPrompt rules (`apps/api/prisma/schema.prisma:127`) and AI analysis results
+1. Dashboard or API triggers `/api/ingestion/:cameraId/start`
+2. `IngestionService` (`apps/api/src/modules/ingestion/ingestion.service.ts`) spawns ffmpeg process to capture frames from RTSP stream
+3. Frames sent to `AI Preprocessor` (`services/ai-preprocessor/`) via HTTP for analysis
+4. AI analysis results trigger alerts, ANPR events, or correlation jobs
+5. Snapshots stored as files (local or S3-compatible)
+
+### MQTT Hardware Communication Flow
+
+1. Door controllers publish state changes to `site/{siteId}/door/{doorId}/state` topic
+2. `MqttService` (`apps/api/src/mqtt/mqtt.service.ts`) receives and validates messages (sequence number dedup)
+3. Messages routed to internal event bus via `EventEmitter2` — topics: `mqtt.door.state`, `mqtt.reader.badge`, `mqtt.controller.health`
+4. Domain modules (door, access, supervision) subscribe to events and update database/trigger alerts
 
 ### Edge Agent Health Flow
 
-1. Edge Agent (`edge/agent/agent.py`) runs periodic health checks on local Docker services
-2. Reports heartbeats to Supervision API (`apps/api/src/modules/supervision/`)
-3. Performs daily backups, checks for Docker image updates
-4. Central dashboard displays edge server status via supervision endpoints
-
-**State Management:**
-- Dashboard: React Context for auth (`apps/dashboard/lib/auth-context.tsx:28`), `sessionStorage` for access tokens
-- Mobile: React Context for auth (`apps/mobile/lib/auth-context.tsx`), `expo-secure-store` for token persistence
-- API: Stateless (JWT), with Redis for queue state and session management
+1. `Edge Agent` (`edge/agent/agent.py`) runs on edge servers, collects system metrics, monitors go2rtc and Docker containers
+2. Reports health to API via REST POST to `/api/supervision/report`
+3. `SupervisionModule` processes reports, updates equipment health scores, triggers alerts on anomalies
 
 ## Key Abstractions
 
-### NestJS Module Pattern
-- Purpose: Feature encapsulation — each module bundles controller, service, and defines dependencies
-- Examples: `apps/api/src/modules/alert/alert.module.ts`, `apps/api/src/modules/auth/auth.module.ts`
-- Pattern: `@Module({ controllers: [...], providers: [...], exports: [...] })`
-
-### Global Module Pattern
-- Purpose: Provide singletons (database client, queues) across all modules without explicit imports
-- Example: `apps/api/src/modules/prisma/prisma.module.ts` — decorated with `@Global()`, exports `PrismaService`
-
-### Decorator-Based RBAC
-- Purpose: Declarative access control on route handlers
-- Pattern: `@Public()` bypasses JWT guard (`apps/api/src/common/decorators/public.decorator.ts:4`); `@Roles(...)` restricts by role hierarchy (`apps/api/src/common/decorators/roles.decorator.ts:4`)
-
-### Zod Validation Pipe
-- Purpose: Runtime validation of request bodies using shared Zod schemas from `@repo/shared`
-- Pattern: `@Body(new ZodValidationPipe(loginSchema))` in controllers (`apps/api/src/modules/auth/auth.controller.ts:69`)
-
-### shadcn/ui Component System
-- Purpose: Accessible, customizable UI primitives built on Radix UI
-- Location: `apps/dashboard/components/ui/` (15 components: button, card, table, dialog, toast, etc.)
-- Pattern: Each component imports from Radix primitives + Tailwind CSS classes via `cn()` utility
-
-### API Client Pattern
-- Purpose: Centralized HTTP client with automatic auth token management
-- Location: `apps/dashboard/lib/api.ts`
-- Pattern: All API functions use `fetchWithAuth()` which handles 401 refresh transparently; typed interfaces for all responses
-
-### i18n Provider
-- Purpose: Client-side internationalization via React Context
-- Location: `apps/dashboard/lib/i18n/` with dictionaries in `fr.ts` (primary) and `en.ts`
-- Pattern: `I18nProvider` wraps root layout, components use `useI18n()` hook
+| Abstraction | Purpose | Implementation | Interface |
+|-------------|---------|----------------|-----------|
+| **NestJS Module Pattern** | Encapsulate feature: controller + service + providers | `apps/api/src/modules/*/*.module.ts` — `@Module({ controllers, providers, exports })` | Imported by `AppModule` |
+| **PrismaService** | Singleton DB client with tenant extension | `apps/api/src/modules/prisma/prisma.service.ts` — `@Global()` wrapper around `PrismaClient` | `$extends(tenantExtension)`, CRUD methods |
+| **JwtAuthGuard** | Global auth guard with `@Public()` bypass | `apps/api/src/common/guards/jwt-auth.guard.ts` — extends `AuthGuard('jwt')` | Decorator: `@Public()` on endpoints |
+| **RolesGuard** | Hierarchy-based role access control | `apps/api/src/common/guards/roles.guard.ts` — checks `ROLE_HIERARCHY` from shared | Decorator: `@Roles('ADMIN', 'SUPERVISOR')` |
+| **TenantIsolationGuard** | Multi-tenant data isolation | `apps/api/src/common/guards/tenant-isolation.guard.ts` | Global, auto-scopes queries |
+| **ZodValidationPipe** | Runtime validation using shared Zod schemas | `apps/api/src/common/pipes/zod-validation.pipe.ts` | `@Body(new ZodValidationPipe(schema))` |
+| **AllExceptionsFilter** | Standard error response envelope | `apps/api/src/common/filters/all-exceptions.filter.ts` — returns `StandardErrorResponse` | Global `APP_FILTER` |
+| **AuditInterceptor** | Async audit logging via BullMQ | `apps/api/src/modules/audit/audit.interceptor.ts` — enqueues `write-audit` jobs | Decorator: `@Audited({ entity, action })` |
+| **MqttService** | MQTT client for door controller communication | `apps/api/src/mqtt/mqtt.service.ts` — connects to Mosquitto, validates sequences, emits events | `EventEmitter2` events |
+| **fetchWithAuth()** | Auto-auth HTTP client for dashboard | `apps/dashboard/lib/auth-client.ts:137` — transparent 401 refresh | Returns `Promise<Response>` |
+| **API Client** | Typed API wrapper functions | `apps/dashboard/lib/api.ts`, `apps/mobile/lib/api.ts` — all service calls through one file | Named async functions |
+| **EventEmitter2** | In-process event bus for cross-module communication | `EventEmitterModule.forRoot()` in `AppModule` | `@InjectEventEmitter()` + wildcard events |
 
 ## Entry Points
 
-### API Server
-- Location: `apps/api/src/main.ts` (bootstrap function)
-- Triggers: Docker container start / `node dist/src/main.js`
-- Responsibilities: Creates NestJS app with Fastify, configures Helmet/CORS/rate-limit/cookies, sets global prefix to `/api`, generates Swagger docs at `/api/docs`, loads `AppModule`, auto-starts active camera streams on init
-
-### Dashboard
-- Location: `apps/dashboard/app/layout.tsx` (RootLayout)
-- Triggers: Next.js server start on port 3100
-- Responsibilities: Renders HTML shell with dark theme, `I18nProvider`, PWA manifest/service worker registration
-
-### Mobile App
-- Location: `apps/mobile/app/_layout.tsx` (RootLayout)
-- Triggers: Expo Router entry point (`expo-router/entry`)
-- Responsibilities: Validates config, provides `AuthProvider`, sets up Stack navigator with tab group and modal screens
-
-### Caddy (Reverse Proxy)
-- Location: `Caddyfile`
-- Triggers: Docker container start on port 80
-- Responsibilities: Routes `/api/*` and `/ws/*` to API service, all other traffic to Dashboard
-
-## Architectural Constraints
-
-- **Threading:** NestJS uses Node.js single-threaded event loop; BullMQ workers process jobs concurrently via Redis-backed queues
-- **Global state:** `PrismaService` is a `@Global()` singleton in NestJS; `ConfigModule` is global (loaded in `AppModule`)
-- **Circular imports:** Not detected — modules are cleanly separated with Prisma as global provider
-- **Monorepo constraints:** All TypeScript packages share a single `typescript@5.9.2` version; React types are overridden to `19.1.10` in root `package.json`
-- **Node.js:** Requires `>=18` runtime
-- **Package manager:** pnpm `9.0.0` enforced via `packageManager` field
-
-## Error Handling
-
-**Strategy:** Centralized exception filter for NestJS + per-request error handling in clients
-
-**Patterns:**
-- `AllExceptionsFilter` (`apps/api/src/common/filters/all-exceptions.filter.ts:21`) catches all unhandled exceptions, returns standardized `{ statusCode, error, message, path, timestamp }` response
-- `ZodValidationPipe` throws `BadRequestException` with field-level error details on validation failure
-- JWT guard throws `UnauthorizedException`; Roles guard throws `ForbiddenException`
-- Dashboard API client throws generic `Error` with French messages; components display with toast/error UI
-- Mobile API client uses similar try/catch patterns with French error messages
+| Entry Point | Purpose | Port/Route | Handler |
+|-------------|---------|------------|---------|
+| **NestJS API Server** | Main backend entry point | `0.0.0.0:4000` | `apps/api/src/main.ts` — bootstrap() → NestFactory.create(FastifyAdapter) |
+| **Swagger UI** | API documentation | `/api/docs` (OpenAPI 3.0) | `SwaggerModule.setup` in `main.ts` |
+| **API Health Check** | Liveness probe | `GET /api/health` | `apps/api/src/modules/health/health.controller.ts` |
+| **API Detailed Health** | System diagnostics | `GET /api/health/detailed` | `HealthController.healthDetailed()` |
+| **Dashboard Root** | Next.js SSR entry | `0.0.0.0:3100` | `apps/dashboard/app/layout.tsx` → `RootLayout` |
+| **Dashboard Overview** | Main dashboard page | `/` (route group: `(dashboard)`) | `apps/dashboard/app/(dashboard)/page.tsx` |
+| **Mobile App** | Expo Router entry | N/A (native app) | `apps/mobile/app/_layout.tsx` → Stack navigator |
+| **Marketing Site** | Public website | `0.0.0.0:3200` | `apps/marketing/app/` → Next.js pages |
+| **AI Preprocessor** | Python FastAPI microservice | `0.0.0.0:8000` | `services/ai-preprocessor/app/main.py` |
+| **Edge Agent** | Python edge health monitor | N/A (outbound to API) | `edge/agent/agent.py` |
+| **Prisma Migrate** | Schema migration (at startup) | Docker entrypoint | `docker/api.Dockerfile` → `npx prisma migrate deploy` |
 
 ## Cross-Cutting Concerns
 
-**Logging:** NestJS `Logger` class — instanced per context (Bootstrap, module services, exception filter); logs at `log`, `error`, `warn`, `debug` levels
-**Validation:** Dual-layer: Zod schemas in `@repo/shared` for runtime parsing via `ZodValidationPipe`, class-validator decorators in DTOs (`apps/api/src/common/dto/index.ts`) for Swagger/OpenAPI metadata
-**Authentication:** JWT (access + refresh tokens) via Passport.js strategies; access token in `Authorization` header (mobile) or cookie (web); refresh token via HttpOnly cookie (web) or body (mobile); roles enforced via `RolesGuard`
-**Audit:** All auth operations (login, logout, register) and entity mutations logged to `AuditLog` table via `AuditService` (`apps/api/src/modules/audit/audit.service.ts`)
+### Authentication & Authorization
+- **JWT-based**: Access token (15m) + refresh token (7d, rotated on use)
+- **Global guard chain** (order matters): `JwtAuthGuard` → `TenantIsolationGuard` → `RolesGuard` → `FeatureGateGuard`
+- **`@Public()` decorator**: Bypasses JWT auth for login, register, health, accept-invite
+- **`@Roles()` decorator**: Hierarchy-based (`ROLE_HIERARCHY` in `packages/shared/src/constants/roles.ts`)
+- **Refresh token rotation**: Old token revoked on refresh; all sessions revoked on reuse detection (security measure)
+- **SSO**: SAML + OIDC support via `SsoModule` (`apps/api/src/modules/sso/`) and `IdpConfig` model
+- **Tenant API Keys**: Per-organization API keys with scopes + rate limits for external integrations (`apps/api/src/modules/api-key/`)
+
+### Error Handling
+- **Global exception filter**: `AllExceptionsFilter` catches all unhandled exceptions → returns `{ statusCode, error, message, path, timestamp }`
+- **ZodValidationPipe**: Throws `BadRequestException` with field-level validation errors
+- **NestJS HTTP exceptions**: `NotFoundException`, `ConflictException`, `UnauthorizedException`, `ForbiddenException` used consistently
+
+### Logging
+- NestJS `Logger` class across all services (`Logger.log`, `.error`, `.warn`, `.debug`)
+- Bootstrap logger for startup info
+- Dashboard/mobile use `console.error` only for env var checks
+- French error messages in dashboard/mobile UI
+
+### Audit
+- **Immutable audit log**: Hash chain (`previousHash` + `currentHash`) via `AuditModule`
+- **`@Audited()` decorator**: Declarative on endpoints — automatically enqueues write-audit job
+- **BullMQ queue**: Async audit writes never block responses
+- **Schema**: `AuditLog` model with action, entity, entityId, changes (JSON), IP, user agent, hash chain
+
+### Multi-Tenancy
+- **Organization-based isolation**: All data models reference `organizationId`
+- **OrganizationMember join table**: Users can belong to multiple orgs with different roles
+- **TenantContextMiddleware**: Extracts org context from JWT for downstream use
+- **TenantIsolationGuard**: Global guard ensures org-scoped access
+- **Feature flags**: Per-organization feature flag toggles (`FeatureFlag` model + `FeatureGateGuard`)
+
+### Event-Driven Architecture
+- **BullMQ queues** (Redis-backed):
+  - `ai-process`: Frame analysis jobs (camera ingestion → AI inference)
+  - `audit-write`: Async audit log writes
+  - `notification-send`: Push/email notification dispatch
+  - `correlation-event`: Event correlation processing
+- **Socket.IO Gateway**: Real-time push to dashboard (alerts, notifications)
+- **EventEmitter2**: In-process events for MQTT message routing
+- **MQTT**: Hardware-layer communication (door state, badge reads, controller health)
+
+### Data Validation
+- **Dual validation**: Zod schemas in `packages/shared/` for runtime validation + class-validator DTOs in `apps/api/src/common/dto/` for Swagger/OpenAPI documentation
+- **Config validation**: Joi schema in `apps/api/src/config/validation.ts` validates environment variables at startup
+
+### Background Jobs
+- **BullMQ processors** in `apps/api/src/modules/` — each module can have processor files:
+  - `ai.processor.ts` — processes frame analysis jobs
+  - `correlation.processor.ts` — event correlation
+  - `tailgating.processor.ts` — tailgating detection
+  - `notifications.processor.ts` — notification dispatch
+- **ScheduleModule**: `@nestjs/schedule` for cron/scheduled tasks
+- **Automatic camera restart**: `onModuleInit()` in `AppModule` re-starts active camera streams after API restart
+
+### Rate Limiting
+- **Global**: `@fastify/rate-limit` applies to all `/api/*` routes (100 req/60s default)
+- **Auth endpoints**: Stricter limit (5 req/60s) on login/register/refresh
+- **Tenant API keys**: Per-key rate limiting via `TenantApiKeyGuard`
 
 ---
 
-*Architecture analysis: 2026-07-14*
+*Architecture analysis: 2026-07-17*
