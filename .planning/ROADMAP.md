@@ -27,11 +27,16 @@ v3.0 transforms Oversight Hub from a polished SaaS platform into a production-re
 **Depends on**: Nothing (first phase)
 **Requirements**: INF-01, INF-02, INF-03
 **Success Criteria** (what must be TRUE):
-  1. Edge Agent handles concurrent serial (OSDP), MQTT publish/subscribe, and HTTP operations without blocking — no single-protocol hang stalls other functionality
-  2. MQTT broker rejects unauthenticated connections; only TLS-authenticated clients with valid credentials can publish or subscribe
-  3. Docker containers can reach hardware via serial device passthrough (RS-485/RS-232) and multicast UDP (ONVIF WS-Discovery on 239.255.255.50:3702)
-  4. Existing Edge Agent functionality (heartbeat reporting, health monitoring, event forwarding) continues operating correctly after async rewrite
-**Plans**: TBD
+   1. Edge Agent handles concurrent serial (OSDP), MQTT publish/subscribe, and HTTP operations without blocking — no single-protocol hang stalls other functionality
+   2. MQTT broker rejects unauthenticated connections; only TLS-authenticated clients with valid credentials can publish or subscribe
+   3. Docker containers can reach hardware via serial device passthrough (RS-485/RS-232) and multicast UDP (ONVIF WS-Discovery on 239.255.255.50:3702)
+   4. Existing Edge Agent functionality (heartbeat reporting, health monitoring, event forwarding) continues operating correctly after async rewrite
+**Plans**: 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Mosquitto MQTT security + Docker networking for serial/multicast (INF-02, INF-03)
+- [ ] 01-02-PLAN.md — Edge Agent async rewrite with asyncio, aiomqtt, pyserial-asyncio, aiohttp (INF-01)
+- [ ] 01-03-PLAN.md — Unit/integration tests + build validation (INF-01, INF-02, INF-03)
 
 ### Phase 2: Hardware Integration
 **Goal**: Physical security hardware — OSDP door controllers and ONVIF cameras — are discovered, controlled, and stream events into the platform
@@ -85,7 +90,7 @@ v3.0 transforms Oversight Hub from a polished SaaS platform into a production-re
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure Foundation | 0/0 | Not started | - |
+| 1. Infrastructure Foundation | 0/3 | Planned | - |
 | 2. Hardware Integration | 0/0 | Not started | - |
 | 3. Visitor Kiosk | 0/0 | Not started | - |
 | 4. Marketing Site Redesign | 0/0 | Not started | - |
