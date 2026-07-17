@@ -74,4 +74,40 @@ export class DoorGateway implements OnGatewayConnection, OnGatewayDisconnect {
       .to(`org:${payload.orgId}`)
       .emit("emergency-update", payload);
   }
+
+  // ── Phase 2 Event Handlers ──
+
+  @OnEvent("door.osdp-event", { async: true })
+  handleOsdpEvent(payload: {
+    doorId: string; orgId: string; eventType: string;
+    badgeNumber?: string; direction?: string; tampered?: boolean; timestamp: string;
+  }) {
+    this.server.to(`org:${payload.orgId}`).emit("door:osdp-event", payload);
+  }
+
+  @OnEvent("controller.status", { async: true })
+  handleControllerStatus(payload: {
+    controllerId: string; status: string; batteryLevel?: number;
+    cpuLoad?: number; memoryUsage?: number;
+  }) {
+    const orgId = payload.controllerId.split("-")[0];
+    this.server.to(`org:${orgId}`).emit("controller:status", payload);
+  }
+
+  @OnEvent("controller.discovery", { async: true })
+  handleControllerDiscovery(payload: {
+    controllerId: string; serialNumber: string; manufacturer: string; model: string;
+  }) {
+    this.server.to(`org:${payload.controllerId.split("-")[0]}`).emit("controller:discovery", payload);
+  }
+
+  @OnEvent("ptz.preset-update", { async: true })
+  handlePtzPresetUpdate(payload: { cameraId: string; presets: any[] }) {
+    this.server.to(`camera:${payload.cameraId}`).emit("ptz:preset-update", payload);
+  }
+
+  @OnEvent("door.command-state", { async: true })
+  handleCommandState(payload: { doorId: string; state: string; timestamp: string }) {
+    this.server.to(`door:${payload.doorId}`).emit("door:command-state", payload);
+  }
 }

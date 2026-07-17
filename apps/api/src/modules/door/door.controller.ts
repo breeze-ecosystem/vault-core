@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
@@ -16,6 +17,9 @@ import { Audited } from "../../common/decorators/audited.decorator";
 import {
   updateAlertConfigSchema,
   emergencyOverrideSchema,
+  doorCommandSchema,
+  createDoorMonitoringSchema,
+  createCameraDoorMapSchema,
 } from "@repo/shared";
 
 @Controller("doors")
@@ -127,6 +131,73 @@ export class DoorController {
       user?.id ?? "unknown",
     );
     return { status: "cleared", zoneId };
+  }
+
+  /**
+   * POST /api/doors/:id/cmd
+   * Send lock/unlock command to door (D-04).
+   */
+  @Post(":id/cmd")
+  @Audited({ entity: "door", action: "UPDATE" })
+  @Roles("ADMIN", "SUPERVISOR", "OPERATOR")
+  async sendDoorCommand(
+    @Param("id") id: string,
+    @Body(new ZodValidationPipe(doorCommandSchema)) body: { command: "lock" | "unlock" },
+    @Req() req: FastifyRequest,
+  ) {
+    const user = (req as any)?.user;
+    return await this.doorService.sendCommand(id, body.command, user?.orgId);
+  }
+
+  /**
+   * POST /api/doors
+   * Create a new door (D-17 controller enrollment).
+   * Uses createDoorMonitoringSchema (Phase 2 variant — not createDoorSchema from access.schema.ts).
+   */
+  @Post()
+  @Audited({ entity: "door", action: "CREATE" })
+  @Roles("ADMIN", "SUPER_ADMIN")
+  async createDoor(
+    @Body(new ZodValidationPipe(createDoorMonitoringSchema)) body: any,
+    @Req() req: FastifyRequest,
+  ) {
+    const user = (req as any)?.user;
+    return await this.doorService.create(body, user?.orgId);
+  }
+
+  /**
+   * GET /api/doors/:id/camera-maps
+   * List camera associations for a door (D-10).
+   */
+  @Get(":id/camera-maps")
+  @Roles("ADMIN", "SUPER_ADMIN", "SUPERVISOR", "OPERATOR")
+  async getCameraMaps(@Param("id") id: string) {
+    return this.doorService.getCameraMaps(id);
+  }
+
+  /**
+   * POST /api/doors/:id/camera-maps
+   * Associate a camera with a door (D-10).
+   */
+  @Post(":id/camera-maps")
+  @Audited({ entity: "camera-door-map", action: "CREATE" })
+  @Roles("ADMIN", "SUPER_ADMIN")
+  async createCameraMap(
+    @Param("id") id: string,
+    @Body(new ZodValidationPipe(createCameraDoorMapSchema)) body: any,
+  ) {
+    return this.doorService.createCameraMap(id, body);
+  }
+
+  /**
+   * DELETE /api/doors/:id/camera-maps/:mapId
+   * Remove a camera-door association (D-10).
+   */
+  @Delete(":id/camera-maps/:mapId")
+  @Audited({ entity: "camera-door-map", action: "DELETE" })
+  @Roles("ADMIN", "SUPER_ADMIN")
+  async deleteCameraMap(@Param("mapId") mapId: string) {
+    return this.doorService.deleteCameraMap(mapId);
   }
 
   /**
