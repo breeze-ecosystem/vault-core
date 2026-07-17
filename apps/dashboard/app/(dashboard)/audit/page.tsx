@@ -117,6 +117,7 @@ export default function AuditPage() {
 // ─── Audit Log Tab ───
 
 function AuditLogTab() {
+  const { t } = useTranslation();
   const [entries, setEntries] = useState<AuditEntryDto[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);

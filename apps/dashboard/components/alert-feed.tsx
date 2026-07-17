@@ -39,6 +39,8 @@ export function AlertFeed({
 }: AlertFeedProps) {
   const { t } = useTranslation();
   const defaultEmpty = emptyMessage ?? t('alerts.noAlerts');
+
+  if (loading) {
     return (
       <div className={cn("space-y-1", className)}>
         {Array.from({ length: 5 }).map((_, i) => (

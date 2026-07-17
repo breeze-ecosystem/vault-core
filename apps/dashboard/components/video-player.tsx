@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from '@/lib/i18n/context';
 import { Video, VideoOff, Maximize, Minimize, Loader2 } from 'lucide-react';
 
 interface VideoPlayerProps {
