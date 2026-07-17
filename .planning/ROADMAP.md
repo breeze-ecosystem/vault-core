@@ -156,7 +156,7 @@ Plans:
 - [x] 05-03-PLAN.md — Dashboard i18n Audit & Translation Coverage (POL-04)
 
 **Wave 3** *(blocked on Wave 2)*
-- [ ] 05-04-PLAN.md — Mobile Design Tokens + Performance Infra (POL-03)
+- [x] 05-04-PLAN.md — Mobile Design Tokens + Performance Infra (POL-03)
 
 **Wave 4** *(blocked on Wave 3)*
 - [ ] 05-05-PLAN.md — Mobile i18n Framework + Migration (POL-04)
@@ -178,4 +178,4 @@ Plans:
 | 2. Hardware Integration | 0/5 | Not started | - |
 | 3. Visitor Kiosk | 4/4 | Complete | 2026-07-17 |
 | 4. Marketing Site Redesign | 10/10 | Complete   | 2026-07-17 |
-| 5. Bug Fixing & Cross-Platform Polish | 3/8 | In Progress|  |
+| 5. Bug Fixing & Cross-Platform Polish | 4/8 | In Progress|  |
