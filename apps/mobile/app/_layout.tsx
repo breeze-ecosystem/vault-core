@@ -9,6 +9,7 @@ import { colors } from "@repo/design";
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  enabled: !!process.env.EXPO_PUBLIC_SENTRY_DSN,
   tracesSampleRate: 1.0,
   environment: __DEV__ ? "development" : "production",
   enableNative: true,
