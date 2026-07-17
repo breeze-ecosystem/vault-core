@@ -1,187 +1,104 @@
-# Requirements: Oversight Hub v2.0
+# Requirements: Oversight Hub v3.0
 
-**Defined:** 2026-07-15
+**Defined:** 2026-07-17
 **Core Value:** Correlate every physical security event with video evidence and AI analysis in real time, so security operators know what happened, where, and what to do — without switching between disconnected systems.
 
-## v1.0 Shipped
+## v1.0 & v2.0 Shipped
 
-v1.0 delivered the technical foundation (15 plans, 3 phases). All v1.0 requirements below are shipped and validated.
+v1.0 delivered the technical foundation (3 phases). v2.0 delivered the commercial SaaS platform (7 phases). All requirements from those milestones are shipped and validated.
 
 - Access Control (ACC-01 to ACC-07), Door Management (DOOR-01 to DOOR-06), Video Event Correlation (VEC-01 to VEC-05), Tailgating detection (AI-04), Audit logs (AUDT-01 to AUDT-03), Camera management, AI frame analysis, Auth/RBAC, Notifications, Edge agent, Multi-site
+- Commercial Foundation (FND-01 to FND-07), Billing/Licensing (BIL-01 to BIL-08, LIC-01 to LIC-07), Premium UI/UX (UIX-01 to UIX-07), Public Website (WEB-01 to WEB-08), Deep Feature Rebuild (FTR-01 to FTR-11), Enterprise Features (ENT-01 to ENT-09)
 
-## v2.0 Requirements
+## v3.0 Requirements
 
-Requirements for the commercial SaaS platform, organized by capability block.
+Requirements for production readiness, hardware integration, and marketing transformation.
 
-### Commercial Foundation (FND)
+### Hardware Integration (HWR)
 
-- [x] **FND-01**: Platform supports multi-tenant architecture with `Organization` model and PostgreSQL row-level security
-- [x] **FND-02**: All existing modules auto-scope queries to current tenant via Prisma Client Extensions
-- [x] **FND-03**: User can belong to multiple organizations with different roles in each
-- [x] **FND-04**: JWT token carries `organizationId` + `permissions[]` for tenant-scoped authorization
-- [x] **FND-05**: Admin can invite users to their organization via email with expiring tokens
-- [x] **FND-06**: Audit logs are hash-chained per tenant with cryptographic integrity verification
-- [x] **FND-07**: Feature gates control feature availability per license tier
+- [ ] **HWR-01**: Edge Agent supports bidirectional hardware communication — OSDP serial I/O, MQTT publish/subscribe, concurrent protocol handling
+- [ ] **HWR-02**: OSDP door controllers send real-time events (badge read, door state change) and accept commands (lock, unlock, zone set) via Edge Agent → MQTT → NestJS
+- [ ] **HWR-03**: ONVIF camera auto-discovery detects cameras on the local LAN and auto-configures RTSP streams, PTZ capabilities, and event subscriptions
+- [ ] **HWR-04**: MQTT infrastructure secured with authentication and TLS for production hardware traffic
+- [ ] **HWR-05**: Docker networking configured for hardware protocol access (host mode or macvlan for multicast/serial)
 
-### Billing & Subscriptions (BIL)
+### Visitor Kiosk (KIO)
 
-- [ ] **BIL-01**: Platform supports tiered subscription plans via Stripe (Free, Professional, Enterprise)
-- [ ] **BIL-02**: Customer can subscribe via Stripe Checkout with plan selection
-- [ ] **BIL-03**: Customer can manage subscription (upgrade, downgrade, cancel) via Stripe Customer Portal
-- [ ] **BIL-04**: System handles subscription lifecycle via Stripe webhooks (created, updated, cancelled, trial ending)
-- [ ] **BIL-05**: System handles payment failures with retry logic and dunning notifications
-- [ ] **BIL-06**: Customer can pay via international methods through PayPal integration
-- [ ] **BIL-07**: Admin can view billing history, invoices, and payment status in dashboard
-- [ ] **BIL-08**: System provisions and activates license automatically on successful subscription
+- [ ] **KIO-01**: Self-check-in/out touchscreen interface for visitors at lobby or reception
+- [ ] **KIO-02**: Badge printing at check-in (ESC/POS thermal or ZPL label printers)
+- [ ] **KIO-03**: QR code scanning for autonomous visitor check-in and check-out
+- [ ] **KIO-04**: Kiosk deploys as standalone Docker container with CUPS printing and web browser
 
-### Licensing (LIC)
+### Marketing Site Redesign (MKT)
 
-- [ ] **LIC-01**: Platform generates crypto-signed JWT license keys bound to a specific organization
-- [ ] **LIC-02**: License key carries device limits (cameras, doors, users) and feature flags
-- [ ] **LIC-03**: License enforces device/user limits — stops accepting new cameras/doors/users when limit reached
-- [ ] **LIC-04**: License supports offline validation with periodic re-check and configurable grace period
-- [ ] **LIC-05**: Admin can upload/activate license key via dashboard UI
-- [ ] **LIC-06**: System shows license status, expiry, usage, and limits in admin dashboard
-- [ ] **LIC-07**: License revocation immediately disables organization access after grace period
+- [ ] **MKT-01**: Marketing site redesigned with modern Linear/Vercel-style aesthetic — premium dark theme, fluid animations, glassmorphism accents
+- [ ] **MKT-02**: Content enriched with detailed product pages, industry solutions, case studies, and technical documentation
+- [ ] **MKT-03**: All 6 languages fully translated and consistent (French primary, English, Spanish, German, Japanese, Arabic) — no missing or machine-translated content
+- [ ] **MKT-04**: Interactive product demo or feature tour showcasing the platform's capabilities
 
-### Premium UI/UX (UIX)
+### Bug Fixing & Polish (POL)
 
-- [ ] **UIX-01**: Design system built with Radix Themes + Tailwind CSS, shared across Dashboard and Mobile
-- [ ] **UIX-02**: Dashboard has premium 2026 visual design — dark-first, glassmorphism accents, fluid animations
-- [ ] **UIX-03**: Dashboard uses `motion` for page transitions, micro-interactions, and scroll reveals
-- [ ] **UIX-04**: Mobile app has premium guard-first design — simplified navigation, quick actions, offline mode
-- [ ] **UIX-05**: Design system includes dark/light mode toggle with system preference detection
-- [ ] **UIX-06**: All existing Dashboard pages get the new design system applied (not rewritten — system upgrade)
-- [ ] **UIX-07**: Top 3 highest-traffic pages (Overview, Cameras, Alerts) get full premium redesign with custom layouts
+- [ ] **POL-01**: All known bugs across API, Dashboard, and Mobile fixed — no unresolved production issues
+- [ ] **POL-02**: Cross-platform consistency — zero visual or functional regressions between Dashboard and Mobile
+- [ ] **POL-03**: Mobile app stability and performance — smooth navigation, no crashes, optimized rendering
+- [ ] **POL-04**: Translation gaps and inconsistencies resolved across all apps
 
-### Public Website (WEB)
+### Infrastructure (INF)
 
-- [ ] **WEB-01**: Marketing landing page with product presentation, features, and hero section
-- [ ] **WEB-02**: Pricing page with plan comparison, feature matrix, and Stripe checkout links
-- [ ] **WEB-03**: Blog with MDX content (velite) — changelog, security insights, product updates
-- [ ] **WEB-04**: Multi-language support via `next-intl` — French (primary), English, Spanish, German, Japanese, Arabic
-- [ ] **WEB-05**: SEO optimization with meta tags, OG images, JSON-LD, sitemap, and robots.txt
-- [ ] **WEB-06**: Contact/demo request form with email notification
-- [ ] **WEB-07**: Website shares design system with dashboard for visual consistency
-- [ ] **WEB-08**: Responsive design across desktop, tablet, and mobile
+- [ ] **INF-01**: Edge Agent rewritten with async I/O support for concurrent serial, MQTT, and HTTP operations
+- [ ] **INF-02**: Mosquitto MQTT production security configuration with authentication and TLS
+- [ ] **INF-03**: Docker networking supports multicast (ONVIF WS-Discovery) and serial device passthrough (OSDP)
 
-### Deep Feature Rebuild (FTR)
+## v3.1 Requirements (Deferred)
 
-- [ ] **FTR-01**: Access control module refactored with production-grade error handling, loading states, and edge cases
-- [ ] **FTR-02**: Door state machine hardened — sequence validation, deduplication, configurable thresholds per door
-- [ ] **FTR-03**: Visitor management deepened — host approval workflow, timed passes, check-in kiosk mode, badge printing
-- [ ] **FTR-04**: Incident management rebuilt — triage, SLA timers, escalation chains, evidence auto-bundle, closure reports
-- [ ] **FTR-05**: ANPR/LPR deepened — plate recognition with confidence scoring, allowlist/blocklist, vehicle-event correlation
-- [ ] **FTR-06**: Security analytics dashboard with per-zone metrics, trend graphs, heatmaps, and anomaly visualization
-- [ ] **FTR-07**: Equipment health monitoring with predictive degradation alerts and per-site health scores
-- [x] **FTR-08**: AI assistant supports natural language queries ("show intrusions on Site A after 8pm")
-- [x] **FTR-09**: System auto-generates incident summaries with time, location, persons, video, and recommended actions
-- [x] **FTR-10**: Per-zone dynamic risk scoring (0-100) from recent events, anomalies, and door states
-- [x] **FTR-11**: System detects recurring situations (false positives, schedule mismatches, impossible travel)
-
-### Enterprise Features (ENT)
-
-- [ ] **ENT-01**: SSO/SAML authentication for Enterprise tier via organization-level IdP configuration
-- [ ] **ENT-02**: Compliance report generation (SOC 2, ISO 27001) with PDF export
-- [ ] **ENT-03**: Data retention policy configuration per event type with auto-pruning
-- [ ] **ENT-04**: Public REST API with tenant-scoped API keys and rate limiting
-- [ ] **ENT-05**: Webhook delivery for events with retry logic and delivery logs
-- [ ] **ENT-06**: OpenAPI/Swagger documentation for public API endpoints
-- [ ] **ENT-07**: Multi-currency billing support (USD, EUR, XOF, GBP, JPY)
-- [ ] **ENT-08**: Unified command center — live camera grid, door states, alerts, incidents in single view
-- [ ] **ENT-09**: Guard-first mobile workflows — NFC badge validation, QR check-in, incident photo capture, door remote control
-
-## v2.1 Requirements (Deferred)
-
-Deferred to future release after v2.0 ships.
-
-- **OFF-01**: Offline license activation for fully air-gapped deployments
-- **OFF-02**: Custom AI model configuration per tenant
-- **OFF-03**: Integrations marketplace with developer portal
-- **OFF-04**: Advanced biometric modalities (fingerprint, iris)
-- **OFF-05**: Automated mustering and evacuation workflows
-- **OFF-06**: Mobile SDK for third-party app integration
-- **OFF-07**: End-to-end encrypted video streaming with per-viewer keys
+- **MKT-05**: Live demo environment — a full sandbox for prospects to try the platform
+- **MKT-06**: Documentation section with API docs, admin guides, installation manuals
+- **HWR-06**: Smart lock integration (Zigbee2MQTT bridge)
+- **HWR-07**: Controller auto-discovery and remote firmware updates
+- **KIO-05**: NFC card encoding at kiosk
+- **POL-05**: Performance benchmarks and load testing suite
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Facial recognition for surveillance | GDPR/BIPA/CCPA regulatory risk; face unlock for access control only |
-| Cloud-hosted video storage | Differentiator is self-hosted; hosting video requires massive infrastructure |
-| Custom hardware manufacturing | Software platform only; integrate via standard protocols (Wiegand, OSDP, ONVIF) |
-| SOC-as-a-service (human monitoring) | Operational business, not software; integrate via webhooks to third-party SOCs |
-| Blockchain-based audit verification | Hash-chain audit logs already provide tamper evidence without blockchain overhead |
-| In-app chat messaging between operators | Existing tools (Slack/Teams) already cover this; webhook integrations instead |
-| Real-time GPS vehicle tracking | Battery drain, privacy concerns; guard check-in with location snapshot is sufficient |
+| Custom hardware manufacturing | Software platform only; integrate via standard protocols (OSDP, Wiegand, ONVIF) |
+| Cloud-hosted video storage | Self-hosted is the differentiator; cloud storage requires massive infrastructure |
+| SOC-as-a-service (human monitoring) | Operational business, not software; integrate via webhooks |
+| Facial recognition for surveillance | Regulatory risk (GDPR/BIPA); face unlock for access control only |
+| Third-party integrations marketplace | Defers to v3.1+; v3.0 focuses on hardware stability and marketing |
+| Mobile SDK for third-party apps | Defers to v3.1+ |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FND-01 | Phase 4: Commercial Foundation | Complete |
-| FND-02 | Phase 4: Commercial Foundation | Complete |
-| FND-03 | Phase 4: Commercial Foundation | Complete |
-| FND-04 | Phase 4: Commercial Foundation | Complete |
-| FND-05 | Phase 4: Commercial Foundation | Complete |
-| FND-06 | Phase 4: Commercial Foundation | Complete |
-| FND-07 | Phase 4: Commercial Foundation | Complete |
-| BIL-01 | Phase 5: Monetization | Pending |
-| BIL-02 | Phase 5: Monetization | Pending |
-| BIL-03 | Phase 5: Monetization | Pending |
-| BIL-04 | Phase 5: Monetization | Pending |
-| BIL-05 | Phase 5: Monetization | Pending |
-| BIL-06 | Phase 5: Monetization | Pending |
-| BIL-07 | Phase 5: Monetization | Pending |
-| BIL-08 | Phase 5: Monetization | Pending |
-| LIC-01 | Phase 5: Monetization | Pending |
-| LIC-02 | Phase 5: Monetization | Pending |
-| LIC-03 | Phase 5: Monetization | Pending |
-| LIC-04 | Phase 5: Monetization | Pending |
-| LIC-05 | Phase 5: Monetization | Pending |
-| LIC-06 | Phase 5: Monetization | Pending |
-| LIC-07 | Phase 5: Monetization | Pending |
-| UIX-01 | Phase 6: Premium Experience | Pending |
-| UIX-02 | Phase 6: Premium Experience | Pending |
-| UIX-03 | Phase 6: Premium Experience | Pending |
-| UIX-04 | Phase 6: Premium Experience | Pending |
-| UIX-05 | Phase 6: Premium Experience | Pending |
-| UIX-06 | Phase 6: Premium Experience | Pending |
-| UIX-07 | Phase 6: Premium Experience | Pending |
-| WEB-01 | Phase 7: Public Presence | Pending |
-| WEB-02 | Phase 7: Public Presence | Pending |
-| WEB-03 | Phase 7: Public Presence | Pending |
-| WEB-04 | Phase 7: Public Presence | Pending |
-| WEB-05 | Phase 7: Public Presence | Pending |
-| WEB-06 | Phase 7: Public Presence | Pending |
-| WEB-07 | Phase 7: Public Presence | Pending |
-| WEB-08 | Phase 7: Public Presence | Pending |
-| FTR-01 | Phase 8: Feature Deepening | Pending |
-| FTR-02 | Phase 8: Feature Deepening | Pending |
-| FTR-03 | Phase 8: Feature Deepening | Pending |
-| FTR-04 | Phase 8: Feature Deepening | Pending |
-| FTR-05 | Phase 8: Feature Deepening | Pending |
-| FTR-06 | Phase 8: Feature Deepening | Pending |
-| FTR-07 | Phase 8: Feature Deepening | Pending |
-| FTR-08 | Phase 9: AI Intelligence | Complete |
-| FTR-09 | Phase 9: AI Intelligence | Complete |
-| FTR-10 | Phase 9: AI Intelligence | Complete |
-| FTR-11 | Phase 9: AI Intelligence | Complete |
-| ENT-01 | Phase 10: Enterprise Grade | Pending |
-| ENT-02 | Phase 10: Enterprise Grade | Pending |
-| ENT-03 | Phase 10: Enterprise Grade | Pending |
-| ENT-04 | Phase 10: Enterprise Grade | Pending |
-| ENT-05 | Phase 10: Enterprise Grade | Pending |
-| ENT-06 | Phase 10: Enterprise Grade | Pending |
-| ENT-07 | Phase 10: Enterprise Grade | Pending |
-| ENT-08 | Phase 10: Enterprise Grade | Pending |
-| ENT-09 | Phase 10: Enterprise Grade | Pending |
+| HWR-01 | | Pending |
+| HWR-02 | | Pending |
+| HWR-03 | | Pending |
+| HWR-04 | | Pending |
+| HWR-05 | | Pending |
+| KIO-01 | | Pending |
+| KIO-02 | | Pending |
+| KIO-03 | | Pending |
+| KIO-04 | | Pending |
+| MKT-01 | | Pending |
+| MKT-02 | | Pending |
+| MKT-03 | | Pending |
+| MKT-04 | | Pending |
+| POL-01 | | Pending |
+| POL-02 | | Pending |
+| POL-03 | | Pending |
+| POL-04 | | Pending |
+| INF-01 | | Pending |
+| INF-02 | | Pending |
+| INF-03 | | Pending |
 
 **Coverage:**
-- v2.0 requirements: 57 total
-- Mapped to phases: 57
-- Unmapped: 0 
+- v3.0 requirements: 20 total
+- Mapped to phases: 0
+- Unmapped: 20 ⚠️
 
 ---
-*Requirements defined: 2026-07-15*
-*Last updated: 2026-07-15 after v2.0 milestone research*
+*Requirements defined: 2026-07-17*
+*Last updated: 2026-07-17 after v3.0 milestone research*
