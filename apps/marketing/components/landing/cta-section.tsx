@@ -1,40 +1,50 @@
+'use client';
+
 import Link from 'next/link';
+import { useTranslations, useLocale } from 'next-intl';
 import { Container } from '@/components/layout/container';
+import { Section } from '@/components/layout/section';
 import { AnimatedSection } from '@/components/ui/animated-section';
 import { Button } from '@/components/ui/button';
+import { GradientBorder } from '@/components/shared/gradient-border';
 
 export function CTASection() {
+  const t = useTranslations('finalCta');
+  const cta = useTranslations('cta');
+  const locale = useLocale();
+
   return (
-    <section className="bg-gradient-to-br from-[#0c1020] via-[#0a1628] to-[#070912] py-24 md:py-32">
+    <Section variant="default">
       <Container>
-        <AnimatedSection>
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-3xl font-bold text-white sm:text-[36px]">
-              Ready to transform your security operations?
-            </h2>
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/60">
-              See how Oversight Hub unifies your video, access control, and AI
-              analysis into one seamless experience.
-            </p>
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link href="/contact">
-                <Button variant="primary" size="lg" className="px-8">
-                  Book Your Demo
-                </Button>
-              </Link>
-              <Link href="/contact">
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  className="border-white/20 text-white/80 hover:border-primary hover:text-primary"
-                >
-                  Contact Sales
-                </Button>
-              </Link>
-            </div>
+        <GradientBorder className="max-w-4xl mx-auto">
+          <div className="px-8 py-16 text-center">
+            <AnimatedSection>
+              <h2 className="font-display text-[32px] text-[#f1f5f9]">
+                {t('heading')}
+              </h2>
+            </AnimatedSection>
+            <AnimatedSection delay={0.1}>
+              <p className="mx-auto mt-4 max-w-xl text-[#94a3b8] leading-relaxed">
+                {t('body')}
+              </p>
+            </AnimatedSection>
+            <AnimatedSection delay={0.2}>
+              <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                <Link href={`/${locale}/contact`}>
+                  <Button variant="primary" size="lg" className="px-8">
+                    {t('action')}
+                  </Button>
+                </Link>
+                <Link href={`/${locale}/pricing`}>
+                  <Button variant="glass" size="lg" className="px-8">
+                    {cta('explorePricing')}
+                  </Button>
+                </Link>
+              </div>
+            </AnimatedSection>
           </div>
-        </AnimatedSection>
+        </GradientBorder>
       </Container>
-    </section>
+    </Section>
   );
 }

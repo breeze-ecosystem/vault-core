@@ -1,48 +1,45 @@
-interface Testimonial {
-  quote: string;
-  name: string;
-  role: string;
-  company: string;
-}
+'use client';
+
+import { GlassPanel } from '@/components/shared/glass-panel';
 
 interface TestimonialCardProps {
-  testimonial: Testimonial;
+  quote: string;
+  author: string;
+  role: string;
+  company: string;
+  avatar?: string;
 }
 
-export function TestimonialCard({ testimonial }: TestimonialCardProps) {
+export function TestimonialCard({
+  quote,
+  author,
+  role,
+  company,
+}: TestimonialCardProps) {
   return (
-    <div className="mx-auto max-w-2xl px-4 text-center">
-      {/* Quote mark */}
-      <svg
-        className="mx-auto mb-6 h-8 w-8 text-primary/30"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        aria-hidden="true"
-      >
-        <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10H14.017zM0 21v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151C7.563 6.068 6 8.789 6 11h4v10H0z" />
-      </svg>
-
-      <blockquote className="text-lg leading-relaxed text-foreground sm:text-xl">
-        &ldquo;{testimonial.quote}&rdquo;
-      </blockquote>
-
-      <div className="mt-8 flex items-center justify-center gap-3">
-        {/* Avatar placeholder */}
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-          {testimonial.name
+    <GlassPanel hover className="p-6 flex flex-col justify-between h-full">
+      <div>
+        <span className="font-display text-3xl text-cyan-400/30 leading-none">
+          &ldquo;
+        </span>
+        <p className="mt-1 text-sm leading-relaxed text-[#94a3b8] italic">
+          {quote}
+        </p>
+      </div>
+      <div className="mt-6 flex items-center gap-3">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-cyan-500/10 text-xs font-semibold text-cyan-400">
+          {author
             .split(' ')
             .map((n) => n[0])
             .join('')}
         </div>
-        <div className="text-left">
-          <p className="text-sm font-semibold text-foreground">
-            {testimonial.name}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {testimonial.role}, {testimonial.company}
+        <div>
+          <p className="text-sm font-semibold text-[#f1f5f9]">{author}</p>
+          <p className="text-xs text-[#94a3b8]">
+            {role}, {company}
           </p>
         </div>
       </div>
-    </div>
+    </GlassPanel>
   );
 }

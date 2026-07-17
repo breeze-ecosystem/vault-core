@@ -1,99 +1,85 @@
-import {
-  Brain,
-  Eye,
-  ShieldCheck,
-  BarChart3,
-  Workflow,
-  Lock,
-} from 'lucide-react';
+'use client';
+
+import { Check } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Container } from '@/components/layout/container';
 import { Section } from '@/components/layout/section';
 import { AnimatedSection } from '@/components/ui/animated-section';
+import { GradientBorder } from '@/components/shared/gradient-border';
 
-const AI_FEATURES = [
-  {
-    icon: Brain,
-    title: 'On-Device AI Processing',
-    description:
-      'All analysis runs locally on your edge hardware — no cloud dependency, no video leaving your network.',
-  },
-  {
-    icon: Eye,
-    title: 'Real-Time Object Detection',
-    description:
-      'Identify people, vehicles, and objects in real time. Set zone-based rules for automated responses.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Anomaly Detection',
-    description:
-      'AI models learn your facility&apos;s normal patterns and flag unusual behavior — tailgating, loitering, forced entry.',
-  },
-  {
-    icon: BarChart3,
-    title: 'Smart Search & Retrieval',
-    description:
-      'Search hours of footage in seconds using natural language queries. &quot;Show me all deliveries from yesterday afternoon.&quot;',
-  },
-  {
-    icon: Workflow,
-    title: 'Automated Workflows',
-    description:
-      'Trigger actions based on AI detections — open a gate, alert security, start recording, send a notification.',
-  },
-  {
-    icon: Lock,
-    title: 'Privacy-First Architecture',
-    description:
-      'All data stays on your infrastructure. AI models run locally. No external APIs, no third-party training data.',
-  },
+
+const FEATURES_LIST = [
+  'Analyse IA en temps réel sur site — aucune donnée ne quitte votre infrastructure',
+  'Détection d\'anomalies et alertes prédictives basées sur l\'apprentissage des comportements',
+  'Corrélation automatique des événements d\'accès avec les flux vidéo',
+  'Workflows automatisés déclenchés par l\'IA pour une réponse immédiate',
 ];
 
 export function AIHighlightSection() {
+  const t = useTranslations('ai');
+
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-[#0c1020] to-[#070912] py-24 md:py-32">
-      {/* Subtle grid overlay */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(6,182,212,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.15) 1px, transparent 1px)',
-          backgroundSize: '60px 60px',
-        }}
-        aria-hidden="true"
-      />
-
+    <Section variant="alt">
       <Container>
-        <AnimatedSection>
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-3xl font-bold text-white sm:text-[36px]">
-              Built on AI. Powered by you.
-            </h2>
-            <p className="mt-4 text-lg text-white/60">
-              On-premise AI that respects your data privacy — processing happens
-              on your infrastructure, not in the cloud.
-            </p>
-          </div>
-        </AnimatedSection>
-
-        <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {AI_FEATURES.map((feature, index) => (
-            <AnimatedSection key={feature.title}>
-              <div className="group rounded-xl border border-white/10 bg-white/[0.03] p-6 transition-all duration-250 hover:border-primary/30 hover:bg-white/[0.06]">
-                <div className="mb-4 inline-flex rounded-xl bg-primary/10 p-3">
-                  <feature.icon className="h-5 w-5 text-primary" />
-                </div>
-                <h3 className="mb-2 text-base font-semibold text-white">
-                  {feature.title}
-                </h3>
-                <p className="text-sm leading-relaxed text-white/50">
-                  {feature.description}
-                </p>
-              </div>
+        <div className="grid gap-12 lg:grid-cols-5">
+          {/* Left column — content (60%) */}
+          <div className="lg:col-span-3">
+            <AnimatedSection>
+              <h2 className="font-display text-[32px] text-[#f1f5f9]">
+                {t('heading')}
+              </h2>
             </AnimatedSection>
-          ))}
+            <AnimatedSection delay={0.1}>
+              <p className="mt-4 text-[#94a3b8] leading-relaxed">
+                {t('subheading')}
+              </p>
+            </AnimatedSection>
+            <AnimatedSection delay={0.2}>
+              <ul className="mt-8 space-y-4">
+                {FEATURES_LIST.map((item) => (
+                  <li key={item} className="flex items-start gap-3">
+                    <span className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-cyan-500/10 text-cyan-400">
+                      <Check className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="text-sm text-[#94a3b8]">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </AnimatedSection>
+          </div>
+
+          {/* Right column — platform mockup (40%) */}
+          <div className="lg:col-span-2">
+            <AnimatedSection delay={0.3}>
+              <GradientBorder className="h-full">
+                <div className="flex min-h-[320px] items-center justify-center p-8">
+                  <div className="text-center">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-500/10">
+                      <svg
+                        className="h-8 w-8 text-cyan-400"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                      >
+                        <rect x="2" y="3" width="20" height="14" rx="2" />
+                        <path d="M8 21h8" />
+                        <path d="M12 17v4" />
+                      </svg>
+                    </div>
+                    <p className="text-sm font-semibold text-[#f1f5f9]">
+                      Plateforme en action
+                    </p>
+                    <p className="mt-1 text-xs text-[#64748b]">
+                      Tableau de bord en temps réel
+                    </p>
+                  </div>
+                </div>
+              </GradientBorder>
+            </AnimatedSection>
+          </div>
         </div>
       </Container>
-    </section>
+    </Section>
   );
 }
