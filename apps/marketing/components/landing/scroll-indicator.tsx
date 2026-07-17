@@ -1,5 +1,6 @@
 'use client';
 
+import { motion } from 'motion/react';
 import { cn } from '@/src/lib/utils';
 
 interface ScrollIndicatorProps {
@@ -7,35 +8,34 @@ interface ScrollIndicatorProps {
 }
 
 export function ScrollIndicator({ className }: ScrollIndicatorProps) {
-  const handleClick = () => {
-    window.scrollBy({
-      top: window.innerHeight,
-      behavior: 'smooth',
-    });
-  };
-
   return (
-    <button
-      onClick={handleClick}
+    <div
       className={cn(
-        'absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-white/60 transition-colors hover:text-white/90',
+        'flex flex-col items-center gap-2 pb-8 text-[#64748b]',
         className,
       )}
-      aria-label="Scroll to explore"
     >
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+      <span className="text-xs tracking-wide uppercase">
+        Faites défiler
+      </span>
+      <motion.div
+        animate={{ y: [0, 8, 0] }}
+        transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
       >
-        <path d="M7 13l5 5 5-5" />
-        <path d="M7 6l5 5 5-5" />
-      </svg>
-    </button>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M7 13l5 5 5-5" />
+          <path d="M7 6l5 5 5-5" />
+        </svg>
+      </motion.div>
+    </div>
   );
 }

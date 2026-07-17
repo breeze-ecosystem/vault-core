@@ -2,62 +2,84 @@
 
 import { motion } from 'motion/react';
 import Link from 'next/link';
+import { useTranslations, useLocale } from 'next-intl';
 import { AIGridBackground } from './ai-grid-background';
 import { ScrollIndicator } from './scroll-indicator';
+import { Container } from '@/components/layout/container';
 import { Button } from '@/components/ui/button';
 
 export function HeroSection() {
+  const t = useTranslations('hero');
+  const cta = useTranslations('cta');
+  const locale = useLocale();
+
   return (
-    <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#070912]">
+    <section className="relative flex min-h-[85vh] items-center overflow-hidden bg-[#070912] pt-24">
       <AIGridBackground />
 
-      <div className="relative z-10 mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="text-4xl font-bold leading-tight text-white sm:text-[40px] lg:text-[56px]"
-        >
-          AI-Powered Physical Security Intelligence
-        </motion.h1>
+      <Container className="relative z-10">
+        <div className="max-w-4xl">
+          {/* EyebrowTag — accent pill */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-4 py-1.5 text-sm font-semibold text-cyan-400"
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+            Plateforme de sécurité IA
+          </motion.div>
 
-        <motion.p
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.15, ease: 'easeOut' }}
-          className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-white/70 sm:text-xl sm:leading-relaxed lg:text-[24px]"
-        >
-          Correlate every access event, door alert, and camera feed in one
-          unified platform — with real-time AI analysis.
-        </motion.p>
+          {/* H1 heading */}
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="font-display text-[56px] font-semibold leading-[1.1] text-[#f1f5f9] max-w-3xl"
+          >
+            {t('headline')}
+          </motion.h1>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
-          className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
-        >
-          <Link href="/contact">
-            <Button variant="primary" size="xl" className="px-10">
-              Book a Demo
-            </Button>
-          </Link>
-          <Link href="/contact">
-            <Button variant="secondary" size="xl" className="border-white/20 text-white/80 hover:border-primary hover:text-primary">
-              Talk to Sales
-            </Button>
-          </Link>
-        </motion.div>
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-6 max-w-2xl text-lg text-[#94a3b8]"
+          >
+            {t('subtitle')}
+          </motion.p>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          className="mt-8 text-sm text-white/50"
-        >
-          Trusted by 150+ security teams worldwide
-        </motion.p>
-      </div>
+          {/* CTA buttons row */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-10 flex flex-col items-start gap-4 sm:flex-row"
+          >
+            <Link href={`/${locale}/demo`}>
+              <Button variant="primary" size="xl" className="px-10">
+                {cta('seeInAction')}
+              </Button>
+            </Link>
+            <Link href={`/${locale}/contact`}>
+              <Button variant="glass" size="xl" className="px-10">
+                {cta('talkToSales')}
+              </Button>
+            </Link>
+          </motion.div>
+
+          {/* TrustBar text */}
+          <motion.p
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-8 text-sm text-[#64748b]"
+          >
+            {t('trustBar')}
+          </motion.p>
+        </div>
+      </Container>
 
       <ScrollIndicator />
     </section>

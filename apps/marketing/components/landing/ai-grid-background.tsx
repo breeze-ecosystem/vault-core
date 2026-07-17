@@ -13,23 +13,15 @@ export function AIGridBackground({ className }: AIGridBackgroundProps) {
       )}
       aria-hidden="true"
     >
-      {/* Grid pattern */}
-      <div
-        className="absolute inset-0 opacity-[0.12]"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)',
-          backgroundSize: '48px 48px',
-          animation: 'gridPan 20s linear infinite',
-        }}
-      />
+      {/* Grid pattern — using bg-grid class from globals.css */}
+      <div className="absolute inset-0 bg-grid" />
 
       {/* Gradient overlays */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#070912]" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#070912]/40 via-transparent to-[#070912]/40" />
 
-      {/* Accent glow */}
-      <div className="absolute left-1/2 top-1/3 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[120px]" />
+      {/* Floating gradient orbs — cyber accents */}
+      <div className="absolute -right-40 -top-40 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl" />
+      <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-blue-500/10 blur-3xl" />
     </div>
   );
 }
