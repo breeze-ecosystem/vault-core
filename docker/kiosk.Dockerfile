@@ -43,6 +43,9 @@ COPY --from=builder /app/apps/kiosk/out/ /usr/share/nginx/html/
 # Copy nginx config
 COPY docker/kiosk.nginx.conf /etc/nginx/http.d/default.conf
 
+# Copy CUPS config (allows local admin operations without auth)
+COPY docker/kiosk-cupsd.conf /etc/cups/cupsd.conf
+
 # Copy startup script
 COPY docker/kiosk-entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
