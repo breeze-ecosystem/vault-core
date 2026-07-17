@@ -236,19 +236,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Case study slugs - query velite for case study slugs per locale
   try {
-    const { caseStudies: allCaseStudies } = await import('../../.velite');
-    const csByLocale: Record<string, { slug: string }[]> = {};
-    for (const cs of allCaseStudies) {
-      if (!csByLocale[cs.locale]) csByLocale[cs.locale] = [];
-      csByLocale[cs.locale].push(cs);
-    }
+    const { getCaseStudySlugsByLocale } = await import('@/src/lib/velite');
+    const csSlugsByLocale = getCaseStudySlugsByLocale();
 
     for (const locale of LOCALES) {
-      const caseStudies = csByLocale[locale] ?? [];
+      const slugs = csSlugsByLocale[locale] ?? [];
 
-      for (const cs of caseStudies) {
+      for (const slug of slugs) {
         entries.push({
-          url: `${BASE_URL}/${locale}/etudes-de-cas/${cs.slug}`,
+          url: `${BASE_URL}/${locale}/etudes-de-cas/${slug}`,
           lastModified: new Date(),
           changeFrequency: 'monthly',
           priority: 0.6,
@@ -256,9 +252,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             languages: (() => {
               const csAlts: Record<string, string> = {};
               for (const l of LOCALES) {
-                csAlts[l] = `${BASE_URL}/${l}/etudes-de-cas/${cs.slug}`;
+                csAlts[l] = `${BASE_URL}/${l}/etudes-de-cas/${slug}`;
               }
-              csAlts['x-default'] = `${BASE_URL}/en/etudes-de-cas/${cs.slug}`;
+              csAlts['x-default'] = `${BASE_URL}/en/etudes-de-cas/${slug}`;
               return csAlts;
             })(),
           },
