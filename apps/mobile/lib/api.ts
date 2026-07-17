@@ -853,3 +853,371 @@ export async function fetchPatterns(params?: {
   if (!res.ok) throw new Error("Erreur lors du chargement des schémas de sécurité");
   return res.json();
 }
+
+// ─── Phase 07: Complex Parity Screens — API Client Functions ───
+
+export interface AccessCredentialDto {
+  id: string;
+  userId: string;
+  type: "BADGE" | "PIN" | "MOBILE" | "QR";
+  badgeNumber: string | null;
+  pinHash: string | null;
+  mobileWalletId: string | null;
+  qrSeed: string | null;
+  isActive: boolean;
+  validFrom: string | null;
+  validUntil: string | null;
+  maxUses: number | null;
+  useCount: number;
+  createdAt: string;
+  updatedAt: string;
+  user?: { id: string; firstName: string; lastName: string; email: string };
+  accessLevels?: { id: string; zoneId: string; scheduleId: string; priority: number }[];
+}
+
+export interface AccessZoneDto {
+  id: string;
+  name: string;
+  siteId: string;
+  description: string | null;
+}
+
+export interface AccessScheduleDto {
+  id: string;
+  name: string;
+  zoneId: string;
+  entries: { dayOfWeek: number; startHour: number; startMinute: number; endHour: number; endMinute: number }[];
+  holidayOverride: string | null;
+}
+
+export async function fetchCredentials(params?: {
+  type?: string;
+  userId?: string;
+  isActive?: boolean;
+  page?: number;
+  limit?: number;
+}): Promise<PaginatedResponse<AccessCredentialDto>> {
+  const search = new URLSearchParams();
+  if (params?.type) search.set("type", params.type);
+  if (params?.userId) search.set("userId", params.userId);
+  if (params?.isActive !== undefined) search.set("isActive", String(params.isActive));
+  if (params?.page) search.set("page", String(params.page));
+  if (params?.limit) search.set("limit", String(params.limit));
+  const qs = search.toString();
+  const res = await fetchWithAuth(`${API_BASE}/access/credentials${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des justificatifs d'accès");
+  return res.json();
+}
+
+export async function deactivateCredential(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_BASE}/access/credentials/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Erreur lors de la désactivation du justificatif");
+}
+
+export async function fetchAccessZones(): Promise<AccessZoneDto[]> {
+  const res = await fetchWithAuth(`${API_BASE}/access/zones`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des zones d'accès");
+  return res.json();
+}
+
+export async function fetchAccessSchedules(): Promise<AccessScheduleDto[]> {
+  const res = await fetchWithAuth(`${API_BASE}/access/schedules`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des plannings d'accès");
+  return res.json();
+}
+
+// ─── Analytics ───
+
+export interface AnalyticsData {
+  totalEvents: number;
+  activeAlerts: number;
+  cameraUptime: number;
+  eventBreakdown: { type: string; count: number; color: string }[];
+}
+
+export async function fetchAnalytics(params?: {
+  siteId?: string;
+  from?: string;
+  to?: string;
+}): Promise<AnalyticsData> {
+  const search = new URLSearchParams();
+  if (params?.siteId) search.set("siteId", params.siteId);
+  if (params?.from) search.set("from", params.from);
+  if (params?.to) search.set("to", params.to);
+  const qs = search.toString();
+  const res = await fetchWithAuth(`${API_BASE}/analytics/summary${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des analytics");
+  return res.json();
+}
+
+// ─── Timeline / Chronologie ───
+
+export interface TimelineEventDto {
+  eventId: string;
+  eventType: string;
+  timestamp: string;
+  doorId: string;
+  doorName: string;
+  zoneId: string;
+  summary: string;
+  detail: string | null;
+  videoThumbnailUrl: string | null;
+  snapshotUrl: string | null;
+  metadata: Record<string, unknown> | null;
+}
+
+export async function fetchTimeline(params?: {
+  from?: string;
+  to?: string;
+  limit?: number;
+}): Promise<{ data: TimelineEventDto[] }> {
+  const search = new URLSearchParams();
+  if (params?.from) search.set("from", params.from);
+  if (params?.to) search.set("to", params.to);
+  if (params?.limit) search.set("limit", String(params.limit));
+  const qs = search.toString();
+  const res = await fetchWithAuth(`${API_BASE}/timeline/events${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw new Error("Erreur lors du chargement de la chronologie");
+  return res.json();
+}
+
+// ─── Command Center ───
+
+export interface CommandCenterStatus {
+  activeAlerts: number;
+  onlineCameras: number;
+  totalCameras: number;
+  doorStates: { locked: number; unlocked: number; open: number };
+  recentEvents: { id: string; type: string; summary: string; timestamp: string }[];
+}
+
+export async function fetchCommandCenterStatus(): Promise<CommandCenterStatus> {
+  const res = await fetchWithAuth(`${API_BASE}/dashboard/command-center`);
+  if (!res.ok) throw new Error("Erreur lors du chargement du centre de commande");
+  return res.json();
+}
+
+// ─── Governance ───
+
+export interface RetentionPolicyDto {
+  id: string;
+  eventType: string;
+  tableType: string;
+  retentionDays: number;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GovernanceStatusDto {
+  encryptionConfigured: boolean;
+}
+
+export async function fetchRetentionPolicies(): Promise<RetentionPolicyDto[]> {
+  const res = await fetchWithAuth(`${API_BASE}/governance/retention-policies`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des politiques de rétention");
+  return res.json();
+}
+
+export async function fetchGovernanceStatus(): Promise<GovernanceStatusDto> {
+  const res = await fetchWithAuth(`${API_BASE}/governance/status`);
+  if (!res.ok) return { encryptionConfigured: false };
+  return res.json();
+}
+
+export async function updateRetentionPolicy(id: string, data: { retentionDays?: number; enabled?: boolean }): Promise<RetentionPolicyDto> {
+  const res = await fetchWithAuth(`${API_BASE}/governance/retention-policies/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Erreur lors de la mise à jour de la politique");
+  return res.json();
+}
+
+// ─── AI / IA ───
+
+export interface AIConfigDto {
+  id: string;
+  name: string;
+  model: string;
+  status: "online" | "offline" | "degraded";
+  capabilities: { id: string; name: string; enabled: boolean }[];
+  lastInference: string | null;
+  framesProcessed: number;
+  uptime: number;
+  updatedAt: string;
+}
+
+export async function fetchAIConfig(): Promise<AIConfigDto> {
+  const res = await fetchWithAuth(`${API_BASE}/ai/config`);
+  if (!res.ok) throw new Error("Erreur lors du chargement de la configuration IA");
+  return res.json();
+}
+
+export async function updateAIConfig(data: { capabilities?: { id: string; enabled: boolean }[] }): Promise<AIConfigDto> {
+  const res = await fetchWithAuth(`${API_BASE}/ai/config`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Erreur lors de la mise à jour de la configuration IA");
+  return res.json();
+}
+
+// ─── Licenses ───
+
+export interface LicenseInfoDto {
+  id: string;
+  organizationId: string;
+  licenseJwt: string;
+  status: string;
+  activatedAt: string | null;
+  expiresAt: string;
+  maxCameras: number;
+  maxDoors: number;
+  gracePeriodDays: number;
+  createdAt: string;
+  organization?: { id: string; name: string };
+}
+
+export async function listLicenses(): Promise<LicenseInfoDto[]> {
+  const res = await fetchWithAuth(`${API_BASE}/licenses`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des licences");
+  return res.json();
+}
+
+export async function activateLicense(licenseJwt: string): Promise<{ status: string; claims: any }> {
+  const res = await fetchWithAuth(`${API_BASE}/licenses/activate`, {
+    method: "POST",
+    body: JSON.stringify({ licenseJwt }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Erreur lors de l'activation de la licence");
+  }
+  return res.json();
+}
+
+// ─── Risk ───
+
+export interface RiskScoreDto {
+  zoneId: string;
+  siteId: string;
+  zoneName: string;
+  siteName: string;
+  score: number;
+  smoothedScore: number;
+  riskLevel: "low" | "moderate" | "elevated" | "critical";
+  factors: Record<string, unknown>;
+  timestamp: string;
+}
+
+export interface RiskSummaryDto {
+  overallScore: number;
+  riskLevel: string;
+  categoryScores: { category: string; score: number; trend: "up" | "down" | "stable" }[];
+  recommendations: { id: string; text: string; priority: string }[];
+}
+
+export async function fetchRiskScores(siteId?: string): Promise<RiskScoreDto[]> {
+  const params = siteId ? `?siteId=${siteId}` : "";
+  const res = await fetchWithAuth(`${API_BASE}/risk/scores${params}`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des scores de risque");
+  return res.json();
+}
+
+export async function fetchRiskSummary(siteId?: string): Promise<RiskSummaryDto> {
+  const params = siteId ? `?siteId=${siteId}` : "";
+  const res = await fetchWithAuth(`${API_BASE}/risk/summary${params}`);
+  if (!res.ok) throw new Error("Erreur lors du chargement du résumé des risques");
+  return res.json();
+}
+
+// ─── User Management ───
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export async function fetchUsers(params?: {
+  page?: number;
+  limit?: number;
+}): Promise<PaginatedResponse<UserProfile>> {
+  const search = new URLSearchParams();
+  if (params?.page) search.set("page", String(params.page));
+  if (params?.limit) search.set("limit", String(params.limit));
+  const qs = search.toString();
+  const res = await fetchWithAuth(`${API_BASE}/users${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des utilisateurs");
+  return res.json();
+}
+
+export async function createUser(data: { email: string; password: string; firstName: string; lastName: string; role: string }): Promise<UserProfile> {
+  const res = await fetchWithAuth(`${API_BASE}/users`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || "Erreur lors de la création de l'utilisateur");
+  }
+  return res.json();
+}
+
+export async function updateUser(id: string, data: { firstName?: string; lastName?: string; role?: string; isActive?: boolean }): Promise<UserProfile> {
+  const res = await fetchWithAuth(`${API_BASE}/users/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Erreur lors de la mise à jour de l'utilisateur");
+  return res.json();
+}
+
+export async function deleteUser(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_BASE}/users/${id}`, { method: "DELETE" });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Erreur lors de la suppression de l'utilisateur");
+  }
+}
+
+// ─── Vehicles ───
+
+export interface VehicleEventDto {
+  time: string;
+  siteId: string;
+  cameraId: string | null;
+  plate: string;
+  confidence: number | null;
+  imageUrl: string | null;
+  decision: string;
+  reason: string | null;
+}
+
+export async function fetchVehicleEvents(params?: {
+  plate?: string;
+  siteId?: string;
+  from?: string;
+  to?: string;
+  decision?: string;
+  page?: number;
+  limit?: number;
+}): Promise<PaginatedResponse<VehicleEventDto>> {
+  const search = new URLSearchParams();
+  if (params?.plate) search.set("plate", params.plate);
+  if (params?.siteId) search.set("siteId", params.siteId);
+  if (params?.from) search.set("from", params.from);
+  if (params?.to) search.set("to", params.to);
+  if (params?.decision) search.set("decision", params.decision);
+  if (params?.page) search.set("page", String(params.page));
+  if (params?.limit) search.set("limit", String(params.limit));
+  const qs = search.toString();
+  const res = await fetchWithAuth(`${API_BASE}/anpr/events${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des événements véhicules");
+  return res.json();
+}
