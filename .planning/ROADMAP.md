@@ -17,7 +17,7 @@ v3.0 transforms Oversight Hub from a polished SaaS platform into a production-re
 - [x] **Phase 1: Infrastructure Foundation** — Edge Agent async rewrite, MQTT security, Docker networking for hardware
 - [ ] **Phase 2: Hardware Integration** — OSDP door protocol and ONVIF camera auto-discovery
 - [x] **Phase 3: Visitor Kiosk** — Self-check-in/out touchscreen with badge printing and QR scanning
-- [ ] **Phase 4: Marketing Site Redesign** — Premium design, enriched content, 6-language translation, interactive demo
+- [x] **Phase 4: Marketing Site Redesign** — Premium design, enriched content, 6-language translation, interactive demo (completed 2026-07-17)
 - [ ] **Phase 5: Bug Fixing & Cross-Platform Polish** — Zero-bug release with full platform consistency
 
 ## Phase Details
@@ -116,18 +116,18 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 04-05-PLAN.md — Homepage Rewrite & Existing Page Refresh (Wave 3)
+- [x] 04-05-PLAN.md — Homepage Rewrite & Existing Page Refresh (Wave 3)
 - [x] 04-06-PLAN.md — i18n Messages & Content Infrastructure (Wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 04-07-PLAN.md — Products Section (Wave 4)
-- [ ] 04-08-PLAN.md — Solutions Section (Wave 4)
-- [ ] 04-09-PLAN.md — Case Studies Section (Wave 4)
+- [x] 04-07-PLAN.md — Products Section (Wave 4)
+- [x] 04-08-PLAN.md — Solutions Section (Wave 4)
+- [x] 04-09-PLAN.md — Case Studies Section (Wave 4)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 04-10-PLAN.md — Interactive Demo Tour (Wave 5)
+- [x] 04-10-PLAN.md — Interactive Demo Tour (Wave 5)
 
 **UI hint**: yes
 
@@ -153,5 +153,5 @@ Plans:
 | 1. Infrastructure Foundation | 3/3 | Complete | 2026-07-17 |
 | 2. Hardware Integration | 0/5 | Not started | - |
 | 3. Visitor Kiosk | 4/4 | Complete | 2026-07-17 |
-| 4. Marketing Site Redesign | 5/10 | In Progress|  |
+| 4. Marketing Site Redesign | 10/10 | Complete   | 2026-07-17 |
 | 5. Bug Fixing & Cross-Platform Polish | 0/0 | Not started | - |
