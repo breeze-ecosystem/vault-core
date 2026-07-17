@@ -1,0 +1,31 @@
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║     Edge Agent Integration Test Infrastructure — Mosquitto MQTT Broker       ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+#
+# Standalone Mosquitto instance for running integration tests.
+# Start with: docker compose -f docker-compose.test.yml up -d
+# Stop with:   docker compose -f docker-compose.test.yml down
+#
+# The test Mosquitto uses the same TLS config as production but on
+# localhost-only ports for test isolation.
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: oversight-mqtt-test
+    ports:
+      - "127.0.0.1:1883:1883"   # Localhost only — no TLS (test use)
+      - "127.0.0.1:8883:8883"   # Localhost only — TLS (test use)
+    volumes:
+      # Mount the project's mosquitto config directory (read-only)
+      # Override via MOSQUITTO_CONF_DIR env var if needed
+      - ${MOSQUITTO_CONF_DIR:-./mosquitto/config}:/mosquitto/config:ro
+      - mosquitto_test_data:/mosquitto/data
+      - mosquitto_test_log:/mosquitto/log
+    environment:
+      MOSQUITTO_PASSWORD: ${MOSQUITTO_PASSWORD:-test-mosquitto-password}
+    restart: unless-stopped
+
+volumes:
+  mosquitto_test_data:
+  mosquitto_test_log:
