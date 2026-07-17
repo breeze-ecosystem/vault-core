@@ -41,7 +41,7 @@ Requirements for production readiness, hardware integration, and marketing trans
 - [x] **POL-01**: All known bugs across API, Dashboard, and Mobile fixed — no unresolved production issues
 - [ ] **POL-02**: Cross-platform consistency — zero visual or functional regressions between Dashboard and Mobile
 - [ ] **POL-03**: Mobile app stability and performance — smooth navigation, no crashes, optimized rendering
-- [ ] **POL-04**: Translation gaps and inconsistencies resolved across all apps
+- [x] **POL-04**: Translation gaps and inconsistencies resolved across all apps
 
 ### Infrastructure (INF)
 
@@ -89,7 +89,7 @@ Requirements for production readiness, hardware integration, and marketing trans
 | POL-01 | Phase 5 | Complete |
 | POL-02 | Phase 5 | Pending |
 | POL-03 | Phase 5 | Pending |
-| POL-04 | Phase 5 | Pending |
+| POL-04 | Phase 5 | Complete |
 | INF-01 | Phase 1 | Pending |
 | INF-02 | Phase 1 | Pending |
 | INF-03 | Phase 1 | Pending |
