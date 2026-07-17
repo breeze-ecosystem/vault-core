@@ -2,6 +2,7 @@ import { Logger, Inject } from "@nestjs/common";
 import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Job } from "bullmq";
 import Redis from "ioredis";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { PrismaService } from "../prisma/prisma.service";
 import { AlertService } from "../alert/alert.service";
 import { type DoorAlertJob, DOOR_STATES } from "@repo/shared";
@@ -15,14 +16,17 @@ export class DoorProcessor extends WorkerHost {
     private prisma: PrismaService,
     private alertService: AlertService,
     @Inject("REDIS") private redis: Redis,
+    private eventEmitter: EventEmitter2,
   ) {
     super();
   }
 
-  async process(job: Job<DoorAlertJob, any, string>): Promise<any> {
+  async process(job: Job<any, any, string>): Promise<any> {
     switch (job.name) {
       case "evaluate-door-alert":
         return this.evaluateDoorAlert(job.data);
+      case "process-osdp-event":
+        return this.processOsdpEvent(job.data);
       default:
         this.logger.warn(`Unknown job name: ${job.name}`);
     }
@@ -118,5 +122,32 @@ export class DoorProcessor extends WorkerHost {
         throw err;
       }
     });
+  }
+
+  // ── Phase 2: OSDP Event Processing ──
+
+  private async processOsdpEvent(data: {
+    doorId: string; organizationId: string; eventType: string;
+    badgeNumber?: string; timestamp: string;
+  }) {
+    // Find associated cameras via CameraDoorMap (same pattern as evaluateDoorAlert)
+    const cameraMaps = await this.prisma.cameraDoorMap.findMany({
+      where: { doorId: data.doorId },
+      orderBy: { priority: "desc" },
+      include: {
+        camera: { select: { id: true, name: true, lastSnapshotUrl: true } },
+      },
+    });
+
+    if (data.badgeNumber && cameraMaps[0]?.camera) {
+      this.logger.log(
+        `OSDP badge event on ${data.doorId} — camera ${cameraMaps[0].camera.id} available`,
+      );
+      // Emit event for snapshot capture workflow
+      this.eventEmitter.emit("snapshot.request", {
+        cameraId: cameraMaps[0].camera.id,
+        doorId: data.doorId,
+      });
+    }
   }
 }

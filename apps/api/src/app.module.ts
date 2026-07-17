@@ -22,6 +22,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { ControllerModule } from './modules/controller/controller.module';
 import { SupervisionModule } from './modules/supervision/supervision.module';
 import { MqttModule } from './mqtt/mqtt.module';
 import { AccessModule } from './modules/access/access.module';
@@ -84,6 +85,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     ChatModule,
     ComplianceModule,
     ContactModule,
+    ControllerModule,
     CorrelationModule,
     DashboardModule,
     DoorModule,

@@ -8,6 +8,7 @@ import {
   Param,
   Query,
   Req,
+  BadRequestException,
 } from '@nestjs/common';
 import { FastifyRequest } from 'fastify';
 import { CameraService } from './camera.service';
@@ -16,7 +17,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { UseGuards } from '@nestjs/common';
 import { LicenseExpiryGuard } from '../license/guards/license-expiry.guard';
 import { AuditService } from '../audit/audit.service';
-import { createCameraSchema, updateCameraSchema } from '@repo/shared';
+import { createCameraSchema, updateCameraSchema, ptzContinuousSchema, ptzGotoPresetSchema, ptzSavePresetSchema } from '@repo/shared';
 import { AlertSeverity } from '@prisma/client';
 
 @Controller('cameras')
@@ -172,5 +173,45 @@ export class CameraController {
     });
 
     return result;
+  }
+
+  // ── PTZ Controls (Phase 2, D-06, D-16) ──
+
+  @Post(':id/ptz/continuous')
+  @Roles('ADMIN', 'SUPER_ADMIN', 'SUPERVISOR')
+  async ptzContinuous(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(ptzContinuousSchema)) body: { pan: number; tilt: number; zoom: number },
+  ) {
+    const camera = await this.cameraService.findById(id);
+    const caps = camera.ptzCapabilities as { hasPtz?: boolean } | null;
+    if (!caps?.hasPtz) {
+      throw new BadRequestException('Cette caméra ne supporte pas PTZ');
+    }
+    return this.cameraService.sendPtzCommand(id, 'ContinuousMove', body);
+  }
+
+  @Post(':id/ptz/stop')
+  @Roles('ADMIN', 'SUPER_ADMIN', 'SUPERVISOR')
+  async ptzStop(@Param('id') id: string) {
+    return this.cameraService.sendPtzCommand(id, 'Stop', {});
+  }
+
+  @Post(':id/ptz/goto-preset')
+  @Roles('ADMIN', 'SUPER_ADMIN', 'SUPERVISOR')
+  async ptzGotoPreset(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(ptzGotoPresetSchema)) body: { presetToken: string },
+  ) {
+    return this.cameraService.sendPtzCommand(id, 'GotoPreset', body);
+  }
+
+  @Post(':id/ptz/save-preset')
+  @Roles('ADMIN', 'SUPER_ADMIN', 'SUPERVISOR')
+  async ptzSavePreset(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(ptzSavePresetSchema)) body: { name: string },
+  ) {
+    return this.cameraService.savePreset(id, body.name);
   }
 }

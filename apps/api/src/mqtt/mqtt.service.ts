@@ -49,6 +49,10 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
           "site/+/door/+/state": { qos: 1 },
           "site/+/reader/+/badge": { qos: 1 },
           "site/+/controller/+/health": { qos: 1 },
+          // Phase 2: OSDP event topics
+          "site/+/door/+/event": { qos: 1 },
+          "site/+/controller/+/discovery": { qos: 1 },
+          "site/+/onvif/+/event": { qos: 1 },
         },
         (err) => {
           if (err) {
@@ -108,6 +112,12 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
           topic,
           message,
         });
+      } else if (topic.includes("/door/") && topic.endsWith("/event")) {
+        this.eventEmitter.emit("mqtt.door.event", { topic, message });
+      } else if (topic.includes("/controller/") && topic.endsWith("/discovery")) {
+        this.eventEmitter.emit("mqtt.controller.discovery", { topic, message });
+      } else if (topic.includes("/onvif/") && topic.endsWith("/event")) {
+        this.eventEmitter.emit("mqtt.onvif.event", { topic, message });
       }
     } catch (err: any) {
       this.logger.error(`Failed to parse MQTT message on ${topic}: ${err.message}`);

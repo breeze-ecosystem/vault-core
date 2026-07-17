@@ -4,6 +4,7 @@ import {
   NotFoundException,
   BadRequestException,
   Inject,
+  OnModuleInit,
 } from "@nestjs/common";
 import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import { InjectQueue } from "@nestjs/bullmq";
@@ -28,7 +29,7 @@ import { DOOR_STATES } from "@repo/shared";
 const SETTLING_TIMEOUT_MS = 500;
 
 @Injectable()
-export class DoorService {
+export class DoorService implements OnModuleInit {
   private readonly logger = new Logger(DoorService.name);
 
   /** Per-door state machine instances (D-04) */
@@ -50,6 +51,29 @@ export class DoorService {
     @InjectQueue("door-alerts") private alertQueue: Queue,
     private licenseService: LicenseService,
   ) {}
+
+  async onModuleInit() {
+    // D-18: Ensure hardware_event_log hypertable with 90-day retention
+    try {
+      await this.prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS hardware_event_log (
+          time TIMESTAMPTZ NOT NULL,
+          door_id UUID NOT NULL,
+          organization_id UUID NOT NULL,
+          event_type TEXT NOT NULL,
+          payload JSONB
+        );
+        SELECT create_hypertable('hardware_event_log', 'time', if_not_exists => TRUE);
+        SELECT add_retention_policy('hardware_event_log', INTERVAL '90 days', if_not_exists => TRUE);
+      `);
+      this.logger.log("hardware_event_log hypertable ready with 90-day retention (D-18)");
+    } catch (err: any) {
+      // Hypertable creation may fail if TimescaleDB extension is not available
+      this.logger.warn(
+        `Could not initialize hardware_event_log hypertable (TimescaleDB may not be available): ${err.message}`,
+      );
+    }
+  }
 
   /**
    * Validate that the org can create a new door under its license limits.
@@ -535,6 +559,96 @@ export class DoorService {
         }),
       },
     });
+  }
+
+  // ── Command Operations (Phase 2) ──
+
+  async sendCommand(doorId: string, command: "lock" | "unlock", orgId: string): Promise<{ status: string; doorId: string }> {
+    const door = await this.prisma.door.findUnique({ where: { id: doorId } });
+    if (!door) throw new NotFoundException("Door not found");
+
+    this.eventEmitter.emit("mqtt.door.command", {
+      topic: `site/${orgId}/door/${doorId}/cmd`,
+      message: { command, doorId, timestamp: new Date().toISOString() },
+    });
+
+    // Emit command state: sent
+    this.eventEmitter.emit("door.command-state", {
+      doorId,
+      state: "sent",
+      timestamp: new Date().toISOString(),
+    });
+
+    this.logger.log(`Command ${command} sent to door ${doorId}`);
+    return { status: "sent", doorId };
+  }
+
+  async create(data: { name: string; siteId: string; zoneId: string; location?: string; controllerId?: string }, orgId: string) {
+    await this.validateCanCreateDoor(orgId);
+    return this.prisma.door.create({
+      data: {
+        name: data.name,
+        zoneId: data.zoneId,
+        location: data.location,
+        controllerId: data.controllerId,
+        organizationId: orgId,
+      },
+    });
+  }
+
+  // ── OSDP Event Handling (Phase 2) ──
+
+  @OnEvent("mqtt.door.event", { async: true })
+  async handleDoorEvent(payload: { topic: string; message: any }) {
+    const { topic, message } = payload;
+    const topicParts = topic.split("/");
+    if (topicParts.length < 5) return;
+    const orgId = topicParts[1];
+    const doorId = topicParts[3];
+
+    try {
+      // Persist to hardware_event_log via $queryRaw (same pattern as persistDoorStateLog)
+      await this.prisma.$queryRaw`
+        INSERT INTO hardware_event_log (time, door_id, organization_id, event_type, payload)
+        VALUES (${new Date()}, ${doorId}::uuid, ${orgId}::uuid,
+                ${message.event_type}, ${JSON.stringify(message)}::jsonb)
+      `;
+
+      // Emit to Socket.IO gateway for Dashboard
+      this.eventEmitter.emit("door.osdp-event", {
+        doorId,
+        orgId,
+        eventType: message.event_type,
+        badgeNumber: message.badge_number,
+        direction: message.direction,
+        tampered: message.tampered,
+        timestamp: message.timestamp || new Date().toISOString(),
+      });
+    } catch (err: any) {
+      this.logger.error(`Failed to handle OSDP event for door ${doorId}: ${err.message}`);
+    }
+  }
+
+  // ── CameraDoorMap Operations (Phase 2, D-10) ──
+
+  async getCameraMaps(doorId: string) {
+    return this.prisma.cameraDoorMap.findMany({
+      where: { doorId },
+      include: {
+        camera: { select: { id: true, name: true, rtspUrl: true, lastSnapshotUrl: true } },
+      },
+      orderBy: { priority: "desc" },
+    });
+  }
+
+  async createCameraMap(doorId: string, data: { cameraId: string; angle?: string; priority?: number }) {
+    return this.prisma.cameraDoorMap.create({
+      data: { doorId, cameraId: data.cameraId, angle: data.angle, priority: data.priority ?? 0 },
+    });
+  }
+
+  async deleteCameraMap(mapId: string) {
+    return this.prisma.cameraDoorMap.delete({ where: { id: mapId } });
   }
 
   // ── Private Helpers ──
