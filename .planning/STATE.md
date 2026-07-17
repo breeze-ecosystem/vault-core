@@ -2,16 +2,19 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Production Readiness & Hardware Integration
+current_phase: 3
+current_phase_name: Visitor Kiosk
 status: planning
 stopped_at: Phase 3 UI-SPEC approved
-last_updated: "2026-07-17T16:52:36.000Z"
-last_activity: 2026-07-17 — Plan 03-01 complete
+last_updated: "2026-07-17T17:05:06.694Z"
+last_activity: 2026-07-17
+last_activity_desc: Plan 03-02 (kiosk backend) complete
 progress:
   total_phases: 5
-  completed_phases: 0
-  total_plans: 4
-  completed_plans: 1
-  percent: 25
+  completed_phases: 1
+  total_plans: 12
+  completed_plans: 5
+  percent: 20
 ---
 
 # Project State
@@ -26,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-17)
 ## Current Position
 
 Phase: 3 of 5 (Visitor Kiosk)
-Plan: 1/4 plans (03-01 complete)
+Plan: 2/4 plans (03-02 complete)
 Status: In progress
-Last activity: 2026-07-17 — Plan 03-01 (kiosk scaffold) complete
+Last activity: 2026-07-17 — Plan 03-02 (kiosk backend) complete
 
 Progress: [███████░░░] 70%
 
@@ -36,15 +39,15 @@ Progress: [███████░░░] 70%
 
 **Velocity:**
 
-- Total plans completed: 1
-- Average duration: 42 min
-- Total execution time: 0.7 hours
+- Total plans completed: 2
+- Average duration: 25 min
+- Total execution time: 0.8 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 003 Kiosk | 1 | 1 | 42 min |
+| 003 Kiosk | 1 | 2 | 25 min |
 
 **Recent Trend:**
 
@@ -71,6 +74,9 @@ Recent decisions affecting current work:
 - [03-01 Kiosk Scaffold]: CUPS entrypoint with readiness polling + retry — more reliable than fixed sleep
 - [03-01 Kiosk Scaffold]: autoprefixer as explicit devDep — required for Docker build (not hoisted from workspace)
 - [03-01 Kiosk Scaffold]: apps/kiosk/app/page.tsx added as build requirement — Next.js 14 needs at least one page
+- [03-02 Kiosk Backend]: KioskModule imports VisitorModule directly for VisitorService injection (no circular deps)
+- [03-02 Kiosk Backend]: KioskAuthGuard validates X-API-Key (SHA-256) OR JWT with @Public() skip pattern
+- [03-02 Kiosk Backend]: ZPL generation is hand-rolled (no node-zpl dependency) — template is simple enough
 
 ### Pending Todos
 
@@ -93,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-17T16:52:36.000Z
-Stopped at: Plan 03-01 complete (kiosk scaffold)
-Resume file: .planning/phases/003-visitor-kiosk/03-01-SUMMARY.md
+Last session: 2026-07-17T17:05:06.694Z
+Stopped at: Plan 03-02 complete (kiosk backend)
+Resume file: .planning/phases/003-visitor-kiosk/03-02-SUMMARY.md
