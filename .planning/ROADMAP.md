@@ -143,8 +143,32 @@ Plans:
   3. Mobile app (iOS and Android) navigation is smooth at 60fps with no crashes during standard operator workflows (view cameras, respond to alerts, check door status, manage visitors)
   4. All application UI text and API error messages in French show no untranslated English strings, placeholder text, or inconsistent terminology across Dashboard, Mobile, and API
 
-**Plans**: TBD
+**Plans**: 8 plans
 **UI hint**: yes
+
+Plans:
+
+**Wave 1**
+- [ ] 05-01-PLAN.md — Foundation: Parity Matrix + Dependencies + Sentry Setup (POL-02, POL-03)
+
+**Wave 2** *(blocked on Wave 1)*
+- [ ] 05-02-PLAN.md — Dashboard Bug Audit + Fix (POL-01)
+- [ ] 05-03-PLAN.md — Dashboard i18n Audit & Translation Coverage (POL-04)
+
+**Wave 3** *(blocked on Wave 2)*
+- [ ] 05-04-PLAN.md — Mobile Design Tokens + Performance Infra (POL-03)
+
+**Wave 4** *(blocked on Wave 3)*
+- [ ] 05-05-PLAN.md — Mobile i18n Framework + Migration (POL-04)
+
+**Wave 5** *(blocked on Wave 4)*
+- [ ] 05-06-PLAN.md — Mobile Parity Batch 1: API Functions + 8 Simple Screens (POL-02)
+
+**Wave 6** *(blocked on Wave 5)*
+- [ ] 05-07-PLAN.md — Mobile Parity Batch 2: 11 Complex Screens + Navigation (POL-02)
+
+**Wave 7** *(blocked on Wave 6)*
+- [ ] 05-08-PLAN.md — Final Mobile Verification + Cross-Platform Audit (POL-01, POL-02, POL-03, POL-04)
 
 ## Progress
 
@@ -154,4 +178,4 @@ Plans:
 | 2. Hardware Integration | 0/5 | Not started | - |
 | 3. Visitor Kiosk | 4/4 | Complete | 2026-07-17 |
 | 4. Marketing Site Redesign | 10/10 | Complete   | 2026-07-17 |
-| 5. Bug Fixing & Cross-Platform Polish | 0/0 | Not started | - |
+| 5. Bug Fixing & Cross-Platform Polish | 0/8 | Not started | - |
