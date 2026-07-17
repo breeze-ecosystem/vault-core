@@ -147,6 +147,18 @@ const dict: Record<string, Record<Locale, string>> = {
     fr: "Imprimante hors ligne — contactez la réception",
     en: "Printer offline — contact reception",
   },
+  "error.alreadyCheckedIn": {
+    fr: "Déjà enregistré",
+    en: "Already checked in",
+  },
+  "error.visitExpired": {
+    fr: "Cette visite a expiré. Contactez votre hôte.",
+    en: "This visit has expired. Contact your host.",
+  },
+  "error.unauthorized": {
+    fr: "Erreur d'authentification. Contactez la réception.",
+    en: "Authentication error. Contact reception.",
+  },
   "error.home": { fr: "Retour à l'accueil", en: "Back to home" },
 
   // ─── Footer ───
