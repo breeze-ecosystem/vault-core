@@ -2,11 +2,10 @@ import { useState, useCallback } from "react";
 import {
   View,
   Text,
-  FlatList,
-  RefreshControl,
   TextInput,
   StyleSheet,
 } from "react-native";
+import FlashList from "@shopify/flash-list";
 import { useRouter, useFocusEffect } from "expo-router";
 import { Search, DoorOpen } from "lucide-react-native";
 import { colors, typography, spacing, borderRadius } from "@/lib/theme";
@@ -103,9 +102,10 @@ export default function DoorControlScreen() {
           </Text>
         </View>
       ) : (
-        <FlatList
+        <FlashList
           data={filteredDoors}
           keyExtractor={(item) => item.id}
+          estimatedItemSize={160}
           renderItem={({ item }) => (
             <DoorControlCard
               doorId={item.id}
@@ -116,13 +116,8 @@ export default function DoorControlScreen() {
           )}
           contentContainerStyle={styles.list}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor={colors.primary}
-            />
-          }
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
         />
       )}
     </View>

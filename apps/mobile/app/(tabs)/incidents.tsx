@@ -2,12 +2,12 @@ import { useState, useCallback } from "react";
 import {
   View,
   Text,
-  FlatList,
   TouchableOpacity,
   Image,
   Modal,
   StyleSheet,
 } from "react-native";
+import FlashList from "@shopify/flash-list";
 import { useRouter, useFocusEffect } from "expo-router";
 import { AlertTriangle, Camera, Plus } from "lucide-react-native";
 import { colors, typography, spacing, borderRadius } from "@/lib/theme";
@@ -143,9 +143,10 @@ export default function IncidentsScreen() {
           </Text>
         </View>
       ) : (
-        <FlatList
+        <FlashList
           data={incidents}
           keyExtractor={(item) => item.id}
+          estimatedItemSize={120}
           contentContainerStyle={styles.list}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           renderItem={({ item }) => {

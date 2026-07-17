@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, memo } from "react";
 import {
   View,
   Text,
@@ -45,7 +45,7 @@ const stateConfig: Record<
   },
 };
 
-export function DoorControlCard({
+export const DoorControlCard = memo(function DoorControlCard({
   doorId,
   doorName,
   currentState,
@@ -175,7 +175,7 @@ export function DoorControlCard({
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

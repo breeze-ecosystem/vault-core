@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import { View, Text, ScrollView, StyleSheet, RefreshControl, ActivityIndicator, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from "react-native";
+import FlashList from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { fetchSites, type SiteItem } from "@/lib/api";
 import { siteStatusColor } from "@/lib/constants";
@@ -50,68 +51,79 @@ export default function SitesScreen() {
     );
   }
 
-  return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.scroll}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshSites} tintColor={colors.primary} />}
-    >
-      <View style={styles.header}>
-        <MapPin size={20} color={colors.primary} />
-        <Text style={styles.title}>Sites</Text>
-        <Text style={styles.count}>{sites.length}{total > sites.length ? ` / ${total}` : ""}</Text>
-      </View>
-
-      {error && (
-        <View style={styles.errorBox}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      )}
-
-      {sites.map((site) => {
-        const cameraCount = site._count?.cameras ?? site.cameras?.length ?? 0;
-        return (
-          <TouchableOpacity key={site.id} style={styles.card} onPress={() => handleSitePress(site)} activeOpacity={0.7}>
-            <View style={styles.cardRow}>
-              <View style={[styles.statusDot, { backgroundColor: siteStatusColor(site.isActive) }]} />
-              <View style={styles.cardContent}>
-                <Text style={styles.siteName}>{site.name}</Text>
-                {(site.city || site.country) && (
-                  <Text style={styles.siteLocation}>
-                    {[site.city, site.country].filter(Boolean).join(", ")}
-                  </Text>
-                )}
-              </View>
-              <ChevronRight size={18} color={colors.textMuted} />
-            </View>
-            <View style={styles.cardFooter}>
-              <View style={styles.metaItem}>
-                <Camera size={12} color={colors.primary} />
-                <Text style={styles.metaText}> {cameraCount} caméra{cameraCount !== 1 ? "s" : ""}</Text>
-              </View>
-              <Text style={[styles.statusText, { color: site.isActive ? colors.success : colors.textMuted }]}>
-                {site.isActive ? "Actif" : "Inactif"}
+  const renderSiteItem = ({ item }: { item: SiteItem }) => {
+    const cameraCount = item._count?.cameras ?? item.cameras?.length ?? 0;
+    return (
+      <TouchableOpacity style={styles.card} onPress={() => handleSitePress(item)} activeOpacity={0.7}>
+        <View style={styles.cardRow}>
+          <View style={[styles.statusDot, { backgroundColor: siteStatusColor(item.isActive) }]} />
+          <View style={styles.cardContent}>
+            <Text style={styles.siteName}>{item.name}</Text>
+            {(item.city || item.country) && (
+              <Text style={styles.siteLocation}>
+                {[item.city, item.country].filter(Boolean).join(", ")}
               </Text>
-            </View>
-          </TouchableOpacity>
-        );
-      })}
-
-      {!loading && !error && sites.length === 0 && (
-        <View style={styles.empty}>
-          <MapPin size={40} color={colors.border} />
-          <Text style={styles.emptyTitle}>Aucun site configuré</Text>
-          <Text style={styles.emptyHint}>Ajoutez des sites depuis le tableau de bord</Text>
+            )}
+          </View>
+          <ChevronRight size={18} color={colors.textMuted} />
         </View>
-      )}
+        <View style={styles.cardFooter}>
+          <View style={styles.metaItem}>
+            <Camera size={12} color={colors.primary} />
+            <Text style={styles.metaText}> {cameraCount} caméra{cameraCount !== 1 ? "s" : ""}</Text>
+          </View>
+          <Text style={[styles.statusText, { color: item.isActive ? colors.success : colors.textMuted }]}>
+            {item.isActive ? "Actif" : "Inactif"}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
-      {sites.length < total && (
-        <TouchableOpacity style={styles.loadMoreBtn} onPress={loadMore} disabled={loadingMore}>
-          {loadingMore ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.loadMoreText}>Charger plus ({total - sites.length} restants)</Text>}
-        </TouchableOpacity>
-      )}
-      <View style={{ height: 24 }} />
-    </ScrollView>
+  return (
+    <View style={styles.container}>
+      <FlashList
+        data={sites}
+        renderItem={renderSiteItem}
+        estimatedItemSize={120}
+        keyExtractor={(item) => item.id}
+        refreshing={refreshing}
+        onRefresh={refreshSites}
+        contentContainerStyle={styles.scroll}
+        ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
+        ListHeaderComponent={() => (
+          <View>
+            <View style={styles.header}>
+              <MapPin size={20} color={colors.primary} />
+              <Text style={styles.title}>Sites</Text>
+              <Text style={styles.count}>{sites.length}{total > sites.length ? ` / ${total}` : ""}</Text>
+            </View>
+
+            {error && (
+              <View style={styles.errorBox}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
+          </View>
+        )}
+        ListEmptyComponent={!loading ? (
+          <View style={styles.empty}>
+            <MapPin size={40} color={colors.border} />
+            <Text style={styles.emptyTitle}>Aucun site configuré</Text>
+            <Text style={styles.emptyHint}>Ajoutez des sites depuis le tableau de bord</Text>
+          </View>
+        ) : null}
+        ListFooterComponent={
+          sites.length < total ? (
+            <TouchableOpacity style={styles.loadMoreBtn} onPress={loadMore} disabled={loadingMore}>
+              {loadingMore ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.loadMoreText}>Charger plus ({total - sites.length} restants)</Text>}
+            </TouchableOpacity>
+          ) : (
+            <View style={{ height: 24 }} />
+          )
+        }
+      />
+    </View>
   );
 }
 

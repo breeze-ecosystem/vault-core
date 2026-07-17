@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import { View, Text, ScrollView, StyleSheet, RefreshControl, ActivityIndicator, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from "react-native";
+import FlashList from "@shopify/flash-list";
 import { useLocalSearchParams } from "expo-router";
 import { fetchCameras, type CameraItem } from "@/lib/api";
 import { CameraCard } from "@/components/camera-card";
@@ -63,48 +64,55 @@ export default function CamerasScreen() {
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.scroll}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshCameras} tintColor={colors.primary} />}
-    >
-      <View style={styles.header}>
-        <Camera size={20} color={colors.primary} />
-        <Text style={styles.title}>Caméras</Text>
-        <Text style={styles.count}>
-          {cameras.length}{total > cameras.length ? ` / ${total}` : ""}
-        </Text>
-      </View>
+    <View style={styles.container}>
+      <FlashList
+        data={cameras}
+        renderItem={({ item }) => <CameraCard camera={item} />}
+        estimatedItemSize={140}
+        keyExtractor={(item) => item.id}
+        refreshing={refreshing}
+        onRefresh={refreshCameras}
+        contentContainerStyle={styles.scroll}
+        ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
+        ListHeaderComponent={() => (
+          <View>
+            <View style={styles.header}>
+              <Camera size={20} color={colors.primary} />
+              <Text style={styles.title}>Caméras</Text>
+              <Text style={styles.count}>
+                {cameras.length}{total > cameras.length ? ` / ${total}` : ""}
+              </Text>
+            </View>
 
-      {error && (
-        <View style={styles.errorBox}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      )}
-
-      {cameras.map((camera) => (
-        <CameraCard key={camera.id} camera={camera} />
-      ))}
-
-      {!loading && !error && cameras.length === 0 && (
-        <View style={styles.empty}>
-          <Camera size={40} color={colors.border} />
-          <Text style={styles.emptyTitle}>Aucune caméra configurée</Text>
-          <Text style={styles.emptyHint}>Ajoutez des caméras depuis le tableau de bord</Text>
-        </View>
-      )}
-
-      {cameras.length < total && (
-        <TouchableOpacity style={styles.loadMoreBtn} onPress={loadMore} disabled={loadingMore}>
-          {loadingMore ? (
-            <ActivityIndicator color="#fff" size="small" />
+            {error && (
+              <View style={styles.errorBox}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
+          </View>
+        )}
+        ListEmptyComponent={!loading ? (
+          <View style={styles.empty}>
+            <Camera size={40} color={colors.border} />
+            <Text style={styles.emptyTitle}>Aucune caméra configurée</Text>
+            <Text style={styles.emptyHint}>Ajoutez des caméras depuis le tableau de bord</Text>
+          </View>
+        ) : null}
+        ListFooterComponent={
+          cameras.length < total ? (
+            <TouchableOpacity style={styles.loadMoreBtn} onPress={loadMore} disabled={loadingMore}>
+              {loadingMore ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.loadMoreText}>Charger plus ({total - cameras.length} restantes)</Text>
+              )}
+            </TouchableOpacity>
           ) : (
-            <Text style={styles.loadMoreText}>Charger plus ({total - cameras.length} restantes)</Text>
-          )}
-        </TouchableOpacity>
-      )}
-      <View style={{ height: 24 }} />
-    </ScrollView>
+            <View style={{ height: 24 }} />
+          )
+        }
+      />
+    </View>
   );
 }
 

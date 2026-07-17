@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { colors, typography } from "@repo/design";
 import type { MobileIncidentDto } from "@/lib/api";
@@ -23,7 +24,7 @@ const STATUS_LABELS: Record<string, string> = {
   closed: "Fermé",
 };
 
-export function MobileIncidentCard({ incident, onPress }: MobileIncidentCardProps) {
+export const MobileIncidentCard = memo(function MobileIncidentCard({ incident, onPress }: MobileIncidentCardProps) {
   const severityColor = SEVERITY_COLORS[incident.severity] || SEVERITY_COLORS.INFO;
   const created = new Date(incident.createdAt);
   const now = new Date();
@@ -68,7 +69,7 @@ export function MobileIncidentCard({ incident, onPress }: MobileIncidentCardProp
       </View>
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import type { AlertItem } from "@/lib/api";
@@ -17,7 +18,7 @@ const severityIcons: Record<string, React.ReactNode> = {
   INFO: <Info size={16} color={colors.text} />,
 };
 
-export function AlertCard({ alert }: AlertCardProps) {
+export const AlertCard = memo(function AlertCard({ alert }: AlertCardProps) {
   const router = useRouter();
   const color = severityColors[alert.severity] ?? colors.textMuted;
 
@@ -48,7 +49,7 @@ export function AlertCard({ alert }: AlertCardProps) {
       </View>
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

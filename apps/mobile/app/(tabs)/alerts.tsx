@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import { View, Text, ScrollView, StyleSheet, RefreshControl, ActivityIndicator, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from "react-native";
+import FlashList from "@shopify/flash-list";
 import { fetchAlerts, type AlertItem, type AlertSeverity, type AlertStatus } from "@/lib/api";
 import { AlertCard } from "@/components/alert-card";
 import { severityColors, alertStatusColors } from "@/lib/constants";
@@ -95,66 +96,73 @@ export default function AlertsScreen() {
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.scroll}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshAlerts} tintColor={colors.primary} />}
-    >
-      <View style={styles.header}>
-        <Bell size={20} color={colors.warning} />
-        <Text style={styles.title}>Alertes</Text>
-        <Text style={styles.count}>{alerts.length}{total > alerts.length ? ` / ${total}` : ""}</Text>
-      </View>
+    <View style={styles.container}>
+      <FlashList
+        data={alerts}
+        renderItem={({ item }) => <AlertCard alert={item} />}
+        estimatedItemSize={120}
+        keyExtractor={(item) => item.id}
+        refreshing={refreshing}
+        onRefresh={refreshAlerts}
+        contentContainerStyle={styles.scroll}
+        ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
+        ListHeaderComponent={() => (
+          <View>
+            <View style={styles.header}>
+              <Bell size={20} color={colors.warning} />
+              <Text style={styles.title}>Alertes</Text>
+              <Text style={styles.count}>{alerts.length}{total > alerts.length ? ` / ${total}` : ""}</Text>
+            </View>
 
-      <View style={styles.filters}>
-        <Filter size={14} color={colors.textMuted} />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {SEVERITIES.map(s => (
-            <FilterChip
-              key={s.value} label={s.label}
-              active={filterSeverity === s.value}
-              color={s.value ? severityColors[s.value] : undefined}
-              onPress={() => handleFilterSeverity(s.value as AlertSeverity | "")}
-            />
-          ))}
-        </ScrollView>
-      </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
-        {STATUSES.map(s => (
-          <FilterChip
-            key={s.value} label={s.label}
-            active={filterStatus === s.value}
-            color={s.value ? alertStatusColors[s.value] : undefined}
-            onPress={() => handleFilterStatus(s.value as AlertStatus | "")}
-          />
-        ))}
-      </ScrollView>
+            <View style={styles.filters}>
+              <Filter size={14} color={colors.textMuted} />
+              <View style={{ flexDirection: "row" }}>
+                {SEVERITIES.map(s => (
+                  <FilterChip
+                    key={s.value} label={s.label}
+                    active={filterSeverity === s.value}
+                    color={s.value ? severityColors[s.value] : undefined}
+                    onPress={() => handleFilterSeverity(s.value as AlertSeverity | "")}
+                  />
+                ))}
+              </View>
+            </View>
+            <View style={[styles.filterRow, { flexDirection: "row", flexWrap: "wrap" }]}>
+              {STATUSES.map(s => (
+                <FilterChip
+                  key={s.value} label={s.label}
+                  active={filterStatus === s.value}
+                  color={s.value ? alertStatusColors[s.value] : undefined}
+                  onPress={() => handleFilterStatus(s.value as AlertStatus | "")}
+                />
+              ))}
+            </View>
 
-      {error && (
-        <View style={styles.errorBox}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      )}
-
-      {alerts.map((alert) => (
-        <AlertCard key={alert.id} alert={alert} />
-      ))}
-
-      {!loading && !error && alerts.length === 0 && (
-        <View style={styles.empty}>
-          <Bell size={40} color={colors.border} />
-          <Text style={styles.emptyTitle}>Aucune alerte</Text>
-          <Text style={styles.emptyHint}>Les alertes apparaîtront ici quand elles seront détectées</Text>
-        </View>
-      )}
-
-      {alerts.length < total && (
-        <TouchableOpacity style={styles.loadMoreBtn} onPress={loadMore} disabled={loadingMore}>
-          {loadingMore ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.loadMoreText}>Charger plus ({total - alerts.length} restantes)</Text>}
-        </TouchableOpacity>
-      )}
-      <View style={{ height: 24 }} />
-    </ScrollView>
+            {error && (
+              <View style={styles.errorBox}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
+          </View>
+        )}
+        ListEmptyComponent={!loading ? (
+          <View style={styles.empty}>
+            <Bell size={40} color={colors.border} />
+            <Text style={styles.emptyTitle}>Aucune alerte</Text>
+            <Text style={styles.emptyHint}>Les alertes apparaîtront ici quand elles seront détectées</Text>
+          </View>
+        ) : null}
+        ListFooterComponent={
+          alerts.length < total ? (
+            <TouchableOpacity style={styles.loadMoreBtn} onPress={loadMore} disabled={loadingMore}>
+              {loadingMore ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.loadMoreText}>Charger plus ({total - alerts.length} restantes)</Text>}
+            </TouchableOpacity>
+          ) : (
+            <View style={{ height: 24 }} />
+          )
+        }
+      />
+    </View>
   );
 }
 

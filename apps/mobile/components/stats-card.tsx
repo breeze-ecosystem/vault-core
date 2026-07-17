@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { colors, typography, spacing, borderRadius } from "@/lib/theme";
 
@@ -8,7 +9,7 @@ interface StatsCardProps {
   color: string;
 }
 
-export function StatsCard({ title, value, subtitle, color }: StatsCardProps) {
+export const StatsCard = memo(function StatsCard({ title, value, subtitle, color }: StatsCardProps) {
   return (
     <View style={styles.card}>
       <View style={styles.top}>
@@ -19,7 +20,7 @@ export function StatsCard({ title, value, subtitle, color }: StatsCardProps) {
       <Text style={styles.title}>{title}</Text>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

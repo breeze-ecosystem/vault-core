@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import type { CameraItem } from "@/lib/api";
@@ -9,7 +10,7 @@ interface CameraCardProps {
   camera: CameraItem;
 }
 
-export function CameraCard({ camera }: CameraCardProps) {
+export const CameraCard = memo(function CameraCard({ camera }: CameraCardProps) {
   const router = useRouter();
   const color = statusColors[camera.status] ?? colors.textMuted;
   const label = statusLabels[camera.status] ?? camera.status;
@@ -43,7 +44,7 @@ export function CameraCard({ camera }: CameraCardProps) {
       )}
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {
