@@ -24,9 +24,9 @@ Requirements for production readiness, hardware integration, and marketing trans
 
 ### Visitor Kiosk (KIO)
 
-- [ ] **KIO-01**: Self-check-in/out touchscreen interface for visitors at lobby or reception
+- [x] **KIO-01**: Self-check-in/out touchscreen interface for visitors at lobby or reception
 - [x] **KIO-02**: Badge printing at check-in (ESC/POS thermal or ZPL label printers)
-- [ ] **KIO-03**: QR code scanning for autonomous visitor check-in and check-out
+- [x] **KIO-03**: QR code scanning for autonomous visitor check-in and check-out
 - [x] **KIO-04**: Kiosk deploys as standalone Docker container with CUPS printing and web browser
 
 ### Marketing Site Redesign (MKT)
@@ -78,9 +78,9 @@ Requirements for production readiness, hardware integration, and marketing trans
 | HWR-03 | Phase 2 | Pending |
 | HWR-04 | Phase 2 | Pending |
 | HWR-05 | Phase 2 | Pending |
-| KIO-01 | Phase 3 | Pending |
+| KIO-01 | Phase 3 | Complete |
 | KIO-02 | Phase 3 | Complete |
-| KIO-03 | Phase 3 | Pending |
+| KIO-03 | Phase 3 | Complete |
 | KIO-04 | Phase 3 | Complete |
 | MKT-01 | Phase 4 | Pending |
 | MKT-02 | Phase 4 | Pending |

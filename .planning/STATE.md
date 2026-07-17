@@ -8,13 +8,13 @@ status: planning
 stopped_at: Phase 3 UI-SPEC approved
 last_updated: "2026-07-17T17:13:00.000Z"
 last_activity: 2026-07-17
-last_activity_desc: Plan 03-03 (kiosk frontend core) complete
+last_activity_desc: Plan 03-04 (kiosk printing/success/checkout/error screens) complete
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 12
-   completed_plans: 6
-   percent: 50
+   completed_plans: 7
+    percent: 58
 ---
 
 # Project State
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-17)
 ## Current Position
 
 Phase: 3 of 5 (Visitor Kiosk)
-Plan: 3/4 plans (03-03 complete)
-Status: In progress
-Last activity: 2026-07-17 — Plan 03-03 (kiosk frontend core) complete
+Plan: 4/4 plans (03-04 complete)
+Status: Complete
+Last activity: 2026-07-17 — Plan 03-04 (kiosk printing/success/checkout/error screens) complete
 
-Progress: [████████░░] 75%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -82,6 +82,11 @@ Recent decisions affecting current work:
 - [03-03 Kiosk Frontend]: QR decode handler fetches visit status to route check-in vs check-out paths
 - [03-03 Kiosk Frontend]: French (fr) is default locale per D-27, toggled via welcome screen buttons
 
+- [03-04 Kiosk Frontend]: PrintingScreen uses internal progress simulation (connecting→generating→printing→complete) with timers independent of API call timing
+- [03-04 Kiosk Frontend]: handleConfirm dispatches CONFIRM immediately before API call for instant visual feedback
+- [03-04 Kiosk Frontend]: ErrorScreen maps errorCode to context-specific messages with auto-reset for non-fatal errors
+- [03-04 Kiosk Frontend]: handlePrintRetry re-calls printBadge API (not just dispatches CONFIRM) to ensure actual retry
+
 ### Pending Todos
 
 None yet.
@@ -103,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-17T17:13:00.000Z
-Stopped at: Plan 03-03 complete (kiosk frontend core)
-Resume file: .planning/phases/003-visitor-kiosk/03-03-SUMMARY.md
+Last session: 2026-07-17T17:22:00.000Z
+Stopped at: Complete — Phase 3 all plans executed
+Resume file: .planning/phases/003-visitor-kiosk/03-04-SUMMARY.md
