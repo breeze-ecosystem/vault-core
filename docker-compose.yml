@@ -87,6 +87,26 @@ services:
       retries: 3
       start_period: 30s
 
+  # ─── Kiosk (Visitor Self-Check-in/out) ───
+  kiosk:
+    build:
+      context: .
+      dockerfile: docker/kiosk.Dockerfile
+    container_name: oversight-kiosk
+    restart: unless-stopped
+    ports:
+      - "3080:80"
+    environment:
+      KIOSK_ID: ${KIOSK_ID:-kiosk-01}
+      PRINTER_IP: ${PRINTER_IP:?PRINTER_IP is required}
+      SITE_ID: ${SITE_ID:?SITE_ID is required}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:80/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
   ai-preprocessor:
     profiles: ["full"]
     build:
