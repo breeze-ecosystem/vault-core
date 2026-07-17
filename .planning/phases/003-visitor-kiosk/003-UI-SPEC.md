@@ -59,18 +59,14 @@ System font stack means no explicit font loading. Sizes are optimized for tablet
 
 | Role | Size | Tailwind | Weight | Line Height | Usage |
 |------|------|----------|--------|-------------|-------|
-| Hero | 44px | `text-[44px]` | 700 (bold) | 1.1 | OVERSIGHT AI brand name on welcome screen |
-| Display | 28px | `text-3xl` | 700 (bold) | 1.2 | Welcome screen heading ("Bienvenue"), screen titles |
-| Heading | 22px | `text-2xl` | 600 (semibold) | 1.3 | Confirmation screen visitor name, section titles |
-| Body | 18px | `text-lg` | 400 (regular) | 1.5 | Visitor info fields, scan instructions, body text |
-| Label | 16px | `text-base` | 500 (medium) | 1.4 | Form labels, button text, metadata |
-| Caption | 14px | `text-sm` | 400 (regular) | 1.4 | Status messages, timestamps, printer status |
-| Mono | 16px | `text-base font-mono` | 400 (regular) | 1.5 | Error codes, technical identifiers |
-| QR Data | 12px | `text-xs font-mono` | 400 (regular) | 1.4 | QR credential text on badge preview |
+| Display | 28px | `text-3xl` | 700 (bold) | 1.2 | Welcome screen heading ("Bienvenue"), screen titles, visitor name display, section headers |
+| Body | 18px | `text-lg` | 400 (regular) | 1.5 | Visitor info fields, scan instructions, body text, button text, form labels |
+| Label | 16px | `text-base` | 400 (regular) | 1.4 | Metadata, secondary info, timestamps, error codes |
+| Caption | 14px | `text-sm` | 400 (regular) | 1.4 | Status messages, printer status, hints, QR data text, technical identifiers |
 
-**Font weights used:** 400 (regular), 500 (medium), 600 (semibold), 700 (bold) — system font stack supports all weights natively.
+**Font weights used:** 400 (regular), 700 (bold) — only two weights used. 44px brand treatment moved to logo graphic (36px `text-4xl` bold or SVG logo).
 
-**Line-height note:** 1.0 on hero for tight brand display; 1.5 on body for readability on tablet screens.
+**Line-height note:** 1.2 on display for tight heading spacing; 1.5 on body for readability on tablet screens.
 
 ---
 
@@ -181,7 +177,7 @@ State machine:
 
 | Element | States | Interaction |
 |---------|--------|-------------|
-| Brand header | Always shown | "OVERSIGHT AI" in 44px bold weight, centered |
+| Brand header | Always shown | "OVERSIGHT AI" in 36px bold weight (`text-4xl`), centered |
 | Language toggle | `fr` / `en` selected state | Toggle button in top-right corner (44px touch target). Toggle persists for session only. |
 | Hero heading | "Bienvenue" / "Welcome" | Large 28px centered heading below brand |
 | Subtitle | "Scannez votre QR ou recherchez votre nom" / "Scan your QR or search your name" | 18px secondary text below heading |
@@ -262,7 +258,7 @@ State machine:
 | No results | `UserX` icon + "Aucun visiteur trouvé" / "No visitor found" | Suggestion: "Vérifiez que votre hôte vous a pré-inscrit" / "Check your host pre-registered you" |
 | Search results | List of matching visits with: visitor name, host name, company | Tap row → fetch full visit → transition to confirm screen |
 | Search result card | `flex` row with `border-l-4 border-gray-200` hover → `border-blue-500` | Left-border highlights on hover/tap. `active:bg-blue-50` touch feedback |
-| Search result item | Full-width card, outer border `border-gray-100`, rounded-lg | Contains: name (18px semibold), company (14px muted), host label (12px caption) |
+| Search result item | Full-width card, outer border `border-gray-100`, rounded-lg | Contains: name (18px bold), company (14px muted), host label (14px caption) |
 | Loading results | Skeleton placeholder rows (3 pulsing bars) | "Recherche..." / "Searching..." |
 | Cancel button | "Annuler" / "Cancel" secondary button | `onClick` → return to `welcome` state |
 
@@ -299,8 +295,8 @@ State machine:
 |---------|--------|-------------|
 | Screen heading | "Confirmez votre arrivée" / "Confirm your arrival" | Centered, 28px display |
 | Visitor photo | `h-24 w-24 rounded-full` from `visitor.photoUrl` (if present) or initials avatar fallback | Circular, `border-2 border-gray-200`. If no photoUrl, show `User` icon in `bg-gray-100` circle |
-| Visitor name | 22px semibold | First + Last name |
-| Visitor company | 16px medium, muted color | Company name or `—` if none |
+| Visitor name | 28px bold (Display) | First + Last name |
+| Visitor company | 16px regular, muted color | Company name or `—` if none |
 | Visit details card | White card, `space-y-3`, labeled rows | Contains: Hôte (host name), Société (company), Date, Motif (purpose) |
 | Date display | "Aujourd'hui à HH:MM" / "Today at HH:MM" | Formatted current timestamp for check-in |
 | Confirm button | Primary CTA `bg-blue-600 text-white h-14 w-full max-w-sm` | `onClick` → `POST /api/visitors/visits/:id/check-in` → transition to `printing` state |
@@ -320,8 +316,8 @@ State machine:
 │         │ or INIT  │             │
 │         └──────────┘             │
 │                                  │
-│        Jean Dupont               │ ← 22px semibold
-│        Acme Corp                 │ ← 16px muted
+│        Jean Dupont               │ ← 28px bold
+│        Acme Corp                 │ ← 16px regular muted
 │                                  │
 │  ┌──────────────────────────┐   │
 │  │ Hôte     Marie Martin    │   │
@@ -416,7 +412,7 @@ State machine:
 | Element | States | Interaction |
 |---------|--------|-------------|
 | Error icon | `AlertTriangle` or `XCircle` in `text-red-500`, 64×64px | Centered |
-| Heading | "Une erreur est survenue" / "An error occurred" | 22px semibold |
+| Heading | "Une erreur est survenue" / "An error occurred" | 28px bold (Display) |
 | Message | Context-specific error description | 16px body, muted |
 | Retry button | "Réessayer" / "Retry" | `onClick` → re-attempt last action |
 | Home button | "Retour à l'accueil" / "Back to home" | `onClick` → reset to `welcome` state |
