@@ -1,5 +1,6 @@
 ---
-status: draft
+status: approved
+reviewed_at: 2026-07-17T20:00:00Z
 phase: 5
 phase_name: Bug Fixing & Cross-Platform Polish
 created_at: 2026-07-17
