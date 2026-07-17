@@ -5,7 +5,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { IS_CONFIG_VALID } from "@/lib/config";
 import { Shield } from "lucide-react-native";
-import { colors } from "@/lib/theme";
+import { colors } from "@repo/design";
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
@@ -17,7 +17,7 @@ Sentry.init({
 function ConfigErrorScreen() {
   return (
     <View style={styles.configError}>
-      <Shield size={40} color={colors.destructive} />
+      <Shield size={40} color={colors.shared.destructive} />
       <Text style={styles.configErrorTitle}>Erreur de configuration</Text>
       <Text style={styles.configErrorMessage}>
         Les variables d'environnement EXPO_PUBLIC_API_URL et EXPO_PUBLIC_STREAM_URL
@@ -37,10 +37,10 @@ export default Sentry.wrap(function RootLayout() {
       <AuthProvider>
         <Stack
           screenOptions={{
-            headerStyle: { backgroundColor: colors.surface },
-            headerTintColor: colors.text,
+            headerStyle: { backgroundColor: colors.dark.surface },
+            headerTintColor: colors.dark.text,
             headerShadowVisible: false,
-            contentStyle: { backgroundColor: colors.bg },
+            contentStyle: { backgroundColor: colors.dark.bg },
             animation: "slide_from_right",
             animationDuration: 250,
           }}
@@ -59,14 +59,14 @@ export default Sentry.wrap(function RootLayout() {
 const styles = StyleSheet.create({
   configError: {
     flex: 1, justifyContent: "center", alignItems: "center",
-    backgroundColor: colors.bg, padding: 24,
+    backgroundColor: colors.dark.bg, padding: 24,
   },
   configErrorTitle: {
-    fontSize: 20, fontWeight: "700", color: colors.destructive,
+    fontSize: 20, fontWeight: "700", color: colors.shared.destructive,
     marginTop: 16, marginBottom: 12,
   },
   configErrorMessage: {
-    fontSize: 14, color: colors.textSecondary, textAlign: "center",
+    fontSize: 14, color: colors.dark.textSecondary, textAlign: "center",
     lineHeight: 20,
   },
 });
