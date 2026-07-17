@@ -33,6 +33,7 @@ export const fr = {
     active: "Actif",
     inactive: "Inactif",
     upload: "Upload",
+    loadMore: "Charger plus ({remaining})",
     statusLabels: {
       online: "En ligne",
       offline: "Hors ligne",
@@ -297,6 +298,8 @@ export const fr = {
       sent: "Envoyé",
       failed: "Échec",
     },
+    unread: "Non lues",
+    filterAll: "Toutes",
   },
   scanner: {
     ready: "Prêt à scanner",
@@ -367,6 +370,12 @@ export const fr = {
     loadingError: "Erreur de chargement",
     ipAddress: "Adresse IP",
     details: "Détails",
+    actionCreate: "Création",
+    actionUpdate: "Modification",
+    actionDelete: "Suppression",
+    actionCreateFailed: "Échec création",
+    actionUpdateFailed: "Échec modif.",
+    actionDeleteFailed: "Échec suppr.",
   },
   apiKeys: {
     title: "Clés API",
@@ -442,6 +451,9 @@ export const fr = {
     offline: "Hors ligne",
     degraded: "Dégradé",
     loadingError: "Erreur de chargement",
+    momentsAgo: "À l'instant",
+    minutesAgo: "Il y a {minutes}min",
+    hoursAgo: "Il y a {hours}h",
   },
   maintenance: {
     title: "Maintenance",
@@ -554,6 +566,8 @@ export const fr = {
     enabled: "Activée",
     disabled: "Désactivée",
     days: "{days} jours",
+    encryptionActive: "Chiffrement actif",
+    encryptionNotConfigured: "Chiffrement non configuré",
     loadingError: "Erreur de chargement",
   },
   ia: {

@@ -18,15 +18,15 @@ function getStatusConfig(status: string | undefined) {
   return STATUS_CONFIG[status || ""] || STATUS_CONFIG.OFFLINE;
 }
 
-function formatHeartbeat(hb: string | null): string {
+function formatHeartbeat(hb: string | null, t: (key: string) => string): string {
   if (!hb) return "—";
   try {
     const d = new Date(hb);
     const now = Date.now();
     const diff = now - d.getTime();
-    if (diff < 60000) return "À l'instant";
-    if (diff < 3600000) return `Il y a ${Math.floor(diff / 60000)}min`;
-    if (diff < 86400000) return `Il y a ${Math.floor(diff / 3600000)}h`;
+    if (diff < 60000) return t("equipement.momentsAgo");
+    if (diff < 3600000) return t("equipement.minutesAgo", { minutes: Math.floor(diff / 60000) });
+    if (diff < 86400000) return t("equipement.hoursAgo", { hours: Math.floor(diff / 3600000) });
     return d.toLocaleDateString("fr-FR");
   } catch {
     return hb;
@@ -109,7 +109,7 @@ export default function EquipementScreen() {
               <View style={styles.cardBody}>
                 <Text style={styles.itemName}>{item.name}</Text>
                 <Text style={styles.itemType}>{item.type} — {item.siteName || "—"}</Text>
-                <Text style={styles.heartbeat}>{t("equipement.lastHeartbeat")}: {formatHeartbeat(item.lastHeartbeat)}</Text>
+                <Text style={styles.heartbeat}>{t("equipement.lastHeartbeat")}: {formatHeartbeat(item.lastHeartbeat, t)}</Text>
               </View>
               <View style={[styles.statusBadge, { backgroundColor: cfg.bg }]}>
                 <Text style={[styles.statusLabel, { color: cfg.color }]}>
@@ -141,7 +141,7 @@ export default function EquipementScreen() {
         ListFooterComponent={
           items.length < total ? (
             <TouchableOpacity style={styles.loadMoreBtn} onPress={loadMore} disabled={loadingMore}>
-              {loadingMore ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.loadMoreText}>{t("common.loading")}</Text>}
+              {loadingMore ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.loadMoreText}>{t("common.loadMore", { remaining: total - items.length })}</Text>}
             </TouchableOpacity>
           ) : <View style={{ height: 24 }} />
         }

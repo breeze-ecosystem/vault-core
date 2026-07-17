@@ -22,12 +22,15 @@ const PRIORITY_BG: Record<string, string> = {
   LOW: "rgba(107,114,128,0.15)",
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  open: "Ouvert",
-  in_progress: "En cours",
-  resolved: "Résolu",
-  closed: "Fermé",
-};
+function getStatusLabel(status: string, t: (key: string) => string): string {
+  const map: Record<string, string> = {
+    open: t("maintenance.open"),
+    in_progress: t("maintenance.inProgress"),
+    resolved: t("maintenance.resolved"),
+    closed: t("maintenance.closed"),
+  };
+  return map[status] || status;
+}
 
 function formatDate(dateStr: string): string {
   try {
@@ -98,7 +101,7 @@ export default function MaintenanceScreen() {
   const showDetail = (ticket: MaintenanceTicket) => {
     Alert.alert(
       ticket.title,
-      `${t("maintenance.priority")}: ${t(`maintenance.${ticket.priority?.toLowerCase() || "medium"}`)}\n${t("maintenance.status")}: ${STATUS_LABELS[ticket.status] || ticket.status}\n${t("maintenance.assignedTo")}: ${ticket.assignedTo || "—"}\n${t("maintenance.date")}: ${formatDate(ticket.createdAt)}\n\n${t("audit.details")}: ${ticket.description || "—"}`,
+      `${t("maintenance.priority")}: ${t(`maintenance.${ticket.priority?.toLowerCase() || "medium"}`)}\n${t("maintenance.status")}: ${getStatusLabel(ticket.status, t)}\n${t("maintenance.assignedTo")}: ${ticket.assignedTo || "—"}\n${t("maintenance.date")}: ${formatDate(ticket.createdAt)}\n\n${t("audit.details")}: ${ticket.description || "—"}`,
     );
   };
 
@@ -142,7 +145,7 @@ export default function MaintenanceScreen() {
             <View style={styles.cardMeta}>
               <View style={[styles.statusChip, { backgroundColor: item.status === "resolved" ? "rgba(34,197,94,0.15)" : item.status === "open" ? "rgba(59,130,246,0.15)" : "rgba(245,158,11,0.15)" }]}>
                 <Text style={[styles.statusChipText, { color: item.status === "resolved" ? "#22c55e" : item.status === "open" ? "#3b82f6" : "#f59e0b" }]}>
-                  {STATUS_LABELS[item.status] || item.status}
+                  {getStatusLabel(item.status, t)}
                 </Text>
               </View>
               {item.assignedTo && (
@@ -177,7 +180,7 @@ export default function MaintenanceScreen() {
         ListFooterComponent={
           tickets.length < total ? (
             <TouchableOpacity style={styles.loadMoreBtn} onPress={loadMore} disabled={loadingMore}>
-              {loadingMore ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.loadMoreText}>{t("common.loading")}</Text>}
+              {loadingMore ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.loadMoreText}>{t("common.loadMore", { remaining: total - tickets.length })}</Text>}
             </TouchableOpacity>
           ) : <View style={{ height: 24 }} />
         }

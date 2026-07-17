@@ -158,7 +158,7 @@ export default function VehiculesScreen() {
         ListFooterComponent={
           events.length < total ? (
             <TouchableOpacity style={styles.loadMoreBtn} onPress={loadMore} disabled={loadingMore}>
-              {loadingMore ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.loadMoreText}>{t("common.loading")}</Text>}
+              {loadingMore ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.loadMoreText}>{t("common.loadMore", { remaining: total - events.length })}</Text>}
             </TouchableOpacity>
           ) : <View style={{ height: 24 }} />
         }

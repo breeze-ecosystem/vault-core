@@ -213,7 +213,7 @@ export default function NotificationsTabScreen() {
               onPress={() => setFilterTab(tab)}
             >
               <Text style={[styles.filterText, filterTab === tab && styles.filterTextActive]}>
-                {tab === "all" ? t("common.all") : "Non lues"}
+                {tab === "all" ? t("notifications.filterAll") : t("notifications.unread")}
               </Text>
             </TouchableOpacity>
           ))}

@@ -35,6 +35,7 @@ export const en: Dictionary = {
     active: "Active",
     inactive: "Inactive",
     upload: "Upload",
+    loadMore: "Load more ({remaining})",
     statusLabels: {
       online: "Online",
       offline: "Offline",
@@ -299,6 +300,8 @@ export const en: Dictionary = {
       sent: "Sent",
       failed: "Failed",
     },
+    unread: "Unread",
+    filterAll: "All",
   },
   scanner: {
     ready: "Ready to scan",
@@ -369,6 +372,12 @@ export const en: Dictionary = {
     loadingError: "Loading error",
     ipAddress: "IP Address",
     details: "Details",
+    actionCreate: "Create",
+    actionUpdate: "Update",
+    actionDelete: "Delete",
+    actionCreateFailed: "Create failed",
+    actionUpdateFailed: "Update failed",
+    actionDeleteFailed: "Delete failed",
   },
   apiKeys: {
     title: "API Keys",
@@ -444,6 +453,9 @@ export const en: Dictionary = {
     offline: "Offline",
     degraded: "Degraded",
     loadingError: "Loading error",
+    momentsAgo: "Just now",
+    minutesAgo: "{minutes}min ago",
+    hoursAgo: "{hours}h ago",
   },
   maintenance: {
     title: "Maintenance",
@@ -556,6 +568,8 @@ export const en: Dictionary = {
     enabled: "Enabled",
     disabled: "Disabled",
     days: "{days} days",
+    encryptionActive: "Encryption active",
+    encryptionNotConfigured: "Encryption not configured",
     loadingError: "Loading error",
   },
   ia: {

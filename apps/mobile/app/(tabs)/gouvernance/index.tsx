@@ -86,7 +86,7 @@ export default function GouvernanceScreen() {
         <View style={styles.statusCard}>
           <Lock size={16} color={govStatus.encryptionConfigured ? colors.success : colors.warning} />
           <Text style={styles.statusText}>
-            {govStatus.encryptionConfigured ? "Chiffrement actif" : "Chiffrement non configuré"}
+            {govStatus.encryptionConfigured ? t("gouvernance.encryptionActive") : t("gouvernance.encryptionNotConfigured")}
           </Text>
         </View>
       )}

@@ -17,14 +17,17 @@ const ACTION_COLORS: Record<string, string> = {
   DELETE_FAILED: "#f97316",
 };
 
-const ACTION_LABELS: Record<string, string> = {
-  CREATE: "Création",
-  UPDATE: "Modification",
-  DELETE: "Suppression",
-  CREATE_FAILED: "Échec création",
-  UPDATE_FAILED: "Échec modif.",
-  DELETE_FAILED: "Échec suppr.",
-};
+function getActionLabel(action: string, t: (key: string) => string): string {
+  const map: Record<string, string> = {
+    CREATE: t("audit.actionCreate"),
+    UPDATE: t("audit.actionUpdate"),
+    DELETE: t("audit.actionDelete"),
+    CREATE_FAILED: t("audit.actionCreateFailed"),
+    UPDATE_FAILED: t("audit.actionUpdateFailed"),
+    DELETE_FAILED: t("audit.actionDeleteFailed"),
+  };
+  return map[action] || action;
+}
 
 function formatDate(ts: string): string {
   try {
@@ -81,7 +84,7 @@ export default function AuditScreen() {
   const showDetail = (entry: AuditLogEntry) => {
     Alert.alert(
       t("audit.detail"),
-      `${t("audit.action")}: ${ACTION_LABELS[entry.action] || entry.action}\n${t("audit.entity")}: ${entry.entityType}\n${t("audit.user")}: ${entry.userName || entry.userId || "—"}\n${t("audit.ipAddress")}: ${entry.ipAddress || "—"}\n${t("audit.timestamp")}: ${formatDate(entry.timestamp)}`,
+      `${t("audit.action")}: ${getActionLabel(entry.action, t)}\n${t("audit.entity")}: ${entry.entityType}\n${t("audit.user")}: ${entry.userName || entry.userId || "—"}\n${t("audit.ipAddress")}: ${entry.ipAddress || "—"}\n${t("audit.timestamp")}: ${formatDate(entry.timestamp)}`,
     );
   };
 
@@ -115,7 +118,7 @@ export default function AuditScreen() {
             <View style={[styles.actionIndicator, { backgroundColor: ACTION_COLORS[item.action] || colors.textMuted }]} />
             <View style={styles.cardContent}>
               <View style={styles.cardTop}>
-                <Text style={styles.actionLabel}>{ACTION_LABELS[item.action] || item.action}</Text>
+                <Text style={styles.actionLabel}>{getActionLabel(item.action, t)}</Text>
                 <Text style={styles.entityLabel}>{item.entityType}</Text>
               </View>
               <Text style={styles.userText}>{item.userName || item.userId || "—"}</Text>
@@ -146,7 +149,7 @@ export default function AuditScreen() {
         ListFooterComponent={
           entries.length < total ? (
             <TouchableOpacity style={styles.loadMoreBtn} onPress={loadMore} disabled={loadingMore}>
-              {loadingMore ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.loadMoreText}>{t("common.loading")}</Text>}
+              {loadingMore ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.loadMoreText}>{t("common.loadMore", { remaining: total - entries.length })}</Text>}
             </TouchableOpacity>
           ) : <View style={{ height: 24 }} />
         }
