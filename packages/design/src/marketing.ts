@@ -1,19 +1,19 @@
 export const marketingTheme = {
   colors: {
     hero: {
-      bg: "from-cyan-950 via-blue-950 to-slate-950",
+      bg: "from-[#070912] via-[#0c1020] to-[#070912]",
       gradient: "linear-gradient(135deg, #070912 0%, #06b6d4 100%)",
     },
     surface: {
-      card: "#ffffff",
-      cardHover: "#f8fafc",
-      muted: "#f1f5f9",
+      card: "#1a2332",
+      cardHover: "#243044",
+      muted: "#0c1020",
     },
     text: {
-      primary: "#070912",
-      secondary: "#5c6573",
-      muted: "#94a3b8",
-      inverted: "#ffffff",
+      primary: "#f1f5f9",
+      secondary: "#94a3b8",
+      muted: "#64748b",
+      inverted: "#070912",
     },
     accent: {
       primary: "#06b6d4",
@@ -28,8 +28,8 @@ export const marketingTheme = {
     container: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
   },
   typography: {
-    display: { fontSize: 40, fontWeight: 600, lineHeight: 1.1 },
-    heading: { fontSize: 24, fontWeight: 600, lineHeight: 1.3 },
+    display: { fontSize: 56, fontWeight: 600, lineHeight: 1.1 },
+    heading: { fontSize: 32, fontWeight: 600, lineHeight: 1.2 },
     body: { fontSize: 16, fontWeight: 400, lineHeight: 1.6 },
     small: { fontSize: 14, fontWeight: 400, lineHeight: 1.4 },
   },

@@ -1,7 +1,6 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  darkMode: 'media',
   content: [
     "./app/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
@@ -10,11 +9,13 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"IBM Plex Sans"', "system-ui", "-apple-system", "sans-serif"],
-        mono: ['"JetBrains Mono"', "monospace"],
+        sans: ['var(--font-inter)', "system-ui", "-apple-system", "sans-serif"],
+        display: ['var(--font-plus-jakarta)', 'var(--font-inter)', "system-ui", "sans-serif"],
+        mono: ['var(--font-jetbrains-mono)', "monospace"],
       },
       fontSize: {
-        display: ["40px", { lineHeight: "1.1", fontWeight: "600" }],
+        display: ["56px", { lineHeight: "1.1", fontWeight: "600" }],
+        heading: ["32px", { lineHeight: "1.2", fontWeight: "600" }],
       },
       colors: {
         background: "hsl(var(--marketing-bg))",
@@ -37,10 +38,6 @@ const config: Config = {
         success: "hsl(var(--marketing-success))",
         destructive: "hsl(var(--marketing-destructive))",
         warning: "hsl(var(--marketing-warning))",
-        dark: {
-          DEFAULT: "hsl(var(--marketing-bg-dark))",
-          foreground: "hsl(var(--marketing-primary-foreground))",
-        },
       },
       borderRadius: {
         sm: "var(--marketing-radius-sm)",
