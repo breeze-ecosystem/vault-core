@@ -302,7 +302,7 @@ function AuditLogTab() {
           ) : entries.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <Shield className="h-12 w-12 mx-auto mb-3 opacity-30" />
-              <p>Aucune entrée d'audit trouvée</p>
+              <p>{t('audit.noEntries')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">

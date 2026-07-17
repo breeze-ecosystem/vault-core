@@ -19,6 +19,7 @@ import {
   type ZoneDto,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useTranslation } from "@/lib/i18n/context";
 import {
   ShieldCheck,
   Unlock,
@@ -168,6 +169,7 @@ function DoorCard({
 // ── Page Component ──
 
 export default function PortesPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const siteId = (user as any)?.siteId as string | undefined;
   const [doors, setDoors] = useState<DoorStateDto[]>([]);
@@ -312,13 +314,13 @@ export default function PortesPage() {
     if (!emergencyZoneId) return;
     if (
       !confirm(
-        `Confirmer le verrouillage d'urgence de la zone ? Toutes les portes seront verrouillées.`,
+        t('doors.emergency.confirmLockdown'),
       )
     )
       return;
     try {
       await lockdownZone(emergencyZoneId);
-      toast("Verrouillage d'urgence activé", "success");
+      toast(t('doors.emergency.lockdownActivated'), "success");
       setShowEmergencyModal(false);
     } catch (e: any) {
       toast(e.message, "error");
@@ -329,13 +331,13 @@ export default function PortesPage() {
     if (!emergencyZoneId) return;
     if (
       !confirm(
-        `Confirmer le déverrouillage d'urgence de la zone ? Toutes les portes seront déverrouillées.`,
+        t('doors.emergency.confirmUnlock'),
       )
     )
       return;
     try {
       await emergencyUnlockZone(emergencyZoneId);
-      toast("Déverrouillage d'urgence activé", "success");
+      toast(t('doors.emergency.unlockActivated'), "success");
       setShowEmergencyModal(false);
     } catch (e: any) {
       toast(e.message, "error");
@@ -346,7 +348,7 @@ export default function PortesPage() {
     if (!emergencyZoneId) return;
     try {
       await clearEmergencyOverride(emergencyZoneId);
-      toast("Mode normal rétabli", "success");
+      toast(t('doors.normalModeRestored'), "success");
       setShowEmergencyModal(false);
     } catch (e: any) {
       toast(e.message, "error");
@@ -367,7 +369,7 @@ export default function PortesPage() {
       await updateDoorAlertConfig(configDoorId, {
         heldOpenThresholdMs: heldOpenThreshold * 1000,
       });
-      toast("Configuration d'alerte mise à jour", "success");
+      toast(t('doors.alertConfigUpdated'), "success");
       setShowAlertConfigModal(false);
     } catch (e: any) {
       toast(e.message, "error");
@@ -383,7 +385,7 @@ export default function PortesPage() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-destructive/10">
             <AlertTriangle className="h-6 w-6 text-destructive" />
           </div>
-          <p className="text-lg font-medium">Erreur de chargement</p>
+          <p className="text-lg font-medium">{t('common.errorLoading')}</p>
           <p className="mt-1 text-sm text-muted-foreground">{error}</p>
           <Button
             variant="outline"
@@ -393,9 +395,9 @@ export default function PortesPage() {
               setLoading(true);
               loadDoors();
             }}
-          >
-            Réessayer
-          </Button>
+            >
+              {t('common.retry')}
+            </Button>
         </div>
       </div>
     );
@@ -406,13 +408,13 @@ export default function PortesPage() {
       <div className="flex items-center justify-between">
         <div>
           <PageHeader
-            title="Surveillance des portes"
-            description="État en temps réel de toutes les portes du site"
+            title={t('doors.title')}
+            description={t('doors.description')}
           />
           {!socketConnected && !loading && (
             <div className="mt-2 flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-1.5 text-sm text-destructive">
               <WifiOff className="h-4 w-4" />
-              Connexion perdue — reconnexion en cours...
+              {t('doors.connectionLost')}
             </div>
           )}
         </div>
@@ -420,7 +422,7 @@ export default function PortesPage() {
           {socketConnected && (
             <div className="flex items-center gap-1.5 text-xs text-success">
               <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
-              Direct
+              {t('doors.live')}
             </div>
           )}
           {canEmergency && (
@@ -434,7 +436,7 @@ export default function PortesPage() {
               }}
             >
               <ShieldBan className="h-4 w-4" />
-              Actions d&apos;urgence
+              {t('doors.emergencyActions')}
             </Button>
           )}
         </div>
@@ -449,7 +451,7 @@ export default function PortesPage() {
             value={selectedZone}
             onChange={(e) => setSelectedZone(e.target.value)}
           >
-            <option value="">Toutes les zones</option>
+            <option value="">{t('doors.filters.allZones')}</option>
             {zones.map((z) => (
               <option key={z.id} value={z.id}>
                 {z.name}
@@ -461,13 +463,13 @@ export default function PortesPage() {
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             className="w-full rounded-md border border-input bg-background pl-8 pr-3 py-2 text-sm"
-            placeholder="Rechercher une porte..."
+            placeholder={t('doors.filters.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
         <div className="ml-auto text-sm text-muted-foreground">
-          {filteredDoors.length} / {doors.length} portes
+          {filteredDoors.length} / {doors.length} {t('doors.title').toLowerCase()}
         </div>
       </div>
 
@@ -495,8 +497,8 @@ export default function PortesPage() {
             <DoorClosed className="h-12 w-12 text-muted-foreground/20 mb-3" />
             <p className="text-sm text-muted-foreground">
               {doors.length === 0
-                ? "Aucune porte configurée"
-                : "Aucune porte ne correspond à votre recherche"}
+                ? t('doors.noDoors')
+                : t('doors.noSearchResults')}
             </p>
           </CardContent>
         </Card>
@@ -524,11 +526,11 @@ export default function PortesPage() {
           <div className="w-full max-w-md rounded-xl border border-border bg-background p-6 shadow-xl">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <ShieldBan className="h-5 w-5 text-destructive" />
-              Actions d&apos;urgence
+              {t('doors.emergencyActions')}
             </h3>
             <div className="mb-4">
               <label className="block text-sm text-muted-foreground mb-1">
-                Zone concernée
+                {t('doors.affectedZone')}
               </label>
               <select
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
@@ -549,7 +551,7 @@ export default function PortesPage() {
                 onClick={handleLockdown}
               >
                 <ShieldCheckIcon className="h-4 w-4" />
-                Verrouillage d&apos;urgence
+                {t('doors.emergency.lockdown')}
               </Button>
               <Button
                 variant="outline"
@@ -557,7 +559,7 @@ export default function PortesPage() {
                 onClick={handleEmergencyUnlock}
               >
                 <Unlock className="h-4 w-4" />
-                Déverrouillage d&apos;urgence
+                {t('doors.emergency.unlock')}
               </Button>
               <Button
                 variant="outline"
@@ -565,7 +567,7 @@ export default function PortesPage() {
                 onClick={handleClearEmergency}
               >
                 <ShieldCheck className="h-4 w-4" />
-                Rétablir le mode normal
+                {t('doors.emergency.clear')}
               </Button>
             </div>
             <div className="mt-4 pt-4 border-t">
@@ -574,7 +576,7 @@ export default function PortesPage() {
                 className="w-full"
                 onClick={() => setShowEmergencyModal(false)}
               >
-                Annuler
+                {t('common.cancel')}
               </Button>
             </div>
           </div>
@@ -585,13 +587,13 @@ export default function PortesPage() {
       {showAlertConfigModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-md rounded-xl border border-border bg-background p-6 shadow-xl">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Settings2 className="h-5 w-5" />
-              Configuration d&apos;alerte
-            </h3>
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Settings2 className="h-5 w-5" />
+                {t('doors.alertConfig.title')}
+              </h3>
             <div className="mb-4">
               <label className="block text-sm text-muted-foreground mb-2">
-                Seuil porte ouverte (secondes) — de 30 à 300
+                {t('doors.alertConfig.heldOpenThreshold')} — de 30 à 300
               </label>
               <input
                 type="number"
@@ -613,14 +615,14 @@ export default function PortesPage() {
             </div>
             <div className="flex gap-2">
               <Button className="flex-1" onClick={handleSaveAlertConfig}>
-                Enregistrer
+                {t('common.save')}
               </Button>
               <Button
                 variant="outline"
                 className="flex-1"
                 onClick={() => setShowAlertConfigModal(false)}
               >
-                Annuler
+                {t('common.cancel')}
               </Button>
             </div>
           </div>

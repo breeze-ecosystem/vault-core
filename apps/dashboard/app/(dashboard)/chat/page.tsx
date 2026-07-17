@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/lib/i18n/context';
 
 const STORAGE_KEY = 'oversight-chat-messages';
 
@@ -17,6 +18,7 @@ const WELCOME_MESSAGE = {
 };
 
 export default function ChatPage() {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<
     Array<{
       id: string;
@@ -127,7 +129,7 @@ export default function ChatPage() {
 
       setMessages((prev) => [...prev, aiMessage]);
     } catch {
-      setError('Erreur inattendue');
+      setError(t('chat.unexpectedError'));
       setMessages((prev) => prev.slice(0, -1));
     } finally {
       setLoading(false);
@@ -148,12 +150,12 @@ export default function ChatPage() {
       <div className="flex items-center justify-center h-full">
         <Card className="w-full max-w-md">
           <CardHeader className="pb-2">
-            <CardTitle>Erreur</CardTitle>
+            <CardTitle>{t('common.error')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p>{error}</p>
             <Button onClick={() => setError(null)} variant="outline" className="mt-4">
-              Fermer
+              {t('common.close')}
             </Button>
           </CardContent>
         </Card>

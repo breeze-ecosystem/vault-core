@@ -222,7 +222,7 @@ export default function PatternsPage() {
               className="gap-1.5"
             >
               <RefreshCw className="h-3.5 w-3.5" />
-              Réessayer
+              {t('common.retry')}
             </Button>
           </div>
         </div>
@@ -239,7 +239,7 @@ export default function PatternsPage() {
           <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
             <Repeat className="h-12 w-12 text-muted-foreground opacity-40" />
             <p className="text-sm text-muted-foreground max-w-md">
-              Aucun motif récurrent détecté. Le système analyse vos événements
+              {t('patterns.noPatterns')}. Le système analyse vos événements
               en continu. Les motifs apparaîtront ici dès qu&apos;ils seront
               identifiés.
             </p>
@@ -283,7 +283,7 @@ export default function PatternsPage() {
               onClick={loadPatterns}
               className="underline hover:no-underline"
             >
-              Réessayer.
+              {t('common.retryDot')}
             </button>
           </div>
         )}

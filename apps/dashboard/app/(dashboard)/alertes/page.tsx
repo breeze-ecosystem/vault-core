@@ -11,6 +11,7 @@ import { fetchAlerts, acknowledgeAlert, resolveAlert, markAlertFalsePositive, de
 import { toast } from "@/components/ui/toast";
 import { Bell, BellOff, AlertTriangle } from "lucide-react";
 import { getAccessToken } from "@/lib/auth-client";
+import { useTranslation } from "@/lib/i18n/context";
 import { io, Socket } from "socket.io-client";
 
 const severityLabels: Record<string, string> = {
@@ -30,6 +31,7 @@ const severityPills = [
 ];
 
 export default function AlertesPage() {
+  const { t } = useTranslation();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +52,7 @@ export default function AlertesPage() {
       const res = await fetchAlerts(filters);
       setAlerts(res.data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur de chargement");
+      setError(e instanceof Error ? e.message : t('common.errorLoading'));
     } finally {
       setLoading(false);
     }
@@ -99,8 +101,8 @@ export default function AlertesPage() {
       else if (action === "resolve") await resolveAlert(id);
       else await markAlertFalsePositive(id);
       toast(
-        action === "ack" ? "Alerte prise en compte" :
-        action === "resolve" ? "Alerte résolue" : "Marquée comme faux positif",
+        action === "ack" ? t('alerts.acknowledged') :
+        action === "resolve" ? t('alerts.resolved') : t('alerts.falsePositive'),
         "success"
       );
       setAlerts((prev) => prev.filter((a) => a.id !== id));
@@ -110,10 +112,10 @@ export default function AlertesPage() {
   }, []);
 
   const handleDelete = useCallback(async (id: string) => {
-    if (!window.confirm("Supprimer cette alerte définitivement ?")) return;
+    if (!window.confirm(t('alerts.confirmDelete'))) return;
     try {
       await deleteAlert(id);
-      toast("Alerte supprimée", "success");
+      toast(t('alerts.deleted'), "success");
       setAlerts((prev) => prev.filter((a) => a.id !== id));
     } catch (e: any) {
       toast(e.message, "error");
@@ -124,7 +126,7 @@ export default function AlertesPage() {
     setBulkProcessing(true);
     try {
       await Promise.all(Array.from(selectedAlerts).map((id) => acknowledgeAlert(id)));
-      toast(`${selectedAlerts.size} alerte(s) prise(s) en compte`, "success");
+      toast(t('alerts.bulkAcknowledged').replace('{count}', String(selectedAlerts.size)), "success");
       setAlerts((prev) => prev.filter((a) => !selectedAlerts.has(a.id)));
       setSelectedAlerts(new Set());
     } catch (e: any) {
@@ -138,7 +140,7 @@ export default function AlertesPage() {
     setBulkProcessing(true);
     try {
       await Promise.all(Array.from(selectedAlerts).map((id) => resolveAlert(id)));
-      toast(`${selectedAlerts.size} alerte(s) résolue(s)`, "success");
+      toast(t('alerts.bulkResolved').replace('{count}', String(selectedAlerts.size)), "success");
       setAlerts((prev) => prev.filter((a) => !selectedAlerts.has(a.id)));
       setSelectedAlerts(new Set());
     } catch (e: any) {
@@ -169,10 +171,10 @@ export default function AlertesPage() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-destructive/10">
             <AlertTriangle className="h-6 w-6 text-destructive" />
           </div>
-          <p className="text-lg font-medium">Erreur de chargement</p>
+          <p className="text-lg font-medium">{t('common.errorLoading')}</p>
           <p className="mt-1 text-sm text-muted-foreground">{error}</p>
           <Button variant="outline" className="mt-4" onClick={loadAlerts}>
-            Réessayer
+            {t('common.retry')}
           </Button>
         </div>
       </div>
@@ -182,8 +184,8 @@ export default function AlertesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Alertes"
-        description={`${alerts.length} alerte${alerts.length > 1 ? "s" : ""} active${alerts.length > 1 ? "s" : ""}`}
+        title={t('alerts.title')}
+        description={`${alerts.length} ${t('alerts.title').toLowerCase()}`}
       />
 
       <div className="flex items-center justify-between">
@@ -202,16 +204,16 @@ export default function AlertesPage() {
         </div>
         <Badge variant={wsConnected ? "success" : "destructive"} className="text-xs gap-1">
           {wsConnected ? (
-            <><Bell className="h-3 w-3" /> Connecté</>
+            <><Bell className="h-3 w-3" /> {t('alerts.connected')}</>
           ) : (
-            <><BellOff className="h-3 w-3" /> Déconnecté</>
+            <><BellOff className="h-3 w-3" /> {t('alerts.disconnected')}</>
           )}
         </Badge>
       </div>
 
       {!wsConnected && (
         <div className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-2 text-sm text-warning">
-          Connexion perdue — reconnexion...
+          {t('alerts.connectionLost')}
         </div>
       )}
 

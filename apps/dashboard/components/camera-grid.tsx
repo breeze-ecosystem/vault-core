@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { Video, VideoOff } from "lucide-react";
 import { GlassCard } from "@/components/glass-card";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n/context";
 
 interface CameraThumbnail {
   id: string;
@@ -30,15 +31,16 @@ export function CameraGrid({
   onCameraClick,
   className,
 }: CameraGridProps) {
+  const { t } = useTranslation();
   return (
     <GlassCard variant="default" className={cn("p-4", className)}>
-      <h3 className="text-sm font-semibold mb-3">Caméras</h3>
+      <h3 className="text-sm font-semibold mb-3">{t('cameras.title')}</h3>
       <div className="grid grid-cols-2 gap-2">
         {cameras.length === 0 && (
           <div className="col-span-2 flex flex-col items-center justify-center gap-2 py-8 text-center">
             <VideoOff className="h-8 w-8 text-muted-foreground opacity-40" />
             <p className="text-xs text-muted-foreground">
-              Aucune caméra disponible
+              {t('cameras.noCameras')}
             </p>
           </div>
         )}

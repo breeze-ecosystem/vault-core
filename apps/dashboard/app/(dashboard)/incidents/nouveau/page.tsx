@@ -75,7 +75,7 @@ export default function NewIncidentPage() {
       <div className="flex items-center gap-4">
         <Button variant="ghost" onClick={() => router.push("/incidents")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Retour
+          {t('common.back')}
         </Button>
         <PageHeader
           title={t("incidents.create")}
@@ -170,7 +170,7 @@ export default function NewIncidentPage() {
 
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="outline" onClick={() => router.push("/incidents")}>
-              Annuler
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleSubmit} disabled={submitting}>
               {submitting ? (

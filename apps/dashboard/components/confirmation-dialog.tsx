@@ -2,6 +2,7 @@
 
 import { AlertTriangle, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n/context";
 import {
   Dialog,
   DialogContent,
@@ -42,13 +43,15 @@ export function ConfirmationDialog({
   isOpen,
   title,
   description,
-  confirmLabel = "Confirmer",
+  confirmLabel,
   onConfirm,
   onCancel,
   requiredRole,
   userRole,
   isLoading = false,
 }: ConfirmationDialogProps) {
+  const { t } = useTranslation();
+  const defaultConfirm = confirmLabel ?? t('common.confirm');
   const isAuthorized =
     !requiredRole || !userRole || hasMinRole(userRole, requiredRole);
 
@@ -73,7 +76,7 @@ export function ConfirmationDialog({
             onClick={onCancel}
             disabled={isLoading}
           >
-            Annuler
+            {t('common.cancel')}
           </Button>
           {isAuthorized ? (
             <Button
@@ -81,7 +84,7 @@ export function ConfirmationDialog({
               onClick={onConfirm}
               disabled={isLoading}
             >
-              {isLoading ? "En cours..." : confirmLabel}
+              {isLoading ? t('common.saving') : defaultConfirm}
             </Button>
           ) : (
             <div className="flex items-center gap-2 text-xs text-muted-foreground px-4 py-2 rounded-lg bg-secondary/50">

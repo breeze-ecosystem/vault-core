@@ -72,7 +72,7 @@ export default function PreRegistrationPage() {
     setError("");
 
     if (!firstName || !lastName || !hostUserId || !validFrom || !validUntil) {
-      setError("Veuillez remplir tous les champs obligatoires");
+      setError(t('visitors.requiredFields'));
       return;
     }
 

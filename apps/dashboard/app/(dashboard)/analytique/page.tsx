@@ -147,7 +147,7 @@ export default function AnalyticsPage() {
       const combined = [...deniedTrends, ...anomalyTrends];
       setTrendsData(combined);
     } catch (err: any) {
-      setError(err.message || "Erreur de chargement");
+      setError(err.message || t('common.errorLoading'));
     } finally {
       setIsLoading(false);
     }

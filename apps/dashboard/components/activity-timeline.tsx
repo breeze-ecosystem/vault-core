@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/glass-card";
+import { useTranslation } from "@/lib/i18n/context";
 
 type ActivityAlert = {
   id: string;
@@ -45,6 +46,7 @@ export function ActivityTimeline({
   className,
   maxItems = 10,
 }: ActivityTimelineProps) {
+  const { t } = useTranslation();
   const displayed = alerts.slice(0, maxItems);
 
   if (displayed.length === 0) {
@@ -52,7 +54,7 @@ export function ActivityTimeline({
       <GlassCard variant="default" className={cn("p-8", className)}>
         <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
           <AlertTriangle className="h-8 w-8 opacity-40" />
-          <p className="text-sm">Aucune activité récente</p>
+          <p className="text-sm">{t('common.noData')}</p>
         </div>
       </GlassCard>
     );

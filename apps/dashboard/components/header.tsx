@@ -15,9 +15,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "./language-switcher";
 import { Bell, LogOut, Settings, User, Building2, Loader2 } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/context";
 import { useRouter } from "next/navigation";
 
 export function Header() {
+  const { t } = useTranslation();
   const { user, organization, organizations, switchOrganization, logout } = useAuth();
   const [switchingOrgId, setSwitchingOrgId] = useState<string | null>(null);
   const router = useRouter();
@@ -38,7 +40,7 @@ export function Header() {
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-success status-pulse" />
-          <span className="text-xs text-muted-foreground">Système opérationnel</span>
+          <span className="text-xs text-muted-foreground">{t('common.appName')} Operational</span>
         </div>
       </div>
 
@@ -61,7 +63,7 @@ export function Header() {
               <div className="hidden text-left md:block">
                 <p className="text-xs font-medium leading-none">{user?.firstName} {user?.lastName}</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">
-                  {organization?.name ?? (user ? "Chargement..." : "")}
+                  {organization?.name ?? (user ? t('common.loading') : "")}
                 </p>
               </div>
             </Button>
@@ -76,17 +78,17 @@ export function Header() {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => router.push("/parametres")}>
               <User className="mr-2 h-4 w-4" />
-              Profil
+              {t('common.profile')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => router.push("/parametres")}>
               <Settings className="mr-2 h-4 w-4" />
-              Paramètres
+              {t('nav.settings')}
             </DropdownMenuItem>
 
             {organizations.length > 1 && (
               <>
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel>Organisations</DropdownMenuLabel>
+                <DropdownMenuLabel>{t('common.organizations')}</DropdownMenuLabel>
                 {organizations.map((org) => (
                   <DropdownMenuItem
                     key={org.id}
@@ -103,7 +105,7 @@ export function Header() {
                       <span className={org.id === organization?.id ? "font-semibold" : ""}>
                         {org.name}
                         {org.id === organization?.id && (
-                          <span className="text-muted-foreground font-normal ml-1">(actuelle)</span>
+                          <span className="text-muted-foreground font-normal ml-1">{t('common.current')}</span>
                         )}
                       </span>
                     </div>
@@ -118,7 +120,7 @@ export function Header() {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive">
               <LogOut className="mr-2 h-4 w-4" />
-              Déconnexion
+              {t('common.logout')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

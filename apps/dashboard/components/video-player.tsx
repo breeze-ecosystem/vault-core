@@ -22,6 +22,7 @@ export default function VideoPlayer({
   cameraName,
   streamUrl,
 }: VideoPlayerProps) {
+  const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -202,7 +203,7 @@ export default function VideoPlayer({
       {connectionState === 'offline' && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gray-900/90">
           <VideoOff className="h-12 w-12 text-red-400" />
-          <span className="text-sm text-gray-400">Caméra hors ligne</span>
+          <span className="text-sm text-gray-400">{t('cameras.offline')}</span>
           <button
             onClick={() => {
               attemptRef.current = 0;
@@ -210,7 +211,7 @@ export default function VideoPlayer({
             }}
             className="mt-2 rounded bg-blue-600 px-3 py-1 text-xs font-medium transition-colors hover:bg-blue-500"
           >
-            Réessayer
+            {t('common.retry')}
           </button>
         </div>
       )}

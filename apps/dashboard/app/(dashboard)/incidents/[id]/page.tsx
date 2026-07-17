@@ -276,10 +276,10 @@ export default function IncidentDetailPage() {
       <div className="space-y-6">
         <Button variant="ghost" onClick={() => router.push("/incidents")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Retour
+          {t('common.back')}
         </Button>
         <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
-          {error || "Incident non trouvé"}
+          {error || t('incidents.notFound')}
         </div>
       </div>
     );
@@ -295,7 +295,7 @@ export default function IncidentDetailPage() {
         <div className="flex items-center gap-4">
           <Button variant="ghost" onClick={() => router.push("/incidents")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Retour
+            {t('common.back')}
           </Button>
           <div>
             <div className="flex items-center gap-2">
@@ -360,7 +360,7 @@ export default function IncidentDetailPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                {incident.description || "Aucune description"}
+                {incident.description || t('incidents.noDescription')}
               </p>
               <Separator className="my-4" />
               <div className="grid grid-cols-2 gap-4 text-sm">
@@ -669,7 +669,7 @@ export default function IncidentDetailPage() {
             </select>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowAssignModal(false)}>
-                Annuler
+                {t('common.cancel')}
               </Button>
               <Button onClick={handleAssign} disabled={!assignUserId}>
                 {t("incidents.assign")}
@@ -756,7 +756,7 @@ export default function IncidentDetailPage() {
             <h3 className="text-lg font-semibold mb-2">{t("incidents.evidence.deleteConfirm")}</h3>
             <div className="flex justify-end gap-2 mt-4">
               <Button variant="outline" onClick={() => setShowDeleteConfirm(null)}>
-                Annuler
+                {t('common.cancel')}
               </Button>
               <Button
                 variant="destructive"

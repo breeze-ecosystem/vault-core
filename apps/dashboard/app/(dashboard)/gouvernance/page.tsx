@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/toast";
+import { useTranslation } from "@/lib/i18n/context";
 import {
   fetchRetentionPolicies,
   createRetentionPolicy,
@@ -59,6 +60,7 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
 };
 
 export default function GovernancePage() {
+  const { t } = useTranslation();
   const [policies, setPolicies] = useState<RetentionPolicyDto[]>([]);
   const [governanceStatus, setGovernanceStatus] = useState<GovernanceStatusDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -105,33 +107,33 @@ export default function GovernancePage() {
   async function handleCreate() {
     try {
       await createRetentionPolicy(form);
-      toast("Politique créée", "success");
+      toast(t('governance.policyCreated'), "success");
       resetForm();
       loadPolicies();
     } catch (err: any) {
-      toast("Erreur : " + (err.message ?? String(err)), "error");
+      toast(t('common.error') + " : " + (err.message ?? String(err)), "error");
     }
   }
 
   async function handleUpdate(id: string) {
     try {
       await updateRetentionPolicy(id, { retentionDays: form.retentionDays, enabled: form.enabled });
-      toast("Politique mise à jour", "success");
+      toast(t('governance.policyUpdated'), "success");
       resetForm();
       loadPolicies();
     } catch (err: any) {
-      toast("Erreur : " + (err.message ?? String(err)), "error");
+      toast(t('common.error') + " : " + (err.message ?? String(err)), "error");
     }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Supprimer cette politique de rétention ?")) return;
+    if (!confirm(t('governance.retention.deleteConfirm'))) return;
     try {
       await deleteRetentionPolicy(id);
-      toast("Politique supprimée", "success");
+      toast(t('governance.policyDeleted'), "success");
       loadPolicies();
     } catch (err: any) {
-      toast("Erreur : " + (err.message ?? String(err)), "error");
+      toast(t('common.error') + " : " + (err.message ?? String(err)), "error");
     }
   }
 
@@ -140,7 +142,7 @@ export default function GovernancePage() {
       await updateRetentionPolicy(id, { enabled: !currentEnabled });
       loadPolicies();
     } catch (err: any) {
-      toast("Erreur : " + (err.message ?? String(err)), "error");
+      toast(t('common.error') + " : " + (err.message ?? String(err)), "error");
     }
   }
 
@@ -149,7 +151,7 @@ export default function GovernancePage() {
       const result = await testEncrypt(encryptValue);
       setEncryptResult(result.encrypted);
     } catch (err: any) {
-      toast("Erreur : " + (err.message ?? String(err)), "error");
+      toast(t('common.error') + " : " + (err.message ?? String(err)), "error");
     }
   }
 
@@ -158,7 +160,7 @@ export default function GovernancePage() {
       const result = await testDecrypt(decryptValue);
       setDecryptResult(result.decrypted);
     } catch (err: any) {
-      toast("Erreur : " + (err.message ?? String(err)), "error");
+      toast(t('common.error') + " : " + (err.message ?? String(err)), "error");
     }
   }
 
@@ -175,8 +177,8 @@ export default function GovernancePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Gouvernance des données"
-        description="Chiffrement au repos et politiques de rétention des données"
+        title={t('governance.title')}
+        description={t('governance.description')}
       />
 
       {/* Section 1: Encryption */}
@@ -185,22 +187,22 @@ export default function GovernancePage() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5 text-primary" />
-              Chiffrement
+              {t('governance.encryption.title')}
             </CardTitle>
             {governanceStatus ? (
               governanceStatus.encryptionConfigured ? (
                 <Badge variant="success" className="flex items-center gap-1">
                   <ShieldCheck className="h-3 w-3" />
-                  Chiffrement actif
+                  {t('governance.encryption.active')}
                 </Badge>
               ) : (
                 <Badge variant="destructive" className="flex items-center gap-1">
                   <ShieldOff className="h-3 w-3" />
-                  Non configuré
+                  {t('governance.encryption.inactive')}
                 </Badge>
               )
             ) : (
-              <Badge variant="outline">Vérification...</Badge>
+              <Badge variant="outline">{t('governance.encryption.checking')}</Badge>
             )}
           </div>
         </CardHeader>
@@ -270,11 +272,11 @@ export default function GovernancePage() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Database className="h-5 w-5 text-primary" />
-              Politiques de rétention
+              {t('governance.retention.title')}
             </CardTitle>
             <Button onClick={() => { resetForm(); setShowCreateForm(true); }} size="sm">
               <Plus className="mr-1 h-4 w-4" />
-              Ajouter une politique
+              {t('governance.retention.add')}
             </Button>
           </div>
         </CardHeader>
@@ -287,9 +289,9 @@ export default function GovernancePage() {
             </div>
           ) : policies.length === 0 ? (
             <div className="rounded-lg border border-dashed p-6 text-center">
-              <p className="text-sm text-muted-foreground">Aucune politique de rétention configurée</p>
+              <p className="text-sm text-muted-foreground">{t('governance.retention.noPolicies')}</p>
               <p className="mt-2 text-xs text-muted-foreground">
-                Politiques par défaut suggérées :
+                {t('governance.retention.defaultPolicies')}
               </p>
               <div className="mt-3 flex flex-wrap justify-center gap-2">
                 {DEFAULT_POLICIES.map((p) => (
@@ -304,11 +306,11 @@ export default function GovernancePage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Type d'événement</th>
-                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Type de table</th>
-                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Jours de rétention</th>
-                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Statut</th>
-                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Actions</th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">{t('governance.retention.eventType')}</th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">{t('governance.retention.tableType')}</th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">{t('governance.retention.retentionDays')}</th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">{t('common.status')}</th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -336,12 +338,12 @@ export default function GovernancePage() {
                           {policy.enabled ? (
                             <>
                               <ToggleRight className="h-4 w-4 text-success" />
-                              <span className="text-success">Activé</span>
+                              <span className="text-success">{t('governance.retention.enabled')}</span>
                             </>
                           ) : (
                             <>
                               <ToggleLeft className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-muted-foreground">Désactivé</span>
+                              <span className="text-muted-foreground">{t('governance.retention.disabled')}</span>
                             </>
                           )}
                         </button>
@@ -352,14 +354,14 @@ export default function GovernancePage() {
                             onClick={() => startEdit(policy)}
                             className="text-xs text-primary hover:underline"
                           >
-                            Modifier
+                            {t('common.edit')}
                           </button>
                           <button
                             onClick={() => handleDelete(policy.id)}
                             className="flex items-center gap-1 text-xs text-destructive hover:underline"
                           >
                             <Trash2 className="h-3 w-3" />
-                            Supprimer
+                            {t('common.delete')}
                           </button>
                         </div>
                       </td>
@@ -374,11 +376,11 @@ export default function GovernancePage() {
           {(showCreateForm || showEditForm) && (
             <div className="mt-4 rounded-lg border border-border bg-muted/30 p-4">
               <h3 className="mb-3 text-sm font-semibold">
-                {showCreateForm ? "Ajouter une politique" : "Modifier la politique"}
+                {showCreateForm ? t('governance.retention.createPolicy') : t('governance.retention.updatePolicy')}
               </h3>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
                 <div className="space-y-1">
-                  <Label className="text-xs">Type d'événement</Label>
+                  <Label className="text-xs">{t('governance.retention.eventType')}</Label>
                   <select
                     value={form.eventType}
                     onChange={(e) => setForm({ ...form, eventType: e.target.value })}
@@ -391,7 +393,7 @@ export default function GovernancePage() {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs">Type de table</Label>
+                  <Label className="text-xs">{t('governance.retention.tableType')}</Label>
                   <select
                     value={form.tableType}
                     onChange={(e) => setForm({ ...form, tableType: e.target.value as "timescaledb" | "prisma" })}
@@ -403,7 +405,7 @@ export default function GovernancePage() {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs">Jours de rétention</Label>
+                  <Label className="text-xs">{t('governance.retention.retentionDays')}</Label>
                   <Input
                     type="number"
                     min={1}
@@ -416,19 +418,19 @@ export default function GovernancePage() {
                   {showEditForm ? (
                     <>
                       <Button size="sm" onClick={() => handleUpdate(showEditForm)}>
-                        Mettre à jour
+                        {t('common.save')}
                       </Button>
                       <Button size="sm" variant="outline" onClick={resetForm}>
-                        Annuler
+                        {t('common.cancel')}
                       </Button>
                     </>
                   ) : (
                     <>
                       <Button size="sm" onClick={handleCreate}>
-                        Créer
+                        {t('common.create')}
                       </Button>
                       <Button size="sm" variant="outline" onClick={resetForm}>
-                        Annuler
+                        {t('common.cancel')}
                       </Button>
                     </>
                   )}

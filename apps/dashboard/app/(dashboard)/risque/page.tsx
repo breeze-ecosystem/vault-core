@@ -154,7 +154,7 @@ export default function RiskDashboardPage() {
       setScores(scoresResult);
       setSummaries(summariesResult);
     } catch (err: any) {
-      setError(err.message || "Erreur de chargement");
+      setError(err.message || t('common.errorLoading'));
     } finally {
       setIsLoading(false);
     }

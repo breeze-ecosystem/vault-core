@@ -13,6 +13,7 @@ import {
   type Camera,
 } from "@/lib/api";
 import { toast } from "@/components/ui/toast";
+import { useTranslation } from "@/lib/i18n/context";
 import {
   Video,
   AlertTriangle,
@@ -48,6 +49,7 @@ function getStatusConfig(status: string) {
 }
 
 export default function OverviewPage() {
+  const { t } = useTranslation();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [cameras, setCameras] = useState<Camera[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,10 +75,10 @@ export default function OverviewPage() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-destructive/10">
             <AlertTriangle className="h-6 w-6 text-destructive" />
           </div>
-          <p className="text-lg font-medium">Erreur de chargement</p>
+          <p className="text-lg font-medium">{t('common.errorLoading')}</p>
           <p className="mt-1 text-sm text-muted-foreground">{error}</p>
           <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-            Réessayer
+            {t('common.retry')}
           </Button>
         </div>
       </div>
@@ -107,14 +109,14 @@ export default function OverviewPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Vue d&apos;ensemble</h1>
+          <h1 className="text-xl font-semibold tracking-tight">{t('nav.dashboard')}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Résumé de l&apos;activité du système de surveillance
+            {t('dashboard.recentActivity')}
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Activity className="h-3.5 w-3.5" />
-          <span>Mis à jour en temps réel</span>
+          <span>{t('dashboard.realtimeUpdate')}</span>
         </div>
       </div>
 
@@ -143,31 +145,31 @@ export default function OverviewPage() {
         ) : (
           <>
             <MetricHero
-              title="Caméras en ligne"
+              title={t('dashboard.camerasOnline')}
               value={`${stats?.cameras.online ?? 0} / ${stats?.cameras.total ?? 0}`}
               icon={Video}
               trend={{ value: 12, positive: true }}
-              description={`${stats?.cameras.offline ?? 0} hors ligne`}
+              description={`${stats?.cameras.offline ?? 0} ${t('dashboard.offline')}`}
               sparklineData={[4, 6, 5, 8, 7, 9, 8, 10]}
             />
             <MetricHero
-              title="Alertes actives"
+              title={t('dashboard.alertsActive')}
               value={stats?.alerts.open ?? 0}
               icon={AlertTriangle}
-              description={`${stats?.alerts.critical ?? 0} critiques`}
+              description={`${stats?.alerts.critical ?? 0} ${t('alerts.critical').toLowerCase()}`}
               sparklineData={[3, 5, 4, 6, 7, 5, 4, 3]}
             />
             <MetricHero
-              title="Sites actifs"
+              title={t('dashboard.sitesActive')}
               value={stats?.organizations.active ?? 0}
               icon={MapPin}
-              description={`${stats?.organizations.total ?? 0} total`}
+              description={`${stats?.organizations.total ?? 0} ${t('common.all')}`}
             />
             <MetricHero
-              title="Utilisateurs"
+              title={t('dashboard.users')}
               value={stats?.users.total ?? 0}
               icon={Users}
-              description="Comptes enregistrés"
+              description={t('dashboard.registeredAccounts')}
             />
           </>
         )}
@@ -176,10 +178,10 @@ export default function OverviewPage() {
       {!loading && (
         <QuickActionBar
           actions={[
-            { id: "add-camera", label: "Ajouter une caméra", icon: Plus, onClick: () => window.location.href = "/cameras" },
-            { id: "view-alerts", label: "Voir les alertes", icon: AlertTriangle, onClick: () => window.location.href = "/alertes" },
-            { id: "report", label: "Générer un rapport", icon: FileText, onClick: () => toast("Fonctionnalité à venir") },
-            { id: "view-feed", label: "Voir le flux", icon: Video, onClick: () => window.location.href = "/cameras" },
+            { id: "add-camera", label: t('dashboard.addCamera'), icon: Plus, onClick: () => window.location.href = "/cameras" },
+            { id: "view-alerts", label: t('nav.alerts'), icon: AlertTriangle, onClick: () => window.location.href = "/alertes" },
+            { id: "report", label: t('dashboard.generateReport'), icon: FileText, onClick: () => toast(t('dashboard.comingSoon')) },
+            { id: "view-feed", label: t('dashboard.viewFeed'), icon: Video, onClick: () => window.location.href = "/cameras" },
           ]}
         />
       )}
@@ -207,20 +209,20 @@ export default function OverviewPage() {
         <div className="flex flex-row items-center justify-between p-4 pb-3 border-b">
           <div className="flex items-center gap-2 text-sm font-semibold">
             <Video className="h-4 w-4 text-primary" />
-            Aperçu des caméras
+            {t('cameras.title')}
           </div>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5">
               <Wifi className="h-3.5 w-3.5 text-success" />
-              {onlineCount} en ligne
+              {onlineCount} {t('dashboard.online')}
             </span>
             <span className="flex items-center gap-1.5">
               <WifiOff className="h-3.5 w-3.5 text-destructive" />
-              {offlineCount} hors ligne
+              {offlineCount} {t('dashboard.offline')}
             </span>
             <Link href="/cameras">
               <Button variant="ghost" size="sm" className="text-xs h-7 px-2">
-                Voir tout →
+                {t('dashboard.seeAll')} →
               </Button>
             </Link>
           </div>
@@ -241,9 +243,9 @@ export default function OverviewPage() {
           ) : cameras.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Video className="h-12 w-12 text-muted-foreground/20 mb-3" />
-              <p className="text-sm text-muted-foreground">Aucune caméra enregistrée</p>
+              <p className="text-sm text-muted-foreground">{t('dashboard.noCameras')}</p>
               <Link href="/cameras">
-                <Button variant="outline" size="sm" className="mt-3">Ajouter une caméra</Button>
+                <Button variant="outline" size="sm" className="mt-3">{t('dashboard.addCamera')}</Button>
               </Link>
             </div>
           ) : (
@@ -282,7 +284,7 @@ export default function OverviewPage() {
                         <Link href={`/cameras/${camera.id}`}>
                           <Button size="sm" variant="secondary" className="gap-2 backdrop-blur-sm">
                             <Eye className="h-4 w-4" />
-                            Voir le flux
+                            {t('dashboard.viewFeed')}
                           </Button>
                         </Link>
                       </div>
@@ -290,7 +292,7 @@ export default function OverviewPage() {
                     <div className="p-3">
                       <p className="truncate text-sm font-medium">{camera.name}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {camera.organization?.name || "Aucun site"}
+                        {camera.organization?.name || t('dashboard.noSite')}
                       </p>
                     </div>
                   </motion.div>

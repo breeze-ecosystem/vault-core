@@ -112,7 +112,7 @@ export default function AccesPage() {
               router.push(`/acces/${item.id}`);
             }}
           >
-            Modifier
+            {t('common.edit')}
           </Button>
           {item.isActive && (
             <Button

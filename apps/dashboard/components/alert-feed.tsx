@@ -6,6 +6,7 @@ import { containerVariants, itemVariants } from "@/components/page-transition";
 import { AlertRow } from "@/components/alert-row";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShieldCheck } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/context";
 
 interface AlertFeedProps {
   alerts: Array<{
@@ -33,10 +34,11 @@ export function AlertFeed({
   onSelectAlert,
   onAcknowledge,
   onViewCamera,
-  emptyMessage = "Aucune alerte active",
+  emptyMessage,
   className,
 }: AlertFeedProps) {
-  if (loading) {
+  const { t } = useTranslation();
+  const defaultEmpty = emptyMessage ?? t('alerts.noAlerts');
     return (
       <div className={cn("space-y-1", className)}>
         {Array.from({ length: 5 }).map((_, i) => (
@@ -56,9 +58,9 @@ export function AlertFeed({
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <ShieldCheck className="h-12 w-12 text-muted-foreground/20 mb-3" />
-        <p className="text-base font-medium">{emptyMessage}</p>
+        <p className="text-base font-medium">{defaultEmpty}</p>
         <p className="text-sm text-muted-foreground mt-1">
-          Toutes les alertes ont été traitées
+          {t('alerts.allProcessed')}
         </p>
       </div>
     );

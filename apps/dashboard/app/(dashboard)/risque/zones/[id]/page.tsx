@@ -123,7 +123,7 @@ export default function ZoneRiskDetailPage() {
       setScore(scoreResult);
       setHistory(historyResult);
     } catch (err: any) {
-      setError(err.message || "Erreur de chargement");
+      setError(err.message || t('common.errorLoading'));
     } finally {
       setIsLoading(false);
     }

@@ -126,7 +126,7 @@ export default function AiAssistantPage() {
         {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: `Erreur: ${err.message}`,
+          content: `${t('common.error')}: ${err.message}`,
         },
       ]);
     } finally {
@@ -160,7 +160,7 @@ export default function AiAssistantPage() {
         {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: `Erreur: ${err.message}`,
+          content: `${t('common.error')}: ${err.message}`,
         },
       ]);
     } finally {
@@ -180,7 +180,7 @@ export default function AiAssistantPage() {
       setSummaryResult(result);
     } catch (err: any) {
       setSummaryResult({
-        summary: `Erreur: ${err.message}`,
+        summary: `${t('common.error')}: ${err.message}`,
         keyEvents: [],
         recommendedActions: [],
       });

@@ -105,7 +105,7 @@ export default function PatternsPage() {
       setPatterns(result.data);
       setTotal(result.total);
     } catch (err: any) {
-      setError(err.message || "Erreur de chargement");
+      setError(err.message || t('common.errorLoading'));
     } finally {
       setIsLoading(false);
     }

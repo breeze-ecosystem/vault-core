@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "@/lib/i18n/context";
 import {
   fetchCredential,
   fetchAccessLevels,
@@ -25,6 +26,7 @@ const typeLabels: Record<string, string> = {
 };
 
 export default function CredentialDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
@@ -89,7 +91,7 @@ export default function CredentialDetailPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Chargement..." description="" />
+        <PageHeader title={t('common.loading')} description="" />
         <Skeleton className="h-48 w-full" />
       </div>
     );
@@ -99,17 +101,17 @@ export default function CredentialDetailPage() {
     return (
       <div className="space-y-6">
         <PageHeader
-          title="Détail du justificatif"
+          title={t('access.detailTitle')}
           description=""
           action={{
-            label: "Retour",
+            label: t('common.back'),
             icon: ArrowLeft,
             onClick: () => router.push("/acces"),
           }}
         />
         <Card>
           <CardContent className="pt-6">
-            <p className="text-red-500">{error || "Aucune donnée"}</p>
+            <p className="text-red-500">{error || t('common.noData')}</p>
           </CardContent>
         </Card>
       </div>
@@ -126,12 +128,12 @@ export default function CredentialDetailPage() {
       <div className="flex items-center gap-2">
         <Button variant="outline" onClick={() => router.push("/acces")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Retour
+          {t('common.back')}
         </Button>
         {credential.isActive && (
           <Button variant="destructive" onClick={handleDeactivate}>
             <Trash2 className="mr-2 h-4 w-4" />
-            Désactiver
+            {t('access.deactivate')}
           </Button>
         )}
       </div>
