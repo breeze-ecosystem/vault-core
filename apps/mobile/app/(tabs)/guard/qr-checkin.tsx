@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { colors, typography, spacing } from "@/lib/theme";
+import { useTranslation } from "@/lib/i18n";
 import { QrScanner } from "@/components/qr-scanner";
 import { checkInVisitor } from "@/lib/api";
 
@@ -15,6 +16,7 @@ interface CheckInData {
 }
 
 export default function QrCheckinScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [state, setState] = useState<CheckinState>("scanning");
   const [data, setData] = useState<CheckInData | null>(null);
@@ -41,7 +43,7 @@ export default function QrCheckinScreen() {
         setState("success");
       }
     } catch (err: any) {
-      setErrorMessage(err.message || "QR code invalide");
+      setErrorMessage(err.message || t("guard.invalidQr"));
       setState("error");
     }
   }, []);
@@ -53,19 +55,19 @@ export default function QrCheckinScreen() {
           <View style={styles.successIcon}>
             <Text style={styles.checkmark}>✓</Text>
           </View>
-          <Text style={styles.successTitle}>Check-in confirmé</Text>
+          <Text style={styles.successTitle}>{t("guard.checkinConfirm")}</Text>
           {data.visitorName && (
             <Text style={styles.visitorName}>{data.visitorName}</Text>
           )}
           {data.hostName && (
-            <Text style={styles.infoText}>Hôte: {data.hostName}</Text>
+            <Text style={styles.infoText}>{t("guard.host", { name: data.hostName })}</Text>
           )}
           {data.checkInTime && (
-            <Text style={styles.infoText}>Heure: {data.checkInTime}</Text>
+            <Text style={styles.infoText}>{t("guard.time", { time: data.checkInTime })}</Text>
           )}
           {data.accessLevel && (
             <Text style={styles.infoText}>
-              Niveau d'accès: {data.accessLevel}
+              {t("guard.accessLevel", { level: data.accessLevel })}
             </Text>
           )}
         </View>
@@ -80,13 +82,13 @@ export default function QrCheckinScreen() {
           <View style={styles.warningIcon}>
             <Text style={styles.warningSymbol}>!</Text>
           </View>
-          <Text style={styles.warningTitle}>Déjà enregistré</Text>
+          <Text style={styles.warningTitle}>{t("guard.alreadyCheckedIn")}</Text>
           {data?.visitorName && (
             <Text style={styles.visitorName}>{data.visitorName}</Text>
           )}
           {data?.checkInTime && (
             <Text style={styles.infoText}>
-              Check-in précédent: {data.checkInTime}
+              {t("guard.previousCheckin", { time: data.checkInTime })}
             </Text>
           )}
         </View>
@@ -101,9 +103,9 @@ export default function QrCheckinScreen() {
           <View style={styles.errorIcon}>
             <Text style={styles.crossmark}>✕</Text>
           </View>
-          <Text style={styles.errorTitle}>Erreur</Text>
+          <Text style={styles.errorTitle}>{t("guard.error")}</Text>
           <Text style={styles.bodyText}>
-            {errorMessage || "QR code invalide."}
+            {errorMessage || t("guard.invalidQr")}
           </Text>
         </View>
       </View>

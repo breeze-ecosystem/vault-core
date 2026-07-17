@@ -5,11 +5,13 @@ import { useRouter } from "expo-router";
 import { fetchSites, type SiteItem } from "@/lib/api";
 import { siteStatusColor } from "@/lib/constants";
 import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { useTranslation } from "@/lib/i18n";
 import { MapPin, ChevronRight, Camera } from "lucide-react-native";
 
 const PAGE_SIZE = 20;
 
 export default function SitesScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [sites, setSites] = useState<SiteItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +32,7 @@ export default function SitesScreen() {
       setTotal(result.total);
       setPage(pageNum);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur de chargement");
+      setError(e instanceof Error ? e.message : t("sites.loadingError"));
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -46,7 +48,7 @@ export default function SitesScreen() {
     return (
       <View style={styles.centered}>
         <ActivityIndicator color={colors.primary} size="large" />
-        <Text style={styles.loadingText}>Chargement des sites...</Text>
+        <Text style={styles.loadingText}>{t("sites.loading")}</Text>
       </View>
     );
   }
@@ -70,10 +72,10 @@ export default function SitesScreen() {
         <View style={styles.cardFooter}>
           <View style={styles.metaItem}>
             <Camera size={12} color={colors.primary} />
-            <Text style={styles.metaText}> {cameraCount} caméra{cameraCount !== 1 ? "s" : ""}</Text>
+            <Text style={styles.metaText}> {cameraCount} {cameraCount !== 1 ? t("sites.cameras") : t("sites.camera")}</Text>
           </View>
           <Text style={[styles.statusText, { color: item.isActive ? colors.success : colors.textMuted }]}>
-            {item.isActive ? "Actif" : "Inactif"}
+            {item.isActive ? t("sites.active") : t("sites.inactive")}
           </Text>
         </View>
       </TouchableOpacity>
@@ -95,7 +97,7 @@ export default function SitesScreen() {
           <View>
             <View style={styles.header}>
               <MapPin size={20} color={colors.primary} />
-              <Text style={styles.title}>Sites</Text>
+              <Text style={styles.title}>{t("sites.title")}</Text>
               <Text style={styles.count}>{sites.length}{total > sites.length ? ` / ${total}` : ""}</Text>
             </View>
 
@@ -109,14 +111,14 @@ export default function SitesScreen() {
         ListEmptyComponent={!loading ? (
           <View style={styles.empty}>
             <MapPin size={40} color={colors.border} />
-            <Text style={styles.emptyTitle}>Aucun site configuré</Text>
-            <Text style={styles.emptyHint}>Ajoutez des sites depuis le tableau de bord</Text>
+            <Text style={styles.emptyTitle}>{t("sites.empty")}</Text>
+            <Text style={styles.emptyHint}>{t("sites.emptyHint")}</Text>
           </View>
         ) : null}
         ListFooterComponent={
           sites.length < total ? (
             <TouchableOpacity style={styles.loadMoreBtn} onPress={loadMore} disabled={loadingMore}>
-              {loadingMore ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.loadMoreText}>Charger plus ({total - sites.length} restants)</Text>}
+              {loadingMore ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.loadMoreText}>{t("sites.loadMore", { remaining: total - sites.length })}</Text>}
             </TouchableOpacity>
           ) : (
             <View style={{ height: 24 }} />

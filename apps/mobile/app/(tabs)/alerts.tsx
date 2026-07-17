@@ -5,25 +5,26 @@ import { fetchAlerts, type AlertItem, type AlertSeverity, type AlertStatus } fro
 import { AlertCard } from "@/components/alert-card";
 import { severityColors, alertStatusColors } from "@/lib/constants";
 import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { useTranslation } from "@/lib/i18n";
 import { Bell, Filter } from "lucide-react-native";
 
 const PAGE_SIZE = 20;
 
-const SEVERITIES: { label: string; value: AlertSeverity | "" }[] = [
-  { label: "Toutes", value: "" },
-  { label: "CRITICAL", value: "CRITICAL" },
-  { label: "HIGH", value: "HIGH" },
-  { label: "MEDIUM", value: "MEDIUM" },
-  { label: "LOW", value: "LOW" },
-  { label: "INFO", value: "INFO" },
+const SEVERITY_LABELS: { labelKey: string; value: AlertSeverity | "" }[] = [
+  { labelKey: "alerts.filter.all", value: "" },
+  { labelKey: "alerts.severity.critical", value: "CRITICAL" },
+  { labelKey: "alerts.severity.high", value: "HIGH" },
+  { labelKey: "alerts.severity.medium", value: "MEDIUM" },
+  { labelKey: "alerts.severity.low", value: "LOW" },
+  { labelKey: "alerts.severity.info", value: "INFO" },
 ];
 
-const STATUSES: { label: string; value: AlertStatus | "" }[] = [
-  { label: "Tous", value: "" },
-  { label: "Ouverte", value: "OPEN" },
-  { label: "Prise en compte", value: "ACKNOWLEDGED" },
-  { label: "Résolue", value: "RESOLVED" },
-  { label: "Faux positif", value: "FALSE_POSITIVE" },
+const STATUS_LABELS: { labelKey: string; value: AlertStatus | "" }[] = [
+  { labelKey: "alerts.filter.allStatuses", value: "" },
+  { labelKey: "alerts.status.open", value: "OPEN" },
+  { labelKey: "alerts.status.acknowledged", value: "ACKNOWLEDGED" },
+  { labelKey: "alerts.status.resolved", value: "RESOLVED" },
+  { labelKey: "alerts.status.falsePositive", value: "FALSE_POSITIVE" },
 ];
 
 function FilterChip({ label, active, color, onPress }: { label: string; active: boolean; color?: string; onPress: () => void }) {
@@ -38,6 +39,9 @@ function FilterChip({ label, active, color, onPress }: { label: string; active: 
 }
 
 export default function AlertsScreen() {
+  const { t } = useTranslation();
+  const SEVERITIES = SEVERITY_LABELS.map(s => ({ label: t(s.labelKey), value: s.value }));
+  const STATUSES = STATUS_LABELS.map(s => ({ label: t(s.labelKey), value: s.value }));
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -63,7 +67,7 @@ export default function AlertsScreen() {
       setTotal(result.total);
       setPage(pageNum);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur de chargement");
+      setError(e instanceof Error ? e.message : t("alerts.loadingError"));
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -90,7 +94,7 @@ export default function AlertsScreen() {
     return (
       <View style={styles.centered}>
         <ActivityIndicator color={colors.primary} size="large" />
-        <Text style={styles.loadingText}>Chargement des alertes...</Text>
+        <Text style={styles.loadingText}>{t("alerts.loading")}</Text>
       </View>
     );
   }
@@ -110,7 +114,7 @@ export default function AlertsScreen() {
           <View>
             <View style={styles.header}>
               <Bell size={20} color={colors.warning} />
-              <Text style={styles.title}>Alertes</Text>
+              <Text style={styles.title}>{t("alerts.title")}</Text>
               <Text style={styles.count}>{alerts.length}{total > alerts.length ? ` / ${total}` : ""}</Text>
             </View>
 
@@ -148,14 +152,14 @@ export default function AlertsScreen() {
         ListEmptyComponent={!loading ? (
           <View style={styles.empty}>
             <Bell size={40} color={colors.border} />
-            <Text style={styles.emptyTitle}>Aucune alerte</Text>
-            <Text style={styles.emptyHint}>Les alertes apparaîtront ici quand elles seront détectées</Text>
+            <Text style={styles.emptyTitle}>{t("alerts.empty")}</Text>
+            <Text style={styles.emptyHint}>{t("alerts.emptyHint")}</Text>
           </View>
         ) : null}
         ListFooterComponent={
           alerts.length < total ? (
             <TouchableOpacity style={styles.loadMoreBtn} onPress={loadMore} disabled={loadingMore}>
-              {loadingMore ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.loadMoreText}>Charger plus ({total - alerts.length} restantes)</Text>}
+              {loadingMore ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.loadMoreText}>{t("alerts.loadMore", { remaining: total - alerts.length })}</Text>}
             </TouchableOpacity>
           ) : (
             <View style={{ height: 24 }} />

@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { colors, typography, spacing } from "@/lib/theme";
+import { useTranslation } from "@/lib/i18n";
 import { NfcScanner } from "@/components/nfc-scanner";
 import { validateBadge } from "@/lib/api";
 
@@ -14,6 +15,7 @@ interface ValidationResult {
 }
 
 export default function NfcScanScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [validationState, setValidationState] = useState<ValidationState>("scanning");
   const [result, setResult] = useState<ValidationResult | null>(null);
@@ -31,7 +33,7 @@ export default function NfcScanScreen() {
         setValidationState("denied");
       }
     } catch (err: any) {
-      setErrorMessage(err.message || "Erreur de validation");
+      setErrorMessage(err.message || t("guard.validationError"));
       setValidationState("error");
     }
   }, []);
@@ -48,16 +50,16 @@ export default function NfcScanScreen() {
           <View style={styles.successIcon}>
             <Text style={styles.checkmark}>✓</Text>
           </View>
-          <Text style={styles.successTitle}>Accès autorisé</Text>
+          <Text style={styles.successTitle}>{t("guard.accessGranted")}</Text>
           {result.userName && (
             <Text style={styles.userName}>{result.userName}</Text>
           )}
           {result.accessLevel && (
             <Text style={styles.accessLevel}>
-              Niveau d'accès: {result.accessLevel}
+              {t("guard.accessLevel", { level: result.accessLevel })}
             </Text>
           )}
-          <Text style={styles.grantedText}>Badge valide</Text>
+          <Text style={styles.grantedText}>{t("guard.validBadge")}</Text>
         </View>
       </View>
     );
@@ -70,7 +72,7 @@ export default function NfcScanScreen() {
           <View style={styles.deniedIcon}>
             <Text style={styles.crossmark}>✕</Text>
           </View>
-          <Text style={styles.deniedTitle}>Accès refusé</Text>
+          <Text style={styles.deniedTitle}>{t("guard.accessDenied")}</Text>
           {result?.reason && (
             <Text style={styles.bodyText}>{result.reason}</Text>
           )}
@@ -86,7 +88,7 @@ export default function NfcScanScreen() {
           <View style={styles.deniedIcon}>
             <Text style={styles.crossmark}>✕</Text>
           </View>
-          <Text style={styles.deniedTitle}>Erreur</Text>
+          <Text style={styles.deniedTitle}>{t("guard.error")}</Text>
           <Text style={styles.bodyText}>{errorMessage}</Text>
         </View>
       </View>

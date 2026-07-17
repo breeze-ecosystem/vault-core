@@ -7,8 +7,10 @@ import { useRouter } from "expo-router";
 import { useAuth } from "@/lib/auth-context";
 import { Shield, Eye, EyeOff } from "lucide-react-native";
 import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { useTranslation } from "@/lib/i18n";
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -19,19 +21,19 @@ export default function LoginScreen() {
 
   async function handleLogin() {
     if (!email || !password) {
-      Alert.alert("Erreur", "Veuillez remplir tous les champs");
+      Alert.alert(t("common.error"), t("auth.fillAllFields"));
       return;
     }
     setLoading(true);
     try {
       const result = await login(email, password);
       if (result.error) {
-        Alert.alert("Erreur", result.error);
+        Alert.alert(t("common.error"), result.error);
       } else {
         router.replace("/(tabs)");
       }
     } catch {
-      Alert.alert("Erreur", "Connexion impossible");
+      Alert.alert(t("common.error"), t("auth.loginFailed"));
     } finally {
       setLoading(false);
     }
@@ -46,16 +48,16 @@ export default function LoginScreen() {
         <View style={styles.logoWrap}>
           <Shield size={28} color={colors.primary} />
         </View>
-        <Text style={styles.title}>OVERSIGHT AI</Text>
-        <Text style={styles.subtitle}>Plateforme de surveillance intelligente</Text>
+        <Text style={styles.title}>{t("auth.welcomeTitle")}</Text>
+        <Text style={styles.subtitle}>{t("auth.welcomeSubtitle")}</Text>
       </View>
 
       <View style={styles.form}>
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>EMAIL</Text>
+          <Text style={styles.label}>{t("auth.email")}</Text>
           <TextInput
             style={styles.input}
-            placeholder="vous@exemple.com"
+            placeholder={t("auth.emailPlaceholder")}
             placeholderTextColor={colors.textMuted}
             value={email}
             onChangeText={setEmail}
@@ -67,12 +69,12 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>MOT DE PASSE</Text>
+          <Text style={styles.label}>{t("auth.password")}</Text>
           <View style={styles.passwordWrap}>
             <TextInput
               ref={passwordRef}
               style={styles.passwordInput}
-              placeholder="••••••••"
+              placeholder={t("auth.passwordPlaceholder")}
               placeholderTextColor={colors.textMuted}
               value={password}
               onChangeText={setPassword}
@@ -101,7 +103,7 @@ export default function LoginScreen() {
           {loading ? (
             <ActivityIndicator color="#fff" size="small" />
           ) : (
-            <Text style={styles.buttonText}>Se connecter</Text>
+            <Text style={styles.buttonText}>{t("auth.loginButton")}</Text>
           )}
         </TouchableOpacity>
       </View>

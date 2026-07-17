@@ -11,6 +11,7 @@ import FlashList from "@shopify/flash-list";
 import { useRouter, useFocusEffect } from "expo-router";
 import { AlertTriangle, Camera, Plus } from "lucide-react-native";
 import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { useTranslation } from "@/lib/i18n";
 import { PhotoCapture } from "@/components/photo-capture";
 import { fetchMyIncidents, uploadIncidentPhoto } from "@/lib/api";
 import type { MobileIncidentDto } from "@/lib/api";
@@ -18,6 +19,7 @@ import type { MobileIncidentDto } from "@/lib/api";
 type ScreenView = "list" | "capture";
 
 export default function IncidentsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [incidents, setIncidents] = useState<MobileIncidentDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +35,7 @@ export default function IncidentsScreen() {
       const result = await fetchMyIncidents();
       setIncidents(result);
     } catch (err: any) {
-      setError(err.message || "Erreur de chargement");
+      setError(err.message || t("incidents.loadingError"));
     } finally {
       setLoading(false);
     }
@@ -105,7 +107,7 @@ export default function IncidentsScreen() {
             setView("list");
           }}
         >
-          <Text style={styles.cancelCaptureText}>Annuler</Text>
+          <Text style={styles.cancelCaptureText}>{t("incidents.cancel")}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -115,7 +117,7 @@ export default function IncidentsScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.headerBar}>
-        <Text style={styles.title}>Incidents</Text>
+        <Text style={styles.title}>{t("incidents.title")}</Text>
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => router.push("/incident/new")}
@@ -126,20 +128,20 @@ export default function IncidentsScreen() {
 
       {loading ? (
         <View style={styles.centerContent}>
-          <Text style={styles.bodyText}>Chargement...</Text>
+          <Text style={styles.bodyText}>{t("incidents.loading")}</Text>
         </View>
       ) : error ? (
         <View style={styles.centerContent}>
           <AlertTriangle size={48} color={colors.textMuted} />
-          <Text style={styles.heading}>Incidents</Text>
+          <Text style={styles.heading}>{t("incidents.title")}</Text>
           <Text style={styles.bodyText}>{error}</Text>
         </View>
       ) : incidents.length === 0 ? (
         <View style={styles.centerContent}>
           <AlertTriangle size={48} color={colors.textMuted} />
-          <Text style={styles.heading}>Incidents</Text>
+          <Text style={styles.heading}>{t("incidents.title")}</Text>
           <Text style={styles.bodyText}>
-            Aucun incident assigné pour le moment.
+            {t("incidents.empty")}
           </Text>
         </View>
       ) : (
@@ -173,7 +175,7 @@ export default function IncidentsScreen() {
                       {item.title}
                     </Text>
                     <Text style={styles.incidentMeta}>
-                      {item.zoneName || "Zone inconnue"} · {item.status}
+                      {item.zoneName || t("incidents.unknownZone")} · {item.status}
                     </Text>
                   </View>
                   <Text style={styles.incidentTime}>
@@ -190,8 +192,8 @@ export default function IncidentsScreen() {
                     <Camera size={14} color={colors.primary} />
                     <Text style={styles.photoButtonText}>
                       {hasPhotos
-                        ? `${capturedPhotos[item.id].length} photo(s)`
-                        : "Ajouter une photo"}
+                        ? t("incidents.photoCount", { count: capturedPhotos[item.id].length })
+                        : t("incidents.addPhoto")}
                     </Text>
                   </TouchableOpacity>
                   {hasPhotos && (

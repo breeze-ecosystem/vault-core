@@ -9,6 +9,7 @@ import FlashList from "@shopify/flash-list";
 import { useRouter, useFocusEffect } from "expo-router";
 import { Search, DoorOpen } from "lucide-react-native";
 import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { useTranslation } from "@/lib/i18n";
 import { DoorControlCard } from "@/components/door-control-card";
 import { fetchCameras } from "@/lib/api";
 import type { CameraItem } from "@/lib/api";
@@ -20,6 +21,7 @@ interface DoorItem {
 }
 
 export default function DoorControlScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [doors, setDoors] = useState<DoorItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +42,7 @@ export default function DoorControlScreen() {
       }));
       setDoors(doorList);
     } catch (err: any) {
-      setError(err.message || "Erreur de chargement");
+      setError(err.message || t("guard.loadingError"));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -78,7 +80,7 @@ export default function DoorControlScreen() {
           <Search size={16} color={colors.textMuted} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Rechercher une porte..."
+            placeholder={t("guard.searchDoor")}
             placeholderTextColor={colors.textMuted}
             value={search}
             onChangeText={setSearch}
@@ -88,7 +90,7 @@ export default function DoorControlScreen() {
 
       {loading && !refreshing ? (
         <View style={styles.centerContent}>
-          <Text style={styles.bodyText}>Chargement...</Text>
+          <Text style={styles.bodyText}>{t("guard.loading")}</Text>
         </View>
       ) : error ? (
         <View style={styles.centerContent}>
@@ -98,7 +100,7 @@ export default function DoorControlScreen() {
         <View style={styles.centerContent}>
           <DoorOpen size={48} color={colors.textMuted} />
           <Text style={styles.bodyText}>
-            {search ? "Aucune porte trouvée" : "Aucune porte disponible"}
+            {search ? t("guard.doorNotFound") : t("guard.doorNotAvailable")}
           </Text>
         </View>
       ) : (

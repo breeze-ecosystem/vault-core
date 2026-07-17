@@ -7,6 +7,7 @@ import {
   ChevronRight,
 } from "lucide-react-native";
 import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { useTranslation } from "@/lib/i18n";
 
 interface QuickAction {
   id: string;
@@ -17,41 +18,43 @@ interface QuickAction {
   color: string;
 }
 
-const actions: QuickAction[] = [
-  {
-    id: "nfc",
-    title: "Scan NFC",
-    description: "Valider un badge d'accès par NFC",
-    icon: <Nfc size={32} color="#06b6d4" />,
-    route: "/guard/nfc-scan",
-    color: "#06b6d4",
-  },
-  {
-    id: "qr",
-    title: "Check-in QR",
-    description: "Scanner le QR code d'un visiteur",
-    icon: <QrCode size={32} color="#10b981" />,
-    route: "/guard/qr-checkin",
-    color: "#10b981",
-  },
-  {
-    id: "door",
-    title: "Contrôle porte",
-    description: "Ouvrir, fermer ou verrouiller une porte",
-    icon: <DoorOpen size={32} color="#f59e0b" />,
-    route: "/guard/door-control",
-    color: "#f59e0b",
-  },
-];
+function useGuardActions() {
+  const { t } = useTranslation();
+  return [
+    {
+      id: "nfc", title: t("guard.scanNfc"),
+      description: t("guard.nfcDescription"),
+      icon: <Nfc size={32} color="#06b6d4" />,
+      route: "/guard/nfc-scan",
+      color: "#06b6d4",
+    },
+    {
+      id: "qr", title: t("guard.qrCheckin"),
+      description: t("guard.qrDescription"),
+      icon: <QrCode size={32} color="#10b981" />,
+      route: "/guard/qr-checkin",
+      color: "#10b981",
+    },
+    {
+      id: "door", title: t("guard.doorControl"),
+      description: t("guard.doorDescription"),
+      icon: <DoorOpen size={32} color="#f59e0b" />,
+      route: "/guard/door-control",
+      color: "#f59e0b",
+    },
+  ] as QuickAction[];
+}
 
 export default function GuardIndexScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
+  const actions = useGuardActions();
 
   return (
     <View style={styles.container}>
       <View style={styles.headerBar}>
-        <Text style={styles.title}>Garde</Text>
-        <Text style={styles.subtitle}>Actions rapides</Text>
+        <Text style={styles.title}>{t("guard.title")}</Text>
+        <Text style={styles.subtitle}>{t("guard.quickActions")}</Text>
       </View>
 
       <View style={styles.grid}>
@@ -74,7 +77,7 @@ export default function GuardIndexScreen() {
             <Text style={styles.cardDescription}>{action.description}</Text>
             <View style={styles.cardFooter}>
               <Text style={[styles.cardAction, { color: action.color }]}>
-                Ouvrir
+                {t("guard.open")}
               </Text>
               <ChevronRight size={16} color={action.color} />
             </View>

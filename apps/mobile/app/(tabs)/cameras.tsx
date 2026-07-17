@@ -5,11 +5,13 @@ import { useLocalSearchParams } from "expo-router";
 import { fetchCameras, type CameraItem } from "@/lib/api";
 import { CameraCard } from "@/components/camera-card";
 import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { useTranslation } from "@/lib/i18n";
 import { Camera } from "lucide-react-native";
 
 const PAGE_SIZE = 20;
 
 export default function CamerasScreen() {
+  const { t } = useTranslation();
   const { siteId } = useLocalSearchParams<{ siteId?: string }>();
   const [cameras, setCameras] = useState<CameraItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +36,7 @@ export default function CamerasScreen() {
       setTotal(result.total);
       setPage(pageNum);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur de chargement");
+      setError(e instanceof Error ? e.message : t("cameras.loadingError"));
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -58,7 +60,7 @@ export default function CamerasScreen() {
     return (
       <View style={styles.centered}>
         <ActivityIndicator color={colors.primary} size="large" />
-        <Text style={styles.loadingText}>Chargement des caméras...</Text>
+        <Text style={styles.loadingText}>{t("cameras.loading")}</Text>
       </View>
     );
   }
@@ -78,7 +80,7 @@ export default function CamerasScreen() {
           <View>
             <View style={styles.header}>
               <Camera size={20} color={colors.primary} />
-              <Text style={styles.title}>Caméras</Text>
+              <Text style={styles.title}>{t("cameras.title")}</Text>
               <Text style={styles.count}>
                 {cameras.length}{total > cameras.length ? ` / ${total}` : ""}
               </Text>
@@ -94,8 +96,8 @@ export default function CamerasScreen() {
         ListEmptyComponent={!loading ? (
           <View style={styles.empty}>
             <Camera size={40} color={colors.border} />
-            <Text style={styles.emptyTitle}>Aucune caméra configurée</Text>
-            <Text style={styles.emptyHint}>Ajoutez des caméras depuis le tableau de bord</Text>
+            <Text style={styles.emptyTitle}>{t("cameras.empty")}</Text>
+            <Text style={styles.emptyHint}>{t("cameras.emptyHint")}</Text>
           </View>
         ) : null}
         ListFooterComponent={
@@ -104,7 +106,7 @@ export default function CamerasScreen() {
               {loadingMore ? (
                 <ActivityIndicator color="#fff" size="small" />
               ) : (
-                <Text style={styles.loadMoreText}>Charger plus ({total - cameras.length} restantes)</Text>
+                <Text style={styles.loadMoreText}>{t("cameras.loadMore", { remaining: total - cameras.length })}</Text>
               )}
             </TouchableOpacity>
           ) : (

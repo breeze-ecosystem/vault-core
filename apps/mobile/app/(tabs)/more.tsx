@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
 import { colors } from "@repo/design";
 import { useRouter } from "expo-router";
+import { useTranslation } from "@/lib/i18n";
 import {
   MessageSquareText,
   MapPin,
@@ -50,13 +51,46 @@ const menuItems: MoreMenuItem[] = [
   },
 ];
 
+function useMenuItems() {
+  const { t } = useTranslation();
+  return [
+    {
+      id: "chat", label: t("nav.chat"),
+      icon: <MessageSquareText size={22} color={colors.dark.text} />,
+      route: "/(tabs)/more/chat",
+    },
+    {
+      id: "sites", label: t("nav.sites"),
+      icon: <MapPin size={22} color={colors.dark.text} />,
+      route: "/sites",
+    },
+    {
+      id: "settings", label: t("nav.settings"),
+      icon: <Settings size={22} color={colors.dark.text} />,
+      route: "/settings",
+    },
+    {
+      id: "audit", label: t("nav.audit"),
+      icon: <FileText size={22} color={colors.dark.text} />,
+      route: "/audit",
+    },
+    {
+      id: "licences", label: t("nav.licences"),
+      icon: <KeyRound size={22} color={colors.dark.text} />,
+      route: "/licences",
+    },
+  ];
+}
+
 export default function MoreScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
+  const menuItems = useMenuItems();
 
   return (
     <View style={styles.container}>
       <View style={styles.headerBar}>
-        <Text style={styles.title}>Plus</Text>
+        <Text style={styles.title}>{t("nav.more")}</Text>
       </View>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.menuList}>

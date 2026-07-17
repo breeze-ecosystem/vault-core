@@ -11,6 +11,7 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { fetchDashboardStats, type DashboardStats } from "@/lib/api";
 import { colors, typography } from "@repo/design";
+import { useTranslation } from "@/lib/i18n";
 import { QuickActionButton } from "@/components/quick-action-button";
 import {
   Shield,
@@ -23,6 +24,7 @@ import {
 } from "lucide-react-native";
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,7 +41,7 @@ export default function HomeScreen() {
       const data = await fetchDashboardStats();
       setStats(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur de chargement");
+      setError(e instanceof Error ? e.message : t("home.loadingError"));
     } finally {
       setLoading(false);
     }
@@ -52,7 +54,7 @@ export default function HomeScreen() {
       const data = await fetchDashboardStats();
       setStats(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur de chargement");
+      setError(e instanceof Error ? e.message : t("home.loadingError"));
     } finally {
       setRefreshing(false);
     }
@@ -99,9 +101,9 @@ export default function HomeScreen() {
       <View style={styles.headerBar}>
         <View>
           <Text style={styles.greeting}>
-            Bonjour, {user?.firstName ?? "Utilisateur"}
+            {t("home.greeting")}, {user?.firstName ?? t("home.user")}
           </Text>
-          <Text style={styles.role}>{user?.role ?? "Agent de sécurité"}</Text>
+          <Text style={styles.role}>{user?.role ?? t("home.securityAgent")}</Text>
         </View>
         <View style={styles.logoWrap}>
           <Shield size={20} color={colors.shared.primary} />
@@ -125,49 +127,49 @@ export default function HomeScreen() {
             <View style={styles.checkInActive}>
               <View style={styles.checkInHeader}>
                 <Clock size={18} color={colors.shared.primary} />
-                <Text style={styles.checkInLabel}>Pointage en cours</Text>
+                <Text style={styles.checkInLabel}>{t("home.checkInActive")}</Text>
               </View>
               <Text style={styles.checkInTimer}>{elapsed}</Text>
               <Pressable style={styles.checkOutButton} onPress={endCheckIn}>
-                <Text style={styles.checkOutButtonText}>Terminer le service</Text>
+                <Text style={styles.checkOutButtonText}>{t("home.endService")}</Text>
               </Pressable>
             </View>
           ) : (
             <Pressable style={styles.checkInButton} onPress={startCheckIn}>
               <Clock size={20} color="#fff" />
-              <Text style={styles.checkInButtonText}>Pointer</Text>
+              <Text style={styles.checkInButtonText}>{t("home.checkIn")}</Text>
             </Pressable>
           )}
         </View>
 
-        <Text style={styles.sectionTitle}>Actions rapides</Text>
+        <Text style={styles.sectionTitle}>{t("home.quickActions")}</Text>
         <View style={styles.quickActionsPrimary}>
           <QuickActionButton
             icon={<Camera size={24} color={colors.shared.primary} />}
-            label="Signaler incident"
-            onPress={() => Alert.alert("Signaler un incident", "Fonctionnalité à venir")}
+            label={t("home.reportIncident")}
+            onPress={() => Alert.alert(t("home.reportIncident"), t("home.featureComing"))}
           />
           <QuickActionButton
             icon={<Bell size={24} color={colors.shared.primary} />}
-            label="Voir alertes"
-            onPress={() => Alert.alert("Alertes", "Fonctionnalité à venir")}
+            label={t("home.viewAlerts")}
+            onPress={() => Alert.alert(t("home.viewAlerts"), t("home.featureComing"))}
           />
           <QuickActionButton
             icon={<DoorOpen size={24} color={colors.shared.primary} />}
-            label="Contrôle porte"
-            onPress={() => Alert.alert("Contrôle d'accès", "Fonctionnalité à venir")}
+            label={t("home.doorControl")}
+            onPress={() => Alert.alert(t("home.doorControl"), t("home.featureComing"))}
           />
         </View>
         <View style={styles.quickActionsSecondary}>
           <QuickActionButton
             icon={<Search size={24} color={colors.shared.primary} />}
-            label="Trouver caméra"
-            onPress={() => Alert.alert("Recherche", "Fonctionnalité à venir")}
+            label={t("home.findCamera")}
+            onPress={() => Alert.alert(t("home.findCamera"), t("home.featureComing"))}
           />
           <QuickActionButton
             icon={<AlertTriangle size={24} color={colors.shared.warning} />}
-            label="Alertes critiques"
-            onPress={() => Alert.alert("Alertes critiques", "Fonctionnalité à venir")}
+            label={t("home.criticalAlerts")}
+            onPress={() => Alert.alert(t("home.criticalAlerts"), t("home.featureComing"))}
           />
         </View>
 
@@ -179,17 +181,17 @@ export default function HomeScreen() {
           </View>
         ) : stats ? (
           <View style={styles.statsCard}>
-            <Text style={styles.statsCardTitle}>Aperçu du site</Text>
+            <Text style={styles.statsCardTitle}>{t("home.siteOverview")}</Text>
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>
                   {stats.cameras.online}/{stats.cameras.total}
                 </Text>
-                <Text style={styles.statLabel}>Caméras en ligne</Text>
+                <Text style={styles.statLabel}>{t("home.camerasOnline")}</Text>
               </View>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{stats.alerts.open}</Text>
-                <Text style={styles.statLabel}>Alertes actives</Text>
+                <Text style={styles.statLabel}>{t("home.activeAlerts")}</Text>
               </View>
             </View>
           </View>

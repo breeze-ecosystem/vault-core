@@ -9,9 +9,11 @@ import {
   type NotificationLog,
 } from "@/lib/api";
 import { colors } from "@/lib/theme";
+import { useTranslation } from "@/lib/i18n";
 import { Mail, Link, Bell, BellOff } from "lucide-react-native";
 
 export default function NotificationsScreen() {
+  const { t } = useTranslation();
   const [logs, setLogs] = useState<{ data: NotificationLog[]; total: number }>({ data: [], total: 0 });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -58,9 +60,9 @@ export default function NotificationsScreen() {
         { channel: "IN_APP", enabled: inAppEnabled },
       ]);
       await loadData();
-      Alert.alert("Succes", "Parametres de notification sauvegardes");
+      Alert.alert(t("common.success"), t("notifications.saved"));
     } catch (e) {
-      Alert.alert("Erreur", e instanceof Error ? e.message : "Echec de la sauvegarde");
+      Alert.alert(t("common.error"), e instanceof Error ? e.message : t("notifications.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -70,9 +72,9 @@ export default function NotificationsScreen() {
     setTesting(true);
     try {
       const result = await sendTestNotification();
-      Alert.alert("Test", result.message || "Notification test envoyee");
+      Alert.alert(t("notifications.test"), result.message || t("notifications.testSent"));
     } catch (e) {
-      Alert.alert("Erreur", e instanceof Error ? e.message : "Echec de l'envoi test");
+      Alert.alert(t("common.error"), e instanceof Error ? e.message : t("notifications.testFailed"));
     } finally {
       setTesting(false);
     }
@@ -82,7 +84,7 @@ export default function NotificationsScreen() {
     return (
       <View style={styles.centered}>
         <ActivityIndicator color="#2563eb" size="large" />
-        <Text style={styles.loadingText}>Chargement...</Text>
+        <Text style={styles.loadingText}>{t("notifications.loading")}</Text>
       </View>
     );
   }
@@ -100,20 +102,20 @@ export default function NotificationsScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Notifications</Text>
+        <Text style={styles.title}>{t("notifications.title")}</Text>
         <TouchableOpacity style={styles.testBtn} onPress={handleTest} disabled={testing}>
-          {testing ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.testBtnText}>Tester</Text>}
+          {testing ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.testBtnText}>{t("notifications.test")}</Text>}
         </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Canaux</Text>
+        <Text style={styles.sectionTitle}>{t("notifications.channels")}</Text>
 
         <View style={styles.channelCard}>
           <View style={styles.channelHeader}>
             <View style={styles.channelInfo}>
               <Mail size={20} color={colors.textMuted} />
-              <Text style={styles.channelName}>Email</Text>
+              <Text style={styles.channelName}>{t("notifications.email")}</Text>
             </View>
             <Switch
               value={emailEnabled} onValueChange={setEmailEnabled}
@@ -121,8 +123,8 @@ export default function NotificationsScreen() {
             />
           </View>
           {emailEnabled && (
-            <TextInput
-              style={styles.input} placeholder="email@exemple.com"
+              <TextInput
+              style={styles.input} placeholder={t("notifications.emailPlaceholder")}
               placeholderTextColor="#666" value={emailAddress}
               onChangeText={setEmailAddress} keyboardType="email-address"
               autoCapitalize="none"
@@ -134,7 +136,7 @@ export default function NotificationsScreen() {
           <View style={styles.channelHeader}>
             <View style={styles.channelInfo}>
               <Link size={20} color={colors.textMuted} />
-              <Text style={styles.channelName}>Webhook</Text>
+              <Text style={styles.channelName}>{t("notifications.webhook")}</Text>
             </View>
             <Switch
               value={webhookEnabled} onValueChange={setWebhookEnabled}
@@ -143,7 +145,7 @@ export default function NotificationsScreen() {
           </View>
           {webhookEnabled && (
             <TextInput
-              style={styles.input} placeholder="https://hooks.exemple.com/..."
+                style={styles.input} placeholder={t("notifications.webhookPlaceholder")}
               placeholderTextColor="#666" value={webhookUrl}
               onChangeText={setWebhookUrl} keyboardType="url" autoCapitalize="none"
             />
@@ -154,7 +156,7 @@ export default function NotificationsScreen() {
           <View style={styles.channelHeader}>
             <View style={styles.channelInfo}>
               <Bell size={20} color={colors.textMuted} />
-              <Text style={styles.channelName}>In-App</Text>
+              <Text style={styles.channelName}>{t("notifications.inApp")}</Text>
             </View>
             <Switch
               value={inAppEnabled} onValueChange={setInAppEnabled}
@@ -164,16 +166,16 @@ export default function NotificationsScreen() {
         </View>
 
         <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={saving}>
-          {saving ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.saveBtnText}>Sauvegarder</Text>}
+          {saving ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.saveBtnText}>{t("notifications.save")}</Text>}
         </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Historique ({logs.total})</Text>
+        <Text style={styles.sectionTitle}>{t("notifications.history", { count: logs.total })}</Text>
         {logs.data.length === 0 ? (
           <View style={styles.emptyLogs}>
             <BellOff size={40} color={colors.border} />
-            <Text style={styles.emptyLogsText}>Aucune notification envoyee</Text>
+            <Text style={styles.emptyLogsText}>{t("notifications.emptyLogs")}</Text>
           </View>
         ) : (
           logs.data.map(log => (

@@ -5,6 +5,7 @@ import {
 } from "react-native";
 import { sendChatMessage, fetchChatCameras, type ChatCamera, type ChatResponse } from "@/lib/api";
 import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { useTranslation } from "@/lib/i18n";
 import { Bot, User, Trash2, ChevronUp, ChevronDown, Send } from "lucide-react-native";
 
 interface Message {
@@ -16,10 +17,11 @@ interface Message {
 }
 
 export default function ChatScreen() {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([{
     id: "welcome",
     role: "assistant",
-    content: "Bonjour ! Je suis votre assistant IA OVERSIGHT. Posez-moi une question sur vos caméras ou sites de surveillance.",
+    content: t("chat.welcome"),
   }]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -62,7 +64,7 @@ export default function ChatScreen() {
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "Désolé, une erreur est survenue. Veuillez réessayer.",
+        content: t("chat.error"),
       }]);
     } finally {
       setLoading(false);
@@ -73,7 +75,7 @@ export default function ChatScreen() {
     setMessages([{
       id: "welcome",
       role: "assistant",
-      content: "Bonjour ! Je suis votre assistant IA OVERSIGHT. Posez-moi une question sur vos caméras ou sites de surveillance.",
+      content: t("chat.welcome"),
     }]);
     setSelectedCameraId(undefined);
   };
@@ -83,7 +85,7 @@ export default function ChatScreen() {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Bot size={20} color={colors.primary} />
-          <Text style={styles.title}>Chat IA</Text>
+          <Text style={styles.title}>{t("chat.title")}</Text>
         </View>
         <TouchableOpacity onPress={clearChat} style={styles.clearBtn}>
           <Trash2 size={18} color={colors.textMuted} />
@@ -108,8 +110,8 @@ export default function ChatScreen() {
               <Text style={[styles.messageText, item.role === "user" ? styles.userText : styles.assistantText]}>
                 {item.content}
               </Text>
-              {item.cameraName && <Text style={styles.cameraRef}>Caméra : {item.cameraName}</Text>}
-              {item.snapshotIncluded && <Text style={styles.snapshotRef}>Image analysée</Text>}
+              {item.cameraName && <Text style={styles.cameraRef}>{t("chat.cameraRef", { name: item.cameraName })}</Text>}
+              {item.snapshotIncluded && <Text style={styles.snapshotRef}>{t("chat.snapshotRef")}</Text>}
             </View>
             {item.role === "user" && (
               <View style={styles.avatarUser}>
@@ -121,7 +123,7 @@ export default function ChatScreen() {
         ListFooterComponent={loading ? (
           <View style={styles.typingIndicator}>
             <ActivityIndicator color={colors.primary} size="small" />
-            <Text style={styles.typingText}>L'IA réfléchit...</Text>
+            <Text style={styles.typingText}>{t("chat.thinking")}</Text>
           </View>
         ) : null}
       />
@@ -129,14 +131,14 @@ export default function ChatScreen() {
       <View style={styles.inputBar}>
         <TouchableOpacity style={styles.cameraSelector} onPress={() => setCamerasOpen(!camerasOpen)}>
           <Text style={styles.cameraSelectorText} numberOfLines={1}>
-            {selectedCameraId ? cameras.find(c => c.id === selectedCameraId)?.name ?? "Caméra" : "Toutes les caméras"}
+            {selectedCameraId ? cameras.find(c => c.id === selectedCameraId)?.name ?? t("chat.camera") : t("chat.allCameras")}
           </Text>
           {camerasOpen ? <ChevronUp size={14} color={colors.textMuted} /> : <ChevronDown size={14} color={colors.textMuted} />}
         </TouchableOpacity>
         {camerasOpen && (
           <View style={styles.cameraDropdown}>
             <TouchableOpacity style={styles.cameraOption} onPress={() => { setSelectedCameraId(undefined); setCamerasOpen(false); }}>
-              <Text style={[styles.cameraOptionText, !selectedCameraId && styles.cameraOptionActive]}>Toutes les caméras</Text>
+              <Text style={[styles.cameraOptionText, !selectedCameraId && styles.cameraOptionActive]}>{t("chat.allCameras")}</Text>
             </TouchableOpacity>
             {cameras.map(cam => (
               <TouchableOpacity key={cam.id} style={styles.cameraOption} onPress={() => { setSelectedCameraId(cam.id); setCamerasOpen(false); }}>
@@ -148,7 +150,7 @@ export default function ChatScreen() {
         <View style={styles.inputRow}>
           <TextInput
             style={styles.input}
-            placeholder="Posez une question..."
+            placeholder={t("chat.placeholder")}
             placeholderTextColor={colors.textMuted}
             value={input}
             onChangeText={setInput}
