@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Printer, PrinterOff } from "lucide-react";
+import { Printer, PrinterX } from "lucide-react";
 import { t, type Locale } from "@/lib/i18n";
 
 type PrintState = "connecting" | "generating" | "printing" | "complete";
@@ -50,7 +50,7 @@ export function PrintingScreen({
       <div className="h-screen flex flex-col items-center justify-center bg-white">
         <div className="bg-red-50 border border-red-200 rounded-kiosk p-6 max-w-sm w-full mx-4">
           <div className="flex flex-col items-center text-center">
-            <PrinterOff className="h-16 w-16 text-red-500 mb-4" />
+            <PrinterX className="h-16 w-16 text-red-500 mb-4" />
             <h3 className="text-xl font-bold text-gray-900 mb-2">
               {t("printing.error", locale)}
             </h3>

@@ -5,6 +5,10 @@ import WelcomeScreen from "@/components/welcome-screen";
 import QRScanner from "@/components/qr-scanner";
 import SearchScreen from "@/components/search-screen";
 import ConfirmCheckin from "@/components/confirm-checkin";
+import { PrintingScreen } from "@/components/printing-screen";
+import { SuccessScreen } from "@/components/success-screen";
+import { CheckoutScreen } from "@/components/checkout-screen";
+import { ErrorScreen } from "@/components/error-screen";
 import { t, type Locale } from "@/lib/i18n";
 import {
   checkIn,
@@ -163,6 +167,7 @@ export default function Home() {
   const [locale, setLocale] = useState<Locale>("fr");
   const [selectedVisitId, setSelectedVisitId] = useState<string | null>(null);
   const [selectedVisit, setSelectedVisit] = useState<VisitInfo | null>(null);
+  const [errorCode, setErrorCode] = useState<string | undefined>();
   const [errorMessage, setErrorMessage] = useState("");
   const [visitorNameForSuccess, setVisitorNameForSuccess] = useState("");
 
@@ -235,24 +240,41 @@ export default function Home() {
   const handleConfirm = useCallback(async () => {
     if (!selectedVisitId) return;
 
+    // Store visitor data from already-loaded selectedVisit
+    if (selectedVisit?.visitor) {
+      setVisitorNameForSuccess(
+        `${selectedVisit.visitor.firstName} ${selectedVisit.visitor.lastName}`,
+      );
+    }
+
+    // Go to printing screen immediately
+    dispatch({ type: "CONFIRM" });
+
     try {
       await checkIn(selectedVisitId);
-      dispatch({ type: "CONFIRM" });
 
       // Attempt print after check-in succeeds
       try {
         await printBadge(selectedVisitId);
         dispatch({ type: "PRINT_COMPLETE" });
       } catch (printErr: any) {
-        dispatch({
-          type: "PRINT_ERROR",
-          error: printErr.message || t("error.server", locale),
-        });
+        const msg =
+          printErr.message || t("printing.errorDetail", locale);
+        setErrorCode("PRINTER_ERROR");
+        setErrorMessage(msg);
+        dispatch({ type: "PRINT_ERROR", error: msg });
       }
     } catch (err: any) {
-      throw err;
+      let code = "UNKNOWN";
+      let msg = err.message || t("error.server", locale);
+      if (err instanceof KioskApiError) {
+        code = err.code;
+      }
+      setErrorCode(code);
+      setErrorMessage(msg);
+      dispatch({ type: "PRINT_ERROR", error: msg });
     }
-  }, [selectedVisitId, locale]);
+  }, [selectedVisitId, selectedVisit, locale]);
 
   const handleCheckout = useCallback(
     async (visitId: string, visit?: VisitInfo) => {
@@ -264,7 +286,13 @@ export default function Home() {
         setVisitorNameForSuccess(name);
         dispatch({ type: "CHECKOUT_SUCCESS", visitorName: name });
       } catch (err: any) {
-        setErrorMessage(err.message || t("error.server", locale));
+        let code = "UNKNOWN";
+        let msg = err.message || t("error.server", locale);
+        if (err instanceof KioskApiError) {
+          code = err.code;
+        }
+        setErrorCode(code);
+        setErrorMessage(msg);
         dispatch({ type: "CANCEL" });
       }
     },
@@ -279,12 +307,31 @@ export default function Home() {
     dispatch({ type: "HOME" });
     setSelectedVisitId(null);
     setSelectedVisit(null);
+    setErrorCode(undefined);
     setErrorMessage("");
     setVisitorNameForSuccess("");
   }, []);
 
-  const handlePrintRetry = useCallback(() => {
+  const handlePrintRetry = useCallback(async () => {
+    if (!selectedVisitId) return;
     dispatch({ type: "CONFIRM" });
+    try {
+      await printBadge(selectedVisitId);
+      dispatch({ type: "PRINT_COMPLETE" });
+    } catch (err: any) {
+      const msg = err.message || t("printing.errorDetail", locale);
+      setErrorCode("PRINTER_ERROR");
+      setErrorMessage(msg);
+      dispatch({ type: "PRINT_ERROR", error: msg });
+    }
+  }, [selectedVisitId, locale]);
+
+  const handlePrintComplete = useCallback(() => {
+    dispatch({ type: "PRINT_COMPLETE" });
+  }, []);
+
+  const handleCancelCheckin = useCallback(() => {
+    dispatch({ type: "CANCEL" });
   }, []);
 
   // ─── Idle Timer ───
@@ -364,126 +411,54 @@ export default function Home() {
 
       case "printing":
         return (
-          <div className="h-screen flex flex-col items-center justify-center bg-white animate-fade-in">
-            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-6" />
-            <p className="text-lg text-gray-700 font-medium">
-              {t("printing.status", locale)}
-            </p>
-          </div>
+          <PrintingScreen
+            onPrintComplete={handlePrintComplete}
+            onCancelCheckin={handleCancelCheckin}
+            locale={locale}
+            error={errorMessage || null}
+            onRetry={handlePrintRetry}
+          />
         );
 
       case "success":
         return (
-          <div className="h-screen flex flex-col items-center justify-center bg-white animate-fade-in">
-            <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mb-6">
-              <svg
-                className="w-10 h-10 text-emerald-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 text-center">
-              {t("success.heading", locale, {
-                name: visitorNameForSuccess || "",
-              })}
-            </h2>
-            <p className="text-lg text-gray-500 mt-2">
-              {t("success.subtitle", locale)}
-            </p>
-            <p className="text-sm text-gray-400 mt-8">
-              {t("success.countdown", locale, { seconds: "8" })}
-            </p>
-            <button
-              onClick={handleHome}
-              className="mt-4 h-12 px-8 bg-blue-600 text-white rounded-full text-base font-medium hover:bg-blue-700 transition-colors"
-            >
-              {t("success.home", locale)}
-            </button>
-          </div>
+          <SuccessScreen
+            visitorName={visitorNameForSuccess}
+            hostName={selectedVisit?.hostName || ""}
+            visitDate={new Date().toLocaleDateString("fr-FR", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+            onHome={handleHome}
+            locale={locale}
+          />
         );
 
       case "checkout-success":
         return (
-          <div className="h-screen flex flex-col items-center justify-center bg-white animate-fade-in">
-            <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mb-6">
-              <svg
-                className="w-10 h-10 text-blue-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                />
-              </svg>
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 text-center">
-              {t("checkout.success", locale, {
-                name: visitorNameForSuccess || "",
-              })}
-            </h2>
-            <p className="text-sm text-gray-400 mt-8">
-              {t("success.countdown", locale, { seconds: "5" })}
-            </p>
-            <button
-              onClick={handleHome}
-              className="mt-4 h-12 px-8 bg-blue-600 text-white rounded-full text-base font-medium hover:bg-blue-700 transition-colors"
-            >
-              {t("success.home", locale)}
-            </button>
-          </div>
+          <CheckoutScreen
+            visitorName={visitorNameForSuccess}
+            onHome={handleHome}
+            locale={locale}
+          />
         );
 
       case "error":
         return (
-          <div className="h-screen flex flex-col items-center justify-center bg-white animate-fade-in px-4">
-            <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mb-6">
-              <svg
-                className="w-10 h-10 text-red-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-                />
-              </svg>
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 text-center mb-2">
-              {t("error.heading", locale)}
-            </h2>
-            <p className="text-base text-gray-500 text-center max-w-sm mb-8">
-              {errorMessage || t("error.server", locale)}
-            </p>
-            <div className="flex flex-col items-center gap-3 w-full max-w-sm">
-              <button
-                onClick={handlePrintRetry}
-                className="h-14 w-full bg-blue-600 text-white rounded-full text-lg font-medium hover:bg-blue-700 transition-colors"
-              >
-                {t("printing.retry", locale)}
-              </button>
-              <button
-                onClick={handleHome}
-                className="h-12 w-full bg-white border-2 border-gray-200 text-gray-900 rounded-full text-base font-medium hover:border-gray-300 transition-colors"
-              >
-                {t("error.home", locale)}
-              </button>
-            </div>
-          </div>
+          <ErrorScreen
+            errorCode={errorCode}
+            errorMessage={errorMessage || t("error.server", locale)}
+            onRetry={
+              errorCode === "PRINTER_ERROR" || (errorMessage && !errorCode)
+                ? handlePrintRetry
+                : undefined
+            }
+            onHome={handleHome}
+            locale={locale}
+          />
         );
 
       default:
