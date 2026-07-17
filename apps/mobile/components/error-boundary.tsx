@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Component, type ReactNode, type ErrorInfo } from "react";
+import * as Sentry from "@sentry/react-native";
 
 interface Props {
   children: ReactNode;
@@ -22,6 +23,9 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.warn("[ErrorBoundary]", error.message, errorInfo.componentStack);
+    Sentry.captureException(error, {
+      extra: { componentStack: errorInfo.componentStack },
+    });
   }
 
   handleReset = () => {

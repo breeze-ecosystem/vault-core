@@ -1,10 +1,18 @@
 import { Stack } from "expo-router";
 import { View, Text, StyleSheet } from "react-native";
+import * as Sentry from "@sentry/react-native";
 import { AuthProvider } from "@/lib/auth-context";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { IS_CONFIG_VALID } from "@/lib/config";
 import { Shield } from "lucide-react-native";
 import { colors } from "@/lib/theme";
+
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  tracesSampleRate: 1.0,
+  environment: __DEV__ ? "development" : "production",
+  enableNative: true,
+});
 
 function ConfigErrorScreen() {
   return (
@@ -19,7 +27,7 @@ function ConfigErrorScreen() {
   );
 }
 
-export default function RootLayout() {
+export default Sentry.wrap(function RootLayout() {
   if (!IS_CONFIG_VALID) {
     return <ConfigErrorScreen />;
   }
@@ -46,7 +54,7 @@ export default function RootLayout() {
       </AuthProvider>
     </ErrorBoundary>
   );
-}
+});
 
 const styles = StyleSheet.create({
   configError: {
