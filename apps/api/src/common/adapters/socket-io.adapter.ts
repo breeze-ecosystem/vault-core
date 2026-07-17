@@ -1,9 +1,9 @@
 import { IoAdapter } from "@nestjs/platform-socket.io";
-import { ServerOptions } from "socket.io";
+import { Server, ServerOptions } from "socket.io";
 
 export class SocketIoAdapter extends IoAdapter {
   createIOServer(port: number, options?: ServerOptions) {
-    const server = super.createIOServer(port, {
+    const server: Server = super.createIOServer(port, {
       ...options,
       cors: {
         origin: [

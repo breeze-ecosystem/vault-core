@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useLocale } from 'next-intl';
 import { cn } from '@/src/lib/utils';
 import { Container } from './container';
 import { NavLink } from '@/components/navigation/nav-link';
@@ -18,6 +19,7 @@ const NAV_LINKS = [
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const locale = useLocale();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,6 +28,11 @@ export function Header() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const prefixedLinks = NAV_LINKS.map((link) => ({
+    ...link,
+    href: `/${locale}${link.href === '/' ? '' : link.href}`,
+  }));
 
   return (
     <header
@@ -46,7 +53,7 @@ export function Header() {
 
           {/* Desktop navigation */}
           <nav className="hidden lg:flex items-center gap-8">
-            {NAV_LINKS.map((link) => (
+            {prefixedLinks.map((link) => (
               <NavLink key={link.href} href={link.href}>
                 {link.label}
               </NavLink>
