@@ -1,36 +1,37 @@
 'use client';
 
-import { useRef, type ReactNode } from 'react';
-import { useInView } from 'motion/react';
+import { type ReactNode } from 'react';
+import { motion } from 'motion/react';
 import { cn } from '@/src/lib/utils';
 
 interface AnimatedSectionProps {
   children: ReactNode;
   className?: string;
   as?: 'section' | 'div';
+  delay?: number;
 }
 
 export function AnimatedSection({
   children,
   className,
   as: Tag = 'div',
+  delay = 0,
 }: AnimatedSectionProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-80px' });
+  const MotionTag = motion[Tag as keyof typeof motion] as typeof motion.div;
 
   return (
-    <Tag
-      ref={ref}
-      className={cn(
-        'transition-all duration-[600ms]',
-        isInView
-          ? 'translate-y-0 opacity-100'
-          : 'translate-y-6 opacity-0',
-        className,
-      )}
-      style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
+    <MotionTag
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-80px' }}
+      transition={{
+        duration: 0.7,
+        delay,
+        ease: [0.16, 1, 0.3, 1],
+      }}
+      className={className}
     >
       {children}
-    </Tag>
+    </MotionTag>
   );
 }

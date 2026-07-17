@@ -14,6 +14,8 @@ const buttonVariants = cva(
         secondary:
           'border-2 border-muted text-foreground hover:border-primary hover:text-primary bg-transparent',
         ghost: 'text-muted hover:text-foreground bg-transparent',
+        glass:
+          'bg-white/[0.05] backdrop-blur-xl border border-white/[0.10] text-white hover:bg-white/[0.10] hover:border-white/[0.20] shadow-sm',
       },
       size: {
         sm: 'px-3 py-1.5 text-sm',
