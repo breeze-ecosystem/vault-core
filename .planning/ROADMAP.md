@@ -165,7 +165,7 @@ Plans:
 - [x] 05-06-PLAN.md — Mobile Parity Batch 1: API Functions + 8 Simple Screens (POL-02)
 
 **Wave 6** *(blocked on Wave 5)*
-- [ ] 05-07-PLAN.md — Mobile Parity Batch 2: 11 Complex Screens + Navigation (POL-02)
+- [x] 05-07-PLAN.md — Mobile Parity Batch 2: 11 Complex Screens + Navigation (POL-02)
 
 **Wave 7** *(blocked on Wave 6)*
 - [ ] 05-08-PLAN.md — Final Mobile Verification + Cross-Platform Audit (POL-01, POL-02, POL-03, POL-04)
