@@ -4,8 +4,8 @@ milestone: v3.0
 milestone_name: Production Readiness & Hardware Integration
 status: executing
 stopped_at: Complete — Phase 3 all plans executed
-last_updated: "2026-07-17T18:47:33.056Z"
-last_activity: 2026-07-17 -- Phase 04 planning complete
+last_updated: "2026-07-17T18:49:20.343Z"
+last_activity: 2026-07-17 -- Phase 04 execution started
 progress:
   total_phases: 5
   completed_phases: 2
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-17)
 
 **Core value:** Correlate every physical security event with video evidence and AI analysis in real time, so security operators know what happened, where, and what to do — without switching between disconnected systems.
-**Current focus:** Phase 3 — Visitor Kiosk
+**Current focus:** Phase 04 — marketing-site-redesign
 
 ## Current Position
 
-Phase: 3 of 5 (Visitor Kiosk)
-Plan: 4/4 plans (03-04 complete)
-Status: Ready to execute
-Last activity: 2026-07-17 -- Phase 04 planning complete
+Phase: 04 (marketing-site-redesign) — EXECUTING
+Plan: 1 of 10
+Status: Executing Phase 04
+Last activity: 2026-07-17 -- Phase 04 execution started
 
 Progress: [██████████] 100%
 

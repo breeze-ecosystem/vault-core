@@ -106,8 +106,8 @@ Plans:
 
 **Wave 1**
 
-- [ ] 04-01-PLAN.md — CSS & Design Token Foundation (Wave 1)
-- [ ] 04-02-PLAN.md — Shared UI Components (Wave 1)
+- [x] 04-01-PLAN.md — CSS & Design Token Foundation (Wave 1)
+- [x] 04-02-PLAN.md — Shared UI Components (Wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -153,5 +153,5 @@ Plans:
 | 1. Infrastructure Foundation | 3/3 | Complete | 2026-07-17 |
 | 2. Hardware Integration | 0/5 | Not started | - |
 | 3. Visitor Kiosk | 4/4 | Complete | 2026-07-17 |
-| 4. Marketing Site Redesign | 0/0 | Not started | - |
+| 4. Marketing Site Redesign | 2/10 | In Progress|  |
 | 5. Bug Fixing & Cross-Platform Polish | 0/0 | Not started | - |
