@@ -66,7 +66,13 @@ Plans:
   2. Kiosk prints a visitor badge on the connected thermal/ZPL printer upon successful check-in with visitor name, host, timestamp, and photo
   3. Visitor scans their badge QR code at check-out — exit timestamp is recorded, host receives check-out notification
   4. Kiosk deploys as standalone Docker container with CUPS printing bundled — boots directly into fullscreen kiosk mode on startup with no manual intervention
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [x] 03-01-PLAN.md — Kiosk App Scaffold + Docker Infrastructure (KIO-04)
+- [ ] 03-02-PLAN.md — NestJS Kiosk Backend — Auth + Print Endpoint (KIO-02, KIO-04)
+- [ ] 03-03-PLAN.md — Kiosk Frontend — Core UI Components (KIO-01, KIO-03)
+- [ ] 03-04-PLAN.md — Kiosk Frontend — Printing, Success, Check-out, Error Screens (KIO-01, KIO-02, KIO-03)
 **UI hint**: yes
 
 ### Phase 4: Marketing Site Redesign
@@ -99,6 +105,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Infrastructure Foundation | 3/3 | Complete | 2026-07-17 |
 | 2. Hardware Integration | 0/5 | Not started | - |
-| 3. Visitor Kiosk | 0/0 | Not started | - |
+| 3. Visitor Kiosk | 1/4 | In progress | 2026-07-17 |
 | 4. Marketing Site Redesign | 0/0 | Not started | - |
 | 5. Bug Fixing & Cross-Platform Polish | 0/0 | Not started | - |

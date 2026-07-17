@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Production Readiness & Hardware Integration
 status: planning
-stopped_at: Phase 2 UI-SPEC approved
-last_updated: "2026-07-17T12:00:00.000Z"
-last_activity: 2026-07-17 — Phase 3 context gathered
+stopped_at: Phase 3 UI-SPEC approved
+last_updated: "2026-07-17T16:52:36.000Z"
+last_activity: 2026-07-17 — Plan 03-01 complete
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 4
+  completed_plans: 1
+  percent: 25
 ---
 
 # Project State
@@ -26,25 +26,25 @@ See: .planning/PROJECT.md (updated 2026-07-17)
 ## Current Position
 
 Phase: 3 of 5 (Visitor Kiosk)
-Plan: 0/0 plans (context gathered, ready for planning)
-Status: Context ready
-Last activity: 2026-07-17 — Phase 3 context gathered
+Plan: 1/4 plans (03-01 complete)
+Status: In progress
+Last activity: 2026-07-17 — Plan 03-01 (kiosk scaffold) complete
 
-Progress: [████░░░░░░] 40%
+Progress: [███████░░░] 70%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
-- Average duration: — min
-- Total execution time: — hours
+- Total plans completed: 1
+- Average duration: 42 min
+- Total execution time: 0.7 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| — | — | — | — |
+| 003 Kiosk | 1 | 1 | 42 min |
 
 **Recent Trend:**
 
@@ -66,6 +66,11 @@ Recent decisions affecting current work:
 - [v3.0 Roadmap]: KIO (visitor kiosk) is Phase 3 — depends on Phase 1 for Docker infrastructure; parallelizable with Phase 2
 - [v3.0 Roadmap]: MKT (marketing redesign) is Phase 4 — fully independent frontend work, no infra dependencies
 - [v3.0 Roadmap]: POL (bug fixing) is Phase 5 — final pass after all feature phases complete
+- [03-01 Kiosk Scaffold]: Three-stage Docker build (deps + builder + runner) — matches dashboard pattern, avoids node_modules resolution issues
+- [03-01 Kiosk Scaffold]: Custom CUPS configuration allowing local admin — default Alpine CUPS requires auth for lpadmin
+- [03-01 Kiosk Scaffold]: CUPS entrypoint with readiness polling + retry — more reliable than fixed sleep
+- [03-01 Kiosk Scaffold]: autoprefixer as explicit devDep — required for Docker build (not hoisted from workspace)
+- [03-01 Kiosk Scaffold]: apps/kiosk/app/page.tsx added as build requirement — Next.js 14 needs at least one page
 
 ### Pending Todos
 
@@ -88,6 +93,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-17T12:00:00.000Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/003-visitor-kiosk/003-CONTEXT.md
+Last session: 2026-07-17T16:52:36.000Z
+Stopped at: Plan 03-01 complete (kiosk scaffold)
+Resume file: .planning/phases/003-visitor-kiosk/03-01-SUMMARY.md
