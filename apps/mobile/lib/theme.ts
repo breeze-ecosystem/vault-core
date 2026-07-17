@@ -20,15 +20,22 @@ export const colors = {
 };
 
 export const typography = {
+  // TODO: Reconcile with @repo/design/src/typography.ts (phase 5 action)
+  // Canonical scale: display 28px, heading 20px, body 14px, label 12px
+  display: { fontSize: 28, fontWeight: "600" as const, color: colors.text, lineHeight: 1.2 },
+  heading: { fontSize: 20, fontWeight: "600" as const, color: colors.text, lineHeight: 1.2 },
+  body: { fontSize: 14, fontWeight: "400" as const, color: colors.text, lineHeight: 1.5 },
+  label: { fontSize: 12, fontWeight: "600" as const, color: colors.textMuted, letterSpacing: 1 },
+  // Transitional: will be removed during reconciliation phase
   h1: { fontSize: 24, fontWeight: "700" as const, color: colors.text, letterSpacing: -0.5 },
   h2: { fontSize: 20, fontWeight: "600" as const, color: colors.text, letterSpacing: -0.3 },
   h3: { fontSize: 16, fontWeight: "600" as const, color: colors.text },
-  body: { fontSize: 15, color: colors.text, lineHeight: 21 },
   caption: { fontSize: 13, color: colors.textSecondary },
   small: { fontSize: 11, color: colors.textMuted },
-  mono: { fontSize: 24, fontWeight: "600" as const, color: colors.text, fontVariant: ["tabular-nums" as any] },
+  // Monospace is a font-family variant, not a separate size.
+  // Use monospace font-family at heading (20px) or body (14px) sizes.
+  mono: { fontSize: 20, fontWeight: "600" as const, color: colors.text, fontVariant: ["tabular-nums" as any] },
   monoSmall: { fontSize: 14, fontWeight: "600" as const, color: colors.text, fontVariant: ["tabular-nums" as any] },
-  label: { fontSize: 11, fontWeight: "600" as const, color: colors.textMuted, textTransform: "uppercase" as const, letterSpacing: 1 },
 };
 
 export const spacing = {

@@ -42,8 +42,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   value: {
-    ...typography.mono,
-    fontSize: 28,
+    ...typography.display,
   },
   title: {
     ...typography.caption,
