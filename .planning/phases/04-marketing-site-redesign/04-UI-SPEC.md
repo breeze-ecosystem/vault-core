@@ -49,23 +49,29 @@ Exceptions: `py-24` (96px) and `py-32` (128px) allowed for section outer vertica
 
 ## Typography
 
-| Role | Size | Weight | Line Height |
-|------|------|--------|-------------|
-| Display (H1, hero) | 56px | 600 (semibold) | 1.1 |
-| Heading (H2, section titles) | 32px | 600 (semibold) | 1.2 |
-| Subheading (H3) | 20px | 600 (semibold) | 1.3 |
-| Body | 16px | 400 (regular) | 1.6 |
-| Label / Nav | 14px | 600 (semibold) | 1.2 |
-| Small / Meta | 12px | 400 (regular) | 1.4 |
+Declared sizes (exactly 4):
+
+| Role | Size | Weight | Line Height | Coverage Notes |
+|------|------|--------|-------------|----------------|
+| Display (H1, hero) | 56px | 600 (semibold) | 1.1 | Hero headlines, major landing titles |
+| Heading (H2, section titles) | 32px | 600 (semibold) | 1.2 | Section headings, feature titles |
+| Body — text | 16px | 400 (regular) | 1.6 | Paragraphs, descriptions, card text |
+| Body — subheading | 16px | 600 (semibold) | 1.5 | H3, card titles, emphasis — same size as body, differentiated by weight |
+| Label / Nav | 14px | 600 (semibold) | 1.2 | Navigation links, buttons, badges, overline labels |
+| Small / Meta | 14px | 400 (regular) | 1.4 | Metadata, timestamps, fine print — same size as label, differentiated by weight + muted color |
 
 **Weights declared:** 2 — 400 (regular) + 600 (semibold). No 700 (bold) used.
 
+**Absorption rationale:**
+- Subheading (H3) at 20px removed. H3 content uses **16px weight 600** (same size as body, semibold for visual hierarchy). This avoids an extra size while preserving the visual distinction between body text and subheadings.
+- Small / Meta at 12px removed. Metadata uses **14px weight 400** with `text-muted` (`#94a3b8`) or `text-muted-light` color treatment to differentiate from nav labels (14px weight 600).
+
 **Font pairings:**
 - Display + Heading: **Plus Jakarta Sans** (geometric, premium feel)
-- Body + Label + Small: **Inter** (high legibility at all sizes)
+- Body + Label + Small + Nav: **Inter** (high legibility at all sizes)
 - Code + Data: **JetBrains Mono** at 14px weight 500
 
-**Source:** CONTEXT.md D-07. Exact sizes proposed by UI researcher and confirmed by user.
+**Source:** CONTEXT.md D-07. Sizes consolidated per UI checker verification rules (max 4 sizes). User confirmed original sizing direction.
 
 ---
 
