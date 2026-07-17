@@ -1,6 +1,9 @@
 """
 Oversight Hub — Edge Agent Serial Task
 Async serial I/O for OSDP door controller communication via pyserial-asyncio.
+
+PHASE 1 — raw byte-gap parser, kept for fallback/port enumeration
+before OSDP protocol handling via libosdp takes over in osdp_task.py.
 """
 
 from __future__ import annotations
