@@ -149,10 +149,10 @@ Plans:
 Plans:
 
 **Wave 1**
-- [ ] 05-01-PLAN.md — Foundation: Parity Matrix + Dependencies + Sentry Setup (POL-02, POL-03)
+- [x] 05-01-PLAN.md — Foundation: Parity Matrix + Dependencies + Sentry Setup (POL-02, POL-03)
 
 **Wave 2** *(blocked on Wave 1)*
-- [ ] 05-02-PLAN.md — Dashboard Bug Audit + Fix (POL-01)
+- [x] 05-02-PLAN.md — Dashboard Bug Audit + Fix (POL-01)
 - [ ] 05-03-PLAN.md — Dashboard i18n Audit & Translation Coverage (POL-04)
 
 **Wave 3** *(blocked on Wave 2)*
@@ -178,4 +178,4 @@ Plans:
 | 2. Hardware Integration | 0/5 | Not started | - |
 | 3. Visitor Kiosk | 4/4 | Complete | 2026-07-17 |
 | 4. Marketing Site Redesign | 10/10 | Complete   | 2026-07-17 |
-| 5. Bug Fixing & Cross-Platform Polish | 0/8 | Not started | - |
+| 5. Bug Fixing & Cross-Platform Polish | 2/8 | In Progress|  |
