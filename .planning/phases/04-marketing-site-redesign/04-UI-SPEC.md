@@ -1,7 +1,8 @@
 ---
 phase: 4
 slug: marketing-site-redesign
-status: draft
+status: approved
+reviewed_at: 2026-07-17
 shadcn_initialized: false
 preset: none
 created: 2026-07-17
