@@ -55,7 +55,7 @@ export function FAQSection() {
       <Container>
         <AnimatedSection>
           <div className="mx-auto max-w-3xl">
-            <h2 className="mb-12 text-center text-3xl font-semibold text-foreground sm:text-[36px]">
+            <h2 className="mb-12 text-center text-3xl font-display font-semibold text-white sm:text-[36px]">
               Frequently asked questions
             </h2>
 
@@ -63,16 +63,16 @@ export function FAQSection() {
               {faqItems.map((item, index) => (
                 <details
                   key={index}
-                  className="group rounded-xl border border-border bg-white transition-shadow duration-200 hover:shadow-sm [&_summary::-webkit-details-marker]:hidden"
+                  className="group rounded-xl border border-white/5 bg-white/[0.03] backdrop-blur-xl transition-shadow duration-200 hover:bg-white/[0.06] [&_summary::-webkit-details-marker]:hidden"
                 >
                   <summary className="flex cursor-pointer items-center justify-between px-6 py-5 text-left list-none">
-                    <span className="pr-4 text-sm font-medium text-foreground">
+                    <span className="pr-4 text-sm font-semibold text-white">
                       {item.question}
                     </span>
-                    <ChevronDown className="h-4 w-4 shrink-0 text-muted transition-transform duration-300 group-open:rotate-180" />
+                    <ChevronDown className="h-4 w-4 shrink-0 text-[#64748b] transition-transform duration-300 group-open:rotate-180" />
                   </summary>
-                  <div className="border-t border-border px-6 pb-5 pt-4">
-                    <p className="text-sm leading-relaxed text-muted">
+                  <div className="border-t border-white/10 px-6 pb-5 pt-4">
+                    <p className="text-sm leading-relaxed text-[#94a3b8]">
                       {item.answer}
                     </p>
                   </div>

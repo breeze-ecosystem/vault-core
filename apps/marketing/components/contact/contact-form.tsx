@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { Loader2 } from 'lucide-react';
 import { FormField } from '@/components/contact/form-field';
 import { TurnstileWidget, type TurnstileWidgetHandle } from '@/components/contact/turnstile-widget';
 import { SuccessMessage } from '@/components/contact/success-message';
 import { ErrorMessage } from '@/components/contact/error-message';
+import { GlassPanel } from '@/components/shared/glass-panel';
+import { Button } from '@/components/ui/button';
 import { submitContact } from '@/src/lib/contact';
 
 type FormStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -102,6 +103,7 @@ export function ContactForm() {
   const isRateLimited = errorMessage.includes('Too many requests');
 
   return (
+    <GlassPanel className="p-8">
     <form onSubmit={handleSubmit} className="space-y-6" noValidate>
       {errorMessage && status === 'error' && (
         <div className="mb-4">
@@ -176,20 +178,16 @@ export function ContactForm() {
         />
       </div>
 
-      <button
+      <Button
         type="submit"
+        variant="primary"
+        size="lg"
+        className="w-full"
         disabled={status === 'loading'}
-        className="inline-flex w-full items-center justify-center rounded-lg bg-cyan-500 px-6 py-3 text-base font-semibold text-white transition-all duration-200 hover:bg-cyan-400 hover:scale-[1.02] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+        isLoading={status === 'loading'}
       >
-        {status === 'loading' ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
-            Sending...
-          </>
-        ) : (
-          'Send Message'
-        )}
-      </button>
+        {status === 'loading' ? 'Sending...' : 'Send Message'}
+      </Button>
 
       <p className="text-center text-sm text-white/40">
         Or email us directly:{' '}
@@ -201,5 +199,6 @@ export function ContactForm() {
         </a>
       </p>
     </form>
+    </GlassPanel>
   );
 }

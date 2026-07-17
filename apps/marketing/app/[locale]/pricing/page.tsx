@@ -119,7 +119,7 @@ export default async function PricingPage({ params }: Props) {
               ))}
             </div>
 
-            <p className="mt-10 text-center text-sm text-muted">
+            <p className="mt-10 text-center text-sm text-[#94a3b8]">
               All plans include a 14-day free trial. No credit card required.
             </p>
           </Container>
@@ -129,7 +129,7 @@ export default async function PricingPage({ params }: Props) {
         <Section variant="alt" className="!py-16 md:!py-24">
           <Container>
             <AnimatedSection>
-              <h2 className="mb-10 text-center text-2xl font-semibold text-foreground sm:text-[30px]">
+              <h2 className="mb-10 text-center text-2xl font-display font-semibold text-white sm:text-[30px]">
                 Compare plans in detail
               </h2>
               <FeatureComparisonTable />
