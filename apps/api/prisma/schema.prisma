@@ -67,6 +67,8 @@ enum NotificationChannel {
   EMAIL
   WEBHOOK
   IN_APP
+  WHATSAPP
+  SMS
 }
 
 enum NotificationStatus {
@@ -441,6 +443,13 @@ model Organization {
   idpConfig         IdpConfig?
   webhookSubscriptions WebhookSubscription[]
   webhookDeliveries    WebhookDelivery[]
+  // Phase 2: VISION Pack relations
+  faceWhitelists       FaceWhitelist[]
+  streamShares         StreamShare[]
+  geofencingConfig     GeofencingConfig?
+  dndSchedule          DNDSchedule?
+  alertChannelConfigs  AlertChannelConfig[]
+  recordingConfig      RecordingConfig?
 }
 
 model Camera {
@@ -465,13 +474,18 @@ model Camera {
   onvifSerialNumber String?
   // Phase 2: PTZ presets (JSON array of { token, name, snapshotUrl })
   ptzPresets        Json?
+  // Phase 2: VISION pack camera extensions
+  detectionConfidence Float?  // Per-camera sensitivity override (VIS-10)
+  substreamUrl         String? // SD stream URL for adaptive quality (VIS-05)
+  recordingEnabled     Boolean @default(true) // Per-camera recording toggle
   createdAt         DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
-  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  alerts       Alert[]
-  prompts      CameraPrompt[]
-  cameraDoorMaps CameraDoorMap[]
+  organization    Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  alerts          Alert[]
+  prompts         CameraPrompt[]
+  cameraDoorMaps  CameraDoorMap[]
+  detectionZones  DetectionZone[]
 
   @@index([organizationId])
 }
@@ -526,6 +540,7 @@ model User {
   acceptedInvites          Invite[]               @relation("InviteAcceptor")
   tenantApiKeys            TenantApiKey[]
   webhookSubscriptions     WebhookSubscription[]
+  createdStreamShares      StreamShare[]
 }
 
 // ─── Multi-Tenancy: Organization Member Join Table ───
@@ -628,6 +643,126 @@ model CameraPrompt {
   updatedAt DateTime      @updatedAt
 
   camera       Camera       @relation(fields: [cameraId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+}
+
+// ─── Phase 2: VISION Pack Models ───
+
+model FaceWhitelist {
+  id              String   @id @default(uuid())
+  organizationId  String
+  name            String
+  imageBase64     String   // The uploaded face photo
+  embeddingBase64 String?  // Computed by AI preprocessor (base64-encoded float32 array)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+}
+
+model DetectionZone {
+  id        String   @id @default(uuid())
+  cameraId  String
+  name      String
+  polygon   Json     // Array of [x,y] vertices in native camera resolution coordinates
+  isActive  Boolean  @default(true)
+  sensitivity Float? // Per-zone override
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  camera Camera @relation(fields: [cameraId], references: [id], onDelete: Cascade)
+
+  @@index([cameraId])
+}
+
+model StreamShare {
+  id              String    @id @default(uuid())
+  organizationId  String
+  token           String    @unique
+  cameraIds       Json      // Array of camera IDs
+  durationHours   Int
+  expiresAt       DateTime
+  status          String    @default("ACTIVE") // ACTIVE / REVOKED / EXPIRED
+  createdById     String
+  lastAccessedAt  DateTime?
+  accessCount     Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  createdBy    User         @relation(fields: [createdById], references: [id])
+
+  @@index([organizationId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model GeofencingConfig {
+  id                     String    @id @default(uuid())
+  organizationId         String    @unique
+  enabled                Boolean   @default(true)
+  trustedSsids           Json      // Array of WiFi SSID strings
+  armDelayMinutes        Int       @default(10)
+  absenceTimeoutMinutes  Int       @default(15)
+  reinforcedSensitivity  Boolean   @default(true)
+  manualArm              Boolean   @default(false)
+  manualArmUntil         DateTime?
+  scheduleEnabled        Boolean   @default(false)
+  scheduleJson           Json?     // Day-of-week schedule config
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+}
+
+model DNDSchedule {
+  id              String   @id @default(uuid())
+  organizationId  String   @unique
+  enabled         Boolean  @default(false)
+  scheduleJson    Json     // Days-of-week with time ranges per day
+  criticalOverride Boolean @default(true) // CRITICAL alerts bypass DND
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+}
+
+model AlertChannelConfig {
+  id                String   @id @default(uuid())
+  organizationId    String
+  channel           String   // "PUSH", "SMS", "WHATSAPP"
+  enabled           Boolean  @default(true)
+  configJson        Json     @default("{}") // Phone number for SMS, whatsapp status, etc.
+  modemDetected     Boolean? // For SMS
+  whatsappConnected Boolean? @default(false)
+  whatsappQrCode    String?  // Base64 QR code for WhatsApp Web connection
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([organizationId, channel])
+  @@index([organizationId])
+}
+
+model RecordingConfig {
+  id                 String   @id @default(uuid())
+  organizationId     String   @unique
+  retentionDays      Int      @default(7) // 7 / 15 / 30
+  codec              String   @default("h264") // "h264" or "h265"
+  storagePath        String   @default("/mnt/recordings")
+  estimatedStorageGb Float?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
   organization Organization @relation(fields: [organizationId], references: [id])
 
   @@index([organizationId])
