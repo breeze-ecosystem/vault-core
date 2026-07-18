@@ -374,3 +374,56 @@ export type { CreateIdpConfigInput, UpdateIdpConfigInput } from "./schemas/sso.s
 // Schemas - Compliance (Enterprise)
 export { generateComplianceReportSchema } from "./schemas/compliance.schema";
 export type { GenerateComplianceReportInput } from "./schemas/compliance.schema";
+
+// ── VISION Pack ──
+export {
+  faceWhitelistSchema,
+  updateFaceWhitelistSchema,
+  detectionZoneSchema,
+  updateDetectionZoneSchema,
+  createStreamShareSchema,
+  geofencingConfigSchema,
+  updateGeofencingConfigSchema,
+  dndScheduleSchema,
+  updateDndScheduleSchema,
+  alertChannelConfigSchema,
+  recordingConfigSchema,
+  updateRecordingConfigSchema,
+} from "./schemas/vision";
+export type {
+  FaceWhitelistInput,
+  UpdateFaceWhitelistInput,
+  DetectionZoneInput,
+  UpdateDetectionZoneInput,
+  CreateStreamShareInput,
+  GeofencingConfigInput,
+  UpdateGeofencingConfigInput,
+  DNDScheduleInput,
+  UpdateDNDScheduleInput,
+  AlertChannelConfigInput,
+  RecordingConfigInput,
+  UpdateRecordingConfigInput,
+} from "./schemas/vision";
+
+export type {
+  FaceWhitelist,
+  DetectionZone,
+  StreamShare,
+  GeofencingConfig,
+  GeofencingArmStatus,
+  DNDSchedule,
+  DNDDaySchedule,
+  AlertChannelConfig,
+  RecordingConfig,
+} from "./types/vision";
+
+export {
+  VISION_MAX_CAMERAS,
+  VISION_MAX_FACES,
+  VISION_MAX_SECONDARY_USERS,
+  VISION_MAX_RETENTION_DAYS,
+  SHARE_DURATIONS,
+  GEOFENCING_DEFAULT_ARM_DELAY,
+  GEOFENCING_DEFAULT_TIMEOUT,
+  ALERT_CHANNELS,
+} from "./constants/index";
