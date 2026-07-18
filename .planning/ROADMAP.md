@@ -11,7 +11,7 @@
 
 - [ ] **Phase 1: Architecture & License Foundation** — Refactor license system (generation in vault-app, activation in vault-os), feature gating VISION/BASTION, mode dégradé, vault-app admin portal foundation
 - [ ] **Phase 2: VISION Pack** (1/8 plans) — Complete all 23 VISION features: streaming, AI detection, WhatsApp/SMS alerts, local storage, geofencing, multi-user, sharing
-- [ ] **Phase 3: BASTION AI & Access Control** — Advanced AI (facial rec, anti-spoofing, weapons, behavior), access control integrations, multi-site management
+- [x] **Phase 3: BASTION AI & Access Control** — Advanced AI (facial rec, anti-spoofing, weapons, behavior), access control integrations, multi-site management (completed 2026-07-18)
 - [ ] **Phase 4: BASTION Enterprise** — HAPDP compliance, reports & analytics, API/webhooks, advanced storage, third-party integrations
 - [ ] **Phase 5: Launch Readiness** — vault-app usage dashboard, marketing pages, documentation, support SLA, training
 
@@ -108,24 +108,24 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — AI Preprocessor BASTION detection pipeline (weapons, abandoned, crowd, behavior, face, anti-spoofing)
-- [ ] 03-02-PLAN.md — Schema foundation + shared package + Qdrant faces (models, types, Zod schemas, roles)
+- [x] 03-01-PLAN.md — AI Preprocessor BASTION detection pipeline (weapons, abandoned, crowd, behavior, face, anti-spoofing)
+- [x] 03-02-PLAN.md — Schema foundation + shared package + Qdrant faces (models, types, Zod schemas, roles)
 
 **Wave 3** *(blocked on Wave 1 completion)*
 
-- [ ] 03-03-PLAN.md — Backend APIs (face enrollment, access groups, video correlation, multi-site, RBAC, SSO)
+- [x] 03-03-PLAN.md — Backend APIs (face enrollment, access groups, video correlation, multi-site, RBAC, SSO)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 03-04-PLAN.md — Dashboard multi-site + admin UI (sites, RBAC editor, SSO config, global search)
+- [x] 03-04-PLAN.md — Dashboard multi-site + admin UI (sites, RBAC editor, SSO config, global search)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 03-05-PLAN.md — Dashboard face + access control UI (enrollment, credentials, schedules, events)
+- [x] 03-05-PLAN.md — Dashboard face + access control UI (enrollment, credentials, schedules, events)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 03-06-PLAN.md — Mobile + integration tests (face capture, site switcher, access log, tests)
+- [x] 03-06-PLAN.md — Mobile + integration tests (face capture, site switcher, access log, tests)
 
 ---
 
@@ -145,8 +145,18 @@ Plans:
 4. HAPDP compliance features: assisted declaration wizard (auto-filled PDF), processing register with CSV/PDF export, camera consent signage module (timestamped proof), pseudonymization of sensitive data, subject access self-service portal (view/rectify/delete), and access traceability (who viewed what when)
 5. REST API is documented and authenticated locally; webhooks push events to internal systems; fire alarm and BMS integrations correlate smoke detection with video
 
-**Plans**: TBD
+**Plans**: 7 plans
+**Wave structure**: 4 waves (Wave 1: foundation, Wave 2: 3 parallel backend, Wave 3: 2 parallel UI, Wave 4: final wiring)
 **UI hint**: yes
+
+Plans:
+- [ ] 04-01-PLAN.md — Schema + Shared Package + Pseudonymization (Wave 1)
+- [ ] 04-02-PLAN.md — Reports & Analytics Backend (Wave 2)
+- [ ] 04-03-PLAN.md — HAPDP Compliance Backend (Wave 2)
+- [ ] 04-04-PLAN.md — Advanced Storage & Archiving Backend (Wave 2)
+- [ ] 04-05-PLAN.md — Analytics + HAPDP Dashboard UI (Wave 3)
+- [ ] 04-06-PLAN.md — Storage Dashboard UI (Wave 3)
+- [ ] 04-07-PLAN.md — API/Webhooks/Integrations + Final Wiring (Wave 4)
 
 ---
 
@@ -177,6 +187,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Architecture & License Foundation | 8/8 | Complete | 2026-07-18 |
 | 2. VISION Pack | 0/8 | Planning complete | - |
-| 3. BASTION AI & Access Control | 0/6 | Planning complete | - |
-| 4. BASTION Enterprise | 0/0 | Not started | - |
+| 3. BASTION AI & Access Control | 6/6 | Complete   | 2026-07-18 |
+| 4. BASTION Enterprise | 0/7 | Planning complete | - |
 | 5. Launch Readiness | 0/0 | Not started | - |
