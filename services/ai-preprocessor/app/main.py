@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routes import health, inference, anpr, detection, audio, face_recognition, enhance
+from app.routes import health, inference, anpr, detection, audio, face_recognition, enhance, detection_bastion
 
 app = FastAPI(
     title="OVERSIGHT AI - Preprocessor",
@@ -24,3 +24,4 @@ app.include_router(detection.router, prefix=settings.API_V1_PREFIX)
 app.include_router(audio.router, prefix=settings.API_V1_PREFIX)
 app.include_router(face_recognition.router, prefix=settings.API_V1_PREFIX)
 app.include_router(enhance.router, prefix=settings.API_V1_PREFIX)
+app.include_router(detection_bastion.router, prefix=settings.API_V1_PREFIX)
