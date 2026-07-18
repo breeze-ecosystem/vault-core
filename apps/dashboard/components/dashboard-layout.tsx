@@ -6,6 +6,7 @@ import { Header } from "./header";
 import { useSidebar } from "./sidebar-provider";
 import { cn } from "@/lib/utils";
 import { PageTransition } from "@/components/page-transition";
+import { LicenseExpiryBanner } from "@/components/license-expiry-banner";
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
   const { isCollapsed } = useSidebar();
@@ -21,6 +22,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         )}
       >
         <Header />
+        <LicenseExpiryBanner />
         <main className="flex-1 p-6 pt-4">
           <PageTransition>{children}</PageTransition>
         </main>
