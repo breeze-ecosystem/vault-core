@@ -1,5 +1,5 @@
 import { fetchWithAuth } from "@/lib/auth-client";
-import type { BastionKpisDto, AnalyticsTrendPoint } from "@repo/shared";
+import type { BastionKpisDto, AnalyticsTrendPoint, SubjectDataDto } from "@repo/shared";
 
 if (!process.env.NEXT_PUBLIC_API_URL) {
   console.error("NEXT_PUBLIC_API_URL is not defined. Set it in .env or .env.local");
@@ -4120,4 +4120,68 @@ export async function downloadReport(reportId: string): Promise<void> {
   a.download = `${reportId}.pdf`;
   a.click();
   window.URL.revokeObjectURL(url);
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// HAPDP Subject Access Portal (BAS-34) — Public endpoints (no auth required)
+// ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Subject Access: Request OTP for identity verification.
+ * POST /api/compliance/subject-access/request-otp
+ */
+export async function requestSubjectAccessOtp(
+  email: string,
+): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(`${API_URL}/api/compliance/subject-access/request-otp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: "Erreur lors de la demande de code" }));
+    throw new Error(err.message || "Erreur lors de la demande de code");
+  }
+  return res.json();
+}
+
+/**
+ * Subject Access: Verify OTP and retrieve personal data.
+ * POST /api/compliance/subject-access/verify-otp
+ */
+export async function verifySubjectAccessOtp(
+  email: string,
+  code: string,
+): Promise<SubjectDataDto> {
+  const res = await fetch(`${API_URL}/api/compliance/subject-access/verify-otp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, code }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: "Code invalide ou expiré" }));
+    throw new Error(err.message || "Code invalide ou expiré");
+  }
+  return res.json();
+}
+
+/**
+ * Subject Access: Submit a rectification or deletion request.
+ * POST /api/compliance/subject-access/submit-request
+ */
+export async function submitSubjectAccessRequest(
+  email: string,
+  type: "rectify" | "delete",
+  details?: string,
+): Promise<{ referenceId: string }> {
+  const res = await fetch(`${API_URL}/api/compliance/subject-access/submit-request`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, type, details }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: "Erreur lors de la soumission de la demande" }));
+    throw new Error(err.message || "Erreur lors de la soumission de la demande");
+  }
+  return res.json();
 }
