@@ -53,6 +53,8 @@ export default Sentry.wrap(function RootLayout() {
           <Stack.Screen name="camera/[id]" options={{ title: "Caméra", headerBackTitle: "Retour" }} />
           <Stack.Screen name="alert/[id]" options={{ title: "Alerte", headerBackTitle: "Retour" }} />
           <Stack.Screen name="notifications" options={{ title: "Notifications", headerBackTitle: "Paramètres" }} />
+          <Stack.Screen name="visages/ajouter" options={{ title: "Ajouter un visage", headerBackTitle: "Visages", presentation: "modal" }} />
+          <Stack.Screen name="partager/[token]" options={{ headerShown: false }} />
         </Stack>
       </AuthProvider>
     </I18nProvider>
