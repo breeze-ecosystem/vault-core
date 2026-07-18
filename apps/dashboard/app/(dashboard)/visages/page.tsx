@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { PageTransition } from '@/components/page-transition';
 import { GlassCard } from '@/components/glass-card';
@@ -11,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { FaceUploadDropzone } from '@/components/face-upload-dropzone';
 import { FaceRecognitionBadge } from '@/components/face-recognition-badge';
+import { FaceGrid } from '@/components/face-grid';
 import {
   Dialog,
   DialogContent,
@@ -25,14 +27,25 @@ import {
   Trash2,
   Users,
   UserX,
+  Shield,
 } from 'lucide-react';
 import { toast } from '@/components/ui/toast';
-import { getFaces, addFace, deleteFace, type FaceEntry } from '@/lib/api';
+import {
+  getFaces,
+  addFace,
+  deleteFace,
+  getBastionFaces,
+  type FaceEntry,
+  type BastionFaceEntry,
+} from '@/lib/api';
 
 const MAX_FACES = 50;
 
 export default function VisagesPage() {
+  const router = useRouter();
   const [faces, setFaces] = useState<FaceEntry[]>([]);
+  const [bastionFaces, setBastionFaces] = useState<BastionFaceEntry[]>([]);
+  const [bastionTotal, setBastionTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,14 +53,28 @@ export default function VisagesPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<FaceEntry | null>(null);
   const [uploading, setUploading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isBastion, setIsBastion] = useState<boolean | null>(null);
 
   useEffect(() => {
     setLoading(true);
     setError(null);
-    getFaces()
-      .then(setFaces)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+
+    // Try BASTION API first — if it works, we're in BASTION mode
+    getBastionFaces({ page: 1, limit: 100 })
+      .then((result) => {
+        setIsBastion(true);
+        setBastionFaces(result.data);
+        setBastionTotal(result.total);
+        setLoading(false);
+      })
+      .catch(() => {
+        // BASTION not available — fall back to VISION faces
+        setIsBastion(false);
+        return getFaces()
+          .then(setFaces)
+          .catch((e) => setError(e.message))
+          .finally(() => setLoading(false));
+      });
   }, [refreshKey]);
 
   const filteredFaces = useMemo(() => {
@@ -97,8 +124,8 @@ export default function VisagesPage() {
 
   const limitReached = faces.length >= MAX_FACES;
 
-  // ── Loading state ──────────────────────────────────────────────────────
-  if (loading) {
+  // ── Loading state ──
+  if (loading && isBastion === null) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-48" />
@@ -114,7 +141,59 @@ export default function VisagesPage() {
     );
   }
 
-  // ── Error state ────────────────────────────────────────────────────────
+  // ── BASTION mode ──
+  if (isBastion === true) {
+    return (
+      <PageTransition>
+        <div className="space-y-6">
+          <PageHeader
+            title="Visages — Reconnaissance faciale"
+            description={`${bastionTotal} visage${bastionTotal !== 1 ? 's' : ''} — BASTION illimité`}
+            action={{
+              label: 'Enrôler un visage',
+              icon: Plus,
+              onClick: () => router.push('/visages/nouveau'),
+            }}
+          />
+
+          {/* BASTION badge */}
+          <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2">
+            <Shield className="h-4 w-4 text-primary" />
+            <span className="text-xs font-medium text-primary/80">
+              Reconnaissance faciale illimitée — pack BASTION
+            </span>
+          </div>
+
+          {/* Search + filter */}
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1 max-w-xs">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher par nom..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+
+          {/* BASTION face grid */}
+          <FaceGrid
+            faces={bastionFaces}
+            loading={loading}
+            error={error}
+            onRetry={() => setRefreshKey((k) => k + 1)}
+            onAddFace={() => router.push('/visages/nouveau')}
+            total={bastionTotal}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+          />
+        </div>
+      </PageTransition>
+    );
+  }
+
+  // ── Error state (VISION fallback only) ──
   if (error) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
@@ -132,6 +211,7 @@ export default function VisagesPage() {
     );
   }
 
+  // ── VISION mode (default) ──
   return (
     <PageTransition>
       <div className="space-y-6">
@@ -191,7 +271,7 @@ export default function VisagesPage() {
           </GlassCard>
         )}
 
-        {/* Face grid */}
+        {/* Face grid (VISION) */}
         {filteredFaces.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {filteredFaces.map((face) => (
