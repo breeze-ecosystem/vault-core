@@ -393,18 +393,155 @@ model VehicleList {
 
 model RetentionPolicy {
   id                String   @id @default(uuid())
-  eventType         String   @unique
+  eventType         String
   tableType         String // 'timescaledb' or 'prisma'
   retentionDays     Int
   enabled           Boolean  @default(true)
   classification    String? // 'PII', 'security', 'audit', 'operational'
   exportBeforePurge Boolean  @default(false)
   exportFormat      String? // 'PDF' or 'CSV'
+  // Phase 4: per-site override (null = global policy)
+  siteId            String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
+  @@unique([eventType])
   @@index([eventType])
   @@index([enabled])
+  @@index([siteId])
+}
+
+// ─── Phase 4: HAPDP Compliance — Processing Record (BAS-31) ───
+
+model ProcessingRecord {
+  id             String   @id @default(uuid())
+  organizationId String
+  eventType      String // e.g., "ACCESS_GRANTED", "ALERT_CREATED"
+  entityType     String // e.g., "incident", "alert", "access_event"
+  entityId       String
+  action         String // e.g., "CREATE", "VIEW", "UPDATE"
+  performedById  String?
+  performedAt    DateTime @default(now())
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+  @@index([eventType])
+}
+
+// ─── Phase 4: HAPDP Compliance — Subject Access Request (BAS-34) ───
+
+model SubjectAccessRequest {
+  id             String    @id @default(uuid())
+  organizationId String
+  email          String
+  requestType    String // "VIEW" | "RECTIFY" | "DELETE"
+  status         String    @default("PENDING") // PENDING | APPROVED | REJECTED | COMPLETED
+  details        String?
+  otpCode        String?
+  otpExpiresAt   DateTime?
+  adminNote      String?
+  createdById    String?
+  approvedById   String?
+  approvedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([email])
+  @@index([organizationId])
+}
+
+// ─── Phase 4: Forensic Evidence (BAS-27) ───
+
+model ForensicEvidence {
+  id             String   @id @default(uuid())
+  eventId        String
+  organizationId String
+  mediaType      String // "zip" | "clip"
+  zipPath        String
+  tsaCertPath    String
+  hash           String
+  sizeBytes      Int?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+}
+
+// ─── Phase 4: NAS Backup Config (BAS-29) ───
+
+model BackupConfig {
+  id             String    @id @default(uuid())
+  organizationId String    @unique
+  targetPath     String
+  username       String?
+  password       String?
+  schedule       String    @default("daily")
+  enabled        Boolean   @default(false)
+  lastBackupAt   DateTime?
+  lastStatus     String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  jobs         BackupJob[]
+}
+
+// ─── Phase 4: NAS Backup Job Log (BAS-29) ───
+
+model BackupJob {
+  id             String    @id @default(uuid())
+  backupConfigId String
+  organizationId String
+  status         String // "RUNNING" | "SUCCESS" | "FAILED"
+  sizeBytes      BigInt?
+  error          String?
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+
+  backupConfig BackupConfig @relation(fields: [backupConfigId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([backupConfigId])
+}
+
+// ─── Phase 4: Integration Endpoint (BAS-43, BAS-44) ───
+
+model IntegrationEndpoint {
+  id             String    @id @default(uuid())
+  organizationId String
+  type           String // "fire_alarm" | "bms"
+  name           String
+  isActive       Boolean   @default(true)
+  config         Json
+  lastEventAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([organizationId, type])
+}
+
+// ─── Phase 4: Camera Consent Signage (BAS-32) ───
+
+model ConsentSignage {
+  id             String   @id @default(uuid())
+  organizationId String
+  cameraId       String
+  siteName       String
+  pdfPath        String
+  generatedAt    DateTime @default(now())
+  generatedById  String
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([cameraId])
 }
 
 // ─── Organization Model (renamed from Site) ───
@@ -468,6 +605,16 @@ model Organization {
   accessGroups           AccessGroup[]
   credentialSiteAccesses CredentialSiteAccess[]
   facePassages           FacePassage[]
+  // Phase 4: BASTION Enterprise
+  pseudonymizationEnabled Boolean @default(false)
+  nasConfig               Json?
+  processingRecords       ProcessingRecord[]
+  subjectAccessRequests   SubjectAccessRequest[]
+  forensicEvidence        ForensicEvidence[]
+  backupConfig            BackupConfig?
+  backupJobs              BackupJob[]
+  integrationEndpoints    IntegrationEndpoint[]
+  consentSignages         ConsentSignage[]
 }
 
 model Camera {
