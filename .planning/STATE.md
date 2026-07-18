@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Phase 03 complete
-last_updated: "2026-07-18T21:28:08.517Z"
+last_updated: "2026-07-18T21:38:54.553Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 21
-  completed_plans: 19
+  completed_plans: 20
   percent: 40
 ---
 
@@ -39,13 +39,13 @@ progress:
 ## Current Position
 
 Phase: 04 (bastion-enterprise) — EXECUTING
-Plan: 6 of 7
+Plan: 7 of 7
 | Dimension | Value |
 |-----------|-------|
 | Current Phase | Phase 4: BASTION Enterprise |
-| Current Plan | Plan 06 — Storage Dashboard UI (next) |
+| Current Plan | Plan 07 — Webhook & Fire Alarm UI (next) |
 | Phase Status | In Progress |
-| Phase Progress | ██████████░░ 43% |
+| Phase Progress | ████████████░ 57% |
 
 ---
 
@@ -63,6 +63,7 @@ Plan: 6 of 7
 | Phase 04-bastion-enterprise P03 | 6min | 2 tasks | 9 files |
 | Phase 04-bastion-enterprise P04 | 24min | 3 tasks | 13 files |
 | Phase 04-bastion-enterprise P05 | 23min | 3 tasks | 14 files |
+| Phase 04-bastion-enterprise P06 | 20min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -164,6 +165,10 @@ completed: 2026-07-18
 # Phase 4: BASTION Enterprise — Plan 04 Summary
 
 **Per-site/per-event retention policies, RFC 3161 TSA-certified forensic evidence export, and cron-driven NAS auto-backup with integrity verification**
+
+- [Phase 04-bastion-enterprise]: Retention form uses local event type list with DEFAULT_EVENT_TYPES fallback when API event types not provided — Retention form uses local event type list with DEFAULT_EVENT_TYPES fallback when API event types not provided
+- [Phase 04-bastion-enterprise]: Backup credentials (password/username) start empty — not returned by GET /config per T-04-18 — Backup credentials (password/username) start empty — not returned by GET /config per T-04-18
+- [Phase 04-bastion-enterprise]: Certification progress uses simulated progress steps while BullMQ processes (client-side polling model) — Certification progress uses simulated progress steps while BullMQ processes (client-side polling model)
 
 ## Performance
 
