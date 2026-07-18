@@ -2600,6 +2600,66 @@ export async function setTimedPass(visitId: string, timeWindowStart: string, tim
   return res.json();
 }
 
+// ─── Forensic Evidence Types & API Functions (04-04) ───
+
+export interface ForensicEvidenceDto {
+  id: string;
+  eventId: string;
+  organizationId: string;
+  mediaType: "zip" | "clip";
+  zipPath: string;
+  tsaCertPath: string;
+  hash: string;
+  sizeBytes: number | null;
+  createdAt: string;
+}
+
+/**
+ * Certify evidence for an event (async via BullMQ).
+ * POST /api/forensic/certify
+ */
+export async function certifyEvidence(
+  eventId: string,
+  mediaType: "zip" | "clip",
+): Promise<{ jobId: string; status: string }> {
+  const res = await fetchWithAuth(`${API_URL}/api/forensic/certify`, {
+    method: "POST",
+    body: JSON.stringify({ eventId, mediaType }),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de la certification de la preuve");
+  }
+  return res.json();
+}
+
+/**
+ * List forensic evidence (paginated).
+ * GET /api/forensic/evidence
+ */
+export async function getEvidenceList(
+  page?: number,
+  limit?: number,
+): Promise<{ data: ForensicEvidenceDto[]; total: number; page: number; limit: number }> {
+  const searchParams = new URLSearchParams();
+  if (page) searchParams.set("page", String(page));
+  if (limit) searchParams.set("limit", String(limit));
+  const qs = searchParams.toString() ? `?${searchParams.toString()}` : "";
+  const res = await fetchWithAuth(`${API_URL}/api/forensic/evidence${qs}`);
+  if (!res.ok) throw new Error("Échec du chargement des preuves judiciaires");
+  return res.json();
+}
+
+/**
+ * Download certified evidence ZIP.
+ * GET /api/forensic/evidence/:id/download
+ */
+export async function downloadEvidence(id: string): Promise<Blob> {
+  const res = await fetchWithAuth(`${API_URL}/api/forensic/evidence/${id}/download`);
+  if (!res.ok) throw new Error("Échec du téléchargement de la preuve");
+  return res.blob();
+}
+
 // ─── Phase 8: Credential Lifecycle ───
 
 export async function revokeCredential(credentialId: string, reason: string): Promise<void> {

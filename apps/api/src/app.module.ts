@@ -59,6 +59,7 @@ import { RolesGuard } from './common/guards/roles.guard';
 import { FeatureGateGuard } from './common/guards/feature-gate.guard';
 import { LicenseExpiryGuard } from './modules/license/guards/license-expiry.guard';
 import { FeatureGateModule } from './modules/feature-gate/feature-gate.module';
+import { ForensicModule } from './modules/forensic/forensic.module';
 import { DndModule } from './modules/dnd/dnd.module';
 import { GeofencingModule } from './modules/geofencing/geofencing.module';
 import { HermesModule } from './modules/hermes/hermes.module';
@@ -110,6 +111,7 @@ import { ReportingModule } from './modules/reporting/report.module';
     EventModule,
     FaceRecognitionModule,
     FeatureGateModule,
+    ForensicModule,
     GeofencingModule,
     GovernanceModule,
     HealthModule,
