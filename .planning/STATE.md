@@ -1,3 +1,17 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: unknown
+last_updated: "2026-07-18T14:51:57.771Z"
+progress:
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
+---
+
 # STATE: VaultOS v1.0
 
 **Project**: VaultOS — Self-hosted AI video surveillance
@@ -13,6 +27,7 @@
 **Current Focus**: Establish foundation architecture (license system, feature gating, vault-app admin portal) then complete VISION and BASTION packs per founders' spec.
 
 **Key Decisions**:
+
 - vault-os = product deployed at client sites; vault-app = admin portal for VaultOS teams
 - License generation in vault-app; activation only in vault-os
 - 2 fixed packs only (VISION + BASTION), no custom packs
@@ -45,6 +60,7 @@
 ## Accumulated Context
 
 ### Decisions Made
+
 | Decision | Rationale |
 |----------|-----------|
 | 5 phases for coarse granularity | 78 requirements naturally cluster into 5 delivery boundaries; 4 would overload Phase 4 with 30 requirements |
@@ -57,15 +73,18 @@
 | ADM-04 (usage dashboard) in Phase 5 | Usage stats require production data to be meaningful; must come after product features ship |
 
 ### TODOs
+
 - [ ] `/gsd-plan-phase 1` — Architecture & License Foundation
 - [ ] Research WhatsApp Business API integration options
 - [ ] Research SMS gateway providers for Niger/West Africa
 - [ ] Research HAPDP compliance requirements (Niger data protection authority)
 
 ### Blockers
+
 - None currently
 
 ### Risks
+
 | Risk | Mitigation |
 |------|------------|
 | WhatsApp Business API approval delays | Start Phase 2 research early; prepare SMS-only fallback |
@@ -74,6 +93,7 @@
 | SMS modem compatibility | Support common GSM modems (Huawei, ZTE) via PPP/AT commands |
 
 ### Existing Code Reuse Notes
+
 - Video ingestion pipeline, camera management, ONVIF discovery — already built, minor alignment needed for VIS-01
 - Alert system (BullMQ + Socket.IO) — extend for WhatsApp/SMS channels
 - Access control (OSDP, badges, QR, zones) — upgrade for BAS-07 to BAS-12 specifics
@@ -90,6 +110,7 @@
 **Next session trigger**: `/gsd-plan-phase 1`
 
 ### Context for Next Agent
+
 - License refactor is the hardest dependency: vault-app needs admin auth + org CRUD + key generation before vault-os can validate
 - Feature gating (FREE/PROFESSIONAL/ENTERPRISE → VISION/BASTION+modules) touches every module in vault-os
 - Mode dégradé and read-only on expiry need infrastructure for local license caching and grace period tracking
