@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { PrismaService } from "../prisma/prisma.service";
 import { Prisma, AlertSeverity } from "@prisma/client";
 import { LicenseService } from "../license/license.service";
@@ -33,6 +34,7 @@ export class CameraService {
   constructor(
     private prisma: PrismaService,
     private licenseService: LicenseService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async findAll(filters?: { status?: string; organizationId?: string; page?: number; limit?: number }) {
@@ -109,19 +111,42 @@ export class CameraService {
       }
     }
 
-    return this.prisma.camera.create({
+    const created = await this.prisma.camera.create({
       data,
       include: { organization: { select: { id: true, name: true } } },
     });
+
+    // Notify recording service to start recording if enabled
+    if (created.recordingEnabled && created.rtspUrl) {
+      this.eventEmitter.emit("camera.created", {
+        cameraId: created.id,
+        rtspUrl: created.rtspUrl,
+        organizationId: created.organizationId,
+      });
+    }
+
+    return created;
   }
 
   async update(id: string, data: Prisma.CameraUpdateInput) {
-    await this.findById(id);
-    return this.prisma.camera.update({
+    const before = await this.findById(id);
+    const updated = await this.prisma.camera.update({
       where: { id },
       data,
       include: { organization: { select: { id: true, name: true } } },
     });
+
+    // If RTSP URL changed, notify recording to restart
+    const newRtspUrl = typeof data.rtspUrl === "string" ? data.rtspUrl : undefined;
+    if (newRtspUrl && newRtspUrl !== before.rtspUrl) {
+      this.eventEmitter.emit("camera.rtsp-changed", {
+        cameraId: updated.id,
+        rtspUrl: updated.rtspUrl as string,
+        organizationId: updated.organizationId,
+      });
+    }
+
+    return updated;
   }
 
   async remove(id: string) {

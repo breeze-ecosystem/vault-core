@@ -47,6 +47,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { RiskModule } from './modules/risk/risk.module';
 import { PatternsModule } from './modules/patterns/patterns.module';
 import { MaintenanceModule } from './modules/maintenance/maintenance.module';
+import { RecordingModule } from './modules/recording/recording.module';
 import { TenantContextMiddleware } from './common/middleware/tenant-context.middleware';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { TenantIsolationGuard } from './common/guards/tenant-isolation.guard';
@@ -120,6 +121,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     PatternsModule,
     PrismaModule,
     QueueModule,
+    RecordingModule,
     RiskModule,
     SsoModule,
     SupervisionModule,
