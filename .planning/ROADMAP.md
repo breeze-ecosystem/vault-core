@@ -10,7 +10,7 @@
 ## Phases
 
 - [ ] **Phase 1: Architecture & License Foundation** — Refactor license system (generation in vault-app, activation in vault-os), feature gating VISION/BASTION, mode dégradé, vault-app admin portal foundation
-- [ ] **Phase 2: VISION Pack** — Complete all 23 VISION features: streaming, AI detection, WhatsApp/SMS alerts, local storage, geofencing, multi-user, sharing
+- [ ] **Phase 2: VISION Pack** (1/8 plans) — Complete all 23 VISION features: streaming, AI detection, WhatsApp/SMS alerts, local storage, geofencing, multi-user, sharing
 - [ ] **Phase 3: BASTION AI & Access Control** — Advanced AI (facial rec, anti-spoofing, weapons, behavior), access control integrations, multi-site management
 - [ ] **Phase 4: BASTION Enterprise** — HAPDP compliance, reports & analytics, API/webhooks, advanced storage, third-party integrations
 - [ ] **Phase 5: Launch Readiness** — vault-app usage dashboard, marketing pages, documentation, support SLA, training
@@ -71,7 +71,7 @@ Plans:
 - [ ] 02-01-PLAN.md — Schema + Shared Package (Prisma models, Zod schemas, types)
 - [ ] 02-02-PLAN.md — AI Preprocessor (insightface face rec, night vision, detection pipeline)
 - [ ] 02-03-PLAN.md — Detection + Face + Camera API Backend (zones, whitelist CRUD, ONVIF)
-- [ ] 02-04-PLAN.md — Alerts, Geofencing, DND Backend (WhatsApp/SMS, arm/disarm, DND)
+- [x] 02-04-PLAN.md — Alerts, Geofencing, DND Backend (WhatsApp/SMS, arm/disarm, DND)
 - [ ] 02-05-PLAN.md — Recording, Timeline, Share, Multi-user Backend (HLS, clips, sharing)
 - [ ] 02-06-PLAN.md — Dashboard Camera + Detection + Face UI (live grid, zones canvas, face upload)
 - [ ] 02-07-PLAN.md — Dashboard Alerts + Recording + Settings UI (timeline, config pages)
