@@ -8,6 +8,8 @@ datasource db {
 }
 
 enum Role {
+  GLOBAL_ADMIN
+  SITE_ADMIN
   SUPER_ADMIN
   ADMIN
   SUPERVISOR
@@ -29,6 +31,8 @@ enum CredentialType {
   PIN
   MOBILE
   QR
+  FINGERPRINT
+  FACE
 }
 
 enum DayOfWeek {
@@ -99,6 +103,9 @@ model Credential {
   validUntil     DateTime?
   maxUses        Int?
   useCount       Int            @default(0)
+  // Phase 3: BASTION extended credential fields
+  fingerprintTemplateHash String?  // Fingerprint template hash (reference identifier per D-23)
+  faceEmbeddingId         String?  // UUID pointing to Qdrant face point for FACE credential type
   organizationId String
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -113,6 +120,7 @@ model Credential {
   organization    Organization  @relation(fields: [organizationId], references: [id])
   accessLevels    AccessLevel[]
   visits          Visit[]
+  siteAccesses    CredentialSiteAccess[]
 
   @@index([userId])
   @@index([type, badgeNumber])
@@ -419,28 +427,33 @@ model Organization {
   logoUrl         String?  // White-label: custom logo URL
   primaryColor    String?  // White-label: hex color (#RRGGBB)
   displayName     String?  // White-label: custom display name
+  // Phase 3: BASTION multi-site parent-child hierarchy
+  parentOrganizationId String?
+  maxSites            Int      @default(1)
   slaProfiles Json @default("{}")
   anprConfidenceThreshold Int @default(70)
   healthThresholds Json @default("{}")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  cameras           Camera[]
-  doors             Door[]
-  zones             Zone[]
-  incidents         Incident[]
-  members           OrganizationMember[]
-  invites           Invite[]
-  auditLogs         AuditLog[]
-  vehicleListEntries VehicleList[]
-  featureFlags      FeatureFlag[]
-  credentials       Credential[]
-  alerts            Alert[]
-  cameraPrompts     CameraPrompt[]
-  licenses          License[]
-  tenantApiKeys     TenantApiKey[]
-  controllers       Controller[]
-  idpConfig         IdpConfig?
+  parent              Organization?         @relation("OrgHierarchy", fields: [parentOrganizationId], references: [id])
+  children            Organization[]        @relation("OrgHierarchy")
+  cameras             Camera[]
+  doors               Door[]
+  zones               Zone[]
+  incidents           Incident[]
+  members             OrganizationMember[]
+  invites             Invite[]
+  auditLogs           AuditLog[]
+  vehicleListEntries  VehicleList[]
+  featureFlags        FeatureFlag[]
+  credentials         Credential[]
+  alerts              Alert[]
+  cameraPrompts       CameraPrompt[]
+  licenses            License[]
+  tenantApiKeys       TenantApiKey[]
+  controllers         Controller[]
+  idpConfig           IdpConfig?
   webhookSubscriptions WebhookSubscription[]
   webhookDeliveries    WebhookDelivery[]
   // Phase 2: VISION Pack relations
@@ -450,6 +463,10 @@ model Organization {
   dndSchedule          DNDSchedule?
   alertChannelConfigs  AlertChannelConfig[]
   recordingConfig      RecordingConfig?
+  // Phase 3: BASTION Pack relations
+  faces                  Face[]
+  accessGroups           AccessGroup[]
+  credentialSiteAccesses CredentialSiteAccess[]
 }
 
 model Camera {
@@ -551,16 +568,20 @@ model OrganizationMember {
   organizationId String
   role           Role
   isActive       Boolean  @default(true)
+  // Phase 3: BASTION access group membership
+  accessGroupId  String?
   joinedAt       DateTime @default(now())
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  accessGroup  AccessGroup? @relation(fields: [accessGroupId], references: [id])
 
   @@unique([userId, organizationId])
   @@index([organizationId])
   @@index([userId])
+  @@index([accessGroupId])
 }
 
 // ─── Multi-Tenancy: Invite Token Tracking ───
@@ -661,6 +682,59 @@ model FaceWhitelist {
 
   organization Organization @relation(fields: [organizationId], references: [id])
 
+  @@index([organizationId])
+}
+
+// ─── Phase 3: BASTION Pack — Face Recognition Model (supersedes FaceWhitelist for BASTION orgs) ───
+
+model Face {
+  id              String   @id @default(uuid())
+  organizationId  String
+  name            String
+  photoBase64     String   // The uploaded face photo (base64-encoded)
+  embeddingBase64 String?  // Base64-encoded float32 array (512-d ArcFace)
+  qdrantPointId   String?  // UUID pointing to Qdrant `faces` collection point
+  isBlacklisted   Boolean  @default(false)
+  riskThreshold   Int?     @default(85) // Per-person auto-unlock threshold per D-09
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+  @@index([isBlacklisted])
+}
+
+// ─── Phase 3: BASTION Pack — Access Group Model ───
+
+model AccessGroup {
+  id             String   @id @default(uuid())
+  name           String
+  organizationId String
+  description    String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  members      OrganizationMember[]
+
+  @@index([organizationId])
+}
+
+// ─── Phase 3: BASTION Pack — Credential Site Access Model (multi-site credential permissions) ───
+
+model CredentialSiteAccess {
+  id             String   @id @default(uuid())
+  credentialId   String
+  organizationId String  // child site ID
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  credential   Credential   @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([credentialId, organizationId])
   @@index([organizationId])
 }
 
