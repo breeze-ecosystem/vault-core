@@ -525,7 +525,7 @@ export function HapdpWizard({ onComplete, onClose }: HapdpWizardProps) {
     );
   }
 
-  const step = STEPS[currentStep];
+  const step = STEPS[currentStep]!
   const isFirst = currentStep === 0;
   const isLast = currentStep === STEPS.length - 1;
   const stepError = stepErrors[currentStep];
