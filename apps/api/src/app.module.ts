@@ -28,6 +28,7 @@ import { MqttModule } from './mqtt/mqtt.module';
 import { AccessModule } from './modules/access/access.module';
 import { BastionModule } from './modules/bastion/bastion.module';
 import { DoorModule } from './modules/door/door.module';
+import { MultiSiteModule } from './modules/multi-site/site.module';
 import { CorrelationModule } from './modules/correlation/correlation.module';
 import { IncidentModule } from './modules/incident/incident.module';
 import { VisitorModule } from './modules/visitor/visitor.module';
@@ -120,6 +121,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     MaintenanceModule,
     MqttModule,
     ModemModule,
+    MultiSiteModule,
     NotificationModule,
     NotificationsModule,
     OrganizationModule,

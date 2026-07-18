@@ -51,4 +51,55 @@ export class SiteService {
     await this.findById(id);
     return this.prisma.organization.update({ where: { id }, data: { isActive: false } });
   }
+
+  // ── BASTION Multi-site Extensions ──
+
+  /**
+   * Get KPI stats for a single site (BAS-13).
+   */
+  async getSiteStats(orgId: string) {
+    const site = await this.prisma.organization.findUnique({
+      where: { id: orgId },
+      select: { id: true, name: true, city: true, country: true },
+    });
+    if (!site) throw new NotFoundException("Site not found");
+
+    const [camerasTotal, camerasOnline, activeAlerts, zones, doors] = await Promise.all([
+      this.prisma.camera.count({ where: { organizationId: orgId } }),
+      this.prisma.camera.count({ where: { organizationId: orgId, status: "ONLINE" } }),
+      this.prisma.alert.count({ where: { organizationId: orgId, status: "OPEN" } }),
+      this.prisma.zone.count({ where: { organizationId: orgId } }),
+      this.prisma.door.count({ where: { organizationId: orgId } }),
+    ]);
+
+    const uptime = camerasTotal > 0 ? Math.round((camerasOnline / camerasTotal) * 100) : 0;
+
+    return {
+      ...site,
+      cameras: { total: camerasTotal, online: camerasOnline },
+      doors,
+      zones,
+      activeAlerts,
+      uptime: `${uptime}%`,
+    };
+  }
+
+  /**
+   * Get child organizations for a parent org.
+   */
+  async getChildren(orgId: string) {
+    return this.prisma.organization.findMany({
+      where: { parentOrganizationId: orgId, isActive: true },
+      select: {
+        id: true,
+        name: true,
+        city: true,
+        country: true,
+        isActive: true,
+        createdAt: true,
+        _count: { select: { cameras: true, doors: true, members: true } },
+      },
+      orderBy: { name: "asc" },
+    });
+  }
 }
