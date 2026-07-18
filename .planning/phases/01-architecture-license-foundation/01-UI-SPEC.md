@@ -48,7 +48,7 @@ Declared values (must be multiples of 4) — Tailwind defaults, already establis
 
 Exceptions:
 - **Activation wizard card:** `p-8` (32px) — slightly more generous than default card padding (20px) to feel substantial on first launch
-- **Expiry banner:** `py-2.5 px-4` (10px vertical, 16px horizontal) — compact to avoid stealing vertical space from dashboard content
+- **Expiry banner:** `py-3 px-4` (12px vertical, 16px horizontal) — compact to avoid stealing vertical space from dashboard content
 - **Touch targets:** minimum 44px height for all interactive elements in activation wizard (accessibility for first-run flow)
 
 ---
@@ -59,13 +59,10 @@ Exceptions:
 
 | Role | Size | Weight | Line Height | Usage |
 |------|------|--------|-------------|-------|
-| Body | 14px (text-sm) | 400 (normal) | 1.5 | Page content, descriptions, table cells |
-| Label | 12px (text-xs) | 600 (semibold) | 1.25 | Form labels, section titles, status badges |
-| Input | 14px (text-sm) | 400 (normal) | 1.5 | Text inputs, textareas, selects |
-| Heading | 16px (text-base) | 600 (semibold) | 1.25 | Card titles, dialog titles, section headings |
-| Display | 20px (text-xl) | 600 (semibold) | 1.2 | Page titles, wizard step headings |
-| Mono stat | 24px (text-2xl) | 600 (semibold) | 1.1 | Numeric values (camera count, days remaining) |
-| Caption | 11px (text-[11px]) | 500 (medium) | 1.4 | Timestamps, metadata, helper text |
+| Body + Input | 14px (text-sm) | 400 | 1.5 | Page content, descriptions, table cells, inputs |
+| Label + Caption | 12px (text-xs) | 600 | 1.25 | Form labels, section titles, status badges, timestamps, metadata, helper text |
+| Heading | 16px (text-base) | 600 | 1.25 | Card titles, dialog titles, section headings |
+| Display + Mono Stat | 24px (text-2xl) | 600 | 1.2 | Page titles, wizard step headings, numeric values, stats |
 
 **vault-app admin portal** (Inter + JetBrains Mono):
 
@@ -74,8 +71,7 @@ Exceptions:
 | Body | 14px | 400 | 1.5 | Table cells, descriptions |
 | Label | 12px | 600 | 1.25 | Form labels, section titles |
 | Heading | 16px | 600 | 1.25 | Card titles, table headers |
-| Page title | 24px | 700 | 1.2 | Admin page titles |
-| Mono stat | 20px | 600 | 1.1 | License key display, numeric IDs |
+| Page title + Mono stat | 24px | 600 | 1.2 | Admin page titles, license key display, numeric IDs |
 
 ---
 
@@ -196,7 +192,7 @@ The vault-app already has its own component library. Reuse these for admin porta
 1. User clicks "J'ai une clé de licence"
 2. Glass card smoothly expands (or reveals) text input + paste button
 3. Input: `Input` component, placeholder "Collez votre clé de licence", multi-line if key is long
-4. Paste button: `Button variant="outline" size="sm"` with `ClipboardPasteIcon` — uses `navigator.clipboard.readText()`
+4. Paste button: `Button variant="outline" size="sm"` with `ClipboardPasteIcon` and `aria-label="Coller"` — uses `navigator.clipboard.readText()`
 5. CTA: "Activer ma licence" — `Button variant="default" size="lg"` full-width
 6. Validation: client-side check for non-empty before submit; server error shown inline
 7. Loading: button shows spinner + "Activation en cours..."
@@ -522,11 +518,11 @@ All copy in French (French-first project). Copy in English only if the vault-app
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS — aria-label added to paste button
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS — reduced to 4 sizes, 2 weights per app
+- [x] Dimension 5 Spacing: PASS — expiry banner py-2.5 replaced with py-3
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-07-18
