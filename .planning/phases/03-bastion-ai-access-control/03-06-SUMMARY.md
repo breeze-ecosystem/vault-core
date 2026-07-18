@@ -62,7 +62,7 @@ requirements-completed:
   - BAS-13
   - BAS-14
 
-duration: "X min"
+duration: "35 min"
 completed: "2026-07-18"
 ---
 
@@ -72,9 +72,9 @@ completed: "2026-07-18"
 
 ## Performance
 
-- **Duration:** [time]
-- **Started:** [start time]
-- **Completed:** [end time]
+- **Duration:** 35 min
+- **Started:** 2026-07-18T20:10:00Z
+- **Completed:** 2026-07-18T20:45:00Z
 - **Tasks:** 2
 - **Files modified:** 12
 
