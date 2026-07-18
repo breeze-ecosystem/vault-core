@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Production Readiness & Hardware Integration
-status: executing
-stopped_at: Completed 05-07-PLAN.md
-last_updated: "2026-07-17T21:49:33.604Z"
-last_activity: 2026-07-17
+status: verifying
+last_updated: "2026-07-17T22:35:00.000Z"
+last_activity: 2026-07-18 - Completed quick task 260718-glp: Extraire marketing app + renommer oversight-hub→vault-os + cleanup dashboard admin pages
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 30
-  completed_plans: 24
-  percent: 60
+  completed_plans: 30
+  percent: 100
 ---
 
 # Project State
@@ -21,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-17)
 
 **Core value:** Correlate every physical security event with video evidence and AI analysis in real time, so security operators know what happened, where, and what to do — without switching between disconnected systems.
-**Current focus:** Phase 05 — bug-fixing-cross-platform-polish
+**Current focus:** Phase 02 — hardware-integration
 
 ## Current Position
 
-Phase: 05 (bug-fixing-cross-platform-polish) — EXECUTING
-Plan: 8 of 8
-Status: Ready to execute
-Last activity: 2026-07-17
+Phase: 02 (hardware-integration) — EXECUTING
+Plan: 5 of 5
+Status: All plans executed — ready for verification
+Last activity: 2026-07-17 -- All 5 hardware integration plans complete
 
 Progress: [████████░░] 80%
 
@@ -113,6 +112,12 @@ None yet.
 | v3.1 | HWR-07 Controller auto-discovery | Deferred | 2026-07-17 |
 | v3.1 | KIO-05 NFC card encoding | Deferred | 2026-07-17 |
 | v3.1 | POL-05 Performance benchmarks | Deferred | 2026-07-17 |
+
+## Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260718-glp | Extraire apps/marketing du monorepo oversight-hub vers /projects/vault-app/, renommer oversight-hub en vault-os, nettoyer le dashboard des pages admin | 2026-07-18 | (artifacts only) | [260718-glp-je-veux-parler-de-quelque-chose-d-import](./quick/260718-glp-je-veux-parler-de-quelque-chose-d-import/) |
 
 ## Session Continuity
 
