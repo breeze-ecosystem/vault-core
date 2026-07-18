@@ -12,6 +12,7 @@ export class SocketIoAdapter extends IoAdapter {
           "https://oversight-api.digitsoftafrica.com",
           "http://localhost:3100",
           "http://localhost:3000",
+          /^http:\/\/100\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+$/,
         ],
         credentials: true,
       },

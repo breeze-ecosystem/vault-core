@@ -158,8 +158,8 @@ export class MaintenanceService {
    * List maintenance tickets with optional filters and pagination.
    */
   async listTickets(params: MaintenanceQueryInput): Promise<{ data: MaintenanceTicketDto[]; total: number; page: number; limit: number }> {
-    const page = params.page || 1;
-    const limit = params.limit || 20;
+    const page = Number(params.page) || 1;
+    const limit = Number(params.limit) || 20;
     const skip = (page - 1) * limit;
 
     const where: any = { ticketType: "MAINTENANCE_TICKET" };
@@ -217,8 +217,8 @@ export class MaintenanceService {
     page?: number;
     limit?: number;
   }): Promise<{ data: UnifiedIncidentDto[]; total: number; page: number; limit: number }> {
-    const page = params.page || 1;
-    const limit = params.limit || 50;
+    const page = Number(params.page) || 1;
+    const limit = Number(params.limit) || 50;
     const skip = (page - 1) * limit;
 
     const where: any = {};

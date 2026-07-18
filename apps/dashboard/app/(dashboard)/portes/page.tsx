@@ -171,7 +171,7 @@ function DoorCard({
 export default function PortesPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const siteId = (user as any)?.siteId as string | undefined;
+  const orgId = user?.organizationId;
   const [doors, setDoors] = useState<DoorStateDto[]>([]);
   const [zones, setZones] = useState<ZoneDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -221,12 +221,13 @@ export default function PortesPage() {
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
+      auth: { orgId },
     });
 
     socket.on("connect", () => {
       setSocketConnected(true);
-      if (siteId) {
-        socket.emit("subscribe:site", { siteId });
+      if (orgId) {
+        socket.emit("subscribe:site", { orgId });
       }
     });
 
@@ -276,7 +277,7 @@ export default function PortesPage() {
     return () => {
       socket.disconnect();
     };
-  }, [siteId, loadDoors]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [orgId, loadDoors]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Held-open timer tick
   useEffect(() => {

@@ -5,7 +5,7 @@ import { login } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Eye, EyeOff, Shield, LogIn } from "lucide-react";
-import { fetchIdpConfig } from "@/lib/api";
+import { getAccessToken } from "@/lib/auth-client";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -17,8 +17,13 @@ export default function LoginPage() {
   const [ssoLoading, setSsoLoading] = useState(true);
 
   useEffect(() => {
-    fetchIdpConfig()
-      .then((config) => setHasSso('isActive' in (config ?? {}) ? !!(config as any).isActive : false))
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+    fetch(`${API_URL}/api/auth/sso/config`, {
+      headers: { "Content-Type": "application/json" },
+      ...(getAccessToken() ? { headers: { "Content-Type": "application/json", Authorization: `Bearer ${getAccessToken()}` } } : {}),
+    })
+      .then((res) => res.ok ? res.json() : { configured: false })
+      .then((config) => setHasSso("isActive" in config ? !!(config as any).isActive : false))
       .catch(() => {})
       .finally(() => setSsoLoading(false));
   }, []);

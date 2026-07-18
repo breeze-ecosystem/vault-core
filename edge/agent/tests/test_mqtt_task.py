@@ -45,10 +45,11 @@ def _make_mock_client(
     client.publish = AsyncMock() if publish_ok else AsyncMock(side_effect=aiomqtt.MqttError("pub fail"))
 
     # Message context manager
-    msgs = AsyncMock()
+    msgs = MagicMock()
     msgs.__aenter__ = AsyncMock(return_value=msgs)
     msgs.__aexit__ = AsyncMock(return_value=None)
-    msgs.__aiter__ = AsyncMock(return_value=_async_gen(*(messages or [])))
+    # __aiter__ must return an async iterator directly (not a coroutine)
+    msgs.__aiter__ = MagicMock(return_value=_async_gen(*(messages or [])))
     client.messages.return_value = msgs
 
     return client
@@ -144,12 +145,14 @@ class TestMQTTReconnect:
 
         with patch("tasks.mqtt_task.aiomqtt.Client", return_value=fail_client):
             shutdown = asyncio.Event()
-            settings = _mock_settings(MQTT_RECONNECT_INTERVAL=10)
+            # Use 1s reconnect so the test doesn't wait too long for sleep
+            settings = _mock_settings(MQTT_RECONNECT_INTERVAL=1)
             message_queue: asyncio.Queue = asyncio.Queue()
 
             task = asyncio.create_task(mqtt_handler(shutdown, settings, message_queue))
             await asyncio.sleep(0.2)
             shutdown.set()
+            # The handler will check shutdown after the 1s sleep and break
             await asyncio.wait_for(task, timeout=5.0)
 
         # Handler should exit cleanly — the task is done
@@ -185,7 +188,7 @@ class TestMQTTPublish:
         client.publish.assert_awaited_once()
         call_args = client.publish.await_args
         assert call_args is not None
-        assert call_args[0] == expected_topic
+        assert call_args[0][0] == expected_topic
 
     @pytest.mark.asyncio
     async def test_publish_door_state_payload(self) -> None:
@@ -207,7 +210,7 @@ class TestMQTTPublish:
 
         call_args = client.publish.await_args
         assert call_args is not None
-        payload = json.loads(call_args[1]["payload"])
+        payload = json.loads(call_args.kwargs["payload"])
         assert payload["device_id"] == "door-1"
         assert payload["state"] == "locked"
         assert isinstance(payload["sequence"], int)
@@ -235,7 +238,7 @@ class TestMQTTPublish:
         client.publish.assert_awaited_once()
         call_args = client.publish.await_args
         assert call_args is not None
-        assert call_args[0] == expected_topic
+        assert call_args[0][0] == expected_topic
 
     @pytest.mark.asyncio
     async def test_publish_controller_health_topic(self) -> None:
@@ -259,7 +262,7 @@ class TestMQTTPublish:
         client.publish.assert_awaited_once()
         call_args = client.publish.await_args
         assert call_args is not None
-        assert call_args[0] == expected_topic
+        assert call_args[0][0] == expected_topic
 
 
 # ── Subscribe ──────────────────────────────────────────────────────

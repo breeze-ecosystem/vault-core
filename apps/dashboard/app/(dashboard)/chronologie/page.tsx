@@ -59,7 +59,7 @@ function formatAbsoluteTime(iso: string): string {
 
 export default function ChronologiePage() {
   const { user } = useAuth();
-  const siteId = (user as any)?.siteId as string | undefined;
+  const orgId = user?.organizationId;
   const [events, setEvents] = useState<TimelineEntryDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -85,11 +85,11 @@ export default function ChronologiePage() {
   const timelineRef = useRef<HTMLDivElement>(null);
 
   const loadTimeline = useCallback(async () => {
-    if (!siteId) { setLoading(false); return; }
+    if (!orgId) { setLoading(false); return; }
     try {
       setLoading(true);
       setError(null);
-      const result = await fetchTimeline(siteId, { limit: 100 });
+      const result = await fetchTimeline(orgId, { limit: 100 });
       setEvents(result.data || []);
     } catch (err: any) {
       setError(err.message || "Echec du chargement");
@@ -97,7 +97,7 @@ export default function ChronologiePage() {
     } finally {
       setLoading(false);
     }
-  }, [siteId]);
+  }, [orgId]);
 
   const loadReferenceData = useCallback(async () => {
     try {
@@ -120,7 +120,7 @@ export default function ChronologiePage() {
 
     socket.on("connect", () => {
       setSocketConnected(true);
-      if (siteId) socket.emit("subscribe:site", siteId);
+      if (orgId) socket.emit("subscribe:site", orgId);
     });
     socket.on("disconnect", () => setSocketConnected(false));
 
@@ -174,7 +174,7 @@ export default function ChronologiePage() {
 
     return () => { socket.disconnect(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [siteId]);
+  }, [orgId]);
 
   function addLiveEvent(entry: TimelineEntryDto) {
     if (isScrolledUpRef.current) {
@@ -199,11 +199,11 @@ export default function ChronologiePage() {
   }
 
   async function executeSearch() {
-    if (!siteId) return;
+    if (!orgId) return;
     setSearchLoading(true);
     try {
       const result = await searchTimeline({
-        organizationId: siteId,
+        organizationId: orgId,
         from: filterFrom || undefined,
         to: filterTo || undefined,
         credentialId: filterCredential || undefined,
@@ -225,11 +225,11 @@ export default function ChronologiePage() {
   }
 
   async function loadMoreSearchResults() {
-    if (!siteId) return;
+    if (!orgId) return;
     const nextPage = searchPage + 1;
     try {
       const result = await searchTimeline({
-        organizationId: siteId,
+        organizationId: orgId,
         from: filterFrom || undefined,
         to: filterTo || undefined,
         credentialId: filterCredential || undefined,

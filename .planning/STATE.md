@@ -4,7 +4,7 @@ milestone: v3.0
 milestone_name: Production Readiness & Hardware Integration
 status: verifying
 last_updated: "2026-07-17T22:35:00.000Z"
-last_activity: 2026-07-18 - Completed quick task 260718-glp: Extraire marketing app + renommer oversight-hub→vault-os + cleanup dashboard admin pages
+last_activity: 2026-07-17 -- All 30 plans complete across all phases
 progress:
   total_phases: 5
   completed_phases: 3
@@ -112,12 +112,6 @@ None yet.
 | v3.1 | HWR-07 Controller auto-discovery | Deferred | 2026-07-17 |
 | v3.1 | KIO-05 NFC card encoding | Deferred | 2026-07-17 |
 | v3.1 | POL-05 Performance benchmarks | Deferred | 2026-07-17 |
-
-## Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 260718-glp | Extraire apps/marketing du monorepo oversight-hub vers /projects/vault-app/, renommer oversight-hub en vault-os, nettoyer le dashboard des pages admin | 2026-07-18 | (artifacts only) | [260718-glp-je-veux-parler-de-quelque-chose-d-import](./quick/260718-glp-je-veux-parler-de-quelque-chose-d-import/) |
 
 ## Session Continuity
 

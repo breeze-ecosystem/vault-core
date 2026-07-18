@@ -243,15 +243,15 @@ class TestSequenceField:
     """Verify that every event model includes a sequence field."""
 
     def test_door_state_has_sequence(self) -> None:
-        assert hasattr(DoorStatePayload.model_fields, "sequence")
+        assert "sequence" in DoorStatePayload.model_fields
         assert DoorStatePayload.model_fields["sequence"].annotation == int
 
     def test_badge_read_has_sequence(self) -> None:
-        assert hasattr(BadgeReadPayload.model_fields, "sequence")
+        assert "sequence" in BadgeReadPayload.model_fields
         assert BadgeReadPayload.model_fields["sequence"].annotation == int
 
     def test_health_payload_has_sequence(self) -> None:
-        assert hasattr(HealthPayload.model_fields, "sequence")
+        assert "sequence" in HealthPayload.model_fields
         assert HealthPayload.model_fields["sequence"].annotation == int
 
     @pytest.mark.parametrize(

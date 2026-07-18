@@ -4,13 +4,11 @@ import {
   AlertTriangle,
   Users,
   Bell,
-  Settings,
   MessageSquare,
   MapPin,
   Key,
   DoorOpen,
   Clock,
-  Shield,
   Car,
   Monitor,
   BarChart3,
@@ -18,11 +16,8 @@ import {
   Repeat,
   Wrench,
   ShieldAlert,
-  ShieldCheck,
   Building2,
   Zap,
-  FileText,
-  Globe,
   type LucideIcon,
 } from "lucide-react";
 import { hasMinRole, type Role } from "@repo/shared";
@@ -87,19 +82,6 @@ const groups: NavGroup[] = [
     ],
   },
   {
-    label: "Gouvernance",
-    icon: ShieldCheck,
-    minRole: "ADMIN" as Role,
-    items: [
-      { label: "Audit", href: "/audit", icon: Shield, minRole: "ADMIN" as Role },
-      { label: "Gouvernance", href: "/gouvernance", icon: ShieldCheck, minRole: "ADMIN" as Role },
-      { label: "Licences", href: "/licences", icon: Key, minRole: "ADMIN" as Role },
-      { label: "API Keys", href: "/api-keys", icon: Key, minRole: "ADMIN" as Role },
-      { label: "Webhooks", href: "/webhooks", icon: Globe, minRole: "ADMIN" as Role },
-      { label: "Conformité", href: "/conformite", icon: FileText, minRole: "ADMIN" as Role },
-    ],
-  },
-  {
     label: "Intelligence",
     icon: Zap,
     minRole: null,
@@ -114,7 +96,6 @@ const groups: NavGroup[] = [
     minRole: null,
     items: [
       { label: "Notifications", href: "/notifications", icon: Bell, minRole: null },
-      { label: "Paramètres", href: "/parametres", icon: Settings, minRole: null },
     ],
   },
 ];

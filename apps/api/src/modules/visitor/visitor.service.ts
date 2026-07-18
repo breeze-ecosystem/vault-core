@@ -394,9 +394,11 @@ export class VisitorService {
       if (filters.to) where.validFrom.lte = new Date(filters.to);
     }
 
-    // Site scope via host user
+    // Site scope via host user's membership
     if (filters.organizationId) {
-      where.host = { organizationId: filters.organizationId };
+      where.host = {
+        memberships: { some: { organizationId: filters.organizationId } },
+      };
     }
 
     const page = filters.page ?? 1;
@@ -499,8 +501,8 @@ export class VisitorService {
       ];
     }
 
-    const page = params.page ?? 1;
-    const limit = params.limit ?? 20;
+    const page = Number(params.page) || 1;
+    const limit = Number(params.limit) || 20;
 
     const [data, total] = await Promise.all([
       this.prisma.visitor.findMany({

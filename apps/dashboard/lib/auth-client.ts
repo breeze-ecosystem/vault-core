@@ -14,7 +14,8 @@ interface AuthResult {
   };
   organization?: {
     id: string;
-    name: string;
+    name?: string;
+    role?: string;
   };
   error?: string;
 }

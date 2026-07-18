@@ -63,9 +63,9 @@ class TestServiceStatus:
         cfg = MagicMock()
         cfg.services = {}
 
-        # The module imports container_running at call time.
-        # Patch it to always return False (Docker unavailable).
-        with patch("services.metrics.container_running", return_value=False):
+        # service_status imports container_running from services.docker at call time.
+        # Patch at the source to always return False (Docker unavailable).
+        with patch("services.docker.container_running", return_value=False):
             status = service_status(cfg)
 
         assert isinstance(status, dict)
@@ -78,7 +78,7 @@ class TestServiceStatus:
         cfg = MagicMock()
         cfg.services = {}
 
-        with patch("services.metrics.container_running", return_value=False):
+        with patch("services.docker.container_running", return_value=False):
             status = service_status(cfg)
 
         for service_name, running in status.items():
@@ -89,7 +89,7 @@ class TestServiceStatus:
         cfg = MagicMock()
         cfg.services = {"custom-app": "custom-container"}
 
-        with patch("services.metrics.container_running", return_value=True):
+        with patch("services.docker.container_running", return_value=True):
             status = service_status(cfg)
 
         assert "custom-app" in status
@@ -98,7 +98,7 @@ class TestServiceStatus:
         """service_status also accepts a plain dict."""
         cfg: dict[str, Any] = {"services": {"my-svc": "my-container"}}
 
-        with patch("services.metrics.container_running", return_value=True):
+        with patch("services.docker.container_running", return_value=True):
             status = service_status(cfg)
 
         assert "my-svc" in status
@@ -112,7 +112,7 @@ class TestRunHealthChecksSync:
         cfg = MagicMock()
         cfg.services = {}
 
-        with patch("services.metrics.container_running", return_value=False):
+        with patch("services.docker.container_running", return_value=False):
             with patch("services.metrics.check_ollama_health"):
                 status = run_health_checks_sync(cfg)
 
@@ -122,7 +122,7 @@ class TestRunHealthChecksSync:
         cfg = MagicMock()
         cfg.services = {}
 
-        with patch("services.metrics.container_running", return_value=False):
+        with patch("services.docker.container_running", return_value=False):
             with patch("services.metrics.check_ollama_health") as mock_ollama:
                 run_health_checks_sync(cfg)
 
@@ -132,7 +132,7 @@ class TestRunHealthChecksSync:
         cfg = MagicMock()
         cfg.services = {}
 
-        with patch("services.metrics.container_running", return_value=False):
+        with patch("services.docker.container_running", return_value=False):
             with patch("services.metrics.check_ollama_health"):
                 with patch("services.metrics.log.warning") as mock_log:
                     run_health_checks_sync(cfg)

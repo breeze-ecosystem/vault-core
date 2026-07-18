@@ -96,6 +96,7 @@ export class AuthController {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken, // Also in body for mobile
       user: result.user,
+      organization: result.organization,
     };
   }
 
@@ -137,6 +138,7 @@ export class AuthController {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
       user: result.user,
+      organization: result.organization,
     };
   }
 

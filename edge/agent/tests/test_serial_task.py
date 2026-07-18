@@ -27,14 +27,10 @@ class TestSerialReaderTimeout:
     async def test_read_timeout_loops_back(self) -> None:
         """TimeoutError on read should be caught and loop should continue."""
         reader = AsyncMock()
-        # First call raises TimeoutError, second call returns a byte
-        reader.readexactly = AsyncMock(
-            side_effect=[
-                asyncio.TimeoutError(),
-                b"\x00",  # byte after timeout
-            ]
-        )
-        reader.read = AsyncMock(side_effect=[b"\x01", b""])
+        # Use a dynamic side_effect that keeps raising TimeoutError to simulate
+        # an idle serial line, so the mock never runs out of entries.
+        reader.readexactly = AsyncMock(side_effect=asyncio.TimeoutError())
+        reader.read = AsyncMock(return_value=b"")
 
         writer = MagicMock()
         writer.close = MagicMock()
@@ -54,7 +50,7 @@ class TestSerialReaderTimeout:
             shutdown.set()
             await asyncio.wait_for(task, timeout=5.0)
 
-        # The reader should have been called at least twice (timeout + success)
+        # The reader should have been called multiple times before shutdown
         assert reader.readexactly.await_count >= 2
 
     @pytest.mark.asyncio
@@ -202,8 +198,26 @@ class TestSerialReaderMessageQueue:
         frame_bytes = b"\xff\xff\xff\xff\xff\xff\xff\xff"  # 8 bytes, valid OSDP-ish
 
         reader = AsyncMock()
-        reader.readexactly = AsyncMock(side_effect=[frame_bytes[:1], asyncio.TimeoutError()])
-        reader.read = AsyncMock(side_effect=[frame_bytes[1:3], frame_bytes[3:]])
+        # Use separate counters for readexactly and read, with callable
+        # side_effects that never exhaust (prevents StopAsyncIteration).
+        _rx_count: list[int] = [0]
+        _read_count: list[int] = [0]
+
+        async def _readexactly(n: int) -> bytes:
+            _rx_count[0] += 1
+            if _rx_count[0] == 1:
+                return frame_bytes[:1]
+            raise asyncio.TimeoutError()
+
+        reader.readexactly = AsyncMock(side_effect=_readexactly)
+
+        async def _read(n: int) -> bytes:
+            _read_count[0] += 1
+            if _read_count[0] == 1:
+                return frame_bytes[1:]
+            raise asyncio.TimeoutError()
+
+        reader.read = AsyncMock(side_effect=_read)
 
         writer = MagicMock()
         writer.close = MagicMock()
@@ -219,7 +233,7 @@ class TestSerialReaderMessageQueue:
             task = asyncio.create_task(
                 serial_reader(shutdown, "/dev/ttyUSB0", 9600, message_queue)
             )
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.2)
             shutdown.set()
             await asyncio.wait_for(task, timeout=5.0)
 
@@ -235,9 +249,27 @@ class TestSerialReaderMessageQueue:
     async def test_short_frame_discarded(self) -> None:
         """Frames shorter than 6 bytes should be discarded."""
         reader = AsyncMock()
-        # Return a 4-byte frame (too short)
-        reader.readexactly = AsyncMock(side_effect=[b"\x01", asyncio.TimeoutError()])
-        reader.read = AsyncMock(side_effect=[b"\x02", b"\x03"])
+        # Return byte-by-byte to build a 3-byte frame (too short).
+        _rx_count: list[int] = [0]
+        _read_count: list[int] = [0]
+
+        async def _readexactly(n: int) -> bytes:
+            _rx_count[0] += 1
+            if _rx_count[0] == 1:
+                return b"\x01"
+            raise asyncio.TimeoutError()
+
+        reader.readexactly = AsyncMock(side_effect=_readexactly)
+
+        async def _read(n: int) -> bytes:
+            _read_count[0] += 1
+            if _read_count[0] == 1:
+                return b"\x02"
+            if _read_count[0] == 2:
+                return b"\x03"
+            raise asyncio.TimeoutError()
+
+        reader.read = AsyncMock(side_effect=_read)
 
         writer = MagicMock()
         writer.close = MagicMock()

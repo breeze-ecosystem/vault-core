@@ -1,14 +1,12 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = 'oversight-v2';
+const CACHE_NAME = 'oversight-v3';
 
-// Static assets to pre-cache on install
 const PRECACHE_ASSETS = [
   '/',
   '/manifest.json',
 ];
 
-// Install: pre-cache shell assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_ASSETS)),
@@ -16,7 +14,6 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activate: purge old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -28,16 +25,13 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch strategy
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip non-GET and cross-origin
   if (request.method !== 'GET') return;
   if (url.origin !== location.origin) return;
 
-  // API / streaming routes → network-first
   if (
     url.pathname.startsWith('/api/') ||
     url.pathname.includes('/stream/') ||
@@ -47,11 +41,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets → cache-first
   event.respondWith(cacheFirst(request));
 });
 
-// ── Network-first ──────────────────────────────────────────────────────
 async function networkFirst(request) {
   try {
     const response = await fetch(request);
@@ -68,7 +60,6 @@ async function networkFirst(request) {
   }
 }
 
-// ── Cache-first ────────────────────────────────────────────────────────
 async function cacheFirst(request) {
   const cached = await caches.match(request);
   if (cached) return cached;
@@ -79,7 +70,6 @@ async function cacheFirst(request) {
     caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
     return response;
   } catch {
-    // Offline fallback for navigation requests
     if (request.mode === 'navigate') {
       const fallback = await caches.match('/');
       if (fallback) return fallback;

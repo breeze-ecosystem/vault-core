@@ -52,7 +52,7 @@ const WS_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 export default function DoorsPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const siteId = (user as any)?.siteId as string | undefined;
+  const orgId = user?.organizationId;
   const [doors, setDoors] = useState<DoorStateDto[]>([]);
   const [zones, setZones] = useState<ZoneDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -225,12 +225,13 @@ export default function DoorsPage() {
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
+      auth: { orgId },
     });
 
     socket.on("connect", () => {
       setSocketConnected(true);
-      if (siteId) {
-        socket.emit("subscribe:site", { siteId });
+      if (orgId) {
+        socket.emit("subscribe:site", { orgId });
       }
     });
 
@@ -284,7 +285,7 @@ export default function DoorsPage() {
     return () => {
       socket.disconnect();
     };
-  }, [siteId, loadDoors]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [orgId, loadDoors]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Held-open timer tick
   useEffect(() => {

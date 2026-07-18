@@ -54,9 +54,15 @@ def _mock_settings(**overrides: Any) -> MagicMock:
     return s
 
 
-def _mock_response(status: int = 200, body: str = "ok") -> AsyncMock:
-    """Create a mock aiohttp.ClientResponse."""
-    resp = AsyncMock()
+def _mock_response(status: int = 200, body: str = "ok") -> MagicMock:
+    """Create a mock aiohttp.ClientResponse.
+
+    Returns a MagicMock that works as an async context manager.
+    session.post() in aiohttp returns a response object directly (not a
+    coroutine), so ``session.post`` must be a plain MagicMock whose return
+    value supports ``async with``.
+    """
+    resp = MagicMock()
     resp.status = status
     resp.__aenter__ = AsyncMock(return_value=resp)
     resp.__aexit__ = AsyncMock(return_value=None)
@@ -90,8 +96,8 @@ class TestPostHeartbeat:
     async def test_payload_contains_required_fields(self) -> None:
         """Verify the heartbeat payload structure."""
         settings = _mock_settings(EDGE_AGENT_ID="edge-site-1")
-        session = AsyncMock()
-        session.post.return_value = _mock_response(200)
+        session = MagicMock()
+        session.post = MagicMock(return_value=_mock_response(200))
 
         with patch("services.metrics.system_metrics", return_value={"cpu": 10.0, "ram": 50.0, "disk": 60.0}):
             with patch("services.metrics.service_status", return_value={"api": True, "mosquitto": True}):
@@ -102,8 +108,8 @@ class TestPostHeartbeat:
                     timeout=aiohttp.ClientTimeout(total=10),
                 )
 
-        session.post.assert_awaited_once()
-        call_args = session.post.await_args
+        session.post.assert_called_once()
+        call_args = session.post.call_args
         assert call_args is not None
         payload = call_args.kwargs["json"]
 
@@ -120,8 +126,8 @@ class TestPostHeartbeat:
     @pytest.mark.asyncio
     async def test_system_metrics_included(self) -> None:
         settings = _mock_settings()
-        session = AsyncMock()
-        session.post.return_value = _mock_response(200)
+        session = MagicMock()
+        session.post = MagicMock(return_value=_mock_response(200))
         fake_metrics = {"cpu": 25.0, "ram": 45.0, "disk": 70.0}
 
         with patch("services.metrics.system_metrics", return_value=fake_metrics):
@@ -133,15 +139,15 @@ class TestPostHeartbeat:
                     timeout=aiohttp.ClientTimeout(total=10),
                 )
 
-        call_args = session.post.await_args
+        call_args = session.post.call_args
         assert call_args is not None
         assert call_args.kwargs["json"]["system"] == fake_metrics
 
     @pytest.mark.asyncio
     async def test_services_included(self) -> None:
         settings = _mock_settings()
-        session = AsyncMock()
-        session.post.return_value = _mock_response(200)
+        session = MagicMock()
+        session.post = MagicMock(return_value=_mock_response(200))
         fake_services = {"api": True, "mosquitto": False}
 
         with patch("services.metrics.system_metrics", return_value={}):
@@ -153,15 +159,15 @@ class TestPostHeartbeat:
                     timeout=aiohttp.ClientTimeout(total=10),
                 )
 
-        call_args = session.post.await_args
+        call_args = session.post.call_args
         assert call_args is not None
         assert call_args.kwargs["json"]["services"] == fake_services
 
     @pytest.mark.asyncio
     async def test_posts_to_correct_url(self) -> None:
         settings = _mock_settings()
-        session = AsyncMock()
-        session.post.return_value = _mock_response(200)
+        session = MagicMock()
+        session.post = MagicMock(return_value=_mock_response(200))
 
         with patch("services.metrics.system_metrics", return_value={}):
             with patch("services.metrics.service_status", return_value={}):
@@ -172,7 +178,7 @@ class TestPostHeartbeat:
                     timeout=aiohttp.ClientTimeout(total=10),
                 )
 
-        session.post.assert_awaited_once_with(
+        session.post.assert_called_once_with(
             "http://api.test/api/heartbeat",
             json=MOCK_ANY,
             timeout=MOCK_ANY,
@@ -189,8 +195,8 @@ class TestHeartbeatErrors:
     async def test_http_error_logged_and_continues(self) -> None:
         """aiohttp.ClientError should be caught, not propagated."""
         settings = _mock_settings()
-        session = AsyncMock()
-        session.post.side_effect = aiohttp.ClientError("connection refused")
+        session = MagicMock()
+        session.post = MagicMock(side_effect=aiohttp.ClientError("connection refused"))
 
         with patch("services.metrics.system_metrics", return_value={}):
             with patch("services.metrics.service_status", return_value={}):
@@ -206,8 +212,8 @@ class TestHeartbeatErrors:
     async def test_timeout_error_logged_and_continues(self) -> None:
         """asyncio.TimeoutError should be caught, not propagated."""
         settings = _mock_settings()
-        session = AsyncMock()
-        session.post.side_effect = asyncio.TimeoutError("timed out")
+        session = MagicMock()
+        session.post = MagicMock(side_effect=asyncio.TimeoutError("timed out"))
 
         with patch("services.metrics.system_metrics", return_value={}):
             with patch("services.metrics.service_status", return_value={}):
@@ -229,11 +235,12 @@ class TestSendHeartbeat:
     async def test_sends_heartbeat_on_startup(self) -> None:
         """An immediate heartbeat is sent before entering the interval loop."""
         shutdown = asyncio.Event()
-        settings = _mock_settings(HEARTBEAT_INTERVAL=60)
+        # Use a short interval so the test doesn't block for 60s
+        settings = _mock_settings(HEARTBEAT_INTERVAL=1)
 
         with patch("tasks.http_task.aiohttp.ClientSession") as mock_session:
-            instance = AsyncMock()
-            instance.post = AsyncMock(return_value=_mock_response(200))
+            instance = MagicMock()
+            instance.post = MagicMock(return_value=_mock_response(200))
             instance.__aenter__ = AsyncMock(return_value=instance)
             instance.__aexit__ = AsyncMock(return_value=None)
             mock_session.return_value = instance
@@ -246,7 +253,7 @@ class TestSendHeartbeat:
                     await asyncio.wait_for(task, timeout=5.0)
 
         # At least one POST (the immediate one) was made
-        assert instance.post.await_count >= 1
+        assert instance.post.call_count >= 1
 
 
 # ── health report ──────────────────────────────────────────────────
@@ -262,8 +269,8 @@ class TestHealthReport:
 
         with patch("services.metrics.run_health_checks_sync", return_value=fake_statuses) as mock_health:
             with patch("tasks.http_task.aiohttp.ClientSession") as mock_session:
-                instance = AsyncMock()
-                instance.post = AsyncMock(return_value=_mock_response(200))
+                instance = MagicMock()
+                instance.post = MagicMock(return_value=_mock_response(200))
                 instance.__aenter__ = AsyncMock(return_value=instance)
                 instance.__aexit__ = AsyncMock(return_value=None)
                 mock_session.return_value = instance
@@ -282,8 +289,8 @@ class TestHealthReport:
     @pytest.mark.asyncio
     async def test_health_report_posts_statuses(self) -> None:
         settings = _mock_settings()
-        session = AsyncMock()
-        session.post.return_value = _mock_response(200)
+        session = MagicMock()
+        session.post = MagicMock(return_value=_mock_response(200))
         fake_statuses = {"api": True, "mosquitto": False}
 
         with patch("services.metrics.run_health_checks_sync", return_value=fake_statuses):
@@ -294,8 +301,8 @@ class TestHealthReport:
                 timeout=aiohttp.ClientTimeout(total=10),
             )
 
-        session.post.assert_awaited_once()
-        call_args = session.post.await_args
+        session.post.assert_called_once()
+        call_args = session.post.call_args
         assert call_args is not None
         assert call_args.kwargs["json"] == fake_statuses
 
@@ -303,8 +310,8 @@ class TestHealthReport:
     async def test_health_report_error_handling(self) -> None:
         """HTTP errors in health report should be caught."""
         settings = _mock_settings()
-        session = AsyncMock()
-        session.post.side_effect = aiohttp.ClientError("fail")
+        session = MagicMock()
+        session.post = MagicMock(side_effect=aiohttp.ClientError("fail"))
 
         with patch("services.metrics.run_health_checks_sync", return_value={}):
             await _post_health_report(

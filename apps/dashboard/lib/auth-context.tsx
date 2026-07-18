@@ -9,11 +9,13 @@ interface User {
   firstName: string;
   lastName: string;
   role: string;
+  organizationId: string;
 }
 
 interface Organization {
   id: string;
-  name: string;
+  name?: string;
+  role?: string;
 }
 
 interface AuthContextType {
@@ -45,19 +47,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function init() {
       const stored = getUser();
+      const org = getOrganization();
       if (stored) {
-        setUser(stored);
-        const org = getOrganization();
-        if (org) setOrganization(org);
+        setUser({ ...stored, role: org?.role ?? stored.role ?? "", organizationId: org?.id ?? "" });
+        if (org) setOrganization(org as Organization);
         setIsLoading(false);
         return;
       }
 
       const token = getAccessToken();
-      if (!token) {
+      if (token) {
         const refreshed = await refreshTokens();
         if (refreshed?.user) {
-          setUser(refreshed.user);
+          const merged = { ...refreshed.user, role: refreshed.organization?.role ?? "", organizationId: refreshed.organization?.id ?? "" };
+          setUser(merged);
           if (refreshed.organization) {
             setOrganization(refreshed.organization as Organization);
           }
@@ -71,11 +74,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const switchOrganization = useCallback(async (orgId: string) => {
     const result = await authSwitchOrg(orgId);
     if (result.user) {
-      setUser(result.user as User);
+      setUser({ ...result.user, role: result.organization?.role ?? "", organizationId: result.organization?.id ?? "" } as User);
       if (result.organization) {
         setOrganization(result.organization as Organization);
       }
-      window.location.href = "/dashboard";
+      window.location.href = "/";
     }
   }, []);
 

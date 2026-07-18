@@ -15,10 +15,10 @@ v3.0 transforms Oversight Hub from a polished SaaS platform into a production-re
 ## Phases
 
 - [x] **Phase 1: Infrastructure Foundation** — Edge Agent async rewrite, MQTT security, Docker networking for hardware
-- [ ] **Phase 2: Hardware Integration** — OSDP door protocol and ONVIF camera auto-discovery
+- [x] **Phase 2: Hardware Integration** — OSDP door protocol and ONVIF camera auto-discovery (completed 2026-07-17)
 - [x] **Phase 3: Visitor Kiosk** — Self-check-in/out touchscreen with badge printing and QR scanning
 - [x] **Phase 4: Marketing Site Redesign** — Premium design, enriched content, 6-language translation, interactive demo (completed 2026-07-17)
-- [ ] **Phase 5: Bug Fixing & Cross-Platform Polish** — Zero-bug release with full platform consistency
+- [x] **Phase 5: Bug Fixing & Cross-Platform Polish** — Zero-bug release with full platform consistency (completed 2026-07-18)
 
 ## Phase Details
 
@@ -59,11 +59,11 @@ Plans:
 
 Plans:
 
-- [ ] 02-01-PLAN.md — Edge Agent OSDP protocol + ONVIF enhancement with site grouping (D-03), replace-on-discovery (D-15), PTZ probing, snapshot capture (HWR-01, HWR-03)
-- [ ] 02-02-PLAN.md — Prisma schema (Camera PTZ/ONVIF fields, Controller model, Door FK) + shared package extensions (schemas, types, constants, barrel) + schema push (HWR-01, HWR-02, HWR-03)
-- [ ] 02-03-PLAN.md — NestJS backend: MqttService OSDP routing, Controller module, Door API (commands, CameraDoorMap CRUD), PTZ endpoints, TimescaleDB 90-day retention (D-18), Socket.IO events, api.ts (HWR-01, HWR-02, HWR-03)
-- [ ] 02-04-PLAN.md — Dashboard door controls (card with auto-retry D-11, zone dropdown), bulk ops, controller enrollment, event enrichment with inline thumbnail (D-09) (HWR-02, HWR-03)
-- [ ] 02-05-PLAN.md — Dashboard PTZ overlay controls (directional pad, zoom, presets) (HWR-03)
+- [x] 02-01-PLAN.md — Edge Agent OSDP protocol + ONVIF enhancement with site grouping (D-03), replace-on-discovery (D-15), PTZ probing, snapshot capture (HWR-01, HWR-03)
+- [x] 02-02-PLAN.md — Prisma schema (Camera PTZ/ONVIF fields, Controller model, Door FK) + shared package extensions (schemas, types, constants, barrel) + schema push (HWR-01, HWR-02, HWR-03)
+- [x] 02-03-PLAN.md — NestJS backend: MqttService OSDP routing, Controller module, Door API (commands, CameraDoorMap CRUD), PTZ endpoints, TimescaleDB 90-day retention (D-18), Socket.IO events, api.ts (HWR-01, HWR-02, HWR-03)
+- [x] 02-04-PLAN.md — Dashboard door controls (card with auto-retry D-11, zone dropdown), bulk ops, controller enrollment, event enrichment with inline thumbnail (D-09) (HWR-02, HWR-03)
+- [x] 02-05-PLAN.md — Dashboard PTZ overlay controls (directional pad, zoom, presets) (HWR-03)
 
 ### Phase 3: Visitor Kiosk
 
@@ -168,14 +168,14 @@ Plans:
 - [x] 05-07-PLAN.md — Mobile Parity Batch 2: 11 Complex Screens + Navigation (POL-02)
 
 **Wave 7** *(blocked on Wave 6)*
-- [ ] 05-08-PLAN.md — Final Mobile Verification + Cross-Platform Audit (POL-01, POL-02, POL-03, POL-04)
+- [x] 05-08-PLAN.md — Final Mobile Verification + Cross-Platform Audit (POL-01, POL-02, POL-03, POL-04)
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Infrastructure Foundation | 3/3 | Complete | 2026-07-17 |
-| 2. Hardware Integration | 0/5 | Not started | - |
+| 2. Hardware Integration | 5/5 | Complete   | 2026-07-17 |
 | 3. Visitor Kiosk | 4/4 | Complete | 2026-07-17 |
 | 4. Marketing Site Redesign | 10/10 | Complete   | 2026-07-17 |
-| 5. Bug Fixing & Cross-Platform Polish | 6/8 | In Progress|  |
+| 5. Bug Fixing & Cross-Platform Polish | 8/8 | Complete   | 2026-07-18 |

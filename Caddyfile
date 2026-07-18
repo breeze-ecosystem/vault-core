@@ -1,14 +1,3 @@
-oversighthub.com {
-	# Marketing site
-	handle {
-		reverse_proxy marketing:3200
-	}
-
-	log {
-		output stdout
-	}
-}
-
 app.oversighthub.com {
 	# API routes
 	handle /api/* {
