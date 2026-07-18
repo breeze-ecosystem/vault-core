@@ -11,6 +11,8 @@ export const createRetentionPolicySchema = z.object({
   classification: z.enum(CLASSIFICATION_LABELS).optional(),
   exportBeforePurge: z.boolean().optional(),
   exportFormat: z.enum(EXPORT_FORMATS).optional(),
+  // Phase 4 — per-site override (null = global policy)
+  siteId: z.string().uuid().nullable().optional(),
 });
 
 export const updateRetentionPolicySchema = z.object({
@@ -19,6 +21,8 @@ export const updateRetentionPolicySchema = z.object({
   classification: z.enum(CLASSIFICATION_LABELS).optional(),
   exportBeforePurge: z.boolean().optional(),
   exportFormat: z.enum(EXPORT_FORMATS).optional(),
+  // Phase 4 — per-site override (null = global policy)
+  siteId: z.string().uuid().nullable().optional(),
 });
 
 export type CreateRetentionPolicyInput = z.infer<typeof createRetentionPolicySchema>;

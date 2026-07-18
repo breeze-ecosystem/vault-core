@@ -1,4 +1,4 @@
-import { Injectable, Logger, BadRequestException } from "@nestjs/common";
+import { Injectable, Logger, BadRequestException, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Cron } from "@nestjs/schedule";
 import { InjectQueue } from "@nestjs/bullmq";
@@ -109,9 +109,10 @@ export class GovernanceService {
           eventType: policy.eventType,
           tableType: policy.tableType,
           retentionDays: policy.retentionDays,
+          siteId: policy.siteId,
         });
         this.logger.log(
-          `Enqueued prune job for ${policy.eventType} (${policy.retentionDays} days)`,
+          `Enqueued prune job for ${policy.eventType} (${policy.retentionDays} days)${policy.siteId ? ` site=${policy.siteId}` : " (global)"}`,
         );
       }
     } catch (err: any) {
@@ -121,8 +122,9 @@ export class GovernanceService {
 
   /**
    * Prune data from a specific table based on retention policy.
+   * Supports site-scoped pruning when siteId is provided.
    */
-  async prune(eventType: string, tableType: string, retentionDays: number): Promise<void> {
+  async prune(eventType: string, tableType: string, retentionDays: number, siteId?: string): Promise<void> {
     const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
 
     if (tableType === "timescaledb") {
@@ -144,10 +146,29 @@ export class GovernanceService {
         return;
       }
 
-      await this.prisma.$queryRawUnsafe(
-        `DELETE FROM "${eventType}" WHERE time < $1::timestamptz`,
-        cutoff,
-      );
+      // Site-scoped or global pruning
+      if (siteId) {
+        // Most tables have site_id column; audit_log and refresh_token may not
+        const columnsWithSiteId = ["access_events", "incident_events", "vehicle_events"];
+        if (columnsWithSiteId.includes(eventType)) {
+          await this.prisma.$queryRawUnsafe(
+            `DELETE FROM "${eventType}" WHERE time < $1::timestamptz AND site_id = $2`,
+            cutoff,
+            siteId,
+          );
+        } else {
+          // Fall back to global pruning for tables without site_id
+          await this.prisma.$queryRawUnsafe(
+            `DELETE FROM "${eventType}" WHERE time < $1::timestamptz`,
+            cutoff,
+          );
+        }
+      } else {
+        await this.prisma.$queryRawUnsafe(
+          `DELETE FROM "${eventType}" WHERE time < $1::timestamptz`,
+          cutoff,
+        );
+      }
     } else if (tableType === "prisma") {
       // Map event type to Prisma model name
       const modelMap: Record<string, string> = {
@@ -165,13 +186,17 @@ export class GovernanceService {
       // Use deleteMany based on createdAt field
       const prismaAny = this.prisma as any;
       if (prismaAny[modelName]) {
-        await prismaAny[modelName].deleteMany({
-          where: { createdAt: { lt: cutoff } },
-        });
+        // notificationLog and auditLog may support siteId if the schema has it
+        const where: any = { createdAt: { lt: cutoff } };
+        if (siteId && (eventType === "notification_log")) {
+          where.siteId = siteId;
+        }
+        // auditLog uses organizationId for scoping, not siteId directly
+        await prismaAny[modelName].deleteMany({ where });
       }
     }
 
-    this.logger.log(`Pruned ${eventType} older than ${retentionDays} days`);
+    this.logger.log(`Pruned ${eventType} older than ${retentionDays} days${siteId ? ` (site: ${siteId})` : " (global)"}`);
   }
 
   // ─── Retention Policy CRUD ───────────────────────────────────────────────────
@@ -184,6 +209,7 @@ export class GovernanceService {
     classification?: string;
     exportBeforePurge?: boolean;
     exportFormat?: string;
+    siteId?: string | null;
   }) {
     // Validate classification if provided
     if (dto.classification) {
@@ -204,6 +230,7 @@ export class GovernanceService {
         classification: dto.classification ?? null,
         exportBeforePurge: dto.exportBeforePurge ?? false,
         exportFormat: dto.exportFormat ?? null,
+        siteId: dto.siteId ?? null,
       },
     });
   }
@@ -214,6 +241,7 @@ export class GovernanceService {
     classification?: string;
     exportBeforePurge?: boolean;
     exportFormat?: string;
+    siteId?: string | null;
   }) {
     // Validate classification if provided
     if (dto.classification) {
@@ -225,19 +253,40 @@ export class GovernanceService {
       this.validateExportFormat(dto.exportFormat);
     }
 
+    // Check if policy exists before updating
+    const existing = await this.prisma.retentionPolicy.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException(`Retention policy ${id} not found`);
+    }
+
     return this.prisma.retentionPolicy.update({
       where: { id },
-      data: dto,
+      data: dto as any,
     });
   }
 
   async deletePolicy(id: string) {
+    const existing = await this.prisma.retentionPolicy.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException(`Retention policy ${id} not found`);
+    }
     await this.prisma.retentionPolicy.delete({ where: { id } });
   }
 
-  async listPolicies() {
+  async listPolicies(orgId?: string, siteId?: string) {
+    const where: any = {};
+
+    if (siteId) {
+      // Return policies scoped to this specific site
+      where.siteId = siteId;
+    } else {
+      // Return global policies (siteId IS NULL)
+      where.siteId = null;
+    }
+
     return this.prisma.retentionPolicy.findMany({
-      orderBy: { createdAt: "desc" },
+      where,
+      orderBy: { eventType: "asc" },
     });
   }
 

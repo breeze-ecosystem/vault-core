@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   Req,
   Res,
 } from "@nestjs/common";
@@ -13,6 +14,8 @@ import type { FastifyRequest, FastifyReply } from "fastify";
 import { GovernanceService } from "./governance.service";
 import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
 import { Roles } from "../../common/decorators/roles.decorator";
+import { RequiresPack } from "../../common/decorators/feature-gate.decorator";
+import { Audited } from "../../common/decorators/audited.decorator";
 import {
   createRetentionPolicySchema,
   updateRetentionPolicySchema,
@@ -22,22 +25,34 @@ import {
 export class GovernanceController {
   constructor(private readonly governanceService: GovernanceService) {}
 
+  // ── BASTION Retention Policies (Phase 4) ──
+
   @Get("retention-policies")
+  @RequiresPack("BASTION")
   @Roles("ADMIN")
-  async listPolicies() {
-    return this.governanceService.listPolicies();
+  async listPolicies(
+    @Query("orgId") orgId?: string,
+    @Query("siteId") siteId?: string,
+  ) {
+    return this.governanceService.listPolicies(orgId, siteId);
   }
 
   @Post("retention-policies")
+  @RequiresPack("BASTION")
   @Roles("ADMIN")
+  @Audited({ action: "retention.create", entity: "RetentionPolicy" })
   async createPolicy(
     @Body(new ZodValidationPipe(createRetentionPolicySchema)) body: any,
+    @Req() req: FastifyRequest,
   ) {
+    const orgId = (req as any).organizationId;
     return this.governanceService.createPolicy(body);
   }
 
   @Patch("retention-policies/:id")
+  @RequiresPack("BASTION")
   @Roles("ADMIN")
+  @Audited({ action: "retention.update", entity: "RetentionPolicy" })
   async updatePolicy(
     @Param("id") id: string,
     @Body(new ZodValidationPipe(updateRetentionPolicySchema)) body: any,
@@ -46,7 +61,9 @@ export class GovernanceController {
   }
 
   @Delete("retention-policies/:id")
+  @RequiresPack("BASTION")
   @Roles("ADMIN")
+  @Audited({ action: "retention.delete", entity: "RetentionPolicy" })
   async deletePolicy(@Param("id") id: string) {
     await this.governanceService.deletePolicy(id);
     return { success: true };
