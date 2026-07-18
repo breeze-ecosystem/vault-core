@@ -67,6 +67,7 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { IngestionService } from './modules/ingestion/ingestion.service';
 import { AuditInterceptor } from './modules/audit/audit.interceptor';
 import { PseudonymizationModule } from './modules/pseudonymization/pseudonymization.module';
+import { ReportingModule } from './modules/reporting/report.module';
 
 @Module({
   imports: [
@@ -131,6 +132,7 @@ import { PseudonymizationModule } from './modules/pseudonymization/pseudonymizat
     PseudonymizationModule,
     QueueModule,
     RecordingModule,
+    ReportingModule,
     RiskModule,
     ShareModule,
     SsoModule,

@@ -1,4 +1,5 @@
 import { fetchWithAuth } from "@/lib/auth-client";
+import type { BastionKpisDto, AnalyticsTrendPoint } from "@repo/shared";
 
 if (!process.env.NEXT_PUBLIC_API_URL) {
   console.error("NEXT_PUBLIC_API_URL is not defined. Set it in .env or .env.local");
@@ -3982,4 +3983,141 @@ export async function inviteBySms(orgId: string, data: { phone: string; role: st
   });
   if (!res.ok) throw new Error("Échec de l'invitation par SMS");
   return res.json();
+}
+
+// ─── BASTION Analytics & Reporting API Functions (04-02) ───
+
+/**
+ * Fetch BASTION KPI dashboard values.
+ * GET /api/analytics/bastion/kpis
+ */
+export async function fetchBastionKpis(): Promise<BastionKpisDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/analytics/bastion/kpis`);
+  if (!res.ok) throw new Error("Échec du chargement des indicateurs BASTION");
+  return res.json();
+}
+
+/**
+ * Fetch BASTION trend data.
+ * GET /api/analytics/bastion/trends?metric=&days=
+ */
+export async function fetchBastionTrends(
+  metric: string,
+  days?: number,
+): Promise<AnalyticsTrendPoint[]> {
+  const searchParams = new URLSearchParams({ metric });
+  if (days) searchParams.set("days", String(days));
+  const res = await fetchWithAuth(
+    `${API_URL}/api/analytics/bastion/trends?${searchParams.toString()}`,
+  );
+  if (!res.ok) throw new Error("Échec du chargement des tendances BASTION");
+  return res.json();
+}
+
+/**
+ * Advanced search across events.
+ * GET /api/analytics/bastion/search
+ */
+export async function bastionAdvancedSearch(filters: {
+  dateFrom?: string;
+  dateTo?: string;
+  siteId?: string;
+  eventType?: string;
+  personName?: string;
+  page?: number;
+  limit?: number;
+}): Promise<{ data: any[]; total: number; page: number; limit: number }> {
+  const searchParams = new URLSearchParams();
+  if (filters.dateFrom) searchParams.set("dateFrom", filters.dateFrom);
+  if (filters.dateTo) searchParams.set("dateTo", filters.dateTo);
+  if (filters.siteId) searchParams.set("siteId", filters.siteId);
+  if (filters.eventType) searchParams.set("eventType", filters.eventType);
+  if (filters.personName) searchParams.set("personName", filters.personName);
+  searchParams.set("page", String(filters.page || 1));
+  searchParams.set("limit", String(filters.limit || 20));
+
+  const res = await fetchWithAuth(
+    `${API_URL}/api/analytics/bastion/search?${searchParams.toString()}`,
+  );
+  if (!res.ok) throw new Error("Échec de la recherche avancée BASTION");
+  return res.json();
+}
+
+/**
+ * Export BASTION data as CSV or PDF.
+ * GET /api/analytics/bastion/export
+ */
+export async function exportBastionData(
+  format: "csv" | "pdf",
+  filters?: {
+    dateFrom?: string;
+    dateTo?: string;
+    siteId?: string;
+    eventType?: string;
+    personName?: string;
+  },
+): Promise<Blob> {
+  const searchParams = new URLSearchParams({ format });
+  if (filters?.dateFrom) searchParams.set("dateFrom", filters.dateFrom);
+  if (filters?.dateTo) searchParams.set("dateTo", filters.dateTo);
+  if (filters?.siteId) searchParams.set("siteId", filters.siteId);
+  if (filters?.eventType) searchParams.set("eventType", filters.eventType);
+  if (filters?.personName) searchParams.set("personName", filters.personName);
+
+  const res = await fetchWithAuth(
+    `${API_URL}/api/analytics/bastion/export?${searchParams.toString()}`,
+  );
+  if (!res.ok) throw new Error("Échec de l'export BASTION");
+  return res.blob();
+}
+
+/**
+ * Generate a weekly or monthly report (async via BullMQ).
+ * POST /api/reports/weekly or /api/reports/monthly
+ */
+export async function generateReport(
+  type: "weekly" | "monthly",
+): Promise<{ jobId: string; status: string }> {
+  const res = await fetchWithAuth(`${API_URL}/api/reports/${type}`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de la génération du rapport");
+  }
+  return res.json();
+}
+
+/**
+ * List generated reports.
+ * GET /api/reports
+ */
+export async function getReportsList(
+  page?: number,
+  limit?: number,
+): Promise<{ data: any[]; total: number; page: number; limit: number }> {
+  const searchParams = new URLSearchParams();
+  if (page) searchParams.set("page", String(page));
+  if (limit) searchParams.set("limit", String(limit));
+  const qs = searchParams.toString() ? `?${searchParams.toString()}` : "";
+  const res = await fetchWithAuth(`${API_URL}/api/reports${qs}`);
+  if (!res.ok) throw new Error("Échec du chargement des rapports");
+  return res.json();
+}
+
+/**
+ * Download a report PDF by ID.
+ * GET /api/reports/:id/download
+ */
+export async function downloadReport(reportId: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/reports/${reportId}/download`);
+  if (!res.ok) throw new Error("Échec du téléchargement du rapport");
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${reportId}.pdf`;
+  a.click();
+  window.URL.revokeObjectURL(url);
 }

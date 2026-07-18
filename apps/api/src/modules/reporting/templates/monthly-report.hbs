@@ -1,0 +1,91 @@
+<h1>Rapport Mensuel — {{orgName}}</h1>
+<p><strong>Période:</strong> {{periodLabel}}</p>
+<p><strong>Généré le:</strong> {{generatedAt}}</p>
+<p><strong>Classification:</strong> CONFIDENTIEL — Usage interne</p>
+<hr />
+
+<h2>Résumé Exécutif</h2>
+
+<table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+  <tr style="background-color: #f0f0f0;">
+    <th>Indicateur</th>
+    <th>Valeur</th>
+  </tr>
+  <tr>
+    <td>Incidents aujourd'hui</td>
+    <td>{{kpis.incidentsToday}}</td>
+  </tr>
+  <tr>
+    <td>Alertes actives</td>
+    <td>{{kpis.activeAlerts}}</td>
+  </tr>
+  <tr>
+    <td>Caméras en ligne</td>
+    <td>{{kpis.camerasOnline}}</td>
+  </tr>
+  <tr>
+    <td>Stockage utilisé</td>
+    <td>{{kpis.storageUsedBytes}}</td>
+  </tr>
+  <tr>
+    <td>Entrées aujourd'hui</td>
+    <td>{{kpis.entriesToday}}</td>
+  </tr>
+</table>
+
+<h3>Synthèse des tendances mensuelles</h3>
+<p>Sur les 30 derniers jours, l'activité de sécurité a généré {{incidents.length}} incidents.</p>
+
+<h3>Comparaison avec le mois précédent</h3>
+<p>Le nombre total d'entrées pour cette période est de {{entries.total}}.</p>
+
+{{#if incidents.length}}
+<h2>Incidents de la Période</h2>
+<table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+  <tr style="background-color: #f0f0f0;">
+    <th>ID</th>
+    <th>Type</th>
+    <th>Sévérité</th>
+    <th>Date</th>
+    <th>Caméra</th>
+  </tr>
+  {{#each incidents}}
+  <tr>
+    <td>{{this.id}}</td>
+    <td>{{this.type}}</td>
+    <td>{{this.severity}}</td>
+    <td>{{this.createdAt}}</td>
+    <td>{{this.cameraName}}</td>
+  </tr>
+  {{/each}}
+</table>
+{{else}}
+<p>Aucun incident enregistré sur la période.</p>
+{{/if}}
+
+<h3>Entrées par jour</h3>
+{{#if entries.byDay.length}}
+<table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+  <tr style="background-color: #f0f0f0;">
+    <th>Jour</th>
+    <th>Nombre d'entrées</th>
+  </tr>
+  {{#each entries.byDay}}
+  <tr>
+    <td>{{this.day}}</td>
+    <td>{{this.count}}</td>
+  </tr>
+  {{/each}}
+</table>
+{{/if}}
+
+<h3>Tendances mensuelles (description des graphiques)</h3>
+<p>Les tendances mensuelles montrent l'évolution des indicateurs clés de sécurité. Les pics d'alertes correspondent aux périodes de forte activité.</p>
+
+<hr />
+<h2>Annexe — Détails des Événements</h2>
+<p>Pour une analyse complète, veuillez consulter le tableau de bord analytics dans l'application.</p>
+
+<hr />
+<p style="text-align: center;"><em>VaultOS v1.0 — Rapport généré automatiquement</em></p>
+<p style="text-align: center;"><em>CONFIDENTIEL — Usage interne</em></p>
