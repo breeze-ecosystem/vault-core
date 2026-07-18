@@ -1,11 +1,41 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { InviteService } from '../organization/invite/invite.service';
+import { ModemService } from '../modem/modem.service';
+import { VISION_MAX_SECONDARY_USERS } from '@repo/shared';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(UserService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private inviteService: InviteService,
+    private modemService: ModemService,
+  ) {}
+
+  /**
+   * Check if the organization can add more secondary users (VISION limit).
+   * VISION allows a maximum of VISION_MAX_SECONDARY_USERS (3) secondary accounts.
+   * @throws BadRequestException if the limit is reached with BASTION upgrade message.
+   */
+  private async checkSecondaryUserLimit(orgId: string): Promise<void> {
+    const activeMemberCount = await this.prisma.organizationMember.count({
+      where: {
+        organizationId: orgId,
+        isActive: true,
+        role: { in: ['ADMIN', 'VIEWER'] as Role[] },
+      },
+    });
+
+    if (activeMemberCount >= VISION_MAX_SECONDARY_USERS) {
+      throw new BadRequestException(
+        'Limite de 3 utilisateurs secondaires atteinte. Passez à BASTION pour plus d\'utilisateurs.',
+      );
+    }
+  }
 
   async findById(id: string) {
     const user = await this.prisma.user.findUnique({
@@ -119,6 +149,131 @@ export class UserService {
         isActive: true,
       },
     });
+  }
+
+  // ── VISION Multi-User Management ──
+
+  async inviteByEmail(email: string, role: string, orgId: string, createdByUserId: string) {
+    await this.checkSecondaryUserLimit(orgId);
+
+    // Validate role for VISION (only ADMIN and VIEWER allowed per D-21)
+    if (role !== 'ADMIN' && role !== 'VIEWER') {
+      throw new BadRequestException('Rôle non autorisé. Utilisez ADMIN ou VIEWER.');
+    }
+
+    // Delegate to InviteService for actual invite creation and email sending
+    return this.inviteService.createInvite(orgId, email, role, createdByUserId);
+  }
+
+  async inviteBySms(phoneNumber: string, role: string, orgId: string, createdByUserId: string) {
+    await this.checkSecondaryUserLimit(orgId);
+
+    // Validate role for VISION
+    if (role !== 'ADMIN' && role !== 'VIEWER') {
+      throw new BadRequestException('Rôle non autorisé. Utilisez ADMIN ou VIEWER.');
+    }
+
+    // Generate a temporary password for the new user
+    const tempPassword = Math.random().toString(36).slice(-12) + 'A1!';
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+    // Create the user with a placeholder email
+    // The user will change their password on first login
+    const user = await this.prisma.user.create({
+      data: {
+        email: `sms_${phoneNumber.replace(/[^0-9]/g, '')}_${Date.now()}@temp.vault-os.local`,
+        password: hashedPassword,
+        firstName: 'Invité',
+        lastName: 'SMS',
+      },
+    });
+
+    // Create the organization membership
+    await this.prisma.organizationMember.create({
+      data: {
+        userId: user.id,
+        organizationId: orgId,
+        role: role as Role,
+      },
+    });
+
+    // Send SMS with credentials
+    const smsMessage = `Bienvenue sur OVERSIGHT HUB. Vos identifiants temporaires: ${user.email} / Mot de passe: ${tempPassword}. Veuillez changer votre mot de passe à la première connexion.`;
+    await this.modemService.sendSms(phoneNumber, smsMessage);
+
+    this.logger.log(`SMS invite sent to ${phoneNumber} for org ${orgId}`);
+
+    return {
+      userId: user.id,
+      email: user.email,
+      message: 'Invitation envoyée par SMS',
+    };
+  }
+
+  async createManually(
+    data: { email: string; firstName: string; lastName: string; password: string; role: string },
+    orgId: string,
+    createdByUserId: string,
+  ) {
+    await this.checkSecondaryUserLimit(orgId);
+
+    // Validate role for VISION
+    if (data.role !== 'ADMIN' && data.role !== 'VIEWER') {
+      throw new BadRequestException('Rôle non autorisé. Utilisez ADMIN ou VIEWER.');
+    }
+
+    // Check for existing user with this email
+    const existing = await this.prisma.user.findUnique({
+      where: { email: data.email },
+    });
+
+    let userId: string;
+
+    if (existing) {
+      // User exists — check if already a member of this org
+      const existingMember = await this.prisma.organizationMember.findUnique({
+        where: {
+          userId_organizationId: {
+            userId: existing.id,
+            organizationId: orgId,
+          },
+        },
+      });
+      if (existingMember) {
+        throw new ConflictException('Cet utilisateur est déjà membre de cette organisation');
+      }
+      userId = existing.id;
+    } else {
+      // Create new user
+      const hashedPassword = await bcrypt.hash(data.password, 10);
+      const newUser = await this.prisma.user.create({
+        data: {
+          email: data.email,
+          password: hashedPassword,
+          firstName: data.firstName,
+          lastName: data.lastName,
+        },
+      });
+      userId = newUser.id;
+    }
+
+    // Create organization membership
+    await this.prisma.organizationMember.create({
+      data: {
+        userId,
+        organizationId: orgId,
+        role: data.role as Role,
+      },
+    });
+
+    this.logger.log(`Manual user created: ${data.email} (${data.role}) for org ${orgId}`);
+
+    return {
+      userId,
+      email: data.email,
+      role: data.role,
+      message: 'Utilisateur créé avec succès',
+    };
   }
 
   async updatePassword(id: string, currentPassword: string, newPassword: string) {

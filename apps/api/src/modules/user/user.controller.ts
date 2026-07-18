@@ -15,7 +15,9 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery }
 import { UserService } from './user.service';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { AuditService } from '../audit/audit.service';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { UpdateUserDto, UserResponseDto, PaginationQueryDto } from '../../common/dto';
+import { VISION_MAX_SECONDARY_USERS } from '@repo/shared';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -123,6 +125,70 @@ export class UserController {
       action: 'DELETE',
       entity: 'user',
       entityId: id,
+      request: req,
+    });
+
+    return result;
+  }
+
+  // ── VISION Multi-User Management ──
+
+  @Post('invite-email')
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Invite a user by email (VISION: max 3 secondary users)' })
+  @ApiResponse({ status: 201, description: 'Invite sent' })
+  @ApiResponse({ status: 400, description: 'Limit reached or invalid role' })
+  async inviteByEmail(
+    @Body() body: { email: string; role: string },
+    @Req() req: FastifyRequest,
+  ) {
+    const orgId = (req as any).user.orgId;
+    const userId = (req as any).user.id;
+    const result = await this.userService.inviteByEmail(body.email, body.role, orgId, userId);
+
+    await this.auditService.log({
+      userId,
+      action: 'INVITE',
+      entity: 'user',
+      entityId: result.id,
+      request: req,
+    });
+
+    return result;
+  }
+
+  @Post('invite-sms')
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Invite a user by SMS (VISION: max 3 secondary users)' })
+  @ApiResponse({ status: 201, description: 'Invite sent via SMS' })
+  @ApiResponse({ status: 400, description: 'Limit reached or invalid role' })
+  async inviteBySms(
+    @Body() body: { phoneNumber: string; role: string },
+    @Req() req: FastifyRequest,
+  ) {
+    const orgId = (req as any).user.orgId;
+    const userId = (req as any).user.id;
+    return this.userService.inviteBySms(body.phoneNumber, body.role, orgId, userId);
+  }
+
+  @Post('create-manual')
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Create a user manually with temporary password (VISION: max 3 secondary users)' })
+  @ApiResponse({ status: 201, description: 'User created' })
+  @ApiResponse({ status: 400, description: 'Limit reached, invalid role, or duplicate' })
+  async createManual(
+    @Body() body: { email: string; firstName: string; lastName: string; password: string; role: string },
+    @Req() req: FastifyRequest,
+  ) {
+    const orgId = (req as any).user.orgId;
+    const userId = (req as any).user.id;
+    const result = await this.userService.createManually(body, orgId, userId);
+
+    await this.auditService.log({
+      userId,
+      action: 'CREATE',
+      entity: 'user',
+      entityId: result.userId,
       request: req,
     });
 
