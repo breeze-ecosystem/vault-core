@@ -1,11 +1,14 @@
 export interface LicenseStatusResponse {
-  licenseState: "trial" | "active" | "grace" | "expired" | "no_license";
+  licenseState: "trial" | "active" | "grace" | "degraded" | "expired" | "no_license";
   expiresAt?: Date;
   graceEndsAt?: Date;
   trialEndsAt?: Date;
   maxCameras?: number;
   maxDoors?: number;
+  maxUsers?: number;
   isUnlimited?: boolean;
+  pack?: string;
+  modules?: string[];
 }
 
 export interface ApiKeyInfo {

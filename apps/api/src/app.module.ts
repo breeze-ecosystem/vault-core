@@ -50,6 +50,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { TenantIsolationGuard } from './common/guards/tenant-isolation.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { FeatureGateGuard } from './common/guards/feature-gate.guard';
+import { LicenseExpiryGuard } from './modules/license/guards/license-expiry.guard';
 import { FeatureGateModule } from './modules/feature-gate/feature-gate.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { IngestionService } from './modules/ingestion/ingestion.service';
@@ -119,6 +120,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     { provide: APP_GUARD, useClass: TenantIsolationGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_GUARD, useClass: FeatureGateGuard },
+    { provide: APP_GUARD, useClass: LicenseExpiryGuard },
     // NOTE: TenantApiKeyGuard is NOT a global APP_GUARD — it's applied per-controller
     // via @UseGuards() on v1 controllers only. JWT-based routes don't need it.
     //

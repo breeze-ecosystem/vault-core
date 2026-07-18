@@ -80,6 +80,23 @@ export class LicenseService {
       const now = new Date();
 
       if (activeLicense.expiresAt > now) {
+        const degradedThreshold = 72 * 60 * 60 * 1000;
+        const failedAt = org.lastVerificationFailedAt;
+        const verifiedAt = org.lastVerifiedAt;
+
+        if (
+          failedAt &&
+          (!verifiedAt || verifiedAt < failedAt) &&
+          now.getTime() - failedAt.getTime() > degradedThreshold
+        ) {
+          return {
+            licenseState: "degraded",
+            expiresAt: activeLicense.expiresAt,
+            maxCameras: activeLicense.maxCameras,
+            maxDoors: activeLicense.maxDoors,
+          };
+        }
+
         return {
           licenseState: "active",
           expiresAt: activeLicense.expiresAt,
