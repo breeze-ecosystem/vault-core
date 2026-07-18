@@ -410,8 +410,9 @@ model Organization {
   isActive  Boolean  @default(true)
   stripeCustomerId String?
   billingEmail     String?
-  planTier         String?  // 'FREE' | 'PROFESSIONAL' | 'ENTERPRISE'
   trialStartDate   DateTime?
+  lastVerifiedAt         DateTime?
+  lastVerificationFailedAt DateTime?
   trialEndDate     DateTime?
   logoUrl         String?  // White-label: custom logo URL
   primaryColor    String?  // White-label: hex color (#RRGGBB)
@@ -435,7 +436,6 @@ model Organization {
   alerts            Alert[]
   cameraPrompts     CameraPrompt[]
   licenses          License[]
-  apiKeys           LicenseApiKey[]
   tenantApiKeys     TenantApiKey[]
   controllers       Controller[]
   idpConfig         IdpConfig?
@@ -524,7 +524,6 @@ model User {
   vehicleListEntries       VehicleList[]
   createdInvites           Invite[]               @relation("InviteCreator")
   acceptedInvites          Invite[]               @relation("InviteAcceptor")
-  licenseApiKeys           LicenseApiKey[]
   tenantApiKeys            TenantApiKey[]
   webhookSubscriptions     WebhookSubscription[]
 }
@@ -580,7 +579,8 @@ model FeatureFlag {
   organizationId String
   key            String
   enabled        Boolean  @default(false)
-  tier           String?  // minimum tier: 'FREE', 'PROFESSIONAL', 'ENTERPRISE'
+  pack           String?  // 'VISION' | 'BASTION'
+  moduleKey      String?  // optional module identifier for BASTION modules
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -747,6 +747,7 @@ model License {
   expiresAt      DateTime
   maxCameras     Int
   maxDoors       Int
+  maxUsers       Int          @default(5)
   gracePeriodDays Int          @default(7)
   licenseVersion  Int          @default(1)
   createdAt      DateTime      @default(now())
@@ -756,25 +757,6 @@ model License {
 
   @@index([organizationId])
   @@unique([organizationId, licenseVersion])
-}
-
-model LicenseApiKey {
-  id             String    @id @default(uuid())
-  name           String
-  keyHash        String    @unique
-  keyPrefix      String
-  isActive       Boolean   @default(true)
-  organizationId String
-  createdById    String
-  createdAt      DateTime  @default(now())
-  revokedAt      DateTime?
-
-  organization Organization @relation(fields: [organizationId], references: [id])
-  createdBy    User         @relation(fields: [createdById], references: [id])
-
-  @@index([organizationId])
-  @@index([isActive])
-  @@index([keyHash])
 }
 
 // ─── Phase 10: Enterprise — IdP Configuration (SSO) ───

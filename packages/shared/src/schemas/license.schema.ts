@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const CURRENCY_OPTIONS = ["USD", "EUR", "XOF", "GBP", "JPY"] as const;
 
+// @deprecated Will be removed in PLN-04 (license cleanup) alongside vault-os controller code
 export const generateLicenseSchema = z.object({
   organizationId: z.string().uuid("ID d'organisation invalide"),
   maxCameras: z.number().int().min(0, "Le nombre de caméras doit être positif"),

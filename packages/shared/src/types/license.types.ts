@@ -4,12 +4,14 @@ export interface LicenseClaims {
   expiresAt: number;
   maxCameras: number;
   maxDoors: number;
+  maxUsers: number;
   gracePeriodDays: number;
   licenseVersion: number;
-  currency?: string;
+  pack: "VISION" | "BASTION";
+  modules: string[];
 }
 
-export type LicenseState = "trial" | "active" | "grace" | "expired" | "no_license";
+export type LicenseState = "trial" | "active" | "grace" | "degraded" | "expired" | "no_license";
 
 export interface LicenseStatusDto {
   licenseState: LicenseState;
@@ -18,5 +20,8 @@ export interface LicenseStatusDto {
   trialEndsAt?: string;
   maxCameras?: number;
   maxDoors?: number;
+  maxUsers?: number;
   isUnlimited?: boolean;
+  pack?: string;
+  modules?: string[];
 }

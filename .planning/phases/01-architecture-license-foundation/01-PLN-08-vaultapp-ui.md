@@ -2,7 +2,7 @@
 phase: 01-architecture-license-foundation
 plan: 08
 type: execute
-wave: 2
+wave: 3
 depends_on: [01-PLN-03-vaultapp-api]
 files_modified:
   - /home/devuser/projects/vault-app/app/[locale]/admin/login/page.tsx
