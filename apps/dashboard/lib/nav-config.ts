@@ -20,6 +20,13 @@ import {
   Zap,
   Scan,
   UserCheck,
+  Settings,
+  HardDrive,
+  Shield,
+  Moon,
+  Globe,
+  Wifi,
+  Share2,
   type LucideIcon,
 } from "lucide-react";
 import { hasMinRole, type Role } from "@repo/shared";
@@ -100,6 +107,19 @@ const groups: NavGroup[] = [
     minRole: null,
     items: [
       { label: "Notifications", href: "/notifications", icon: Bell, minRole: null },
+    ],
+  },
+  {
+    label: "Paramètres",
+    icon: Settings,
+    minRole: null,
+    items: [
+      { label: "Enregistrement", href: "/parametres/enregistrement", icon: HardDrive, minRole: "ADMIN" as Role },
+      { label: "Partage de flux", href: "/partage", icon: Share2, minRole: "ADMIN" as Role },
+      { label: "Mode Absence", href: "/parametres/absence", icon: Shield, minRole: "ADMIN" as Role },
+      { label: "Notifications silencieuses", href: "/parametres/notification-silencieuse", icon: Moon, minRole: null },
+      { label: "Canaux d'alerte", href: "/parametres/alertes", icon: Bell, minRole: "ADMIN" as Role },
+      { label: "Accès distant", href: "/parametres/acces-distant", icon: Globe, minRole: "ADMIN" as Role },
     ],
   },
 ];
