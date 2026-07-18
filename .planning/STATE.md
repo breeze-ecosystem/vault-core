@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Production Readiness & Hardware Integration
-status: verifying
-last_updated: "2026-07-17T22:35:00.000Z"
-last_activity: 2026-07-17 -- All 30 plans complete across all phases
+milestone: v1.0
+milestone_name: Minimum Commercial Product (VISION + BASTION)
+status: planning
+last_updated: "2026-07-18T13:42:39.011Z"
+last_activity: 2026-07-18
 progress:
-  total_phases: 5
-  completed_phases: 3
-  total_plans: 30
-  completed_plans: 30
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -24,12 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-17)
 
 ## Current Position
 
-Phase: 02 (hardware-integration) — EXECUTING
-Plan: 5 of 5
-Status: All plans executed — ready for verification
-Last activity: 2026-07-17 -- All 5 hardware integration plans complete
-
-Progress: [████████░░] 80%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-07-18 — Milestone v1.0 started
 
 ## Performance Metrics
 

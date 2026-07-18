@@ -4,17 +4,17 @@
 
 Oversight Hub is a commercial SaaS platform that delivers AI-powered physical security intelligence — unifying video surveillance, access control, and operational security into a single, premium experience. Sold via subscription and license to security teams, IT, facilities, and operations worldwide, it correlates real-world events (badges, doors, vehicles, incidents, anomalies) with video evidence and automated decision workflows. It replaces fragmented point solutions with an integrated platform that is visually stunning, intuitive, and AI-first.
 
-## Current Milestone: v3.0 Production Readiness & Hardware Integration
+## Current Milestone: v1.0 Minimum Commercial Product (VISION + BASTION)
 
-**Goal:** Transformer le prototype en un outil 100% fonctionnel et production-ready — zéro bug, hardware connecté, site marketing premium, et expérience cross-platform stable.
+**Goal:** Livrer un produit commercialisable avec 2 packs (VISION jusqu'à 10 caméras, BASTION entreprise), licence annuelle, auto-hébergé chez le client, et portail admin dans vault-app.
 
 **Target features:**
-- 🔧 Bug fixing général — tous les bugs, incohérences, comportements incomplets corrigés
-- 🎨 Refonte site marketing — design moderne Linear/Vercel-style, contenu enrichi, storytelling produit
-- 🌐 Traduction complète — finaliser toutes les locales du site marketing
-- 🚪 Intégration hardware — portes, contrôleurs d'accès, caméras, badges, scanners
-- 🏭 Production readiness — protocoles standards (OSDP/Wiegand/ONVIF), Edge Agent robuste, validation terrain
-- 📱 Polish cross-platform — Dashboard + Mobile stables, cohérents, sans régression
+- 🏗️ Architecture 2 apps — vault-os (produit client) + vault-app (admin portal équipes VaultOS)
+- 👁️ Pack VISION — 23 fonctionnalités de base (streaming, détection IA, alertes, stockage local)
+- 🏰 Pack BASTION — VISION + IA avancée + contrôle d'accès + multi-site + HAPDP + API
+- 🔑 Licence — génération dans vault-app, activation dans vault-os, vérification 24h, mode dégradé
+- 🛒 Pricing & plans publics (FCFA) sur vault-app
+- ⚙️ Mode dégradé si >72h sans internet, lecture seule si licence expirée
 
 ## Core Value
 
@@ -24,65 +24,111 @@ Correlate every physical security event with video evidence and AI analysis in r
 
 ### Validated
 
-<!-- Shipped and confirmed valuable. v1.0 delivered the technical foundation. -->
+<!-- Existing codebase that works and is relied upon. -->
 
-- Video ingestion pipeline (RTSP → FFmpeg frames → AI analysis) — v1.0
-- Camera management and site organization — v1.0
-- Real-time alert system with video clip correlation — v1.0
-- AI-powered frame analysis (object detection, zone intrusion) — v1.0
-- JWT-based authentication with roles (admin, supervisor, viewer) — v1.0
-- Notification system (email + push + in-app) — v1.0
-- Multi-app delivery (NestJS API, Next.js Dashboard, Expo Mobile) — v1.0
-- Edge agent health monitoring — v1.0
-- Multi-site site management — v1.0
-- Public landing page — marketing website with product presentation, pricing, blog, SEO — Phase 04
-- International branding — AI-first positioning, modern design system, global appeal — Phase 04
-- Access control (badges, QR, mobile credentials, anti-passback, zone rules) — v1.0
-- Door management (forced, held open, unsecured, desynchronized) — v1.0
-- Access event journal correlated with video clips — v1.0
-- Tailgating/piggybacking detection via AI — v1.0
-- Immutable audit logs with hash-chain integrity — v1.0
-- Fine-grained roles (admin, supervisor, operator, viewer, auditor) — v1.0
+- Video ingestion pipeline (RTSP → FFmpeg frames → AI analysis)
+- Camera management and site organization
+- Real-time alert system with video clip correlation
+- AI-powered frame analysis (object detection, zone intrusion)
+- JWT-based authentication with RBAC
+- Notification system (email + push + in-app)
+- Multi-app delivery (NestJS API, Next.js Dashboard, Expo Mobile)
+- Edge agent health monitoring, Docker Compose deployment
+- Multi-site management
+- ONVIF camera auto-discovery, PTZ control, event subscriptions
+- OSDP door controller communication (serial I/O, MQTT)
+- Access control (badges, QR, mobile credentials, anti-passback, zone rules)
+- Door management (forced, held open, unsecured, desynchronized)
+- Access event journal correlated with video clips
+- Visitor kiosk (QR check-in/out, badge printing, Docker CUPS)
+- Immutable audit logs with hash-chain integrity
+- Fine-grained roles (admin, supervisor, operator, viewer, auditor)
 
 ### Active
 
-<!-- v2.0 scope — rebuild with depth, premium quality, and commercial readiness. -->
+<!-- v1.0 scope from founders' spec — VISION + BASTION packs. -->
 
-- [ ] Architecture refactor — scalable, multi-tenant, clean module boundaries, proper patterns
-- [ ] Backend feature deepening — every existing feature made production-grade (not just "it works")
-- [ ] Premium Dashboard UI/UX — complete redesign, visual-first, modern 2026 design language
-- [ ] Premium Mobile UI/UX — complete redesign for guard/operator workflows
-- [x] Public landing page — marketing website with product presentation, pricing, blog, SEO
-- [x] International branding — AI-first positioning, modern design system, global appeal
-- [ ] Subscription & billing system — Stripe/PayPal, plans, invoices, payment management
-- [ ] License management — provisioning, activation, revocation, tenant association
-- [ ] Visitor management (pre-registration, host assignment, check-in/out) — deepened
-- [ ] ANPR/LPR vehicle license plate recognition with allowlist/blocklist — deepened
-- [ ] Incident management (triage, escalation, assignment, evidence, closure) — deepened
-- [ ] Security analytics (loitering, intrusion, unusual activity, per-site metrics) — deepened
-- [ ] Equipment health monitoring (cameras, readers, doors, predictive alerts) — deepened
-- [ ] AI security assistant (natural language queries, auto-summaries) — deepened
-- [ ] Risk scoring per zone and recurring situation detection — deepened
-- [ ] Multi-tenant data isolation and site-level permission scoping
+**Pack VISION (V1-V23):**
+
+- [ ] **VISION-01**: Streaming live local basique — vision temps réel sur réseau local (Dashboard + Mobile)
+- [ ] **VISION-02**: Multi-appareil local — téléphone, tablette, PC sur même WiFi
+- [ ] **VISION-03**: Détection mouvement IA — alerte humain uniquement (filtre animaux/végétation/ombres)
+- [ ] **VISION-04**: Zones d'intérêt — délimitation zones de détection par caméra
+- [ ] **VISION-05**: Alertes locales — notification push + SMS (si modem)
+- [ ] **VISION-06**: Alertes WhatsApp — via WhatsApp Business API
+- [ ] **VISION-07**: Seuil de sensibilité réglable par caméra
+- [ ] **VISION-08**: Historique événements — timeline interactive, recherche date/heure
+- [ ] **VISION-09**: Export vidéo — téléchargement clip 30s autour d'un événement
+- [ ] **VISION-10**: Screenshots automatiques à chaque alerte
+- [ ] **VISION-11**: Stockage local — enregistrement sur disque/NAS client
+- [ ] **VISION-12**: Rétention configurable — 7j/15j/30j selon espace disque
+- [ ] **VISION-13**: Compression H.265/HEVC pour économiser espace
+- [ ] **VISION-14**: Dashboard local accessible sur réseau local
+- [ ] **VISION-15**: Multi-utilisateurs — jusqu'à 3 comptes secondaires
+- [ ] **VISION-16**: Notifications silencieuses — mode "ne pas déranger" programmable
+- [ ] **VISION-17**: Vision nocturne IA — amélioration automatique image de nuit
+- [ ] **VISION-18**: Qualité adaptative — résolution selon capacité matérielle
+- [ ] **VISION-19**: Reconnaissance faciale basique — whitelist/blacklist, max 50 visages, upload manuel
+- [ ] **VISION-20**: Partage flux local — accès temporaire tiers sur même réseau
+- [ ] **VISION-21**: Mode absence auto — activation géofencing local
+- [ ] **VISION-22**: Accès hors réseau — VPN/DDNS (configuration client)
+- [ ] **VISION-23**: Licence activation + vérification 24h + mode dégradé
+
+**Pack BASTION (B1-B49) — IA avancée :**
+
+- [ ] **BASTION-01**: Reconnaissance faciale avancée — illimitée, scoring risque 0-100, historique passages, blacklist dynamique
+- [ ] **BASTION-02**: Anti-spoofing — détection photo/écran/masque (liveness)
+- [ ] **BASTION-03**: Détection objets abandonnés — alerte si objet statique > X minutes
+- [ ] **BASTION-04**: Détection armes — arme à feu, couteau, objet suspect
+- [ ] **BASTION-05**: Comptage de foule — densité temps réel, alerte seuil
+- [ ] **BASTION-06**: Analyse comportementale — course, chute, bagarre, errance, intrusion zone, affluence
+- [ ] **BASTION-07**: Contrôle d'accès complet — RFID, biométrie, QR code, corrélation vidéo
+- [ ] **BASTION-08**: Gestion horaires accès — programmable par jour/heure
+- [ ] **BASTION-09**: Gestion groupes accès — profils par rôle (employé, manager, visiteur)
+- [ ] **BASTION-10**: Multi-site — jusqu'à 5 sites, comparaison inter-sites, synchronisation
+- [ ] **BASTION-11**: RBAC granulaire + SSO entreprise (SAML/OAuth2)
+- [ ] **BASTION-12**: Rapports hebdomadaires/mensuels PDF auto + export CSV
+- [ ] **BASTION-13**: Dashboard analytics temps réel — graphiques, tendances, KPIs
+- [ ] **BASTION-14**: Recherche avancée — filtres date/site/type événement/personne
+- [ ] **BASTION-15**: Stockage avancé — rétention 30j-1an+, redondance RAID, backup auto, preuve judiciaire certifiée
+- [ ] **BASTION-16**: Conformité HAPDP — déclaration assistée, registre traitements, affichage consentement, pseudonymisation, droit accès sujet, traçabilité
+- [ ] **BASTION-17**: API REST locale documentée + Webhooks
+- [ ] **BASTION-18**: Intégrations — alarme incendie, BMS
+
+**vault-app Admin Portal :**
+
+- [ ] **ADMIN-01**: Portail admin vault-app — connexion sécurisée équipes VaultOS
+- [ ] **ADMIN-02**: Gestion des organisations clients (CRUD, statut licence, historique)
+- [ ] **ADMIN-03**: Génération de licences — création clés VISION/BASTION + modules
+- [ ] **ADMIN-04**: Dashboard usage — stats agrégées par client (caméras, stockage, uptime)
+- [ ] **ADMIN-05**: Pages marketing — pricing FCFA, produits, solutions, blog, contact
 
 ### Out of Scope
 
 <!-- Explicit boundaries. Includes reasoning to prevent re-adding. -->
 
-- Physical hardware manufacturing (readers, controllers, cameras) — software platform only
-- OT/SCADA industrial control integration — out of scope for security operations focus
-- Cybersecurity/SIEM integration — physical security focus; cyber is a separate product
-- Facial recognition as primary auth — biometrics for access control only, not surveillance identification
+- Hardware manufacturing — VaultOS est logiciel pur. Installateurs partenaires pour le matériel.
+- Cloud video storage — auto-hébergé est le différentiateur
+- SOC-as-a-service (monitoring humain) — activité opérationnelle, pas logicielle
+- Pack sur mesure — 2 packs fixes seulement (VISION + BASTION)
+- Paiement mensuel — licence annuelle obligatoire uniquement
+- Négociation prix de base — prix publics fixes, modules négociables > 20M FCFA/an
+- Facial recognition for surveillance — réglementaire (HAPDP) ; déverrouillage accès seulement
+- Marketplace intégrations tierces — futur, pas v1.0
 
 ## Context
 
-**v1.0 delivered:** The complete technical foundation is in place — video ingestion, camera management, AI frame analysis (Ollama/moondream), access control (badges, QR, mobile, doors, zones), real-time alerts (BullMQ + Socket.IO), JWT authentication with full RBAC, immutable audit logs, visitor management basics, multi-site management, an edge agent, and dual frontends (Next.js Dashboard + Expo Mobile). Deployed on Coolify via Docker Compose with Caddy reverse proxy.
+**Code existant:** Une base technique solide existe déjà dans vault-os — ingestion vidéo, gestion caméras, analyse IA (Ollama), contrôle d'accès (OSDP, ONVIF, portes, QR, RFID), alertes temps réel (BullMQ + Socket.IO), JWT + RBAC, audit logs, kiosk visiteur, edge agent, et doubles frontends (Dashboard + Mobile). Déploiement Docker Compose.
 
-**v1.0 shortcomings:** Features work at a basic/prototype level — they check boxes but lack production depth. The architecture needs better module boundaries and multi-tenant patterns. The UI is functional but looks like a basic internal tool, not a premium SaaS product. No public website, no monetization, no international branding. The code needs restructuring for maintainability and scale.
+**Problème :** Le code existant a été construit sans la spec fondateur. Les fonctionnalités sont mélangées entre le produit (vault-os) et l'admin (vault-app). Le module licence fait génération + activation alors que la génération doit être dans vault-app. Le feature-gating (FREE/PROFESSIONAL/ENTERPRISE) doit devenir VISION/BASTION + modules. Environ 50% du travail est fait, 50% reste à aligner sur la spec.
 
-**v2.0 approach:** Rebuild systematically — page by page, feature by feature. Each feature is redesigned in depth (backend patterns, business logic completeness, UI polish) before moving to the next. Add the commercial layer (subscriptions, licensing, landing page, branding) as a first-class concern. Position as an international, AI-first, premium platform.
+**Architecture cible :**
+- **vault-os** = le produit livré chez le client (Docker Compose) — activation licence, vérification 24h, mode dégradé
+- **vault-app** = portail admin des équipes VaultOS (Next.js standalone, port 3200) — marketing, génération licences, gestion clients
+- Licence = activation uniquement dans vault-os (pas de génération)
+- Feature gates = VISION / BASTION + modules optionnels
 
-**The market:** Physical security industry consolidating from standalone VMS/ACS into unified platforms (Verkada, Suprema, Genetec, Eagle Eye). Positioned as "intelligent physical security platform" addresses security, IT, facilities, and operations buyers. Multiple revenue streams via subscription tiers, per-site licensing, and premium AI features. Target: global, not restricted to any single geography.
+**Le marché :** Marché physique security au Niger et Afrique de l'Ouest. Concurrence : Verkada (trop cher, cloud), Hikvision/Dahua (pas d'IA, pas HAPDP). Positionnement : souveraineté des données, IA locale, conformité HAPDP, prix FCFA.
 
 ## Constraints
 
@@ -97,12 +143,13 @@ Correlate every physical security event with video evidence and AI analysis in r
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Build on existing NestJS monorepo | Significant video + alert infrastructure already exists from v1.0 | ✓ Good |
-| Coarse granularity (5-8 phases) | Platform is large but ships in coherent vertical slices | — Pending |
-| No hardware manufacturing | Software platform only; integrate with standard protocols | ✓ Good |
-| v2.0: Page-by-page + feature-by-feature rebuild | Isolated rebuild ensures each piece is production-grade | — Pending |
-| v2.0: Premium commercial SaaS positioning | AI-first, international branding, subscription/license monetization | — Pending |
-| v2.0: Multi-tenant from day one | Avoids retrofitting tenant isolation later; essential for SaaS billing | — Pending |
+| vault-os = produit client, vault-app = admin portal | Séparation claire entre ce qu'on livre et ce qu'on utilise en interne | ✓ Good |
+| License : génération dans vault-app, activation dans vault-os | Évite que le client puisse générer ses propres licences | ✓ Good |
+| 2 packs fixes seulement (VISION + BASTION) | Spec fondateur : pas de pack sur mesure, pas de 3ème pack | ✓ Good |
+| Licence annuelle uniquement (pas de mensuel) | Spec fondateur | ✓ Good |
+| Vérification licence 24h + mode dégradé 72h | Permet fonctionnement offline tout en protégeant le modèle | — Pending |
+| Pas de Stripe/PayPal en v1 — facturation out-of-band | Paiement géré manuellement ou via partenaire en Afrique | — Pending |
+| Conservation du code existant vault-os | Réutilise ~50% du travail déjà fait, pas de rewrite inutile | ✓ Good |
 
 ## Evolution
 
@@ -123,4 +170,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 ---
-*Last updated: 2026-07-17 — Phase 04 complete (marketing site redesign)*
+*Last updated: 2026-07-18 — v1.0 milestone initialization (VISION + BASTION spec)*
