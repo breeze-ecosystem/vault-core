@@ -98,17 +98,7 @@ export default function CameraDetailPage({
     <div className="space-y-6">
       <PageHeader
         title={camera.name}
-        description={
-          <span className="flex items-center gap-2">
-            <Badge variant={isOnline ? 'success' : 'destructive'}>
-              <span className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${isOnline ? 'bg-green-500 status-pulse' : 'bg-red-500'}`} />
-              {isOnline ? 'En ligne' : 'Hors ligne'}
-            </Badge>
-            {camera.resolution && (
-              <span className="text-xs text-muted-foreground">{camera.resolution}</span>
-            )}
-          </span>
-        }
+        description={`${isOnline ? 'En ligne' : 'Hors ligne'}${camera.resolution ? ` — ${camera.resolution}` : ''}`}
         action={{
           label: 'Paramètres',
           icon: Settings,

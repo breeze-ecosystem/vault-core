@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Video, VideoOff, Eye, Camera } from 'lucide-react';
+import { Video, VideoOff, Eye, Camera as CameraIcon } from 'lucide-react';
 import { GlassCard } from '@/components/glass-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -95,7 +95,7 @@ export function LiveCameraGrid({
           </p>
           {onAddCamera && (
             <Button variant="default" size="sm" className="mt-4 gap-2" onClick={onAddCamera}>
-              <Camera className="h-4 w-4" />
+              <CameraIcon className="h-4 w-4" />
               Ajoutez votre première caméra
             </Button>
           )}
@@ -118,7 +118,7 @@ export function LiveCameraGrid({
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
         {cameras.map((camera, i) => {
           const sd = substreams[camera.id] ?? 'hd';
-          const dot = statusDot[camera.status] ?? statusDot.OFFLINE;
+          const dot = statusDot[camera.status] ?? statusDot.OFFLINE!;
           const isOnline = camera.status === 'ONLINE';
 
           return (

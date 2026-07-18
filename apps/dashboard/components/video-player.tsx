@@ -40,9 +40,14 @@ export default function VideoPlayer({
   cameraId,
   cameraName,
   streamUrl,
+  substreamUrl,
   hasPtz,
   ptzPresets,
   userRole,
+  showRecordingIndicator = false,
+  recordingActive = false,
+  onSubstreamToggle,
+  substreamQuality = 'hd',
 }: VideoPlayerProps) {
   const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);

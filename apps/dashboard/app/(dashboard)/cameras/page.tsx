@@ -33,6 +33,7 @@ import {
   Search, LayoutGrid, Map, AlertTriangle, List,
 } from "lucide-react";
 import VideoPlayer from "@/components/video-player";
+import { OnvifScanPanel } from "@/components/onvif-scan-panel";
 import { AnimatePresence, motion } from "motion/react";
 import { useTranslation } from "@/lib/i18n/context";
 
@@ -236,7 +237,7 @@ export default function CamerasPage() {
             if (!limitReached) {
               setShowOnvifScan(true);
             } else {
-              toast("Limite de 10 caméras atteinte. Passez au pack BASTION.", "warning");
+              toast("Limite de 10 caméras atteinte. Passez au pack BASTION.", "info");
             }
           },
         }}
@@ -442,6 +443,13 @@ export default function CamerasPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ONVIF Scan Dialog */}
+      <OnvifScanPanel
+        open={showOnvifScan}
+        onClose={() => setShowOnvifScan(false)}
+        onCameraAdded={() => setRefreshKey((k) => k + 1)}
+      />
     </div>
   );
 }
