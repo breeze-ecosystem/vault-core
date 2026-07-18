@@ -3133,6 +3133,518 @@ export async function updateSensitivity(cameraId: string, confidence: number): P
 }
 
 export async function getDetectionConfig(cameraId: string): Promise<{ sensitivity: number; zones: DetectionZone[] }> {
+
+// ─── BASTION Multi-site Types ───
+
+export interface Site {
+  id: string;
+  name: string;
+  address: string | null;
+  city: string | null;
+  country: string;
+  isActive: boolean;
+  parentOrganizationId?: string | null;
+  maxSites: number;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { cameras: number; doors: number; members: number };
+  cameras?: Camera[];
+}
+
+export interface AggregateStats {
+  totalCameras: number;
+  onlineCameras: number;
+  totalAlerts: number;
+  criticalAlerts: number;
+  storageUsed: number;
+  storageTotal: number;
+  uptimePercent: number;
+  sites: { id: string; name: string; status: "online" | "offline" | "degraded"; cameraCount: number; alertCount: number }[];
+}
+
+export interface SiteStats {
+  cameras: { total: number; online: number; offline: number };
+  alerts: { total: number; open: number; critical: number };
+  storage: { used: number; total: number; percentUsed: number };
+  uptime: { percent: number; uptimeHours: number; totalHours: number };
+  doors: { total: number; online: number };
+  members: number;
+}
+
+export interface ComparisonData {
+  sites: Array<{
+    id: string;
+    name: string;
+    cameras: number;
+    alerts: number;
+    storageUsed: number;
+    uptimePercent: number;
+    alertTrend: number[];
+    status: "online" | "offline" | "degraded";
+  }>;
+  period: "today" | "7d" | "30d";
+}
+
+export interface SearchResults {
+  events: Array<{ id: string; title: string; siteName: string; severity: string; timestamp: string; url: string }>;
+  people: Array<{ id: string; name: string; siteName: string; type: "face" | "user" | "visitor"; url: string }>;
+  credentials: Array<{ id: string; label: string; siteName: string; type: string; url: string }>;
+}
+
+export interface BastionFaceEntry {
+  id: string;
+  name: string;
+  photoBase64: string;
+  isBlacklisted: boolean;
+  riskThreshold: number | null;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { passages: number };
+}
+
+export interface BastionFaceDetail extends BastionFaceEntry {
+  passages: FacePassage[];
+  riskThreshold: number;
+}
+
+export interface FacePassage {
+  id: string;
+  faceId: string;
+  cameraId: string;
+  riskScore: number | null;
+  livenessScore: number | null;
+  snapshotUrl: string | null;
+  matched: boolean;
+  createdAt: string;
+  camera?: { id: string; name: string };
+}
+
+export interface AccessGroup {
+  id: string;
+  name: string;
+  organizationId: string;
+  description: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { members: number };
+}
+
+export interface AccessEvent {
+  id: string;
+  credentialId?: string;
+  doorId: string;
+  decision: "granted" | "denied";
+  reason?: string;
+  snapshotUrl?: string;
+  videoClipUrl?: string;
+  timestamp: string;
+  user?: { id: string; firstName: string; lastName: string };
+  door?: { id: string; name: string };
+  credential?: { id: string; type: string; badgeNumber?: string };
+}
+
+export interface AccessEventDetail extends AccessEvent {
+  correlation?: { cameraId: string; snapshotUrl?: string; clipUrl?: string };
+  riskScore?: number;
+  livenessScore?: number;
+}
+
+export interface CredentialCreateInput {
+  userId: string;
+  type: "BADGE" | "PIN" | "MOBILE" | "QR" | "FINGERPRINT" | "FACE";
+  badgeNumber?: string;
+  pinHash?: string;
+  qrSeed?: string;
+  fingerprintTemplateHash?: string;
+  faceEmbeddingId?: string;
+  validFrom?: string;
+  validUntil?: string;
+  maxUses?: number;
+}
+
+export interface RoleDefinition {
+  name: string;
+  level: number;
+  memberCount: number;
+  permissions: string[];
+  isCustom: boolean;
+}
+
+export interface SsoProvider {
+  id: string;
+  name: string;
+  type: "saml" | "oidc";
+  issuerUrl?: string;
+  entryPoint?: string;
+  certificate?: string | null;
+  clientId?: string;
+  clientSecret?: string | null;
+  attributeMappings?: Record<string, string>;
+  autoProvisioning: boolean;
+  ssoEnforced: boolean;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface SsoProviderConfig {
+  name: string;
+  type: "saml" | "oidc";
+  issuerUrl?: string;
+  entryPoint?: string;
+  metadataUrl?: string;
+  certificate?: string;
+  clientId?: string;
+  clientSecret?: string;
+  attributeMappings?: Record<string, string>;
+  autoProvisioning?: boolean;
+  ssoEnforced?: boolean;
+}
+
+export interface SyncStatus {
+  lastSyncAt?: string;
+  status: "synced" | "pending" | "error";
+  sites: Array<{ id: string; name: string; status: "synced" | "pending" | "error"; lastSyncAt?: string; error?: string }>;
+}
+
+// ─── BASTION Multi-site API Functions ───
+
+export async function getSites(params?: { page?: number; limit?: number }): Promise<PaginatedResponse<Site>> {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+  const res = await fetchWithAuth(`${API_URL}/api/sites?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des sites");
+  return res.json();
+}
+
+export async function getSite(id: string): Promise<Site> {
+  const res = await fetchWithAuth(`${API_URL}/api/sites/${id}`);
+  if (!res.ok) throw new Error("Échec du chargement du site");
+  return res.json();
+}
+
+export async function createSite(data: { name: string; address?: string; city?: string; country?: string }): Promise<Site> {
+  const res = await fetchWithAuth(`${API_URL}/api/sites`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de création du site");
+  }
+  return res.json();
+}
+
+export async function updateSite(id: string, data: Partial<Site>): Promise<Site> {
+  const res = await fetchWithAuth(`${API_URL}/api/sites/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour du site");
+  return res.json();
+}
+
+export async function deleteSite(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/sites/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Échec de la suppression du site");
+}
+
+export async function getAggregateStats(): Promise<AggregateStats> {
+  const res = await fetchWithAuth(`${API_URL}/api/sites/aggregate`);
+  if (!res.ok) throw new Error("Échec du chargement des statistiques agrégées");
+  return res.json();
+}
+
+export async function getSiteStats(id: string): Promise<SiteStats> {
+  const res = await fetchWithAuth(`${API_URL}/api/sites/${id}/stats`);
+  if (!res.ok) throw new Error("Échec du chargement des statistiques du site");
+  return res.json();
+}
+
+export async function getComparisonData(period?: string): Promise<ComparisonData> {
+  const params = period ? `?period=${period}` : "";
+  const res = await fetchWithAuth(`${API_URL}/api/sites/comparison${params}`);
+  if (!res.ok) throw new Error("Échec du chargement des données de comparaison");
+  return res.json();
+}
+
+export async function globalSearch(query: string, type?: string): Promise<SearchResults> {
+  const searchParams = new URLSearchParams({ q: query });
+  if (type) searchParams.set("type", type);
+  const res = await fetchWithAuth(`${API_URL}/api/sites/search?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec de la recherche globale");
+  return res.json();
+}
+
+// ─── BASTION Face API Functions ───
+
+export async function getBastionFaces(params?: { page?: number; limit?: number; search?: string; blacklisted?: boolean }): Promise<PaginatedResponse<BastionFaceEntry>> {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+  if (params?.search) searchParams.set("search", params.search);
+  if (params?.blacklisted !== undefined) searchParams.set("blacklisted", String(params.blacklisted));
+  const res = await fetchWithAuth(`${API_URL}/api/bastion/faces?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des visages");
+  return res.json();
+}
+
+export async function enrollBastionFace(data: { name: string; photoBase64: string; isBlacklisted?: boolean; riskThreshold?: number }): Promise<BastionFaceEntry> {
+  const res = await fetchWithAuth(`${API_URL}/api/bastion/faces`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de l'ajout du visage");
+  }
+  return res.json();
+}
+
+export async function getBastionFace(id: string): Promise<BastionFaceDetail> {
+  const res = await fetchWithAuth(`${API_URL}/api/bastion/faces/${id}`);
+  if (!res.ok) throw new Error("Échec du chargement du visage");
+  return res.json();
+}
+
+export async function updateBastionFace(id: string, data: Partial<BastionFaceEntry>): Promise<BastionFaceEntry> {
+  const res = await fetchWithAuth(`${API_URL}/api/bastion/faces/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour du visage");
+  return res.json();
+}
+
+export async function deleteBastionFace(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/bastion/faces/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Échec de la suppression du visage");
+}
+
+export async function toggleBlacklist(id: string): Promise<BastionFaceEntry> {
+  const res = await fetchWithAuth(`${API_URL}/api/bastion/faces/${id}/toggle-blacklist`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) throw new Error("Échec du basculement de la liste noire");
+  return res.json();
+}
+
+export async function getFacePassages(id: string, params?: { page?: number; limit?: number }): Promise<PaginatedResponse<FacePassage>> {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+  const res = await fetchWithAuth(`${API_URL}/api/bastion/faces/${id}/passages?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des passages");
+  return res.json();
+}
+
+export async function getRecentPassages(params?: { page?: number; limit?: number }): Promise<PaginatedResponse<FacePassage>> {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+  const res = await fetchWithAuth(`${API_URL}/api/bastion/passages?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des passages récents");
+  return res.json();
+}
+
+// ─── BASTION Access Control API Functions ───
+
+export async function createCredentialV2(data: CredentialCreateInput): Promise<CredentialDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/credentials`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de création du justificatif");
+  }
+  return res.json();
+}
+
+export async function getAccessGroups(params?: { page?: number; limit?: number; search?: string }): Promise<PaginatedResponse<AccessGroup>> {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+  if (params?.search) searchParams.set("search", params.search);
+  const res = await fetchWithAuth(`${API_URL}/api/access/groups?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des groupes");
+  return res.json();
+}
+
+export async function createAccessGroup(data: { name: string; description?: string }): Promise<AccessGroup> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/groups`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de création du groupe");
+  }
+  return res.json();
+}
+
+export async function updateAccessGroup(id: string, data: Partial<AccessGroup>): Promise<AccessGroup> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/groups/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour du groupe");
+  return res.json();
+}
+
+export async function deleteAccessGroup(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/groups/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Échec de la suppression du groupe");
+}
+
+export async function addMemberToGroup(groupId: string, memberId: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/groups/${groupId}/members/${memberId}`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error("Échec de l'ajout du membre");
+}
+
+export async function removeMemberFromGroup(groupId: string, memberId: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/groups/${groupId}/members/${memberId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Échec du retrait du membre");
+}
+
+export async function createAccessSchedule(data: { name: string; entries: ScheduleEntry[] }): Promise<ScheduleDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/schedules`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de création de l'horaire");
+  }
+  return res.json();
+}
+
+export async function getAccessSchedules(params?: { page?: number; limit?: number }): Promise<PaginatedResponse<ScheduleDto>> {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+  const res = await fetchWithAuth(`${API_URL}/api/access/schedules?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des horaires");
+  return res.json();
+}
+
+export async function getAccessEvents(params?: { page?: number; limit?: number; type?: string; from?: string; to?: string }): Promise<PaginatedResponse<AccessEvent>> {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+  if (params?.type) searchParams.set("type", params.type);
+  if (params?.from) searchParams.set("from", params.from);
+  if (params?.to) searchParams.set("to", params.to);
+  const res = await fetchWithAuth(`${API_URL}/api/access/events?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des événements");
+  return res.json();
+}
+
+export async function getAccessEvent(id: string): Promise<AccessEventDetail> {
+  const res = await fetchWithAuth(`${API_URL}/api/access/events/${id}`);
+  if (!res.ok) throw new Error("Échec du chargement de l'événement");
+  return res.json();
+}
+
+// ─── BASTION RBAC, SSO, Sync API Functions ───
+
+export async function getRoles(): Promise<RoleDefinition[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/parametres/rbac/roles`);
+  if (!res.ok) throw new Error("Échec du chargement des rôles");
+  return res.json();
+}
+
+export async function updateRole(roleName: string, permissions: string[]): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/parametres/rbac/roles/${encodeURIComponent(roleName)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ permissions }),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour du rôle");
+}
+
+export async function createCustomRole(data: { name: string; permissions: string[]; parentRole: string }): Promise<RoleDefinition> {
+  const res = await fetchWithAuth(`${API_URL}/api/parametres/rbac/roles`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de création du rôle");
+  }
+  return res.json();
+}
+
+export async function getSsoProviders(): Promise<SsoProvider[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/parametres/sso`);
+  if (!res.ok) throw new Error("Échec du chargement des fournisseurs SSO");
+  return res.json();
+}
+
+export async function createSsoProvider(data: SsoProviderConfig): Promise<SsoProvider> {
+  const res = await fetchWithAuth(`${API_URL}/api/parametres/sso`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de création du fournisseur SSO");
+  }
+  return res.json();
+}
+
+export async function updateSsoProvider(id: string, data: Partial<SsoProviderConfig>): Promise<SsoProvider> {
+  const res = await fetchWithAuth(`${API_URL}/api/parametres/sso/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour du fournisseur SSO");
+  return res.json();
+}
+
+export async function deleteSsoProvider(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/parametres/sso/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Échec de la suppression du fournisseur SSO");
+}
+
+export async function testSsoConnection(id: string): Promise<{ success: boolean; message: string }> {
+  const res = await fetchWithAuth(`${API_URL}/api/parametres/sso/${id}/test`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    return { success: false, message: errData.message || "Échec de connexion au fournisseur SSO" };
+  }
+  return res.json();
+}
+
+export async function getSyncStatus(): Promise<SyncStatus> {
+  const res = await fetchWithAuth(`${API_URL}/api/parametres/synchronisation`);
+  if (!res.ok) throw new Error("Échec du chargement du statut de synchronisation");
+  return res.json();
+}
+
+export async function triggerSync(): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/parametres/synchronisation/trigger`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) throw new Error("Échec du déclenchement de la synchronisation");
+}
   const res = await fetchWithAuth(`${API_URL}/api/cameras/${cameraId}/detection-config`);
   if (!res.ok) throw new Error("Échec du chargement de la configuration de détection");
   return res.json();
