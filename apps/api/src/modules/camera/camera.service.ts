@@ -1,10 +1,35 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException, Logger } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Prisma, AlertSeverity } from "@prisma/client";
 import { LicenseService } from "../license/license.service";
+import { v4 as uuidv4 } from "uuid";
+import * as dgram from "dgram";
+
+export interface OnvifScanResult {
+  ip: string;
+  model?: string;
+  manufacturer?: string;
+  onvifVersion?: string;
+  address: string;
+  xaddrs: string;
+  types: string;
+  scopes: string[];
+}
+
+export interface OnvifScan {
+  id: string;
+  subnet: string;
+  status: "scanning" | "completed";
+  startedAt: Date;
+  completedAt?: Date;
+  results: OnvifScanResult[];
+}
 
 @Injectable()
 export class CameraService {
+  private readonly logger = new Logger(CameraService.name);
+  private onvifScans: Map<string, OnvifScan> = new Map();
+
   constructor(
     private prisma: PrismaService,
     private licenseService: LicenseService,
@@ -44,6 +69,7 @@ export class CameraService {
         organization: { select: { id: true, name: true } },
         prompts: { orderBy: { createdAt: "desc" } },
         alerts: { take: 10, orderBy: { createdAt: "desc" } },
+        detectionZones: { orderBy: { createdAt: "desc" } },
       },
     });
     if (!camera) throw new NotFoundException("Camera not found");
@@ -171,6 +197,151 @@ export class CameraService {
     return this.prisma.camera.update({
       where: { id: cameraId },
       data: { ptzPresets: [...presets, newPreset] as any },
+    });
+  }
+
+  // ── ONVIF Discovery ──
+
+  async startOnvifScan(subnet?: string): Promise<{ scanId: string }> {
+    const scanId = uuidv4();
+    const targetSubnet = subnet || "239.255.255.250";
+
+    const scan: OnvifScan = {
+      id: scanId,
+      subnet: targetSubnet,
+      status: "scanning",
+      startedAt: new Date(),
+      results: [],
+    };
+    this.onvifScans.set(scanId, scan);
+
+    // Start async WS-Discovery probe
+    this.runWsDiscoveryProbe(scanId, targetSubnet).catch((err) => {
+      this.logger.error(`ONVIF scan ${scanId} failed: ${err.message}`);
+      scan.status = "completed";
+      scan.completedAt = new Date();
+    });
+
+    return { scanId };
+  }
+
+  getOnvifResults(scanId: string): OnvifScan | null {
+    return this.onvifScans.get(scanId) ?? null;
+  }
+
+  private async runWsDiscoveryProbe(scanId: string, multicastAddr: string): Promise<void> {
+    const scan = this.onvifScans.get(scanId);
+    if (!scan) return;
+
+    const probeMsg = `<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope"
+  xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing"
+  xmlns:wsd="http://schemas.xmlsoap.org/ws/2005/04/discovery"
+  xmlns:dn="http://www.onvif.org/ver10/network/wsdl">
+  <soap:Header>
+    <wsa:Action>http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe</wsa:Action>
+    <wsa:MessageID>uuid:${uuidv4()}</wsa:MessageID>
+    <wsa:To>urn:schemas-xmlsoap-org:ws:2005:04:discovery</wsa:To>
+  </soap:Header>
+  <soap:Body>
+    <wsd:Probe>
+      <wsd:Types>dn:NetworkVideoTransmitter</wsd:Types>
+    </wsd:Probe>
+  </soap:Body>
+</soap:Envelope>`;
+
+    return new Promise((resolve) => {
+      const socket = dgram.createSocket({ type: "udp4", reuseAddr: true });
+
+      socket.on("message", (msg) => {
+        try {
+          const xml = msg.toString("utf8");
+          // Parse minimal WS-Discovery response
+          const xaddrsMatch = xml.match(/<wsa:XAddrs>([^<]+)<\/wsa:XAddrs>/);
+          const typesMatch = xml.match(/<wsd:Types>([^<]+)<\/wsd:Types>/i);
+          const scopesMatch = xml.match(/<wsd:Scopes>([^<]+)<\/wsd:Scopes>/i);
+          const ipMatch = xaddrsMatch
+            ? xaddrsMatch[1].match(/https?:\/\/([^:/]+)/)
+            : null;
+
+          if (ipMatch) {
+            const ip = ipMatch[1];
+            // Avoid duplicates
+            const existing = scan.results.find((r) => r.ip === ip);
+            if (!existing) {
+              const scopes = scopesMatch
+                ? scopesMatch[1].split(/\s+/).filter(Boolean)
+                : [];
+              // Attempt to extract model/manufacturer from scopes
+              const model = scopes
+                .find((s) => s.includes("hardware/"))
+                ?.split("/")
+                .pop();
+              const manufacturer = scopes
+                .find((s) => s.includes("dn:"))
+                ?.split("/")
+                .pop();
+
+              const result: OnvifScanResult = {
+                ip,
+                model,
+                manufacturer,
+                address: xaddrsMatch ? xaddrsMatch[1] : "",
+                xaddrs: xaddrsMatch ? xaddrsMatch[1] : "",
+                types: typesMatch ? typesMatch[1] : "",
+                scopes,
+              };
+              scan.results.push(result);
+            }
+          }
+        } catch {
+          // Skip unparseable responses
+        }
+      });
+
+      socket.on("error", (err) => {
+        this.logger.error(`ONVIF socket error: ${err.message}`);
+        socket.close();
+        scan.status = "completed";
+        scan.completedAt = new Date();
+        resolve();
+      });
+
+      socket.bind(0, () => {
+        socket.setBroadcast(true);
+        socket.setMulticastTTL(4);
+        const probeBuf = Buffer.from(probeMsg, "utf8");
+        socket.send(probeBuf, 0, probeBuf.length, 3702, multicastAddr, () => {
+          this.logger.log(`ONVIF probe sent to ${multicastAddr}:3702`);
+        });
+      });
+
+      // Collect responses for 15 seconds, then close
+      setTimeout(() => {
+        socket.close();
+        scan.status = "completed";
+        scan.completedAt = new Date();
+        this.logger.log(
+          `ONVIF scan ${scanId} completed: ${scan.results.length} device(s) found`,
+        );
+        resolve();
+      }, 15000);
+    });
+  }
+
+  // ── Substream Management ──
+
+  async updateSubstream(cameraId: string, substreamUrl: string) {
+    const camera = await this.findById(cameraId);
+    return this.prisma.camera.update({
+      where: { id: cameraId },
+      data: { substreamUrl },
+      select: {
+        id: true,
+        name: true,
+        rtspUrl: true,
+        substreamUrl: true,
+      },
     });
   }
 }

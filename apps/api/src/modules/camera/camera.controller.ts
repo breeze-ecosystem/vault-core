@@ -9,9 +9,10 @@ import {
   Query,
   Req,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { FastifyRequest } from 'fastify';
-import { CameraService } from './camera.service';
+import { CameraService, OnvifScan } from './camera.service';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UseGuards } from '@nestjs/common';
@@ -213,5 +214,52 @@ export class CameraController {
     @Body(new ZodValidationPipe(ptzSavePresetSchema)) body: { name: string },
   ) {
     return this.cameraService.savePreset(id, body.name);
+  }
+
+  // ── ONVIF Discovery ──
+
+  @Post('onvif-scan')
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  async startOnvifScan(@Body() body: { subnet?: string }) {
+    return this.cameraService.startOnvifScan(body?.subnet);
+  }
+
+  @Get('onvif-results')
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  async getOnvifResults(@Query('scanId') scanId: string) {
+    if (!scanId) {
+      throw new BadRequestException('scanId requis');
+    }
+    const scan = this.cameraService.getOnvifResults(scanId);
+    if (!scan) {
+      throw new NotFoundException('Scan non trouvé');
+    }
+    return scan;
+  }
+
+  // ── Substream Management ──
+
+  @Patch(':id/substream')
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  async updateSubstream(
+    @Param('id') id: string,
+    @Body() body: { substreamUrl: string },
+    @Req() req: FastifyRequest,
+  ) {
+    if (!body.substreamUrl) {
+      throw new BadRequestException('substreamUrl requis');
+    }
+    const result = await this.cameraService.updateSubstream(id, body.substreamUrl);
+
+    await this.auditService.log({
+      userId: (req as any).user?.id,
+      action: 'UPDATE',
+      entity: 'camera',
+      entityId: id,
+      changes: { substreamUrl: { new: body.substreamUrl } },
+      request: req,
+    });
+
+    return result;
   }
 }
