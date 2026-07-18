@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { io, type Socket } from "socket.io-client";
+import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 import { PageTransition } from "@/components/page-transition";
 import { Button } from "@/components/ui/button";

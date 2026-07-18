@@ -17,11 +17,11 @@ import {
   Trash2,
   Loader2,
   Clock,
-  Camera,
+  Camera as CameraIcon,
   AlertCircle,
   ExternalLink,
 } from "lucide-react";
-import type { Camera, ShareLink } from "@/lib/api";
+import type { ShareLink } from "@/lib/api";
 
 interface ShareCamera {
   id: string;
@@ -138,7 +138,7 @@ export function StreamShareSheet({
                         : "border-border hover:bg-accent/50",
                     )}
                   >
-                    <Camera className="h-3.5 w-3.5" />
+                    <CameraIcon className="h-3.5 w-3.5" />
                     {cam.name}
                   </button>
                 );

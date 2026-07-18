@@ -65,13 +65,18 @@ export function DNDScheduleEditor({
 
   const updateTime = (dayIndex: number, field: "startTime" | "endTime", value: string) => {
     if (sameForAll) {
-      setSchedule(schedule.map((e) => ({ ...e, [field]: value })));
+      setSchedule(schedule.map((e) => {
+        if (field === "startTime") return { ...e, startTime: value };
+        return { ...e, endTime: value };
+      }));
     } else {
-      const existing = schedule.findIndex((e) => e.dayOfWeek === dayIndex);
-      if (existing >= 0) {
-        const updated = [...schedule];
-        updated[existing] = { ...updated[existing], [field]: value };
-        setSchedule(updated);
+      const existing = schedule.find((e) => e.dayOfWeek === dayIndex);
+      if (existing) {
+        setSchedule(schedule.map((e) =>
+          e.dayOfWeek === dayIndex
+            ? field === "startTime" ? { ...e, startTime: value } : { ...e, endTime: value }
+            : e,
+        ));
       } else {
         setSchedule([
           ...schedule,

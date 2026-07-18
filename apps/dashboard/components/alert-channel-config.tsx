@@ -110,7 +110,7 @@ export function AlertChannelConfig({
   async function handleTestWhatsapp() {
     setTestingWhatsapp(true);
     try {
-      await onTestWhatsapp();
+      await onTestWhatsApp();
       toast("Test WhatsApp envoyé avec succès", "success");
     } catch (err: any) {
       toast(err.message || "Erreur d'envoi WhatsApp", "error");
