@@ -1,7 +1,8 @@
 ---
 phase: 3
 slug: bastion-ai-access-control
-status: draft
+status: approved
+reviewed_at: 2026-07-18
 shadcn_initialized: true
 preset: default
 created: 2026-07-18
@@ -562,11 +563,11 @@ No third-party registries or blocks used in this phase. All additional component
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: FLAG — Single-word "Enregistrer"/"Sauvegarder" CTA (non-blocking)
+- [x] Dimension 2 Visuals: FLAG — No explicit focal point for multi-site dashboard (non-blocking)
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: FLAG — 24px monospace stat outside canonical 4-size (non-blocking)
+- [x] Dimension 5 Spacing: FLAG — 12px/96px outside standard set, from canonical DS (non-blocking)
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-07-18
