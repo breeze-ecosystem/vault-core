@@ -72,11 +72,11 @@ Requirements for the Minimum Commercial Product. Each maps to roadmap phases.
 
 ### Pack BASTION — Rapports & Analytics
 
-- [ ] **BAS-20**: Rapports hebdomadaires — PDF auto : incidents, fréquentation, anomalies
-- [ ] **BAS-21**: Rapports mensuels — PDF détaillé + export données
-- [ ] **BAS-22**: Dashboard analytics temps réel — graphiques, tendances, KPIs sécurité
-- [ ] **BAS-23**: Recherche avancée — filtres par date, site, type événement, personne
-- [ ] **BAS-24**: Export données — CSV, PDF
+- [x] **BAS-20**: Rapports hebdomadaires — PDF auto : incidents, fréquentation, anomalies
+- [x] **BAS-21**: Rapports mensuels — PDF détaillé + export données
+- [x] **BAS-22**: Dashboard analytics temps réel — graphiques, tendances, KPIs sécurité
+- [x] **BAS-23**: Recherche avancée — filtres par date, site, type événement, personne
+- [x] **BAS-24**: Export données — CSV, PDF
 
 ### Pack BASTION — Stockage & Archivage
 
@@ -189,11 +189,11 @@ Explicitly excluded from v1.0. Documented to prevent scope creep.
 | BAS-17 | Phase 3 | Pending |
 | BAS-18 | Phase 3 | Pending |
 | BAS-19 | Phase 3 | Pending |
-| BAS-20 | Phase 4 | Pending |
-| BAS-21 | Phase 4 | Pending |
-| BAS-22 | Phase 4 | Pending |
-| BAS-23 | Phase 4 | Pending |
-| BAS-24 | Phase 4 | Pending |
+| BAS-20 | Phase 4 | Complete |
+| BAS-21 | Phase 4 | Complete |
+| BAS-22 | Phase 4 | Complete |
+| BAS-23 | Phase 4 | Complete |
+| BAS-24 | Phase 4 | Complete |
 | BAS-25 | Phase 4 | Complete |
 | BAS-26 | Phase 4 | Complete |
 | BAS-27 | Phase 4 | Complete |
