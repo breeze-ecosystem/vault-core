@@ -9,6 +9,7 @@ import type {
   AbnormalActivityDto,
   AnalyticsTrendPoint,
 } from '@repo/shared';
+import { BastionAnalyticsService, type AdvancedSearchFilters } from './bastion-analytics.service';
 
 @Injectable()
 export class AnalyticsService {
@@ -17,6 +18,7 @@ export class AnalyticsService {
   constructor(
     private prisma: PrismaService,
     private eventEmitter: EventEmitter2,
+    private readonly bastionAnalytics: BastionAnalyticsService,
   ) {}
 
   async getZoneAnalytics(
@@ -471,6 +473,17 @@ export class AnalyticsService {
       this.logger.warn(`getAbnormalActivity query failed: ${err.message}`);
       return [];
     }
+  }
+
+  /**
+   * Delegate BASTION advanced search to BastionAnalyticsService.
+   * Preserves backward compatibility with existing dashboard.
+   */
+  async bastionSearch(
+    orgId: string,
+    filters: AdvancedSearchFilters,
+  ) {
+    return this.bastionAnalytics.advancedSearch(orgId, filters);
   }
 
   async getAnalyticsTrends(
