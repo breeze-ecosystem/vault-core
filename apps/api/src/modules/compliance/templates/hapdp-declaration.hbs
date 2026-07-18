@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Déclaration HAPDP — {{org.name}}</title>
+  <style>
+    body { font-family: Helvetica, Arial, sans-serif; font-size: 10pt; color: #333; margin: 40px; }
+    h1 { font-size: 18pt; color: #1a1a2e; border-bottom: 2px solid #e0e0e0; padding-bottom: 8px; text-align: center; }
+    h2 { font-size: 14pt; color: #16213e; margin-top: 24px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+    h3 { font-size: 12pt; color: #0f3460; margin-top: 16px; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    th { background: #1a1a2e; color: white; padding: 8px; text-align: left; font-size: 9pt; }
+    td { padding: 6px 8px; border-bottom: 1px solid #e0e0e0; font-size: 9pt; }
+    tr:nth-child(even) { background: #f8f9fa; }
+    .header { text-align: center; margin-bottom: 24px; }
+    .header h1 { border: none; }
+    .org-name { font-size: 16pt; color: #1a1a2e; margin: 4px 0; }
+    .meta { color: #666; font-size: 9pt; margin: 2px 0; }
+    .info-grid { margin: 16px 0; }
+    .info-row { display: flex; padding: 4px 0; }
+    .info-label { font-weight: bold; width: 180px; color: #555; }
+    .info-value { flex: 1; }
+    .signature-area { margin-top: 40px; }
+    .signature-line { border-top: 1px solid #333; width: 300px; margin-top: 60px; }
+    .footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid #ccc; font-size: 8pt; color: #999; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Déclaration HAPDP — {{org.name}}</h1>
+    <div class="org-name">{{org.displayName}}</div>
+    <div class="meta">Généré le: {{generatedAt}}</div>
+    <div class="meta">Référence: DECL-{{slice org.id 0 8}}-{{dateStr}}</div>
+  </div>
+
+  <h2>1. Informations du Déclarant</h2>
+  <div class="info-grid">
+    <div class="info-row">
+      <span class="info-label">Organisation :</span>
+      <span class="info-value">{{org.displayName}}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Raison sociale :</span>
+      <span class="info-value">{{org.name}}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Adresse :</span>
+      <span class="info-value">{{formData.address}}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">N° SIRET :</span>
+      <span class="info-value">{{formData.siret}}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Représentant légal :</span>
+      <span class="info-value">{{formData.representative}}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Date de déclaration :</span>
+      <span class="info-value">{{formData.declarationDate}}</span>
+    </div>
+  </div>
+
+  <h2>2. Traitements Déclarés</h2>
+  <p>L'organisation déclare effectuer les traitements de données à caractère personnel suivants dans le cadre de ses activités de vidéosurveillance et de contrôle d'accès :</p>
+  <table>
+    <thead>
+      <tr>
+        <th>N°</th>
+        <th>Type de Traitement</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each formData.processingTypes}}
+      <tr>
+        <td>{{add @index 1}}</td>
+        <td>{{this}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <h2>3. Base Légale</h2>
+  <p>Conformément à la Loi n° 2018-37 du 5 juin 2018 relative à la protection des données à caractère personnel en République du Niger (HAPDP) :</p>
+  <ul>
+    <li><strong>Intérêt légitime</strong> — Protection des personnes et des biens sur le site</li>
+    <li><strong>Obligation légale</strong> — Conservation des images conformément à la réglementation</li>
+    <li><strong>Consentement</strong> — Affichage de la signalétique conformément à l'article 33 de la HAPDP</li>
+  </ul>
+
+  <h2>4. Mesures de Sécurité</h2>
+  <p>Les mesures de sécurité suivantes sont mises en œuvre :</p>
+  <ul>
+    <li>Accès restreint aux images par authentification forte (JWT)</li>
+    <li>Chiffrement des flux vidéo (TLS)</li>
+    <li>Journalisation des accès avec chaîne de hachage SHA-256 (intégrité)</li>
+    <li>Politique de conservation configurable par type d'événement (30j à 1 an+)</li>
+    <li>Pseudonymisation automatique des visages par défaut</li>
+    <li>Hébergement sur site (autohébergement) — aucune donnée transférée hors de l'organisation</li>
+  </ul>
+
+  <h2>5. Durée de Conservation</h2>
+  <p>Les images et données associées sont conservées conformément à la politique de conservation configurée dans le système :</p>
+  <ul>
+    <li><strong>Alertes de sécurité :</strong> 30 jours par défaut (configurable jusqu'à 1 an)</li>
+    <li><strong>Événements d'accès :</strong> 30 jours par défaut</li>
+    <li><strong>Preuves judiciaires :</strong> Durée définie par l'autorité compétente avec horodatage certifié (TSA)</li>
+  </ul>
+
+  <h2>6. Catégories de Données Traitées</h2>
+  <ul>
+    <li>Images et flux vidéo en direct</li>
+    <li>Captures d'écran et enregistrements</li>
+    <li>Données biométriques (visages) — avec consentement explicite et affichage de la signalétique</li>
+    <li>Horodatages des événements (accès, alertes, détections)</li>
+    <li>Informations d'identification (badges, codes QR, empreintes biométriques)</li>
+  </ul>
+
+  <h2>7. Droits des Personnes Concernées</h2>
+  <p>Conformément aux articles 24 à 32 de la HAPDP, toute personne physique a le droit :</p>
+  <ul>
+    <li>D'être informée de la collecte de ses données (signalétique sur site)</li>
+    <li>D'accéder à ses données personnelles (portail d'accès sujet)</li>
+    <li>De demander la rectification de ses données</li>
+    <li>De demander la suppression de ses données (sous réserve des obligations légales)</li>
+    <li>De limiter le traitement de ses données</li>
+  </ul>
+
+  <div class="signature-area">
+    <h2>8. Date et Signature</h2>
+    <p>Je soussigné(e), <strong>{{formData.representative}}</strong>, représentant légal de <strong>{{org.displayName}}</strong>, déclare que les informations fournies sont exactes et complètes.</p>
+    <p>Date : {{formData.declarationDate}}</p>
+    <div class="signature-line"></div>
+    <p>Signature : {{formData.signature}}</p>
+  </div>
+
+  <div class="footer">
+    <p>Document généré automatiquement par VaultOS v1.0 — Conforme à la réglementation HAPDP (Loi n° 2018-37)</p>
+    <p>{{org.displayName}} — {{generatedAt}}</p>
+  </div>
+</body>
+</html>

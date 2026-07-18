@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Signalétique de Consentement — {{cameraName}}</title>
+  <style>
+    @page { size: A4; margin: 20mm; }
+    body { font-family: Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #1a1a2e; }
+    .container { border: 4px solid #cc0000; padding: 30px; text-align: center; min-height: 900px; position: relative; }
+    .icon { font-size: 48pt; margin-bottom: 10px; }
+    h1 { font-size: 22pt; color: #cc0000; text-transform: uppercase; margin: 10px 0; letter-spacing: 2px; }
+    h2 { font-size: 14pt; color: #333; margin: 8px 0; font-weight: normal; }
+    .camera-info { background: #f8f8f8; padding: 16px; margin: 20px 0; border-radius: 4px; }
+    .camera-name { font-size: 18pt; font-weight: bold; color: #1a1a2e; }
+    .site-name { font-size: 12pt; color: #666; margin-top: 4px; }
+    .compliance-badge { background: #1a1a2e; color: white; padding: 10px 20px; display: inline-block; margin: 16px 0; font-size: 10pt; border-radius: 4px; }
+    .info-block { margin: 20px 0; text-align: left; }
+    .info-block p { margin: 6px 0; font-size: 10pt; }
+    .info-label { font-weight: bold; color: #555; }
+    .rights-section { border-top: 2px solid #eee; margin-top: 24px; padding-top: 16px; text-align: left; }
+    .rights-section h3 { font-size: 12pt; color: #16213e; }
+    .rights-section p { font-size: 9pt; color: #555; }
+    .qr-placeholder { border: 2px dashed #999; width: 150px; height: 150px; margin: 20px auto; display: flex; align-items: center; justify-content: center; font-size: 9pt; color: #999; text-align: center; }
+    .footer { position: absolute; bottom: 20px; left: 30px; right: 30px; font-size: 8pt; color: #999; border-top: 1px solid #eee; padding-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">📷</div>
+    <h1>Cette zone est sous surveillance<br>vidéosurveillance</h1>
+    <h2>Vidéoprotection — Enregistrement continu</h2>
+
+    <div class="camera-info">
+      <div class="camera-name">{{cameraName}}</div>
+      <div class="site-name">{{siteName}}</div>
+    </div>
+
+    <div class="compliance-badge">
+      Conforme à la réglementation HAPDP — Niger
+    </div>
+
+    <div class="info-block">
+      <p><span class="info-label">Date d'installation :</span> {{installationDate}}</p>
+      <p><span class="info-label">Généré le :</span> {{generatedAt}}</p>
+      <p><span class="info-label">Référence :</span> CS-{{cameraRef}}-{{dateStr}}</p>
+      <p><span class="info-label">Base légale :</span> Loi n° 2018-37 du 5 juin 2018 (HAPDP) — Intérêt légitime du responsable de traitement</p>
+    </div>
+
+    <div class="rights-section">
+      <h3>Vos droits — HAPDP (Loi n° 2018-37)</h3>
+      <p>Conformément à la réglementation HAPDP, vous disposez d'un droit d'accès, de rectification et de suppression des données vous concernant.</p>
+      <p>Pour exercer vos droits, veuillez contacter le délégué à la protection des données (DPO) de {{orgName}} à l'adresse : <strong>{{contactEmail}}</strong></p>
+      <p>Ou via notre portail d'accès sujet : <strong>{{portalUrl}}</strong></p>
+    </div>
+
+    <div class="qr-placeholder">
+      Scannez pour<br>exercer vos droits
+    </div>
+
+    <div class="footer">
+      <p>Ce document constitue la preuve d'affichage de la signalétique de consentement conformément à l'article 33 de la HAPDP.</p>
+      <p>VaultOS v1.0 — {{orgName}} — {{generatedAt}}</p>
+    </div>
+  </div>
+</body>
+</html>
