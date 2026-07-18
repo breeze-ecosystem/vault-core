@@ -1,9 +1,9 @@
 ---
 phase: 01-architecture-license-foundation
-plan: 07
+plan: 08
 type: execute
 wave: 2
-depends_on: [01-PLN-02-vaultapp-backend]
+depends_on: [01-PLN-03-vaultapp-api]
 files_modified:
   - /home/devuser/projects/vault-app/app/[locale]/admin/login/page.tsx
   - /home/devuser/projects/vault-app/app/[locale]/admin/layout.tsx
@@ -48,7 +48,7 @@ must_haves:
 <objective>
 **vault-app admin portal UI** — Build the admin frontend: login page, organization management (list + detail), and license key generation form. Follows the UI-SPEC design contract exactly.
 
-**Purpose:** VaultOS founders need a web UI to manage organizations and generate license keys. This is the client-facing admin portal built on top of the vault-app API foundation.
+**Purpose:** VaultOS founders need a web UI to manage organizations and generate license keys. This is the client-facing admin portal built on top of the vault-app API foundation (PLN-03).
 
 **Output:** Admin login, org list/detail pages, license generation form, admin layout shell.
 </objective>
@@ -316,9 +316,9 @@ must_haves:
 ## STRIDE Threat Register
 | Threat ID | Category | Component | Disposition | Mitigation Plan |
 |-----------|----------|-----------|-------------|-----------------|
-| T-01-16 | Spoofing | Admin login brute force | mitigate | bcrypt cost factor 12; Next.js middleware enforces JWT on all /api/admin/* routes |
-| T-01-17 | Information Disclosure | License key in localStorage | accept | Admin-only access; token in localStorage is standard pattern for SPA admin portals |
-| T-01-18 | Tampering | License key copy buffer | accept | navigator.clipboard.writeText() is read-only from user perspective; key is already generated and displayed |
+| T-01-18 | Spoofing | Admin login brute force | mitigate | bcrypt cost factor 12; Next.js middleware enforces JWT on all /api/admin/* routes |
+| T-01-19 | Information Disclosure | License key in localStorage | accept | Admin-only access; token in localStorage is standard pattern for SPA admin portals |
+| T-01-20 | Tampering | License key copy buffer | accept | navigator.clipboard.writeText() is read-only from user perspective; key is already generated and displayed |
 | T-01-SC | Tampering | No new npm packages | mitigate | No packages installed — uses existing vault-app components |
 </threat_model>
 
@@ -339,5 +339,5 @@ must_haves:
 </success_criteria>
 
 <output>
-Create `.planning/phases/01-architecture-license-foundation/01-PLN-07-vaultapp-ui-SUMMARY.md` when done
+Create `.planning/phases/01-architecture-license-foundation/01-PLN-08-vaultapp-ui-SUMMARY.md` when done
 </output>

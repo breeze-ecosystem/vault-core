@@ -33,17 +33,18 @@
 4. Vault-os pings vault-app every 24h; after 72h without internet it enters degraded mode (continues working offline); when license expires it becomes read-only (dashboard accessible, no new AI alerts)
 5. New organizations automatically receive a 7-day trial license with full VISION features
 
-**Plans**: 7 plans
+**Plans**: 8 plans
 **UI hint**: yes
 
 Plans:
 - [ ] 01-PLN-01-schema-shared — Schema + shared package refactor (VISION/BASTION model)
-- [ ] 01-PLN-02-vaultapp-backend — vault-app backend (Prisma, auth, orgs, license gen API)
-- [ ] 01-PLN-03-license-cleanup — vault-os license module cleanup (remove generate, API keys)
-- [ ] 01-PLN-04-feature-gating — Feature gating rewrite (pack+module seeding, @RequiresPack)
-- [ ] 01-PLN-05-enforcement-cron — License enforcement + 24h ping cron (@DegradedBlock, cron)
-- [ ] 01-PLN-06-vaultos-ui — vault-os dashboard UI (activation wizard, settings, expiry banner)
-- [ ] 01-PLN-07-vaultapp-ui — vault-app admin portal UI (login, orgs, license generation)
+- [ ] 01-PLN-02-vaultapp-setup — vault-app Prisma setup (schema, deps, env config)
+- [ ] 01-PLN-03-vaultapp-api — vault-app backend API (auth, orgs, license gen, verify)
+- [ ] 01-PLN-04-license-cleanup — vault-os license module cleanup (remove generate, API keys)
+- [ ] 01-PLN-05-feature-gating — Feature gating rewrite + trial endpoint (pack+module seeding, @RequiresPack, POST /api/licenses/trial)
+- [ ] 01-PLN-06-enforcement-cron — License enforcement + 24h ping cron (@DegradedBlock, cron)
+- [ ] 01-PLN-07-vaultos-ui — vault-os dashboard UI (activation wizard, settings, expiry banner)
+- [ ] 01-PLN-08-vaultapp-ui — vault-app admin portal UI (login, orgs, license generation)
 
 ---
 
@@ -129,7 +130,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Architecture & License Foundation | 0/7 | Not started | - |
+| 1. Architecture & License Foundation | 0/8 | Not started | - |
 | 2. VISION Pack | 0/0 | Not started | - |
 | 3. BASTION AI & Access Control | 0/0 | Not started | - |
 | 4. BASTION Enterprise | 0/0 | Not started | - |

@@ -1,15 +1,17 @@
 ---
 phase: 01-architecture-license-foundation
-plan: 04
+plan: 05
 type: execute
-wave: 2
-depends_on: [01-PLN-01-schema-shared]
+wave: 3
+depends_on: [01-PLN-01-schema-shared, 01-PLN-04-license-cleanup]
 files_modified:
   - apps/api/src/modules/feature-gate/feature-gate.service.ts
   - apps/api/src/modules/feature-gate/feature-gate.module.ts
   - apps/api/src/common/guards/feature-gate.guard.ts
   - apps/api/src/common/decorators/feature-gate.decorator.ts
   - apps/api/src/modules/auth/auth.service.ts
+  - apps/api/src/modules/license/license.controller.ts
+  - apps/api/src/modules/license/license.service.ts
 autonomous: true
 requirements: [LIC-04, LIC-05, LIC-06]
 user_setup: []
@@ -17,11 +19,12 @@ user_setup: []
 must_haves:
   truths:
     - "FeatureGateService seeds pack-based flags (VISION/BASTION) instead of tier-based"
-    - "VISION features include all 23 VISION features, maxCameras=10, maxUsers=3"
+    - "VISION features include all VISION features, maxCameras=10, maxUsers=3"
     - "BASTION features include all BASTION base features + optional module flags"
     - "seedDefaultFlags() is called during org creation in auth.service.ts"
     - "@RequiresPack() decorator exists and FeatureGateGuard supports pack checks"
     - "New orgs get automatic 7-day trial with VISION flags seeded"
+    - "POST /api/licenses/trial endpoint exists and starts a 7-day VISION trial"
   artifacts:
     - path: "apps/api/src/modules/feature-gate/feature-gate.service.ts"
       provides: "Rewrite — seeds VISION/BASTION flags per org"
@@ -32,19 +35,26 @@ must_haves:
     - path: "apps/api/src/modules/auth/auth.service.ts"
       provides: "Registration — calls seedDefaultFlags on org creation"
       calls: "featureGateService.seedDefaultFlags"
+    - path: "apps/api/src/modules/license/license.controller.ts"
+      provides: "Post('trial') endpoint for 7-day trial activation"
+      exports: ["handle"]
   key_links:
     - from: "auth.service.ts"
       to: "feature-gate.service.ts"
       via: "seedDefaultFlags(orgId, pack)"
       pattern: "seedDefaultFlags"
+    - from: "license.controller.ts"
+      to: "license.service.ts"
+      via: "startTrial() calls featureGateService.seedDefaultFlags"
+      pattern: "startTrial"
 ---
 
 <objective>
-**Feature gating rewrite** — Replace the old FREE/PROFESSIONAL/ENTERPRISE tier-based feature flag system with VISION/BASTION pack + optional module model. Wire default flag seeding into org creation flow (fixing the dead code in D-19).
+**Feature gating rewrite + trial endpoint** — Replace the old FREE/PROFESSIONAL/ENTERPRISE tier-based feature flag system with VISION/BASTION pack + optional module model. Wire default flag seeding into org creation flow. Add the trial license endpoint that starts a 7-day VISION trial.
 
-**Purpose:** FeatureGateGuard must enforce which features are available based on an org's license pack. This plan rewrites the seeding logic, updates the guard, and wires it into auth registration.
+**Purpose:** FeatureGateGuard must enforce which features are available based on an org's license pack. The trial endpoint allows new users to start a 7-day free trial with full VISION features.
 
-**Output:** Rewritten FeatureGateService, extended FeatureGateGuard, new @RequiresPack() decorator, auth service wiring.
+**Output:** Rewritten FeatureGateService, extended FeatureGateGuard, new @RequiresPack() decorator, auth service wiring, trial endpoint on license controller+service.
 </objective>
 
 <execution_context>
@@ -64,6 +74,10 @@ apps/api/src/common/decorators/feature-gate.decorator.ts
 
 # Auth service — wire seeding
 apps/api/src/modules/auth/auth.service.ts
+
+# License controller/service — trial endpoint (cleaned in Plan 04, now adding trial)
+apps/api/src/modules/license/license.controller.ts
+apps/api/src/modules/license/license.service.ts
 
 # Pricing spec for feature definitions
 docs/PRICING-SPEC.md
@@ -100,7 +114,7 @@ docs/PRICING-SPEC.md
     ```typescript
     const PACK_FEATURES: Record<string, Array<{ key: string; moduleKey?: string }>> = {
       VISION: [
-        // All 23 VISION features from PRICING-SPEC
+        // All VISION features from PRICING-SPEC
         { key: "live_streaming" },
         { key: "motion_detection" },
         { key: "basic_facial_recognition" },
@@ -123,7 +137,7 @@ docs/PRICING-SPEC.md
         { key: "qr_credential" },
         { key: "multi_site" },
         { key: "enterprise_sso" },
-        // Module-gated features (requires both pack=BASTION and moduleKey match)
+        // Module-gated features
         { key: "extra_cameras", moduleKey: "extra_cameras" },
         { key: "access_control", moduleKey: "access_control" },
         { key: "extra_sites", moduleKey: "extra_sites" },
@@ -155,7 +169,7 @@ docs/PRICING-SPEC.md
     **Auth service wiring (auth.service.ts, per D-19):**
     - Import `FeatureGateService` from `../../feature-gate/feature-gate.service`
     - Add to constructor: `private featureGateService: FeatureGateService`
-    - In `register()` method, after the $transaction completes (line 72-73), call:
+    - In `register()` method, after the $transaction completes, call:
       ```typescript
       await this.featureGateService.seedDefaultFlags(result.org.id, "VISION");
       ```
@@ -215,7 +229,7 @@ docs/PRICING-SPEC.md
     3. If `@RequiresModule()` is present:
        - Check if the specific module feature flag exists with matching moduleKey
        - If not enabled, throw: "Module optionnel non activé"
-    4. Keep existing `@RequiresFeature()` logic unchanged — it still works for feature-level gating
+    4. Keep existing `@RequiresFeature()` logic unchanged
 
     The guard should read pack from the FeatureFlag table (per RESEARCH Pitfall 2), NOT from JWT claims. The pack info is written to the FeatureFlag table at activation/trial time.
 
@@ -239,6 +253,63 @@ docs/PRICING-SPEC.md
   </done>
 </task>
 
+<task type="auto">
+  <name>Task 3: Add trial license endpoint to license controller/service</name>
+  <files>
+    apps/api/src/modules/license/license.controller.ts
+    apps/api/src/modules/license/license.service.ts
+  </files>
+  <read_first>
+    apps/api/src/modules/license/license.controller.ts
+    apps/api/src/modules/license/license.service.ts
+    apps/api/src/modules/feature-gate/feature-gate.service.ts
+  </read_first>
+  <acceptance_criteria>
+    1. POST /api/licenses/trial exists and is JWT-protected
+    2. startTrial(orgId) sets trialStartDate and trialEndDate on Organization
+    3. startTrial calls featureGateService.seedDefaultFlags(orgId, "VISION")
+    4. On success, returns { status: "trial", trialEndsAt: "ISO date" }
+    5. If already has active license, returns 409 conflict
+  </acceptance_criteria>
+  <action>
+    **Add to license.controller.ts:**
+    Add a new `@Post("trial")` handler that calls licenseService.startTrial(orgId):
+    ```typescript
+    @Post("trial")
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.CREATED)
+    async startTrial(@Req() req: FastifyRequest) {
+      const orgId = (req as any).user.orgId;
+      return this.licenseService.startTrial(orgId);
+    }
+    ```
+    Import `JwtAuthGuard` if not already imported. Add `@ApiBearerAuth()` and `@ApiOperation({ summary: "Start 7-day trial" })` decorators.
+
+    **Add to license.service.ts:**
+    Add `startTrial(organizationId: string)` method:
+    - Inject `FeatureGateService` via constructor DI (add `private featureGateService: FeatureGateService`)
+    - Import `FeatureGateService` from `../../feature-gate/feature-gate.service`
+    - In `startTrial`:
+      - Check if org already has active license — if so, throw ConflictException ("Cette organisation a déjà une licence active")
+      - Set `trialStartDate: new Date()` and `trialEndDate: addDays(new Date(), 7)` on Organization (use simple Date math, no library needed)
+      - Call `await this.featureGateService.seedDefaultFlags(organizationId, "VISION")` to seed VISION feature flags
+      - Return `{ status: "trial", trialEndsAt: trialEndDate.toISOString() }`
+
+    After changes:
+    ```
+    cd /home/devuser/projects/vault-os && pnpm --filter=@vaultos/api check-types
+    ```
+  </action>
+  <verify>
+    <automated>
+      cd /home/devuser/projects/vault-os/apps/api && npx nest build 2>&1 | tail -10
+    </automated>
+  </verify>
+  <done>
+    POST /api/licenses/trial creates 7-day trial, seeds VISION feature flags, returns { status: "trial", trialEndsAt }. Build succeeds.
+  </done>
+</task>
+
 </tasks>
 
 <threat_model>
@@ -246,19 +317,22 @@ docs/PRICING-SPEC.md
 | Boundary | Description |
 |----------|-------------|
 | API controller → FeatureGateGuard | Guard checks metadata + FeatureFlag DB before allowing request |
+| API controller → LicenseService.startTrial | Authenticated org admin starts trial |
 
 ## STRIDE Threat Register
 | Threat ID | Category | Component | Disposition | Mitigation Plan |
 |-----------|----------|-----------|-------------|-----------------|
-| T-01-08 | Tampering | FeatureFlag DB records | mitigate | FeatureGateGuard reads from DB with Redis cache; only vault-os admin can modify (via API permissions). Pack assignment set at org creation only. |
-| T-01-09 | Information Disclosure | Pack info leak | accept | Pack name is non-sensitive (VISION/BASTION) — same as plan tier was |
+| T-01-09 | Tampering | FeatureFlag DB records | mitigate | FeatureGateGuard reads from DB with Redis cache; only vault-os admin can modify (via API permissions). Pack assignment set at org creation only. |
+| T-01-10 | Information Disclosure | Pack info leak | accept | Pack name is non-sensitive (VISION/BASTION) — same as plan tier was |
+| T-01-11 | Tampering | Trial endpoint abuse | mitigate | POST /api/licenses/trial is JWT-protected; checks for existing active license before allowing trial |
 | T-01-SC | Tampering | No new packages | mitigate | No packages installed in this plan |
 </threat_model>
 
 <verification>
 1. `cd apps/api && npx nest build` succeeds
 2. Verify seedDefaultFlags is called: grep for "seedDefaultFlags" in auth.service.ts shows call
-3. Verify old tier references gone: grep for "FREE\|PROFESSIONAL\|ENTERPRISE" in feature-gate files returns no matches
+3. Verify trial endpoint: grep for "startTrial" in license.controller.ts and license.service.ts
+4. Verify old tier references gone: grep for "FREE\|PROFESSIONAL\|ENTERPRISE" in feature-gate files returns no matches
 </verification>
 
 <success_criteria>
@@ -266,9 +340,10 @@ docs/PRICING-SPEC.md
 - auth.service.ts calls seedDefaultFlags on org registration (dead code fix)
 - @RequiresPack() decorator enforces pack requirements at the API layer
 - FeatureGateGuard reads pack from FeatureFlag table (not JWT)
+- POST /api/licenses/trial creates 7-day trial with VISION features seeded
 - NestJS build passes
 </success_criteria>
 
 <output>
-Create `.planning/phases/01-architecture-license-foundation/01-PLN-04-feature-gating-SUMMARY.md` when done
+Create `.planning/phases/01-architecture-license-foundation/01-PLN-05-feature-gating-SUMMARY.md` when done
 </output>

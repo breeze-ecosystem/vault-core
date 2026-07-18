@@ -1,6 +1,6 @@
 ---
 phase: 01-architecture-license-foundation
-plan: 03
+plan: 04
 type: execute
 wave: 2
 depends_on: [01-PLN-01-schema-shared]
@@ -44,7 +44,7 @@ must_haves:
 <objective>
 **vault-os license module cleanup** — Remove license generation (POST /api/licenses/generate), API key management endpoints, LicenseApiKeyGuard, and private key loading from LicenseKeyManager. The generation responsibility moves entirely to vault-app (per D-18, D-15).
 
-**Purpose:** Vault-os should never generate licenses or hold the private key. This plan deletes the old code paths and updates the module wiring.
+**Purpose:** vault-os should never generate licenses or hold the private key. This plan deletes the old code paths and updates the module wiring.
 
 **Output:** Cleaned license controller, service, module, key manager, types, and removed guard.
 </objective>
@@ -97,11 +97,11 @@ packages/shared/src/index.ts
   </acceptance_criteria>
   <action>
     **Controller changes (license.controller.ts):**
-    - Remove `@Post("generate")` handler method (lines 36-44)
-    - Remove `LicenseApiKeyGuard` import (line 19)
-    - Remove `generateLicenseSchema` import (line 21)
-    - Remove entire `@Post("api-keys")`, `@Get("api-keys")`, `@Delete("api-keys/:id")` handlers (lines 110-150)
-    - Remove `createApiKeySchema` import (was on line 23)
+    - Remove `@Post("generate")` handler method
+    - Remove `LicenseApiKeyGuard` import
+    - Remove `generateLicenseSchema` import
+    - Remove entire `@Post("api-keys")`, `@Get("api-keys")`, `@Delete("api-keys/:id")` handlers
+    - Remove `createApiKeySchema` import
     - Remove `@ApiOperation`, `@ApiBearerAuth`, and `@Roles` decorators for removed endpoints
     - Keep: `@Post("activate")`, `@Get("status")`, `@Get()`, `@Get("usage")` handlers unchanged
 
@@ -115,7 +115,7 @@ packages/shared/src/index.ts
 
     **Shared index.ts:**
     - Verify generateLicenseSchema, CURRENCY_OPTIONS, createApiKeySchema, CreateApiKeyInput are all removed from exports (Plan 1 handled some of these)
-    - Remove `createApiKeySchema` from import line 356 if still present
+    - Remove `createApiKeySchema` from import if still present
     - Remove `CreateApiKeyInput` type export if still present
 
     After all changes, run type check:
@@ -154,41 +154,39 @@ packages/shared/src/index.ts
     4. LicenseKeyManager has no private key loading (onModuleInit, getPrivateKey removed)
     5. LicenseKeyManager only exports getPublicKey()
     6. LicenseModule does not provide LicenseApiKeyGuard
-    7. LicenseModule no longer exports LicenseExpiryGuard (not needed for other modules — will be consumed via APP_GUARD in Plan 5)
+    7. LicenseModule no longer exports LicenseExpiryGuard (will be consumed via APP_GUARD in Plan 6)
     8. license.types.ts has new LicenseStatusResponse with pack, modules, maxUsers, and "degraded" state
   </acceptance_criteria>
   <action>
     **Service changes (license.service.ts):**
-    - Remove entire `generateLicense()` method (lines 31-77) and `normalizeCurrency()` helper (lines 84-93)
-    - Remove `createApiKey()` method (lines 308-324)
-    - Remove `revokeApiKey()` method (lines 329-336)
-    - Remove `listAllApiKeys()` method (lines 287-302)
+    - Remove entire `generateLicense()` method and `normalizeCurrency()` helper
+    - Remove `createApiKey()` method
+    - Remove `revokeApiKey()` method
+    - Remove `listAllApiKeys()` method
     - Remove unused imports: `LicenseClaims` (if no longer referenced directly), `CURRENCY_OPTIONS`, `v4 as uuidv4`, `* as crypto`
-    - Keep: `verifyAndActivate()`, `getLicenseStatus()`, `getUsage()`, `listLicenses()` — these are the core activation and verification functions
-    - Keep `getLicenseStatus()` method — update it to use the new shared types (LicenseClaims with pack/modules). Add logic to extract `pack` and `modules` from the active license's JWT or from the FeatureFlag table.
-    - Keep the LicenseClaims import — still needed for JWT verification in verifyAndActivate
+    - Keep: `verifyAndActivate()`, `getLicenseStatus()`, `getUsage()`, `listLicenses()` — core activation and verification functions
+    - Keep `getLicenseStatus()` method — update it to use the new shared types (LicenseClaims with pack/modules)
 
     **Key Manager changes (license-key-manager.ts, per D-15):**
     - Remove `OnModuleInit` interface implementation
     - Remove `privateKey` field
-    - Remove `onModuleInit()` method (lines 14-28)
-    - Remove `getPrivateKey()` method (lines 30-35)
+    - Remove `onModuleInit()` method
+    - Remove `getPrivateKey()` method
     - Remove `ConfigService` import (no longer needed)
     - Keep only `getPublicKey()` which returns `crypto.createPublicKey(LICENSE_PUBLIC_KEY_PEM)`
     - Remove constructor parameter (no more config injection)
-    - Optionally rename class to `LicensePublicKeyManager` or keep name
 
     **Module changes (license.module.ts, per D-18):**
     - Remove `LicenseApiKeyGuard` from providers array
     - Remove `LicenseApiKeyGuard` import
-    - Remove `LicenseExpiryGuard` from exports (will be consumed via the guard chain in Plan 5)
+    - Remove `LicenseExpiryGuard` from exports (consumed via APP_GUARD in Plan 6)
     - Keep `LicenseExpiryGuard` in providers (still instantiated by NestJS for DI)
 
     **Types changes (license.types.ts):**
     - Import new `LicenseClaims` from shared (with pack, modules, maxUsers)
     - Add `"degraded"` to licenseState union in LicenseStatusResponse
     - Add `pack?: string`, `modules?: string[]`, `maxUsers?: number` fields to LicenseStatusResponse
-    - Keep existing structure otherwise — update getLicenseStatus return type to include pack/modules extracted from active license JWT or FeatureFlag
+    - Keep existing structure otherwise
 
     After all changes, build:
     ```
@@ -216,8 +214,8 @@ packages/shared/src/index.ts
 ## STRIDE Threat Register
 | Threat ID | Category | Component | Disposition | Mitigation Plan |
 |-----------|----------|-----------|-------------|-----------------|
-| T-01-06 | Elevation of Privilege | Removed generate endpoint | mitigate | Endpoint is deleted entirely; no API surface for generating licenses in vault-os |
-| T-01-07 | Information Disclosure | Private key path env var | mitigate | LICENSE_PRIVATE_KEY_PATH env var is no longer read by LicenseKeyManager; remove from vault-os env config |
+| T-01-07 | Elevation of Privilege | Removed generate endpoint | mitigate | Endpoint is deleted entirely; no API surface for generating licenses in vault-os |
+| T-01-08 | Information Disclosure | Private key path env var | mitigate | LICENSE_PRIVATE_KEY_PATH env var is no longer read by LicenseKeyManager; remove from vault-os env config |
 | T-01-SC | Tampering | No new package installs | mitigate | No packages installed in this plan |
 </threat_model>
 
@@ -229,7 +227,7 @@ packages/shared/src/index.ts
 </verification>
 
 <success_criteria>
-- vauult-os API no longer generates licenses or holds private key
+- vault-os API no longer generates licenses or holds private key
 - All API key management endpoints removed from vault-os
 - LicenseKeyManager only loads public key
 - License module cleaned and builds successfully
@@ -237,5 +235,5 @@ packages/shared/src/index.ts
 </success_criteria>
 
 <output>
-Create `.planning/phases/01-architecture-license-foundation/01-PLN-03-license-cleanup-SUMMARY.md` when done
+Create `.planning/phases/01-architecture-license-foundation/01-PLN-04-license-cleanup-SUMMARY.md` when done
 </output>

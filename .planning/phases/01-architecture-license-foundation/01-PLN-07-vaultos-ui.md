@@ -1,9 +1,9 @@
 ---
 phase: 01-architecture-license-foundation
-plan: 06
+plan: 07
 type: execute
-wave: 4
-depends_on: [01-PLN-05-enforcement-cron]
+wave: 5
+depends_on: [01-PLN-06-enforcement-cron]
 files_modified:
   - apps/dashboard/app/(auth)/activate/page.tsx
   - apps/dashboard/app/parametres/licence/page.tsx
@@ -94,7 +94,7 @@ apps/dashboard/lib/utils.ts
     2. Two option cards: "J'ai une clé de licence" (KeyRound icon) and "Démarrer un essai gratuit de 7 jours" (Sparkles icon)
     3. Key option expands inline input with paste button (ClipboardPasteIcon with aria-label)
     4. "Activer ma licence" button calls POST /api/licenses/activate
-    5. Trial option shows confirmation dialog per UI-SPEC copy
+    5. Trial option shows confirmation dialog per UI-SPEC copy, then calls POST /api/licenses/trial
     6. On success: toast + 1.5s delay + redirect to /
     7. On mount: checks license status; if active/trial → redirect to /
     8. Loading state: skeleton + "Vérification de la licence..."
@@ -104,7 +104,7 @@ apps/dashboard/lib/utils.ts
   <action>
     Create a new route at `app/(auth)/activate/page.tsx` — this puts it outside the dashboard layout (no sidebar, no header). Based on the existing login page pattern.
 
-    **Add to api.ts (if missing):**
+    **Add to api.ts** the API client function for starting a trial (the POST /api/licenses/trial endpoint itself is built in PLN-05). If not already present:
     ```typescript
     export async function startTrial(): Promise<{ status: string; trialEndsAt: string }> {
       const res = await fetchWithAuth(`${API_URL}/api/licenses/trial`, { method: 'POST' });
@@ -112,9 +112,6 @@ apps/dashboard/lib/utils.ts
       return res.json();
     }
     ```
-    Note: The `POST /api/licenses/trial` endpoint needs to be added to the NestJS LicenseController (it might not exist yet). Add it as part of this task:
-    - In license.controller.ts: `@Post("trial")` handler that calls `licenseService.startTrial(orgId)`
-    - In license.service.ts: `startTrial(orgId)` method — sets trialStartDate/trialEndDate on Organization, seeds VISION feature flags, returns `{ status: "trial", trialEndsAt }`
 
     **Activation wizard page layout (following 01-UI-SPEC.md exactly):**
     - "use client" directive
@@ -145,18 +142,9 @@ apps/dashboard/lib/utils.ts
     - Body: "Vous allez bénéficier de toutes les fonctionnalités du pack VISION pendant 7 jours, sans engagement."
     - Features list: max 10 caméras, détection IA, alertes WhatsApp/SMS, stockage local 7 jours
     - Actions: "Annuler" + "Confirmer"
-    - On confirm: POST /api/licenses/trial → loading → success toast → redirect
+    - On confirm: POST /api/licenses/trial (consumes endpoint from PLN-05) → loading → success toast → redirect
 
-    **Trial endpoint must exist** in license.controller.ts — add if not present:
-    ```typescript
-    @Post("trial")
-    @UseGuards(JwtAuthGuard)
-    @HttpCode(HttpStatus.CREATED)
-    async startTrial(@Req() req: FastifyRequest) {
-      const orgId = (req as any).user.orgId;
-      return this.licenseService.startTrial(orgId);
-    }
-    ```
+    **Note:** The POST /api/licenses/trial endpoint is implemented in PLN-05 (feature-gating) — this task only creates the UI consumer via `lib/api.ts`. The backend endpoint must exist before this plan executes, which is guaranteed by the dependency chain (PLN-07 depends on PLN-06 depends on PLN-05).
 
     Test by visiting /activate after auth → should show wizard, not redirect.
   </action>
@@ -345,8 +333,8 @@ apps/dashboard/lib/utils.ts
 ## STRIDE Threat Register
 | Threat ID | Category | Component | Disposition | Mitigation Plan |
 |-----------|----------|-----------|-------------|-----------------|
-| T-01-14 | Information Disclosure | License status API response | accept | License state is non-sensitive (active/degraded/expired — same info shown in UI) |
-| T-01-15 | Tampering | Activation wizard trial creation | mitigate | POST /api/licenses/trial is JWT-protected; only authenticated org admin can start trial |
+| T-01-16 | Information Disclosure | License status API response | accept | License state is non-sensitive (active/degraded/expired — same info shown in UI) |
+| T-01-17 | Tampering | Activation wizard trial creation | mitigate | POST /api/licenses/trial is JWT-protected (endpoint in PLN-05); only authenticated org admin can start trial |
 | T-01-SC | Tampering | No new npm packages | mitigate | No packages installed in this plan |
 </threat_model>
 
@@ -366,5 +354,5 @@ apps/dashboard/lib/utils.ts
 </success_criteria>
 
 <output>
-Create `.planning/phases/01-architecture-license-foundation/01-PLN-06-vaultos-ui-SUMMARY.md` when done
+Create `.planning/phases/01-architecture-license-foundation/01-PLN-07-vaultos-ui-SUMMARY.md` when done
 </output>

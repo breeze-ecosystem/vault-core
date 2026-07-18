@@ -1,9 +1,9 @@
 ---
 phase: 01-architecture-license-foundation
-plan: 05
+plan: 06
 type: execute
-wave: 3
-depends_on: [01-PLN-03-license-cleanup]
+wave: 4
+depends_on: [01-PLN-04-license-cleanup, 01-PLN-05-feature-gating]
 files_modified:
   - apps/api/src/modules/license/guards/license-expiry.guard.ts
   - apps/api/src/modules/license/license-verification.service.ts
@@ -35,9 +35,9 @@ must_haves:
       exports: ["DegradedBlock", "DEGRADED_BLOCK_KEY"]
   key_links:
     - from: "LicenseVerificationService"
-      to: "vault-app /api/verify"
-      via: "@nestjs/axios HTTP GET"
-      pattern: "VAULT_APP_URL"
+      to: "vault-app /api/verify (from PLN-03)"
+      via: "@nestjs/axios HTTP GET with ?organizationId= query param"
+      pattern: "VAULT_APP_URL/api/verify?organizationId="
     - from: "LicenseExpiryGuard"
       to: "LicenseService.getLicenseStatus()"
       via: "license state check"
@@ -217,7 +217,7 @@ apps/api/src/app.module.ts
     { provide: APP_GUARD, useClass: LicenseExpiryGuard },
     ```
 
-    Add `LicenseModule` import to AppModule (already imported — verify at line 42). The LicenseExpiryGuard is provided by LicenseModule, which must be imported for DI to work.
+    Add `LicenseModule` import to AppModule (already imported — verify). The LicenseExpiryGuard is provided by LicenseModule, which must be imported for DI to work.
 
     After changes:
     ```
@@ -246,10 +246,10 @@ apps/api/src/app.module.ts
 ## STRIDE Threat Register
 | Threat ID | Category | Component | Disposition | Mitigation Plan |
 |-----------|----------|-----------|-------------|-----------------|
-| T-01-10 | Tampering | License JWT forgery | mitigate | RSA-2048 + RS256 verification in verifyAndActivate(); reject non-RS256 algorithms |
-| T-01-11 | Spoofing | License replay attack | mitigate | JWT contains organizationId — vault-os verifies org match on activation |
-| T-01-12 | Denial of Service | vault-app verify endpoint unreachable | mitigate | Cron catches all errors, never throws; sets lastVerificationFailedAt instead of crashing |
-| T-01-13 | Elevation of Privilege | Expired license still allows mutations | mitigate | LicenseExpiryGuard is global APP_GUARD — runs on every request |
+| T-01-12 | Tampering | License JWT forgery | mitigate | RSA-2048 + RS256 verification in verifyAndActivate(); reject non-RS256 algorithms |
+| T-01-13 | Spoofing | License replay attack | mitigate | JWT contains organizationId — vault-os verifies org match on activation |
+| T-01-14 | Denial of Service | vault-app verify endpoint unreachable | mitigate | Cron catches all errors, never throws; sets lastVerificationFailedAt instead of crashing |
+| T-01-15 | Elevation of Privilege | Expired license still allows mutations | mitigate | LicenseExpiryGuard is global APP_GUARD — runs on every request |
 | T-01-SC | Tampering | @nestjs/axios install | mitigate | Official NestJS package, 4M+ weekly downloads — [ASSUMED] |
 </threat_model>
 
@@ -268,5 +268,5 @@ apps/api/src/app.module.ts
 </success_criteria>
 
 <output>
-Create `.planning/phases/01-architecture-license-foundation/01-PLN-05-enforcement-cron-SUMMARY.md` when done
+Create `.planning/phases/01-architecture-license-foundation/01-PLN-06-enforcement-cron-SUMMARY.md` when done
 </output>
