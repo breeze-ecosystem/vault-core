@@ -7,12 +7,17 @@ import {
   RefreshControl,
   Pressable,
   Alert,
+  AppState,
 } from "react-native";
 import { useAuth } from "@/lib/auth-context";
 import { fetchDashboardStats, type DashboardStats } from "@/lib/api";
 import { colors, typography } from "@repo/design";
 import { useTranslation } from "@/lib/i18n";
 import { QuickActionButton } from "@/components/quick-action-button";
+import { ArmDisarmToggle } from "@/components/arm-disarm-toggle";
+import * as SecureStore from "expo-secure-store";
+import { getNetworkStateAsync, NetworkStateType } from "expo-network";
+import { postHeartbeat, postDisconnected } from "@/lib/api-extensions";
 import {
   Shield,
   Camera,
@@ -21,6 +26,7 @@ import {
   Search,
   AlertTriangle,
   Clock,
+  Wifi,
 } from "lucide-react-native";
 
 export default function HomeScreen() {
@@ -32,7 +38,12 @@ export default function HomeScreen() {
   const [error, setError] = useState<string | null>(null);
   const [checkInTime, setCheckInTime] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState("00:00:00");
+  const [armed, setArmed] = useState(false);
+  const [wifiConnected, setWifiConnected] = useState(false);
+  const [currentSsid, setCurrentSsid] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const appStateRef = useRef(AppState.currentState);
+  const wifiCheckIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   async function loadStats() {
     try {
@@ -79,6 +90,62 @@ export default function HomeScreen() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
+  }, []);
+
+  // WiFi SSID monitoring for geofencing
+  const checkWifiState = useCallback(async () => {
+    try {
+      const state = await getNetworkStateAsync();
+      const isWifi = state.type === NetworkStateType.WIFI;
+      const prevWifi = wifiConnected;
+
+      setWifiConnected(isWifi);
+
+      if (isWifi && !prevWifi) {
+        // Reconnected to WiFi — send heartbeat
+        const trustedSsidsRaw = await SecureStore.getItemAsync("trustedSsids");
+        const trustedSsids: string[] = trustedSsidsRaw ? JSON.parse(trustedSsidsRaw) : [];
+        const currentIp = state.isConnected ? "wifi" : "unknown";
+        setCurrentSsid(currentIp);
+        if (trustedSsids.length > 0) {
+          postHeartbeat(currentIp).catch(() => {});
+        }
+        if (armed) {
+          setArmed(false);
+        }
+      } else if (!isWifi && prevWifi) {
+        // Disconnected from WiFi
+        setCurrentSsid(null);
+        postDisconnected().catch(() => {});
+      }
+    } catch {
+      // expo-network may not be available in all environments
+    }
+  }, [wifiConnected, armed]);
+
+  useEffect(() => {
+    checkWifiState();
+
+    // Check WiFi state periodically (every 60s)
+    wifiCheckIntervalRef.current = setInterval(checkWifiState, 60000);
+
+    // Listen for app state changes
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (appStateRef.current.match(/inactive|background/) && nextAppState === "active") {
+        // App came to foreground — check WiFi immediately
+        checkWifiState();
+      }
+      appStateRef.current = nextAppState;
+    });
+
+    return () => {
+      if (wifiCheckIntervalRef.current) clearInterval(wifiCheckIntervalRef.current);
+      subscription.remove();
+    };
+  }, [checkWifiState]);
+
+  const handleArmToggle = useCallback(() => {
+    setArmed((prev) => !prev);
   }, []);
 
   useEffect(() => {
@@ -171,6 +238,24 @@ export default function HomeScreen() {
             label={t("home.criticalAlerts")}
             onPress={() => Alert.alert(t("home.criticalAlerts"), t("home.featureComing"))}
           />
+        </View>
+
+        {/* Arm/Disarm toggle */}
+        <Text style={styles.sectionTitle}>Système</Text>
+        <View style={styles.armSection}>
+          <ArmDisarmToggle
+            armed={armed}
+            onToggle={handleArmToggle}
+          />
+          <View style={styles.wifiStatus}>
+            <Wifi size={16} color={wifiConnected ? colors.shared.success : colors.shared.destructive} />
+            <Text style={[styles.wifiText, { color: wifiConnected ? colors.shared.success : colors.shared.destructive }]}>
+              {wifiConnected ? "WiFi connecté" : "WiFi déconnecté"}
+            </Text>
+            {currentSsid && (
+              <Text style={styles.ssidText}>{currentSsid}</Text>
+            )}
+          </View>
         </View>
 
         {loading && !refreshing ? (
@@ -319,6 +404,29 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 40,
     marginBottom: 24,
+  },
+  armSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    backgroundColor: colors.dark.elevated,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.dark.border,
+    padding: 20,
+    marginBottom: 24,
+  },
+  wifiStatus: {
+    alignItems: "center",
+    gap: 4,
+  },
+  wifiText: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  ssidText: {
+    fontSize: 11,
+    color: colors.dark.textMuted,
   },
   loadingGrid: {
     flexDirection: "row",
