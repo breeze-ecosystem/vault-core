@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { io, type Socket } from "socket.io-client";
 import { PageHeader } from "@/components/page-header";
+import { PageTransition } from "@/components/page-transition";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,12 +14,17 @@ import {
   fetchCredentials,
   fetchZones,
   searchTimeline,
+  searchEvents,
   type TimelineEntryDto,
   type DoorDto,
   type CredentialDto,
   type ZoneDto,
+  type Camera,
+  type VisionEventDto,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { TimelineFilterBar, type TimelineFilters } from "@/components/timeline-filter-bar";
+import { ClipExportButton } from "@/components/clip-export-button";
 import {
   Clock,
   CheckCircle,
@@ -32,6 +38,10 @@ import {
   Eye,
   ArrowLeft,
   Filter,
+  Camera as CameraIcon,
+  AlertCircle,
+  UserCheck,
+  Activity,
 } from "lucide-react";
 
 const WS_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -81,6 +91,16 @@ export default function ChronologiePage() {
   const [credentials, setCredentials] = useState<CredentialDto[]>([]);
   const [zones, setZones] = useState<ZoneDto[]>([]);
   const [newEventCount, setNewEventCount] = useState(0);
+
+  // VISION event timeline state
+  const [visionEvents, setVisionEvents] = useState<VisionEventDto[]>([]);
+  const [visionLoading, setVisionLoading] = useState(false);
+  const [visionTotal, setVisionTotal] = useState(0);
+  const [visionPage, setVisionPage] = useState(1);
+  const [visionCameraOptions, setVisionCameraOptions] = useState<{ id: string; name: string }[]>([]);
+  const [selectedVisionEvent, setSelectedVisionEvent] = useState<VisionEventDto | null>(null);
+  const [showVisionTimeline, setShowVisionTimeline] = useState(false);
+
   const isScrolledUpRef = useRef(false);
   const timelineRef = useRef<HTMLDivElement>(null);
 
@@ -258,10 +278,56 @@ export default function ChronologiePage() {
     setShowFilters(false);
   }
 
+  // Vision timeline filter handler
+  const handleVisionFilter = useCallback(async (filters: TimelineFilters) => {
+    if (!orgId) return;
+    setVisionLoading(true);
+    try {
+      const dateFrom =
+        filters.dateRange === "today"
+          ? new Date().toISOString().split("T")[0]
+          : filters.dateRange === "yesterday"
+          ? new Date(Date.now() - 86400000).toISOString().split("T")[0]
+          : filters.customFrom;
+      const dateTo =
+        filters.dateRange === "custom" ? filters.customTo : new Date().toISOString().split("T")[0];
+      const eventType = filters.eventTypes.includes("all") ? undefined : filters.eventTypes.join(",");
+
+      const result = await searchEvents({
+        organizationId: orgId,
+        from: dateFrom,
+        to: dateTo,
+        eventType,
+        cameraId: filters.cameraId || undefined,
+        page: 1,
+        limit: 50,
+      });
+      setVisionEvents(result.data || []);
+      setVisionTotal(result.total);
+      setVisionPage(1);
+    } catch (err: any) {
+      toast(err.message || "Erreur de recherche", "error");
+    } finally {
+      setVisionLoading(false);
+    }
+  }, [orgId]);
+
+  // Load cameras for the vision filter dropdown
+  const loadVisionCameras = useCallback(async () => {
+    try {
+      const { fetchCameras } = await import("@/lib/api");
+      const result = await fetchCameras({ limit: 100 });
+      setVisionCameraOptions((result.data || []).map((c: Camera) => ({ id: c.id, name: c.name })));
+    } catch {
+      // Camera fetch is optional
+    }
+  }, []);
+
   useEffect(() => {
     loadTimeline();
     loadReferenceData();
-  }, [loadTimeline, loadReferenceData]);
+    loadVisionCameras();
+  }, [loadTimeline, loadReferenceData, loadVisionCameras]);
 
   function dotClass(e: TimelineEntryDto): string {
     if (e.eventType === "access") return e.summary?.includes("accorde") ? "bg-green-500" : "bg-red-500";
@@ -280,12 +346,47 @@ export default function ChronologiePage() {
     return <DoorOpen className="h-3.5 w-3.5 text-white" />;
   }
 
+  function visionEventIcon(type: string) {
+    switch (type) {
+      case "alert": return <AlertCircle className="h-3.5 w-3.5 text-white" />;
+      case "motion": return <Activity className="h-3.5 w-3.5 text-white" />;
+      case "face": return <UserCheck className="h-3.5 w-3.5 text-white" />;
+      default: return <CameraIcon className="h-3.5 w-3.5 text-white" />;
+    }
+  }
+
+  function visionDotColor(type: string, severity: string): string {
+    if (severity === "CRITICAL" || severity === "HIGH") return "bg-red-500";
+    if (type === "alert") return "bg-orange-500";
+    if (type === "face") return "bg-cyan-500";
+    if (type === "motion") return "bg-blue-500";
+    return "bg-gray-500";
+  }
+
+  function formatDateGroup(iso: string): string {
+    const date = new Date(iso);
+    const today = new Date();
+    const yesterday = new Date(Date.now() - 86400000);
+    if (date.toDateString() === today.toDateString()) return "Aujourd'hui";
+    if (date.toDateString() === yesterday.toDateString()) return "Hier";
+    return date.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  }
+
   const displayEvents = searchMode ? searchResults : events;
   const hasMore = searchMode && searchResults.length < searchTotal;
 
   return (
+    <PageTransition>
     <div className="flex h-full flex-col">
       <PageHeader title="Chronologie" description="Flux unifie des evenements de securite en temps reel" />
+
+      {/* Vision Timeline Filter Bar */}
+      <div className="mb-4">
+        <TimelineFilterBar
+          onFilterChange={handleVisionFilter}
+          cameras={visionCameraOptions}
+        />
+      </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="flex items-center gap-2">
@@ -415,7 +516,74 @@ export default function ChronologiePage() {
           </div>
         )}
 
-        {!loading && displayEvents.length > 0 && (
+        {/* Vision events list */}
+      {!loading && visionEvents.length > 0 && (
+        <div className="mb-6">
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Événements vidéo ({visionTotal})
+          </h3>
+          <div className="space-y-1">
+            {visionEvents.map((evt) => (
+              <button
+                key={evt.id}
+                onClick={() => setSelectedVisionEvent(evt)}
+                className={"relative w-full text-left mb-1 rounded-lg border p-3 transition-colors hover:bg-accent/50 " +
+                  (selectedVisionEvent?.id === evt.id ? "border-primary bg-accent" : "border-transparent")}
+              >
+                <div className={"absolute -left-[1.375rem] top-3 flex h-5 w-5 items-center justify-center rounded-full " + visionDotColor(evt.eventType, evt.severity)}>
+                  {visionEventIcon(evt.eventType)}
+                </div>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm truncate">{evt.cameraName}</span>
+                      <span className={cn(
+                        "text-xs px-1.5 py-0.5 rounded",
+                        evt.severity === "CRITICAL" && "bg-red-500/20 text-red-400",
+                        evt.severity === "HIGH" && "bg-orange-500/20 text-orange-400",
+                        evt.severity === "MEDIUM" && "bg-blue-500/20 text-blue-400",
+                      )}>
+                        {evt.severity}
+                      </span>
+                    </div>
+                    <p className="text-sm mt-0.5">{evt.title}</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {evt.thumbnailUrl && (
+                      <div className="h-10 w-16 overflow-hidden rounded bg-gray-800">
+                        <img src={evt.thumbnailUrl} alt="" className="h-full w-full object-cover" />
+                      </div>
+                    )}
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                      {new Date(evt.timestamp).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                </div>
+              </button>
+            ))}
+            {visionEvents.length < visionTotal && (
+              <div className="flex justify-center py-4">
+                <Button variant="outline" size="sm" onClick={async () => {
+                  const nextPage = visionPage + 1;
+                  try {
+                    const result = await searchEvents({
+                      organizationId: orgId!,
+                      page: nextPage,
+                      limit: 50,
+                    });
+                    setVisionEvents((prev) => [...prev, ...(result.data || [])]);
+                    setVisionPage(nextPage);
+                  } catch {}
+                }}>
+                  Charger plus
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {!loading && displayEvents.length > 0 && (
           <div className="relative pl-6">
             <div className="absolute left-2 top-2 bottom-2 w-0.5 bg-border" />
             <div className="space-y-1">
@@ -527,6 +695,60 @@ export default function ChronologiePage() {
           </div>
         </div>
       )}
+
+      {/* Vision Event Detail Sheet */}
+      {selectedVisionEvent && (
+        <div className="border-t bg-card p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-medium">
+              {selectedVisionEvent.title}
+              <span className="ml-2 text-xs text-muted-foreground">
+                {new Date(selectedVisionEvent.timestamp).toLocaleString("fr-FR", {
+                  day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",
+                })}
+              </span>
+            </h3>
+            <Button variant="ghost" size="sm" onClick={() => setSelectedVisionEvent(null)}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="overflow-hidden rounded-lg bg-gray-900">
+              {selectedVisionEvent.snapshotUrl ? (
+                <img src={selectedVisionEvent.snapshotUrl} alt="Snapshot" className="w-full object-cover max-h-64" />
+              ) : selectedVisionEvent.thumbnailUrl ? (
+                <img src={selectedVisionEvent.thumbnailUrl} alt="Thumbnail" className="w-full object-cover max-h-64" />
+              ) : (
+                <div className="flex items-center justify-center h-48 text-muted-foreground">
+                  <Video className="mx-auto mb-2 h-8 w-8" />
+                  <p className="text-sm">Aucun aperçu disponible</p>
+                </div>
+              )}
+            </div>
+            <div className="space-y-3 text-sm">
+              <div>
+                <span className="text-muted-foreground">Caméra: </span>
+                <span className="font-medium">{selectedVisionEvent.cameraName}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Type: </span>
+                <span className="font-medium capitalize">{selectedVisionEvent.eventType}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Sévérité: </span>
+                <span className={cn(
+                  "font-medium",
+                  (selectedVisionEvent.severity === "CRITICAL" || selectedVisionEvent.severity === "HIGH") && "text-destructive",
+                )}>
+                  {selectedVisionEvent.severity}
+                </span>
+              </div>
+              <ClipExportButton eventId={selectedVisionEvent.id} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+    </PageTransition>
   );
 }

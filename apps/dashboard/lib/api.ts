@@ -3190,3 +3190,284 @@ export async function updateFace(id: string, data: {
   if (!res.ok) throw new Error("Échec de la mise à jour du visage");
   return res.json();
 }
+
+// ─── VISION Event / Clip Export Types ───
+
+export interface EventSearchParams {
+  organizationId: string;
+  from?: string;
+  to?: string;
+  eventType?: string;
+  cameraId?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface VisionEventDto {
+  id: string;
+  eventType: "alert" | "motion" | "face" | "system";
+  cameraId: string;
+  cameraName: string;
+  title: string;
+  severity: string;
+  timestamp: string;
+  snapshotUrl?: string;
+  thumbnailUrl?: string;
+}
+
+export interface ClipExportResult {
+  downloadUrl: string;
+  expiresAt: string;
+}
+
+// ─── Event Timeline / Clip API Functions ───
+
+export async function searchEvents(
+  params: EventSearchParams,
+): Promise<{ data: VisionEventDto[]; total: number; page: number; limit: number }> {
+  const searchParams = new URLSearchParams();
+  searchParams.set("organizationId", params.organizationId);
+  if (params.from) searchParams.set("from", params.from);
+  if (params.to) searchParams.set("to", params.to);
+  if (params.eventType) searchParams.set("eventType", params.eventType);
+  if (params.cameraId) searchParams.set("cameraId", params.cameraId);
+  if (params.page) searchParams.set("page", String(params.page));
+  if (params.limit) searchParams.set("limit", String(params.limit));
+
+  const res = await fetchWithAuth(`${API_URL}/api/events?${searchParams.toString()}`);
+  if (!res.ok) throw new Error("Échec du chargement des événements");
+  return res.json();
+}
+
+export async function exportClip(eventId: string): Promise<ClipExportResult> {
+  const res = await fetchWithAuth(`${API_URL}/api/events/${eventId}/export`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error("Échec de l'export du clip");
+  return res.json();
+}
+
+export async function getEventDetail(eventId: string): Promise<VisionEventDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/events/${eventId}`);
+  if (!res.ok) throw new Error("Échec du chargement des détails de l'événement");
+  return res.json();
+}
+
+// ─── Recording Config Types & API ───
+
+export interface RecordingConfig {
+  retentionDays: number;
+  codec: "H264" | "H265";
+  storagePath: string;
+  storageUsedGb: number;
+  storageTotalGb: number;
+}
+
+export async function getRecordingConfig(): Promise<RecordingConfig> {
+  const res = await fetchWithAuth(`${API_URL}/api/recording/config`);
+  if (!res.ok) throw new Error("Échec du chargement de la configuration d'enregistrement");
+  return res.json();
+}
+
+export async function updateRecordingConfig(data: Partial<RecordingConfig>): Promise<RecordingConfig> {
+  const res = await fetchWithAuth(`${API_URL}/api/recording/config`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour de la configuration d'enregistrement");
+  return res.json();
+}
+
+// ─── Stream Share Types & API ───
+
+export interface ShareLink {
+  id: string;
+  cameraIds: string[];
+  cameras?: { name: string }[];
+  durationMinutes: number;
+  link: string;
+  status: "active" | "expired" | "revoked";
+  expiresAt: string;
+  createdAt: string;
+}
+
+export async function getShares(): Promise<ShareLink[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/shares`);
+  if (!res.ok) throw new Error("Échec du chargement des partages");
+  return res.json();
+}
+
+export async function createShare(data: {
+  cameraIds: string[];
+  durationMinutes: number;
+}): Promise<ShareLink> {
+  const res = await fetchWithAuth(`${API_URL}/api/shares`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Échec de la création du lien de partage");
+  return res.json();
+}
+
+export async function revokeShare(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/shares/${id}/revoke`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error("Échec de la révocation du partage");
+}
+
+// ─── Geofencing Types & API ───
+
+export interface GeofencingStatus {
+  armed: boolean;
+  connectedPhones: number;
+  armDelayMinutes: number;
+  timeoutMinutes: number;
+  lastChangeAt?: string;
+  manualOverride: boolean;
+}
+
+export interface GeofencingConfig {
+  trustedSsids: string[];
+  armDelayMinutes: number;
+  timeoutMinutes: number;
+  reinforcedSensitivity: boolean;
+  scheduleEnabled: boolean;
+  scheduleDays: number[];
+  scheduleStart?: string;
+  scheduleEnd?: string;
+  lastChangeAt?: string;
+}
+
+export async function getGeofencingStatus(): Promise<GeofencingStatus> {
+  const res = await fetchWithAuth(`${API_URL}/api/geofencing/status`);
+  if (!res.ok) {
+    // Return default if not implemented yet
+    return { armed: false, connectedPhones: 0, armDelayMinutes: 10, timeoutMinutes: 15, manualOverride: false };
+  }
+  return res.json();
+}
+
+export async function getGeofencingConfig(): Promise<GeofencingConfig> {
+  const res = await fetchWithAuth(`${API_URL}/api/geofencing/config`);
+  if (!res.ok) throw new Error("Échec du chargement de la configuration de géolocalisation");
+  return res.json();
+}
+
+export async function updateGeofencingConfig(data: Partial<GeofencingConfig>): Promise<GeofencingConfig> {
+  const res = await fetchWithAuth(`${API_URL}/api/geofencing/config`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour de la configuration");
+  return res.json();
+}
+
+export async function forceArm(): Promise<void> {
+  await fetchWithAuth(`${API_URL}/api/geofencing/arm`, { method: "POST" });
+}
+
+export async function forceDisarm(): Promise<void> {
+  await fetchWithAuth(`${API_URL}/api/geofencing/disarm`, { method: "POST" });
+}
+
+// ─── DND Schedule Types & API ───
+
+export interface DndEntry {
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+}
+
+export interface DndConfig {
+  enabled: boolean;
+  sameForAllDays: boolean;
+  schedule: DndEntry[];
+  criticalOverride: boolean;
+}
+
+export async function getDndSchedule(): Promise<DndConfig> {
+  const res = await fetchWithAuth(`${API_URL}/api/dnd/schedule`);
+  if (!res.ok) throw new Error("Échec du chargement du planning DND");
+  return res.json();
+}
+
+export async function updateDndSchedule(data: Partial<DndConfig>): Promise<DndConfig> {
+  const res = await fetchWithAuth(`${API_URL}/api/dnd/schedule`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour du planning DND");
+  return res.json();
+}
+
+// ─── Alert Channel Types & API ───
+
+export interface AlertChannelConfig {
+  pushEnabled: boolean;
+  smsEnabled: boolean;
+  whatsappEnabled: boolean;
+  modemConnected: boolean;
+  modemPhoneNumber?: string;
+  whatsappConnected: boolean;
+  whatsappDeviceName?: string;
+  whatsappQrCodeUrl?: string;
+  cloudFallbackEnabled: boolean;
+  alertTypes: ("motion" | "face" | "all")[];
+}
+
+export async function getAlertChannelConfig(): Promise<AlertChannelConfig> {
+  const res = await fetchWithAuth(`${API_URL}/api/alerts/channels`);
+  if (!res.ok) throw new Error("Échec du chargement de la configuration des canaux d'alerte");
+  return res.json();
+}
+
+export async function updateAlertChannelConfig(data: Partial<AlertChannelConfig>): Promise<AlertChannelConfig> {
+  const res = await fetchWithAuth(`${API_URL}/api/alerts/channels`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour des canaux d'alerte");
+  return res.json();
+}
+
+export async function getHermesStatus(): Promise<{ connected: boolean; uptime?: string }> {
+  const res = await fetchWithAuth(`${API_URL}/api/alerts/hermes/status`);
+  if (!res.ok) return { connected: false };
+  return res.json();
+}
+
+export async function getModemStatus(): Promise<{ connected: boolean; phoneNumber?: string; signal?: number }> {
+  const res = await fetchWithAuth(`${API_URL}/api/alerts/modem/status`);
+  if (!res.ok) return { connected: false };
+  return res.json();
+}
+
+export async function sendTestWhatsApp(): Promise<{ success: boolean }> {
+  const res = await fetchWithAuth(`${API_URL}/api/alerts/whatsapp/test`, { method: "POST" });
+  if (!res.ok) throw new Error("Échec de l'envoi du test WhatsApp");
+  return res.json();
+}
+
+export async function sendTestSms(): Promise<{ success: boolean }> {
+  const res = await fetchWithAuth(`${API_URL}/api/alerts/sms/test`, { method: "POST" });
+  if (!res.ok) throw new Error("Échec de l'envoi du test SMS");
+  return res.json();
+}
+
+export async function getWhatsAppQrCode(): Promise<{ qrCodeUrl: string }> {
+  const res = await fetchWithAuth(`${API_URL}/api/alerts/whatsapp/qr`);
+  if (!res.ok) throw new Error("Échec du chargement du QR code WhatsApp");
+  return res.json();
+}
+
+// ─── Invite via SMS ───
+
+export async function inviteBySms(orgId: string, data: { phone: string; role: string }): Promise<any> {
+  const res = await fetchWithAuth(`${API_URL}/api/organizations/${orgId}/invites/sms`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Échec de l'invitation par SMS");
+  return res.json();
+}
