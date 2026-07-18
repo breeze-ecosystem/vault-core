@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { GlassCard } from "@/components/glass-card";
-import { CameraGrid } from "@/components/camera-grid";
+import { LiveCameraGrid } from "@/components/live-camera-grid";
+import { CameraCardPremium } from "@/components/camera-card-premium";
 import {
   fetchCameras,
   fetchOrganizations,
@@ -29,7 +30,7 @@ import {
 import { toast } from "@/components/ui/toast";
 import {
   Plus, Video, Settings, X, Play, Square, Eye, Trash2, Radio,
-  Search, LayoutGrid, Map, AlertTriangle,
+  Search, LayoutGrid, Map, AlertTriangle, List,
 } from "lucide-react";
 import VideoPlayer from "@/components/video-player";
 import { AnimatePresence, motion } from "motion/react";
@@ -57,13 +58,16 @@ const statusPills = [
   { value: "MAINTENANCE", label: "Maintenance" },
 ];
 
+const MAX_CAMERAS = 10;
+
 export default function CamerasPage() {
   const { t } = useTranslation();
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showForm, setShowForm] = useState(false);
+  const [showOnvifScan, setShowOnvifScan] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedCamera, setSelectedCamera] = useState<Camera | null>(null);
   const [previewCamera, setPreviewCamera] = useState<Camera | null>(null);
@@ -187,7 +191,21 @@ export default function CamerasPage() {
     }
   }
 
+  async function handleAddCameraFromScan(cameraData: any) {
+    try {
+      await createCamera(cameraData);
+      toast("Caméra ajoutée", "success");
+      setRefreshKey((k) => k + 1);
+    } catch (e: any) {
+      toast(e.message, "error");
+    }
+  }
+
   const cameraCount = camerasData.length;
+  const limitReached = cameraCount >= MAX_CAMERAS;
+  const addButtonLabel = limitReached
+    ? "Limite de 10 caméras atteinte"
+    : t('common.add');
 
   if (camerasError && camerasData.length === 0) {
     return (
@@ -209,10 +227,28 @@ export default function CamerasPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={t('cameras.title')}
-        description={`${cameraCount} ${t('cameras.online').toLowerCase()}`}
-        action={{ label: t('common.add'), icon: Plus, onClick: () => { resetForm(); setShowForm(true); } }}
+        title="Caméras"
+        description={`${cameraCount} caméra${cameraCount > 1 ? 's' : ''} — ${camerasData.filter(c => c.status === 'ONLINE').length} en ligne`}
+        action={{
+          label: addButtonLabel,
+          icon: Plus,
+          onClick: () => {
+            if (!limitReached) {
+              setShowOnvifScan(true);
+            } else {
+              toast("Limite de 10 caméras atteinte. Passez au pack BASTION.", "warning");
+            }
+          },
+        }}
       />
+
+      {/* Camera limit banner */}
+      {limitReached && (
+        <div className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-2.5 text-xs text-warning flex items-center gap-2">
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+          <span>Limite de {MAX_CAMERAS} caméras atteinte. Passez au pack BASTION pour débloquer plus de caméras.</span>
+        </div>
+      )}
 
       {showForm && (
         <form onSubmit={handleSubmit} className="rounded-xl border border-border bg-card p-4">
@@ -325,16 +361,16 @@ export default function CamerasPage() {
               onClick={() => setViewMode("grid")}
             >
               <LayoutGrid className="h-3.5 w-3.5" />
-              {t('cameras.grid')}
+              Grille
             </Button>
             <Button
-              variant={viewMode === "map" ? "default" : "ghost"}
+              variant={viewMode === "list" ? "default" : "ghost"}
               size="sm"
               className="gap-1.5 h-8"
-              onClick={() => setViewMode("map")}
+              onClick={() => setViewMode("list")}
             >
-              <Map className="h-3.5 w-3.5" />
-              {t('cameras.map')}
+              <List className="h-3.5 w-3.5" />
+              Liste
             </Button>
           </div>
         </div>
@@ -363,8 +399,13 @@ export default function CamerasPage() {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
           >
-            <CameraGrid
+            <LiveCameraGrid
               cameras={filteredCameras}
+              loading={camerasLoading}
+              error={camerasError}
+              onRetry={() => setRefreshKey((k) => k + 1)}
+              onAddCamera={() => setShowOnvifScan(true)}
+              maxCameras={MAX_CAMERAS}
             />
             {!camerasLoading && filteredCameras.length === 0 && (debouncedSearch || statusFilter) && (
               <div className="flex justify-center mt-4">
@@ -376,18 +417,28 @@ export default function CamerasPage() {
           </motion.div>
         ) : (
           <motion.div
-            key="map"
+            key="list"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
           >
-            <GlassCard variant="default" className="flex items-center justify-center py-20">
-              <div className="text-center">
-                <Map className="mx-auto h-12 w-12 text-muted-foreground/20 mb-3" />
-                <p className="text-sm text-muted-foreground">{t('cameras.comingSoon')}</p>
-              </div>
-            </GlassCard>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredCameras.map((camera) => (
+                <CameraCardPremium
+                  key={camera.id}
+                  camera={camera}
+                  onClick={(id) => window.location.href = `/cameras/${id}`}
+                />
+              ))}
+              {!camerasLoading && filteredCameras.length === 0 && (
+                <div className="col-span-full flex justify-center mt-4">
+                  <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(""); setDebouncedSearch(""); setStatusFilter(""); }}>
+                    {t('cameras.resetFilters')}
+                  </Button>
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

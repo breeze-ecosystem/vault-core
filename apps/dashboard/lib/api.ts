@@ -2999,3 +2999,194 @@ export async function enrollController(
   });
   if (!res.ok) throw new Error("Échec de l'enregistrement du contrôleur");
 }
+
+// ─── VISION Pack API Functions (Phase 02-06) ───
+
+// ─── Stream management ───
+
+export async function getCamerasWithStreams(): Promise<Camera[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/streams`);
+  if (!res.ok) throw new Error("Échec du chargement des flux caméras");
+  return res.json();
+}
+
+export async function getCameraDetail(id: string): Promise<Camera> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/${id}/detail`);
+  if (!res.ok) throw new Error("Échec du chargement des détails de la caméra");
+  return res.json();
+}
+
+export async function updateSubstream(id: string, substreamUrl: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/${id}/substream`, {
+    method: "PATCH",
+    body: JSON.stringify({ substreamUrl }),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour du sous-flux");
+}
+
+export async function toggleRecording(id: string): Promise<{ isRecording: boolean }> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/${id}/recording/toggle`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) throw new Error("Échec du basculement de l'enregistrement");
+  return res.json();
+}
+
+// ─── ONVIF Scan ───
+
+export interface OnvifDevice {
+  id: string;
+  model: string;
+  ip: string;
+  onvifVersion: string;
+  compatible: boolean;
+  manufacturer?: string;
+}
+
+export interface OnvifScanResult {
+  scanId: string;
+  devices: OnvifDevice[];
+  status: 'scanning' | 'complete' | 'error';
+  error?: string;
+}
+
+export async function startOnvifScan(subnet: string): Promise<OnvifScanResult> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/onvif/scan`, {
+    method: "POST",
+    body: JSON.stringify({ subnet }),
+  });
+  if (!res.ok) throw new Error("Échec du lancement du scan ONVIF");
+  return res.json();
+}
+
+export async function getOnvifResults(scanId: string): Promise<OnvifScanResult> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/onvif/scan/${scanId}`);
+  if (!res.ok) throw new Error("Échec du chargement des résultats ONVIF");
+  return res.json();
+}
+
+// ─── Detection Zones ───
+
+export interface DetectionZone {
+  id: string;
+  cameraId: string;
+  name: string;
+  type: 'rectangle' | 'polygon';
+  coordinates: number[][];
+  isActive: boolean;
+  sensitivity?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function getZones(cameraId: string): Promise<DetectionZone[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/${cameraId}/zones`);
+  if (!res.ok) throw new Error("Échec du chargement des zones");
+  return res.json();
+}
+
+export async function createZone(cameraId: string, data: {
+  name: string;
+  type: 'rectangle' | 'polygon';
+  coordinates: number[][];
+  isActive?: boolean;
+}): Promise<DetectionZone> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/${cameraId}/zones`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de la création de la zone");
+  }
+  return res.json();
+}
+
+export async function updateZone(id: string, data: {
+  name?: string;
+  coordinates?: number[][];
+  isActive?: boolean;
+  sensitivity?: number;
+}): Promise<DetectionZone> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/zones/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour de la zone");
+  return res.json();
+}
+
+export async function deleteZone(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/zones/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Échec de la suppression de la zone");
+}
+
+export async function updateSensitivity(cameraId: string, confidence: number): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/${cameraId}/sensitivity`, {
+    method: "PATCH",
+    body: JSON.stringify({ confidence }),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour de la sensibilité");
+}
+
+export async function getDetectionConfig(cameraId: string): Promise<{ sensitivity: number; zones: DetectionZone[] }> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/${cameraId}/detection-config`);
+  if (!res.ok) throw new Error("Échec du chargement de la configuration de détection");
+  return res.json();
+}
+
+// ─── Face Recognition ───
+
+export interface FaceEntry {
+  id: string;
+  organizationId: string;
+  name: string;
+  photoBase64: string;
+  status: 'recognized' | 'unknown' | 'pending' | 'error';
+  lastSeenAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function getFaces(): Promise<FaceEntry[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/faces`);
+  if (!res.ok) throw new Error("Échec du chargement des visages");
+  return res.json();
+}
+
+export async function addFace(data: {
+  name: string;
+  photoBase64: string;
+}): Promise<FaceEntry> {
+  const res = await fetchWithAuth(`${API_URL}/api/faces`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de l'ajout du visage");
+  }
+  return res.json();
+}
+
+export async function deleteFace(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/faces/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Échec de la suppression du visage");
+}
+
+export async function updateFace(id: string, data: {
+  name?: string;
+  photoBase64?: string;
+}): Promise<FaceEntry> {
+  const res = await fetchWithAuth(`${API_URL}/api/faces/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Échec de la mise à jour du visage");
+  return res.json();
+}

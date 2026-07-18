@@ -16,10 +16,16 @@ interface VideoPlayerProps {
   cameraId: string;
   cameraName: string;
   streamUrl?: string;
+  substreamUrl?: string;
   // Phase 2 additions: PTZ overlay support (D-06)
   hasPtz?: boolean;
   ptzPresets?: PTZPreset[];
   userRole?: string;
+  // Phase 2 VISION additions
+  showRecordingIndicator?: boolean;
+  recordingActive?: boolean;
+  onSubstreamToggle?: () => void;
+  substreamQuality?: 'hd' | 'sd';
 }
 
 type ConnectionState = 'connecting' | 'connected' | 'offline';
@@ -48,6 +54,8 @@ export default function VideoPlayer({
     useState<ConnectionState>('connecting');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showPtz, setShowPtz] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const controlsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hidePtzTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastPtzCommand = useRef(0);
@@ -259,6 +267,8 @@ export default function VideoPlayer({
     <div
       ref={containerRef}
       className="group relative overflow-hidden rounded-lg bg-gray-900 text-white"
+      onMouseEnter={() => { setControlsVisible(true); if (controlsTimer.current) clearTimeout(controlsTimer.current); }}
+      onMouseLeave={() => { controlsTimer.current = setTimeout(() => setControlsVisible(false), 2000); }}
     >
       {/* Video element */}
       <video
@@ -293,8 +303,19 @@ export default function VideoPlayer({
         </div>
       )}
 
+      {/* ── Recording indicator overlay ──────────────────────────────── */}
+      {showRecordingIndicator && recordingActive && connectionState === 'connected' && (
+        <div className="absolute top-12 left-3 flex items-center gap-1.5 rounded-full bg-black/50 px-2 py-0.5">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+          </span>
+          <span className="text-[10px] text-red-300 font-medium">Enregistrement</span>
+        </div>
+      )}
+
       {/* ── Top bar: camera name + quality ───────────────────────────── */}
-      <div className="absolute inset-x-0 top-0 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent px-3 py-2 opacity-0 transition-opacity group-hover:opacity-100">
+      <div className={`absolute inset-x-0 top-0 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent px-3 py-2 transition-opacity duration-300 ${controlsVisible ? 'opacity-100' : 'opacity-0'}`}>
         <div className="flex items-center gap-2">
           <Video className="h-4 w-4 text-blue-400" />
           <span className="text-sm font-medium">{cameraName}</span>
@@ -309,18 +330,34 @@ export default function VideoPlayer({
         </div>
       </div>
 
-      {/* ── Bottom bar: fullscreen ───────────────────────────────────── */}
-      <button
-        onClick={toggleFullscreen}
-        className="absolute bottom-2 right-2 rounded bg-black/50 p-1.5 opacity-0 transition-opacity hover:bg-black/70 group-hover:opacity-100"
-        title={isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}
-      >
-        {isFullscreen ? (
-          <Minimize className="h-4 w-4" />
-        ) : (
-          <Maximize className="h-4 w-4" />
+      {/* ── Bottom bar: controls ─────────────────────────────────────── */}
+      <div className={`absolute bottom-2 left-2 right-2 flex items-center justify-between transition-opacity duration-300 ${controlsVisible ? 'opacity-100' : 'opacity-0'}`}>
+        {/* Substream toggle */}
+        {onSubstreamToggle && connectionState === 'connected' && (
+          <button
+            onClick={onSubstreamToggle}
+            className={`rounded px-2 py-0.5 text-[11px] font-medium transition-colors ${
+              substreamQuality === 'hd'
+                ? 'bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30'
+                : 'bg-muted/50 text-muted-foreground hover:bg-muted/70'
+            }`}
+          >
+            {substreamQuality === 'hd' ? 'HD' : 'SD'}
+          </button>
         )}
-      </button>
+
+        <button
+          onClick={toggleFullscreen}
+          className="ml-auto rounded bg-black/50 p-1.5 transition-opacity hover:bg-black/70"
+          title={isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}
+        >
+          {isFullscreen ? (
+            <Minimize className="h-4 w-4" />
+          ) : (
+            <Maximize className="h-4 w-4" />
+          )}
+        </button>
+      </div>
 
       {/* ── PTZ Controls Overlay (Phase 2) — role-gated per D-16 ────── */}
       {hasPtz && userRole && ['ADMIN', 'SUPER_ADMIN', 'SUPERVISOR'].includes(userRole) && (
