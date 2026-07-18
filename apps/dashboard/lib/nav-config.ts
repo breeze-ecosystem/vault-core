@@ -18,6 +18,8 @@ import {
   ShieldAlert,
   Building2,
   Zap,
+  Scan,
+  UserCheck,
   type LucideIcon,
 } from "lucide-react";
 import { hasMinRole, type Role } from "@repo/shared";
@@ -53,6 +55,8 @@ const groups: NavGroup[] = [
     minRole: null,
     items: [
       { label: "Caméras", href: "/cameras", icon: Video, minRole: null },
+      { label: "Découverte", href: "/cameras/decouverte", icon: Scan, minRole: "ADMIN" as Role },
+      { label: "Visages", href: "/visages", icon: UserCheck, minRole: "ADMIN" as Role },
       { label: "Portes", href: "/portes", icon: DoorOpen, minRole: null },
       { label: "Accès", href: "/acces", icon: Key, minRole: "ADMIN" as Role },
       { label: "Alertes", href: "/alertes", icon: AlertTriangle, minRole: null },
