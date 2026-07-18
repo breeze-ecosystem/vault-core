@@ -54,6 +54,8 @@ import { RolesGuard } from './common/guards/roles.guard';
 import { FeatureGateGuard } from './common/guards/feature-gate.guard';
 import { LicenseExpiryGuard } from './modules/license/guards/license-expiry.guard';
 import { FeatureGateModule } from './modules/feature-gate/feature-gate.module';
+import { DndModule } from './modules/dnd/dnd.module';
+import { GeofencingModule } from './modules/geofencing/geofencing.module';
 import { HermesModule } from './modules/hermes/hermes.module';
 import { ModemModule } from './modules/modem/modem.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -94,10 +96,12 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     CorrelationModule,
     DashboardModule,
     DetectionModule,
+    DndModule,
     DoorModule,
     EquipmentModule,
     FaceRecognitionModule,
     FeatureGateModule,
+    GeofencingModule,
     GovernanceModule,
     HealthModule,
     HermesModule,
