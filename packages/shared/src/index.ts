@@ -372,8 +372,44 @@ export { createIdpConfigSchema, updateIdpConfigSchema } from "./schemas/sso.sche
 export type { CreateIdpConfigInput, UpdateIdpConfigInput } from "./schemas/sso.schema";
 
 // Schemas - Compliance (Enterprise)
-export { generateComplianceReportSchema } from "./schemas/compliance.schema";
-export type { GenerateComplianceReportInput } from "./schemas/compliance.schema";
+export {
+  generateComplianceReportSchema,
+  hapdpDeclarationSchema,
+  consentSignageSchema,
+  subjectAccessOtpSchema,
+  subjectAccessVerifySchema,
+  subjectAccessRequestSchema,
+} from "./schemas/compliance.schema";
+export type {
+  GenerateComplianceReportInput,
+  HapdpDeclarationInput,
+  ConsentSignageInput,
+  SubjectAccessOtpInput,
+  SubjectAccessVerifyInput,
+  SubjectAccessRequestInput,
+} from "./schemas/compliance.schema";
+
+// Schemas - Storage (Phase 4)
+export {
+  retentionPolicySchema,
+  forensicEvidenceSchema,
+  backupConfigSchema,
+} from "./schemas/storage.schema";
+export type {
+  RetentionPolicyInput,
+  ForensicEvidenceInput,
+  BackupConfigInput,
+} from "./schemas/storage.schema";
+
+// Schemas - Integration (Phase 4)
+export {
+  fireAlarmSchema,
+  bmsEventSchema,
+} from "./schemas/integration.schema";
+export type {
+  FireAlarmInput,
+  BmsEventInput,
+} from "./schemas/integration.schema";
 
 // ── VISION Pack ──
 export {
@@ -427,6 +463,37 @@ export {
   GEOFENCING_DEFAULT_TIMEOUT,
   ALERT_CHANNELS,
 } from "./constants/index";
+
+// Types - Compliance (Phase 4)
+export type {
+  HapdpDeclarationDto,
+  SubjectAccessRequestDto,
+  SubjectDataDto,
+} from "./types/compliance.types";
+
+// Types - Storage (Phase 4)
+export type {
+  RetentionPolicyDto as StorageRetentionPolicyDto,
+  ForensicEvidenceDto,
+  BackupConfigDto,
+  BackupJobDto,
+  BastionKpisDto,
+} from "./types/storage.types";
+
+// Types - Integration (Phase 4)
+export type {
+  IntegrationEndpointDto,
+  FireAlarmEventDto,
+  BmsEventDto,
+} from "./types/integration.types";
+
+// Constants - BASTION Event Types (Phase 4)
+export { BASTION_EVENT_TYPES } from "./constants/bastion-event-types";
+export type { BastionEventType } from "./constants/bastion-event-types";
+
+// Constants - BASTION Module Keys (Phase 4)
+export { BASTION_MODULE_KEYS } from "./constants/feature-keys";
+export type { BastionModuleKey } from "./constants/feature-keys";
 
 // ── BASTION Pack ──
 export {
