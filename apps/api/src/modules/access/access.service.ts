@@ -22,10 +22,20 @@ export class AccessService {
     badgeNumber?: string;
     pinHash?: string;
     qrSeed?: string;
+    fingerprintTemplateHash?: string;
+    faceEmbeddingId?: string;
     validFrom?: string;
     validUntil?: string;
     maxUses?: number;
   }) {
+    // Validate type-specific fields
+    if (dto.type === "FINGERPRINT" && !dto.fingerprintTemplateHash) {
+      throw new BadRequestException("FINGERPRINT credential requires fingerprintTemplateHash");
+    }
+    if (dto.type === "FACE" && !dto.faceEmbeddingId) {
+      throw new BadRequestException("FACE credential requires faceEmbeddingId");
+    }
+
     // Validate badgeNumber uniqueness for BADGE type
     if (dto.type === "BADGE" && dto.badgeNumber) {
       const existing = await this.prisma.credential.findUnique({
@@ -56,6 +66,8 @@ export class AccessService {
         badgeNumber: dto.badgeNumber ?? null,
         pinHash: dto.pinHash ?? null,
         qrSeed: qrSeed ?? null,
+        fingerprintTemplateHash: dto.fingerprintTemplateHash ?? null,
+        faceEmbeddingId: dto.faceEmbeddingId ?? null,
         validFrom: dto.validFrom ? new Date(dto.validFrom) : null,
         validUntil: dto.validUntil ? new Date(dto.validUntil) : null,
         maxUses: dto.maxUses ?? null,
@@ -134,6 +146,11 @@ export class AccessService {
       }
     }
 
+    // Validate FINGERPRINT/FACE specific fields
+    if (dto.fingerprintTemplateHash !== undefined && dto.fingerprintTemplateHash === "") {
+      throw new BadRequestException("fingerprintTemplateHash cannot be empty");
+    }
+
     return this.prisma.credential.update({
       where: { id },
       data: {
@@ -141,6 +158,8 @@ export class AccessService {
         ...(dto.badgeNumber !== undefined && { badgeNumber: dto.badgeNumber }),
         ...(dto.pinHash !== undefined && { pinHash: dto.pinHash }),
         ...(dto.qrSeed !== undefined && { qrSeed: dto.qrSeed }),
+        ...(dto.fingerprintTemplateHash !== undefined && { fingerprintTemplateHash: dto.fingerprintTemplateHash }),
+        ...(dto.faceEmbeddingId !== undefined && { faceEmbeddingId: dto.faceEmbeddingId }),
         ...(dto.validFrom !== undefined && { validFrom: dto.validFrom ? new Date(dto.validFrom) : null }),
         ...(dto.validUntil !== undefined && { validUntil: dto.validUntil ? new Date(dto.validUntil) : null }),
         ...(dto.maxUses !== undefined && { maxUses: dto.maxUses }),
@@ -385,6 +404,37 @@ export class AccessService {
       return { decision: "denied", reason: "invalid-credential", timestamp: now };
     }
 
+    // FACE credential type: check for recent face match decision
+    if (credential.type === "FACE") {
+      const faceMatchKey = `face:access:${credentialId}`;
+      const faceMatchResult = await this.redis.get(faceMatchKey);
+      if (faceMatchResult) {
+        try {
+          const parsed = JSON.parse(faceMatchResult);
+          // Look up risk threshold from linked Face model (default 85)
+          let threshold = 85;
+          if (credential.faceEmbeddingId) {
+            const face = await this.prisma.face.findUnique({
+              where: { id: credential.faceEmbeddingId },
+              select: { riskThreshold: true },
+            });
+            if (face?.riskThreshold) threshold = face.riskThreshold;
+          }
+          if (parsed.riskScore >= threshold) {
+            // Cache hit — valid face match, proceed to door/zone check
+            await this.redis.del(faceMatchKey); // One-time use
+          } else {
+            return { decision: "denied", reason: "face-risk-below-threshold", timestamp: now };
+          }
+        } catch {
+          // Corrupted cache entry — fall through to standard evaluation
+        }
+      } else {
+        // No face match result found — deny access
+        return { decision: "denied", reason: "no-face-match", timestamp: now };
+      }
+    }
+
     // Check validity window
     if (credential.validFrom && now < credential.validFrom) {
       return { decision: "denied", reason: "not-yet-valid", timestamp: now };
@@ -477,6 +527,221 @@ export class AccessService {
     }
 
     return decision;
+  }
+
+  // ── Credential Site Access Management (BASTION, multi-site) ──
+
+  /**
+   * Grant a credential access to a specific site (create CredentialSiteAccess).
+   */
+  async addCredentialSiteAccess(credentialId: string, organizationId: string) {
+    const credential = await this.prisma.credential.findUnique({
+      where: { id: credentialId },
+      select: { id: true },
+    });
+    if (!credential) throw new NotFoundException("Credential not found");
+
+    const org = await this.prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { id: true },
+    });
+    if (!org) throw new NotFoundException("Organization not found");
+
+    // Check for existing access to avoid unique constraint violation
+    const existing = await this.prisma.credentialSiteAccess.findUnique({
+      where: { credentialId_organizationId: { credentialId, organizationId } },
+    });
+    if (existing) {
+      if (!existing.isActive) {
+        // Reactivate
+        return this.prisma.credentialSiteAccess.update({
+          where: { id: existing.id },
+          data: { isActive: true },
+        });
+      }
+      throw new BadRequestException("Credential already has access to this site");
+    }
+
+    return this.prisma.credentialSiteAccess.create({
+      data: { credentialId, organizationId },
+      include: {
+        organization: { select: { id: true, name: true } },
+      },
+    });
+  }
+
+  /**
+   * Revoke a credential's access to a specific site (soft-deactivate).
+   */
+  async removeCredentialSiteAccess(credentialId: string, organizationId: string) {
+    const access = await this.prisma.credentialSiteAccess.findUnique({
+      where: { credentialId_organizationId: { credentialId, organizationId } },
+    });
+    if (!access) throw new NotFoundException("Site access not found");
+
+    return this.prisma.credentialSiteAccess.update({
+      where: { id: access.id },
+      data: { isActive: false },
+    });
+  }
+
+  /**
+   * List all site accesses for a credential.
+   */
+  async getCredentialSiteAccesses(credentialId: string) {
+    const credential = await this.prisma.credential.findUnique({
+      where: { id: credentialId },
+      select: { id: true },
+    });
+    if (!credential) throw new NotFoundException("Credential not found");
+
+    return this.prisma.credentialSiteAccess.findMany({
+      where: { credentialId, isActive: true },
+      include: {
+        organization: { select: { id: true, name: true, city: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  // ── Access Group Management (BASTION, BAS-12) ──
+
+  async createAccessGroup(dto: { name: string; organizationId: string; description?: string }) {
+    return this.prisma.accessGroup.create({
+      data: {
+        name: dto.name,
+        organizationId: dto.organizationId,
+        description: dto.description ?? null,
+      },
+      include: { _count: { select: { members: true } } },
+    });
+  }
+
+  async listAccessGroups(filters?: { organizationId?: string; page?: number; limit?: number }) {
+    const where: Record<string, any> = {};
+    if (filters?.organizationId) where.organizationId = filters.organizationId;
+    where.isActive = true;
+
+    const page = filters?.page ?? 1;
+    const limit = filters?.limit ?? 50;
+
+    const [data, total] = await Promise.all([
+      this.prisma.accessGroup.findMany({
+        where,
+        include: { _count: { select: { members: true } } },
+        orderBy: { name: "asc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.accessGroup.count({ where }),
+    ]);
+
+    return { data, total, page, limit };
+  }
+
+  async getAccessGroup(id: string) {
+    const group = await this.prisma.accessGroup.findUnique({
+      where: { id },
+      include: {
+        _count: { select: { members: true } },
+        members: {
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true, email: true } },
+          },
+          take: 50,
+        },
+      },
+    });
+    if (!group) throw new NotFoundException("Access group not found");
+    return group;
+  }
+
+  async updateAccessGroup(id: string, dto: { name?: string; description?: string }) {
+    const group = await this.prisma.accessGroup.findUnique({ where: { id } });
+    if (!group) throw new NotFoundException("Access group not found");
+
+    return this.prisma.accessGroup.update({
+      where: { id },
+      data: {
+        ...(dto.name !== undefined && { name: dto.name }),
+        ...(dto.description !== undefined && { description: dto.description }),
+      },
+      include: { _count: { select: { members: true } } },
+    });
+  }
+
+  async deleteAccessGroup(id: string) {
+    const group = await this.prisma.accessGroup.findUnique({ where: { id } });
+    if (!group) throw new NotFoundException("Access group not found");
+
+    return this.prisma.accessGroup.update({
+      where: { id },
+      data: { isActive: false },
+    });
+  }
+
+  async addMemberToGroup(groupId: string, memberId: string) {
+    const [group, member] = await Promise.all([
+      this.prisma.accessGroup.findUnique({ where: { id: groupId } }),
+      this.prisma.organizationMember.findUnique({ where: { id: memberId } }),
+    ]);
+    if (!group) throw new NotFoundException("Access group not found");
+    if (!member) throw new NotFoundException("Organization member not found");
+
+    return this.prisma.organizationMember.update({
+      where: { id: memberId },
+      data: { accessGroupId: groupId },
+    });
+  }
+
+  async removeMemberFromGroup(groupId: string, memberId: string) {
+    const [group, member] = await Promise.all([
+      this.prisma.accessGroup.findUnique({ where: { id: groupId } }),
+      this.prisma.organizationMember.findUnique({ where: { id: memberId } }),
+    ]);
+    if (!group) throw new NotFoundException("Access group not found");
+    if (!member) throw new NotFoundException("Organization member not found");
+
+    return this.prisma.organizationMember.update({
+      where: { id: memberId },
+      data: { accessGroupId: null },
+    });
+  }
+
+  // ── Schedule Grid Management (BASTION, BAS-11) ──
+
+  /**
+   * Create a schedule with a day/hour grid (multi-entry per schedule).
+   * Grid entries is an array of { day, hourFrom, hourTo, active }.
+   */
+  async createScheduleWithGrid(
+    name: string,
+    zoneId: string,
+    gridEntries: Array<{ day: number; hourFrom: number; hourTo: number; active: boolean }>,
+    holidayOverride?: string,
+  ) {
+    const zone = await this.prisma.zone.findUnique({ where: { id: zoneId } });
+    if (!zone) throw new NotFoundException("Zone not found");
+
+    const entries = gridEntries
+      .filter((e) => e.active)
+      .map((e) => ({
+        dayOfWeek: e.day,
+        startHour: Math.floor(e.hourFrom),
+        startMinute: Math.round((e.hourFrom % 1) * 60),
+        endHour: Math.floor(e.hourTo),
+        endMinute: Math.round((e.hourTo % 1) * 60),
+      }));
+
+    return this.prisma.schedule.create({
+      data: {
+        name,
+        zoneId,
+        entries: entries as any,
+        holidayOverride: holidayOverride || "none",
+      },
+      include: { zone: { select: { id: true, name: true } } },
+    });
   }
 
   // ── Private Helpers ──

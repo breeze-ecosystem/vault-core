@@ -596,6 +596,37 @@ export class DoorService implements OnModuleInit {
     });
   }
 
+  // ── Video Correlation Event Handlers (BAS-10) ──
+
+  /**
+   * Trigger video correlation when a door is forced or held-open.
+   */
+  @OnEvent("door.state-changed", { async: true })
+  async onDoorStateChangedForCorrelation(event: {
+    doorId: string;
+    orgId: string;
+    newState: string;
+  }) {
+    if (event.newState === "FORCED" || event.newState === "HELD_OPEN") {
+      await this.triggerVideoCorrelation(event.doorId, event.newState.toLowerCase(), {
+        organizationId: event.orgId,
+      });
+    }
+  }
+
+  /**
+   * Trigger video correlation when access is denied.
+   */
+  @OnEvent("access.denied", { async: true })
+  async onAccessDeniedForCorrelation(event: {
+    doorId: string;
+    organizationId: string;
+  }) {
+    await this.triggerVideoCorrelation(event.doorId, "access-denied", {
+      organizationId: event.organizationId,
+    });
+  }
+
   // ── OSDP Event Handling (Phase 2) ──
 
   @OnEvent("mqtt.door.event", { async: true })
@@ -649,6 +680,32 @@ export class DoorService implements OnModuleInit {
 
   async deleteCameraMap(mapId: string) {
     return this.prisma.cameraDoorMap.delete({ where: { id: mapId } });
+  }
+
+  // ── Video Correlation (BAS-10, D-26) ──
+
+  /**
+   * Trigger video correlation for a door event (denied access, forced door, held-open).
+   * Looks up primary camera from CameraDoorMap, captures snapshot + 10s clip.
+   * Enqueues a video-correlation job to the access-events queue for async processing.
+   */
+  async triggerVideoCorrelation(doorId: string, eventType: string, eventData: Record<string, any> = {}) {
+    try {
+      // Enqueue video correlation job to access-events queue
+      await this.alertQueue.add("video-correlation", {
+        doorId,
+        organizationId: eventData.organizationId,
+        eventType,
+        timestamp: new Date().toISOString(),
+      }, {
+        attempts: 3,
+        backoff: { type: "exponential", delay: 1000 },
+      });
+
+      this.logger.log(`Video correlation enqueued: door=${doorId}, event=${eventType}`);
+    } catch (err: any) {
+      this.logger.error(`Failed to enqueue video correlation for door ${doorId}: ${err.message}`);
+    }
   }
 
   // ── Private Helpers ──

@@ -8,12 +8,18 @@ import {
   Param,
   Query,
   Req,
+  UseGuards,
 } from "@nestjs/common";
 import type { FastifyRequest } from "fastify";
 import { AccessService } from "./access.service";
 import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { Audited } from "../../common/decorators/audited.decorator";
+import { RequiresPack, RequiresModule } from "../../common/decorators/feature-gate.decorator";
+import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
+import { TenantIsolationGuard } from "../../common/guards/tenant-isolation.guard";
+import { RolesGuard } from "../../common/guards/roles.guard";
+import { FeatureGateGuard } from "../../common/guards/feature-gate.guard";
 import {
   createCredentialSchema,
   updateCredentialSchema,
@@ -23,6 +29,8 @@ import {
   createZoneSchema,
   createDoorSchema,
   createCameraDoorMapSchema,
+  createAccessGroupSchema,
+  createCredentialSiteAccessSchema,
 } from "@repo/shared";
 
 @Controller("access")
@@ -200,5 +208,148 @@ export class AccessController {
     @Body() body: { credentialId: string; doorId: string; organizationId: string },
   ) {
     return this.accessService.evaluateAccess(body.credentialId, body.doorId, body.organizationId);
+  }
+
+  // ── BASTION: Access Group Management (BAS-12) ──
+
+  @Post("groups")
+  @UseGuards(JwtAuthGuard, TenantIsolationGuard, RolesGuard, FeatureGateGuard)
+  @RequiresPack("BASTION")
+  @RequiresModule("rfid_integration")
+  @Audited({ entity: "access_group", action: "CREATE" })
+  @Roles("ADMIN", "SUPER_ADMIN", "GLOBAL_ADMIN")
+  async createAccessGroup(
+    @Body(new ZodValidationPipe(createAccessGroupSchema)) body: any,
+    @Req() req: FastifyRequest,
+  ) {
+    const user = (req as any)?.user;
+    return this.accessService.createAccessGroup({
+      ...body,
+      organizationId: body.organizationId ?? user?.orgId,
+    });
+  }
+
+  @Get("groups")
+  @UseGuards(JwtAuthGuard, TenantIsolationGuard, RolesGuard, FeatureGateGuard)
+  @RequiresPack("BASTION")
+  @RequiresModule("rfid_integration")
+  @Roles("ADMIN", "SUPER_ADMIN", "GLOBAL_ADMIN", "SUPERVISOR")
+  async listAccessGroups(
+    @Query("page") page?: string,
+    @Query("limit") limit?: string,
+    @Req() req?: FastifyRequest,
+  ) {
+    const user = (req as any)?.user;
+    return this.accessService.listAccessGroups({
+      organizationId: user?.orgId,
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    });
+  }
+
+  @Get("groups/:id")
+  @UseGuards(JwtAuthGuard, TenantIsolationGuard, RolesGuard, FeatureGateGuard)
+  @RequiresPack("BASTION")
+  @RequiresModule("rfid_integration")
+  @Roles("ADMIN", "SUPER_ADMIN", "GLOBAL_ADMIN", "SUPERVISOR")
+  async getAccessGroup(@Param("id") id: string) {
+    return this.accessService.getAccessGroup(id);
+  }
+
+  @Patch("groups/:id")
+  @UseGuards(JwtAuthGuard, TenantIsolationGuard, RolesGuard, FeatureGateGuard)
+  @RequiresPack("BASTION")
+  @RequiresModule("rfid_integration")
+  @Audited({ entity: "access_group", action: "UPDATE" })
+  @Roles("ADMIN", "SUPER_ADMIN", "GLOBAL_ADMIN")
+  async updateAccessGroup(
+    @Param("id") id: string,
+    @Body() body: any,
+  ) {
+    return this.accessService.updateAccessGroup(id, body);
+  }
+
+  @Delete("groups/:id")
+  @UseGuards(JwtAuthGuard, TenantIsolationGuard, RolesGuard, FeatureGateGuard)
+  @RequiresPack("BASTION")
+  @RequiresModule("rfid_integration")
+  @Audited({ entity: "access_group", action: "DELETE" })
+  @Roles("ADMIN", "SUPER_ADMIN", "GLOBAL_ADMIN")
+  async deleteAccessGroup(@Param("id") id: string) {
+    return this.accessService.deleteAccessGroup(id);
+  }
+
+  @Post("groups/:id/members/:memberId")
+  @UseGuards(JwtAuthGuard, TenantIsolationGuard, RolesGuard, FeatureGateGuard)
+  @RequiresPack("BASTION")
+  @RequiresModule("rfid_integration")
+  @Audited({ entity: "access_group_member", action: "CREATE" })
+  @Roles("ADMIN", "SUPER_ADMIN", "GLOBAL_ADMIN")
+  async addMemberToGroup(
+    @Param("id") groupId: string,
+    @Param("memberId") memberId: string,
+  ) {
+    return this.accessService.addMemberToGroup(groupId, memberId);
+  }
+
+  @Delete("groups/:id/members/:memberId")
+  @UseGuards(JwtAuthGuard, TenantIsolationGuard, RolesGuard, FeatureGateGuard)
+  @RequiresPack("BASTION")
+  @RequiresModule("rfid_integration")
+  @Audited({ entity: "access_group_member", action: "DELETE" })
+  @Roles("ADMIN", "SUPER_ADMIN", "GLOBAL_ADMIN")
+  async removeMemberFromGroup(
+    @Param("id") groupId: string,
+    @Param("memberId") memberId: string,
+  ) {
+    return this.accessService.removeMemberFromGroup(groupId, memberId);
+  }
+
+  // ── BASTION: Credential Site Access (multi-site) ──
+
+  @Post("credentials/:id/sites")
+  @UseGuards(JwtAuthGuard, TenantIsolationGuard, RolesGuard, FeatureGateGuard)
+  @RequiresPack("BASTION")
+  @Audited({ entity: "credential_site_access", action: "CREATE" })
+  @Roles("ADMIN", "SUPER_ADMIN", "GLOBAL_ADMIN")
+  async addCredentialSiteAccess(
+    @Param("id") credentialId: string,
+    @Body(new ZodValidationPipe(createCredentialSiteAccessSchema)) body: any,
+  ) {
+    return this.accessService.addCredentialSiteAccess(credentialId, body.organizationId);
+  }
+
+  @Delete("credentials/:id/sites/:orgId")
+  @UseGuards(JwtAuthGuard, TenantIsolationGuard, RolesGuard, FeatureGateGuard)
+  @RequiresPack("BASTION")
+  @Audited({ entity: "credential_site_access", action: "DELETE" })
+  @Roles("ADMIN", "SUPER_ADMIN", "GLOBAL_ADMIN")
+  async removeCredentialSiteAccess(
+    @Param("id") credentialId: string,
+    @Param("orgId") orgId: string,
+  ) {
+    return this.accessService.removeCredentialSiteAccess(credentialId, orgId);
+  }
+
+  @Get("credentials/:id/sites")
+  @UseGuards(JwtAuthGuard, TenantIsolationGuard, RolesGuard, FeatureGateGuard)
+  @RequiresPack("BASTION")
+  @Roles("ADMIN", "SUPER_ADMIN", "GLOBAL_ADMIN", "SUPERVISOR")
+  async getCredentialSiteAccesses(@Param("id") credentialId: string) {
+    return this.accessService.getCredentialSiteAccesses(credentialId);
+  }
+
+  // ── BASTION: Schedule with Grid ──
+
+  @Post("schedules/grid")
+  @UseGuards(JwtAuthGuard, TenantIsolationGuard, RolesGuard, FeatureGateGuard)
+  @RequiresPack("BASTION")
+  @RequiresModule("rfid_integration")
+  @Audited({ entity: "schedule", action: "CREATE" })
+  @Roles("ADMIN", "SUPER_ADMIN", "GLOBAL_ADMIN")
+  async createScheduleWithGrid(
+    @Body() body: { name: string; zoneId: string; entries: Array<{ day: number; hourFrom: number; hourTo: number; active: boolean }>; holidayOverride?: string },
+  ) {
+    return this.accessService.createScheduleWithGrid(body.name, body.zoneId, body.entries, body.holidayOverride);
   }
 }
