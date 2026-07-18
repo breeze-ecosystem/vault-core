@@ -63,8 +63,19 @@ Plans:
 5. Event timeline is searchable by date/time with 30s video clip export and automatic screenshots on every alert
 6. Local recording stores to client disk/NAS with configurable retention (7/15/30 days) and H.265/HEVC compression; up to 3 secondary user accounts with role-based access
 
-**Plans**: TBD
+**Plans**: 8 plans
+**Wave structure**: 3 waves (Wave 1: foundation, Wave 2: backend, Wave 3: UI)
 **UI hint**: yes
+
+Plans:
+- [ ] 02-01-PLAN.md — Schema + Shared Package (Prisma models, Zod schemas, types)
+- [ ] 02-02-PLAN.md — AI Preprocessor (insightface face rec, night vision, detection pipeline)
+- [ ] 02-03-PLAN.md — Detection + Face + Camera API Backend (zones, whitelist CRUD, ONVIF)
+- [ ] 02-04-PLAN.md — Alerts, Geofencing, DND Backend (WhatsApp/SMS, arm/disarm, DND)
+- [ ] 02-05-PLAN.md — Recording, Timeline, Share, Multi-user Backend (HLS, clips, sharing)
+- [ ] 02-06-PLAN.md — Dashboard Camera + Detection + Face UI (live grid, zones canvas, face upload)
+- [ ] 02-07-PLAN.md — Dashboard Alerts + Recording + Settings UI (timeline, config pages)
+- [ ] 02-08-PLAN.md — Mobile App UI (stream viewer, timeline, face upload, share receiver)
 
 ---
 
@@ -131,7 +142,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Architecture & License Foundation | 8/8 | Complete | 2026-07-18 |
-| 2. VISION Pack | 0/0 | Not started | - |
+| 2. VISION Pack | 0/8 | Planning complete | - |
 | 3. BASTION AI & Access Control | 0/0 | Not started | - |
 | 4. BASTION Enterprise | 0/0 | Not started | - |
 | 5. Launch Readiness | 0/0 | Not started | - |
