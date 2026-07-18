@@ -19,8 +19,8 @@ import {
   generateReport,
   getReportsList,
   downloadReport,
-  type AnalyticsTrendPoint,
 } from "@/lib/api";
+import type { AnalyticsTrendPoint } from "@/lib/api";
 import type { BastionKpisDto } from "@repo/shared";
 import {
   Download,
