@@ -110,7 +110,7 @@ export default function FaceDetailPage() {
     setSaving(true);
     try {
       await updateBastionFace(face.id, { riskThreshold: riskThreshold[0] });
-      setFace((prev) => prev ? { ...prev, riskThreshold: riskThreshold[0] } : prev);
+      setFace((prev) => prev ? { ...prev, riskThreshold: riskThreshold[0] ?? prev.riskThreshold } : prev);
       toast('Seuil mis à jour', 'success');
     } catch (e: any) {
       toast(e.message || 'Échec de la mise à jour', 'error');

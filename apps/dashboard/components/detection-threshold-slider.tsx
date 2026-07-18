@@ -33,7 +33,7 @@ export function DetectionThresholdSlider({
       </div>
       <Slider
         value={[value]}
-        onValueChange={([v]) => onChange(v)}
+        onValueChange={([v = 50]) => onChange(v)}
         min={min}
         max={max}
         step={step}

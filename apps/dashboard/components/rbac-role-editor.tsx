@@ -126,7 +126,7 @@ export function RBACRoleEditor({
     }
   }
 
-  function getLevelColor(level: number): string {
+  function getLevelColor(level: number): "secondary" | "destructive" | "warning" | "default" {
     if (level >= 90) return "destructive";
     if (level >= 75) return "warning";
     if (level >= 45) return "default";

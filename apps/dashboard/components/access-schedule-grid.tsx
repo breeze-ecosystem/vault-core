@@ -32,6 +32,7 @@ const SLOTS = [
 
 function isSlotActive(entries: ScheduleGridEntry[], dayIdx: number, slotIdx: number): boolean {
   const slot = SLOTS[slotIdx];
+  if (!slot) return false;
   return entries.some(
     (e) =>
       e.dayOfWeek === dayIdx &&
@@ -46,6 +47,7 @@ function toggleSlot(
   slotIdx: number,
 ): ScheduleGridEntry[] {
   const slot = SLOTS[slotIdx];
+  if (!slot) return entries;
   const active = isSlotActive(entries, dayIdx, slotIdx);
 
   if (active) {
@@ -83,8 +85,8 @@ export function AccessScheduleGrid({
   const [isDragging, setIsDragging] = useState(false);
 
   const handleDefaultApply = () => {
-    const [startH, startM] = defaultStart.split(':').map(Number);
-    const [endH, endM] = defaultEnd.split(':').map(Number);
+    const [startH = 8, startM = 0] = defaultStart.split(':').map(Number);
+    const [endH = 18, endM = 0] = defaultEnd.split(':').map(Number);
 
     const newEntries: ScheduleGridEntry[] = [];
     DAYS.forEach((_, dayIdx) => {

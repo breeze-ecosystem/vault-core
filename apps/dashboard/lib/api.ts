@@ -1,5 +1,8 @@
 import { fetchWithAuth } from "@/lib/auth-client";
-import type { BastionKpisDto, AnalyticsTrendPoint, SubjectDataDto } from "@repo/shared";
+import type { BastionKpisDto, SubjectDataDto } from "@repo/shared";
+import type { AnalyticsTrendPoint } from "@repo/shared";
+// Re-export for consumers that import from @/lib/api
+export type { AnalyticsTrendPoint };
 
 if (!process.env.NEXT_PUBLIC_API_URL) {
   console.error("NEXT_PUBLIC_API_URL is not defined. Set it in .env or .env.local");
@@ -2006,8 +2009,6 @@ export interface AbnormalActivityDto {
   severity: 'LOW' | 'MEDIUM' | 'HIGH'; detectedAt: string;
 }
 
-export interface AnalyticsTrendPoint { bucket: string; value: number; metric: string; }
-
 // ─── Security Analytics API Functions ───
 
 export async function fetchZoneAnalytics(params?: {
@@ -3300,6 +3301,10 @@ export async function updateSensitivity(cameraId: string, confidence: number): P
 }
 
 export async function getDetectionConfig(cameraId: string): Promise<{ sensitivity: number; zones: DetectionZone[] }> {
+  const res = await fetchWithAuth(`${API_URL}/api/cameras/${cameraId}/detection-config`);
+  if (!res.ok) throw new Error("Échec du chargement de la configuration de détection");
+  return res.json();
+}
 
 // ─── BASTION Multi-site Types ───
 
@@ -3811,10 +3816,6 @@ export async function triggerSync(): Promise<void> {
     body: JSON.stringify({}),
   });
   if (!res.ok) throw new Error("Échec du déclenchement de la synchronisation");
-}
-  const res = await fetchWithAuth(`${API_URL}/api/cameras/${cameraId}/detection-config`);
-  if (!res.ok) throw new Error("Échec du chargement de la configuration de détection");
-  return res.json();
 }
 
 // ─── Face Recognition ───
