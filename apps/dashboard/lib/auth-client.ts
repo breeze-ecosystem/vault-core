@@ -135,6 +135,25 @@ export function getUser() {
   }
 }
 
+/**
+ * Public route prefixes that should NOT redirect to login on 401.
+ * These are endpoints accessible without authentication:
+ * - Subject access portal (BAS-34): /api/compliance/subject-access/*
+ * - Fire alarm/BMS incoming webhooks: /api/integrations/fire-alarm, /api/integrations/bms
+ */
+export const PUBLIC_ROUTE_PREFIXES = [
+  "/api/compliance/subject-access/",
+  "/api/integrations/fire-alarm",
+  "/api/integrations/bms",
+];
+
+/**
+ * Check if a URL matches any public route prefix.
+ */
+function isPublicRoute(url: string): boolean {
+  return PUBLIC_ROUTE_PREFIXES.some((prefix) => url.includes(prefix));
+}
+
 export async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const token = getAccessToken();
   const headers: Record<string, string> = {
@@ -152,7 +171,12 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
   let res = await fetch(url, { ...options, headers, credentials: "include" });
 
+  // For public routes, skip 401 redirect to /login
+  // The API handles these endpoints without JWT auth (@Public() decorator)
   if (res.status === 401) {
+    if (isPublicRoute(url)) {
+      return res;
+    }
     const refreshed = await refreshTokens();
     if (refreshed?.accessToken) {
       headers["Authorization"] = `Bearer ${refreshed.accessToken}`;

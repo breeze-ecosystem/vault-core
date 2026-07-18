@@ -4352,3 +4352,150 @@ export async function submitSubjectAccessRequest(
   }
   return res.json();
 }
+
+// ──────────────────────────────────────────────────────────────────────────────
+// API Tokens
+// ──────────────────────────────────────────────────────────────────────────────
+
+export interface ApiTokenDto {
+  id: string;
+  name: string;
+  prefix: string;
+  createdAt: string;
+  expiresAt: string | null;
+  isActive: boolean;
+}
+
+export interface CreateApiTokenResponse {
+  id: string;
+  name: string;
+  token: string; // Full token — shown once
+  prefix: string;
+  expiresAt: string | null;
+}
+
+/**
+ * Create a new API token.
+ * POST /api/api-key
+ */
+export async function createApiToken(
+  name: string,
+  expirationDays?: number,
+): Promise<CreateApiTokenResponse> {
+  const res = await fetchWithAuth(`${API_URL}/api/api-key`, {
+    method: "POST",
+    body: JSON.stringify({ name, expirationDays: expirationDays ?? 90 }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: "Erreur lors de la création du token" }));
+    throw new Error(err.message || "Erreur lors de la création du token");
+  }
+  return res.json();
+}
+
+/**
+ * List all API tokens for the organization.
+ * GET /api/api-key
+ */
+export async function listApiTokens(): Promise<ApiTokenDto[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/api-key`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: "Erreur lors du chargement des tokens" }));
+    throw new Error(err.message || "Erreur lors du chargement des tokens");
+  }
+  return res.json();
+}
+
+/**
+ * Revoke an API token.
+ * DELETE /api/api-key/:id
+ */
+export async function revokeApiToken(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/api-key/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: "Erreur lors de la révocation du token" }));
+    throw new Error(err.message || "Erreur lors de la révocation du token");
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Integrations (Fire Alarm, BMS)
+// ──────────────────────────────────────────────────────────────────────────────
+
+export interface IntegrationEndpointDto {
+  id: string;
+  type: string;
+  name: string;
+  isActive: boolean;
+  lastEventAt: string | null;
+  createdAt: string;
+  config?: Record<string, unknown>;
+}
+
+/**
+ * List all integration endpoints.
+ * GET /api/integrations
+ */
+export async function getIntegrations(): Promise<IntegrationEndpointDto[]> {
+  const res = await fetchWithAuth(`${API_URL}/api/integrations`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: "Erreur lors du chargement des intégrations" }));
+    throw new Error(err.message || "Erreur lors du chargement des intégrations");
+  }
+  return res.json();
+}
+
+/**
+ * Configure an integration endpoint.
+ * POST /api/integrations
+ */
+export async function configureIntegration(
+  type: string,
+  name: string,
+  config?: Record<string, unknown>,
+): Promise<IntegrationEndpointDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/integrations`, {
+    method: "POST",
+    body: JSON.stringify({ type, name, config }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: "Erreur lors de la configuration" }));
+    throw new Error(err.message || "Erreur lors de la configuration");
+  }
+  return res.json();
+}
+
+/**
+ * Delete an integration endpoint.
+ * DELETE /api/integrations/:id
+ */
+export async function deleteIntegration(id: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_URL}/api/integrations/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: "Erreur lors de la suppression" }));
+    throw new Error(err.message || "Erreur lors de la suppression");
+  }
+}
+
+/**
+ * List events for an integration.
+ * GET /api/integrations/:id/events
+ */
+export async function getIntegrationEvents(
+  id: string,
+  page: number = 1,
+  limit: number = 20,
+): Promise<{ data: any[]; total: number; page: number; limit: number }> {
+  const res = await fetchWithAuth(
+    `${API_URL}/api/integrations/${id}/events?page=${page}&limit=${limit}`,
+  );
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: "Erreur lors du chargement des événements" }));
+    throw new Error(err.message || "Erreur lors du chargement des événements");
+  }
+  return res.json();
+}

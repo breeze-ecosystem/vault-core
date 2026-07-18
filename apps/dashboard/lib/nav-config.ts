@@ -27,6 +27,10 @@ import {
   Globe,
   Wifi,
   Share2,
+  Puzzle,
+  Code2,
+  FileSpreadsheet,
+  Database,
   type LucideIcon,
 } from "lucide-react";
 import { hasMinRole, type Role } from "@repo/shared";
@@ -93,12 +97,29 @@ const groups: NavGroup[] = [
     ],
   },
   {
+    label: "Conformité",
+    icon: Shield,
+    minRole: "SUPERVISOR" as Role,
+    items: [
+      { label: "Conformité HAPDP", href: "/conformite/hapdp", icon: Shield, minRole: "SUPERVISOR" as Role },
+      { label: "Registre des traitements", href: "/conformite/hapdp/registre", icon: FileSpreadsheet, minRole: "SUPERVISOR" as Role },
+    ],
+  },
+  {
     label: "Intelligence",
     icon: Zap,
     minRole: null,
     items: [
       { label: "Centre de commande", href: "/command-center", icon: Zap, minRole: null },
       { label: "Motifs", href: "/patterns", icon: Repeat, minRole: "SUPERVISOR" as Role },
+    ],
+  },
+  {
+    label: "Intégrations",
+    icon: Puzzle,
+    minRole: "ADMIN" as Role,
+    items: [
+      { label: "Intégrations", href: "/integrations", icon: Puzzle, minRole: "ADMIN" as Role },
     ],
   },
   {
@@ -120,6 +141,9 @@ const groups: NavGroup[] = [
       { label: "Notifications silencieuses", href: "/parametres/notification-silencieuse", icon: Moon, minRole: null },
       { label: "Canaux d'alerte", href: "/parametres/alertes", icon: Bell, minRole: "ADMIN" as Role },
       { label: "Accès distant", href: "/parametres/acces-distant", icon: Globe, minRole: "ADMIN" as Role },
+      { label: "API & Webhooks", href: "/parametres/api", icon: Code2, minRole: "ADMIN" as Role },
+      { label: "Rétention avancée", href: "/parametres/retention", icon: HardDrive, minRole: "ADMIN" as Role },
+      { label: "Sauvegarde", href: "/parametres/sauvegarde", icon: Database, minRole: "ADMIN" as Role },
     ],
   },
 ];
