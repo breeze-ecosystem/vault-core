@@ -1,26 +1,33 @@
 import { useEffect, useState, useCallback } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Modal } from "react-native";
 import FlashList from "@shopify/flash-list";
 import {
   fetchCredentials,
   fetchAccessZones,
   fetchAccessSchedules,
+  getAccessEvents,
   deactivateCredential,
   type AccessCredentialDto,
   type AccessZoneDto,
   type AccessScheduleDto,
+  type AccessEvent,
 } from "@/lib/api";
+import { AccessEventList } from "@/components/access-event-list";
+import { CorrelatedSnapshotViewer } from "@/components/correlated-snapshot-viewer";
 import { colors, typography, spacing, borderRadius } from "@/lib/theme";
+import { useAuth } from "@/lib/auth-context";
 import { useTranslation } from "@/lib/i18n";
 import { Shield, Key, Clock, ChevronRight, RefreshCw } from "lucide-react-native";
 
-type Tab = "credentials" | "zones" | "schedules";
+type Tab = "credentials" | "zones" | "schedules" | "events";
 
 const TYPE_COLORS: Record<string, string> = {
   BADGE: "#06b6d4",
   PIN: "#a855f7",
   MOBILE: "#10b981",
   QR: "#f59e0b",
+  FINGERPRINT: "#ec4899",
+  FACE: "#3b82f6",
 };
 
 function formatDate(ts: string | null): string {
@@ -31,33 +38,52 @@ function formatDate(ts: string | null): string {
 
 export default function AccesScreen() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("credentials");
   const [credentials, setCredentials] = useState<AccessCredentialDto[]>([]);
   const [zones, setZones] = useState<AccessZoneDto[]>([]);
   const [schedules, setSchedules] = useState<AccessScheduleDto[]>([]);
+  const [events, setEvents] = useState<AccessEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<AccessEvent | null>(null);
+  const [snapshotViewerVisible, setSnapshotViewerVisible] = useState(false);
+
+  // BASTION feature gate: show events tab if user has BASTION pack access
+  const isBastionUser = user?.role === "GLOBAL_ADMIN" || user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
 
   const loadAll = useCallback(async () => {
     try {
       setError(null);
-      const [credData, zoneData, schedData] = await Promise.all([
+      const promises: Promise<any>[] = [
         fetchCredentials({ limit: 50 }).catch(() => ({ data: [], total: 0, page: 1, limit: 50 })),
         fetchAccessZones().catch(() => []),
         fetchAccessSchedules().catch(() => []),
-      ]);
+      ];
+      if (isBastionUser) {
+        promises.push(getAccessEvents({ limit: 50 }).catch(() => ({ data: [], total: 0, page: 1, limit: 50 })));
+      }
+      const [credData, zoneData, schedData, eventsData] = await Promise.all(promises);
       setCredentials(credData.data || []);
       setZones(Array.isArray(zoneData) ? zoneData : []);
       setSchedules(Array.isArray(schedData) ? schedData : []);
+      if (eventsData) {
+        setEvents(eventsData.data || []);
+      }
     } catch (e) {
       setError(t("acces.loadingError"));
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, isBastionUser]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
+
+  const handleEventPress = useCallback((event: AccessEvent) => {
+    setSelectedEvent(event);
+    setSnapshotViewerVisible(true);
+  }, []);
 
   const refresh = async () => {
     setRefreshing(true);
@@ -98,6 +124,7 @@ export default function AccesScreen() {
     { key: "credentials", label: t("acces.credentials"), count: credentials.length },
     { key: "zones", label: t("acces.zones"), count: zones.length },
     { key: "schedules", label: t("acces.schedules"), count: schedules.length },
+    ...(isBastionUser ? [{ key: "events" as Tab, label: "Événements", count: events.length }] : []),
   ];
 
   return (
@@ -234,6 +261,25 @@ export default function AccesScreen() {
           ListFooterComponent={() => <View style={{ height: 24 }} />}
         />
       )}
+
+      {activeTab === "events" && isBastionUser && (
+        <AccessEventList
+          events={events}
+          loading={loading && events.length === 0}
+          refreshing={refreshing}
+          onRefresh={refresh}
+          onEventPress={handleEventPress}
+        />
+      )}
+
+      {/* Correlated Snapshot Viewer Modal */}
+      <CorrelatedSnapshotViewer
+        visible={snapshotViewerVisible}
+        snapshotUrl={selectedEvent?.snapshotUrl ?? null}
+        videoClipUrl={selectedEvent?.videoClipUrl ?? null}
+        event={selectedEvent}
+        onClose={() => { setSnapshotViewerVisible(false); setSelectedEvent(null); }}
+      />
     </View>
   );
 }
