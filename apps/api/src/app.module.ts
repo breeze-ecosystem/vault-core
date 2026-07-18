@@ -64,6 +64,7 @@ import { BackupModule } from './modules/backup/backup.module';
 import { DndModule } from './modules/dnd/dnd.module';
 import { GeofencingModule } from './modules/geofencing/geofencing.module';
 import { HermesModule } from './modules/hermes/hermes.module';
+import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { ModemModule } from './modules/modem/modem.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { IngestionService } from './modules/ingestion/ingestion.service';
@@ -121,6 +122,7 @@ import { ReportingModule } from './modules/reporting/report.module';
     IncidentModule,
     InferenceModule,
     IngestionModule,
+    IntegrationsModule,
     InviteModule,
     KioskModule,
     LicenseModule,
