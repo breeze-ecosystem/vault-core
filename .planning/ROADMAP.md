@@ -94,8 +94,16 @@ Plans:
 5. Multi-site dashboard shows up to 5 sites with cross-site metrics comparison, centralized RBAC with custom roles, enterprise SSO (SAML/OAuth2), and inter-site data synchronization
 6. Immutable audit trail logs every user action with hash-chain integrity (extending existing system)
 
-**Plans**: TBD
+**Plans**: 6 plans
 **UI hint**: yes
+
+Plans:
+- [ ] 03-01-PLAN.md — AI Preprocessor BASTION detection pipeline (weapons, abandoned, crowd, behavior, face, anti-spoofing)
+- [ ] 03-02-PLAN.md — Schema foundation + shared package + Qdrant faces (models, types, Zod schemas, roles)
+- [ ] 03-03-PLAN.md — Backend APIs (face enrollment, access groups, video correlation, multi-site, RBAC, SSO)
+- [ ] 03-04-PLAN.md — Dashboard multi-site + admin UI (sites, RBAC editor, SSO config, global search)
+- [ ] 03-05-PLAN.md — Dashboard face + access control UI (enrollment, credentials, schedules, events)
+- [ ] 03-06-PLAN.md — Mobile + integration tests (face capture, site switcher, access log, tests)
 
 ---
 
@@ -143,6 +151,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Architecture & License Foundation | 8/8 | Complete | 2026-07-18 |
 | 2. VISION Pack | 0/8 | Planning complete | - |
-| 3. BASTION AI & Access Control | 0/0 | Not started | - |
+| 3. BASTION AI & Access Control | 0/6 | Planning complete | - |
 | 4. BASTION Enterprise | 0/0 | Not started | - |
 | 5. Launch Readiness | 0/0 | Not started | - |
