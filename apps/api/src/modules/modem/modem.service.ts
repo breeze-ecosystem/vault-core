@@ -141,11 +141,17 @@ export class ModemService implements OnModuleInit {
    */
   private async attemptAtHandshake(devicePath: string): Promise<boolean> {
     try {
-      const { SerialPort } = await import('@serialport/stream');
+      const { SerialPortStream: SerialPort } = await import('@serialport/stream');
+      const { autoDetect: AutoDetectBinding } = await import('@serialport/bindings-cpp');
       const { ReadlineParser } = await import('@serialport/parser-readline');
 
       return new Promise((resolve) => {
-        const port = new SerialPort({ path: devicePath, baudRate: this.baudRate, autoOpen: true });
+        const port = new SerialPort({
+          path: devicePath,
+          baudRate: this.baudRate,
+          binding: AutoDetectBinding(),
+          autoOpen: true,
+        });
 
         let resolved = false;
         const timeout = setTimeout(() => {
@@ -234,9 +240,9 @@ export class ModemService implements OnModuleInit {
       throw new Error('Modem not connected');
     }
 
+    const { ReadlineParser } = await import('@serialport/parser-readline');
+
     return new Promise((resolve, reject) => {
-      const { ReadlineParser } = require('@serialport/parser-readline');
-      // We reuse the existing parser if already piped
       const parser = this.serialPort.pipe(new ReadlineParser({ delimiter: '\r\n' }));
       let response = '';
       const timeout = setTimeout(() => {
@@ -255,6 +261,53 @@ export class ModemService implements OnModuleInit {
       });
 
       this.serialPort.write(Buffer.from(command + '\r'));
+    });
+  }
+
+  /**
+   * Send an SMS using the raw AT+CMGS flow (prompt-based, not OK-based).
+   * Writes AT+CMGS, waits for '>', then writes message + Ctrl-Z.
+   */
+  private async sendRawSms(phoneNumber: string, message: string): Promise<boolean> {
+    if (!this.serialPort || !this.portReady) {
+      return false;
+    }
+
+    const { ReadlineParser } = await import('@serialport/parser-readline');
+
+    return new Promise((resolve, reject) => {
+      const parser = this.serialPort.pipe(new ReadlineParser({ delimiter: '\r\n' }));
+      let step: 'cmgs' | 'prompt' | 'done' = 'cmgs';
+      const timeout = setTimeout(() => {
+        reject(new Error('SMS send timeout'));
+      }, 15000);
+
+      parser.on('data', (data: string) => {
+        if (step === 'cmgs' && data.includes('>')) {
+          // Modem returned '>' — send message body + Ctrl-Z
+          step = 'prompt';
+          this.serialPort.write(Buffer.from(message + '\x1A'));
+        } else if (step === 'prompt' && data.includes('OK')) {
+          clearTimeout(timeout);
+          step = 'done';
+          resolve(true);
+        } else if (step === 'prompt' && data.includes('ERROR')) {
+          clearTimeout(timeout);
+          step = 'done';
+          resolve(false);
+        } else if (step === 'cmgs' && data.includes('ERROR')) {
+          clearTimeout(timeout);
+          resolve(false);
+        }
+      });
+
+      parser.on('error', () => {
+        clearTimeout(timeout);
+        resolve(false);
+      });
+
+      // Start the SMS send sequence
+      this.serialPort.write(Buffer.from(`AT+CMGS="${phoneNumber}"\r`));
     });
   }
 
@@ -337,9 +390,13 @@ export class ModemService implements OnModuleInit {
 
     try {
       const normalizedMessage = this.normalizeToGsmCharset(message);
-      const response = await this.sendAtCommand(`AT+CMGS="${phoneNumber}"`);
-      // After AT+CMGS, modem returns > prompt — send message + Ctrl-Z
-      this.serialPort.write(Buffer.from(normalizedMessage + '\x1A'));
+
+      // AT+CMGS returns a '>' prompt, not OK — use raw write flow
+      const sent = await this.sendRawSms(phoneNumber, normalizedMessage);
+
+      if (!sent) {
+        throw new Error('Modem did not confirm SMS send');
+      }
 
       this.logger.log(`SMS sent to ${phoneNumber}`);
       return { success: true };
