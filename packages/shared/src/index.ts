@@ -427,3 +427,15 @@ export {
   GEOFENCING_DEFAULT_TIMEOUT,
   ALERT_CHANNELS,
 } from "./constants/index";
+
+// ── BASTION Pack ──
+export {
+  createFaceSchema,
+  createAccessGroupSchema,
+  createCredentialSiteAccessSchema,
+} from "./schemas/access.schema";
+export type {
+  CreateFaceInput,
+  CreateAccessGroupInput,
+  CreateCredentialSiteAccessInput,
+} from "./schemas/access.schema";

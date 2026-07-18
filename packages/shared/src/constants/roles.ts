@@ -1,4 +1,6 @@
 export const ROLES = {
+  GLOBAL_ADMIN: "GLOBAL_ADMIN",
+  SITE_ADMIN: "SITE_ADMIN",
   SUPER_ADMIN: "SUPER_ADMIN",
   ADMIN: "ADMIN",
   SUPERVISOR: "SUPERVISOR",
@@ -11,13 +13,15 @@ export type Role = (typeof ROLES)[keyof typeof ROLES];
 
 /**
  * Hierarchy: key can access everything that values can access.
- * SUPER_ADMIN > ADMIN > SUPERVISOR > OPERATOR > VIEWER
+ * GLOBAL_ADMIN > SUPER_ADMIN > SITE_ADMIN > ADMIN > SUPERVISOR > OPERATOR > AUDITOR > VIEWER
  */
 export const ROLE_HIERARCHY: Record<Role, number> = {
-  SUPER_ADMIN: 100,
-  ADMIN: 80,
-  SUPERVISOR: 60,
-  OPERATOR: 40,
+  GLOBAL_ADMIN: 100,
+  SUPER_ADMIN: 90,
+  SITE_ADMIN: 75,
+  ADMIN: 60,
+  SUPERVISOR: 45,
+  OPERATOR: 30,
   AUDITOR: 25,
   VIEWER: 20,
 };

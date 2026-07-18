@@ -10,10 +10,12 @@ const scheduleEntrySchema = z.object({
 
 const credentialBaseSchema = z.object({
   userId: z.string().uuid(),
-  type: z.enum(["BADGE", "PIN", "MOBILE", "QR"]),
+  type: z.enum(["BADGE", "PIN", "MOBILE", "QR", "FINGERPRINT", "FACE"]),
   badgeNumber: z.string().min(1).optional(),
   pinHash: z.string().optional(),
   qrSeed: z.string().optional(),
+  fingerprintTemplateHash: z.string().optional(),
+  faceEmbeddingId: z.string().uuid().optional(),
   validFrom: z.string().datetime().optional(),
   validUntil: z.string().datetime().optional(),
   maxUses: z.number().int().positive().optional(),
@@ -24,7 +26,7 @@ export const createCredentialSchema = credentialBaseSchema.refine(
     if (data.type === "BADGE") return !!data.badgeNumber;
     if (data.type === "PIN") return !!data.pinHash;
     if (data.type === "QR") return !!data.qrSeed;
-    return true; // MOBILE has no required fields in Phase 1
+    return true; // MOBILE, FINGERPRINT, FACE have no required fields in Phase 1
   },
   { message: "Type-specific field is required" },
 );
@@ -81,3 +83,29 @@ export const createCameraDoorMapSchema = z.object({
 });
 
 export type CreateCameraDoorMapInput = z.infer<typeof createCameraDoorMapSchema>;
+
+// ─── Phase 3: BASTION Pack Schemas ───
+
+export const createFaceSchema = z.object({
+  name: z.string().min(1).max(100),
+  photoBase64: z.string().min(1),
+  isBlacklisted: z.boolean().optional().default(false),
+  riskThreshold: z.number().int().min(0).max(100).optional(),
+});
+
+export type CreateFaceInput = z.infer<typeof createFaceSchema>;
+
+export const createAccessGroupSchema = z.object({
+  name: z.string().min(1).max(128),
+  organizationId: z.string().uuid(),
+  description: z.string().optional(),
+});
+
+export type CreateAccessGroupInput = z.infer<typeof createAccessGroupSchema>;
+
+export const createCredentialSiteAccessSchema = z.object({
+  credentialId: z.string().uuid(),
+  organizationId: z.string().uuid(),
+});
+
+export type CreateCredentialSiteAccessInput = z.infer<typeof createCredentialSiteAccessSchema>;

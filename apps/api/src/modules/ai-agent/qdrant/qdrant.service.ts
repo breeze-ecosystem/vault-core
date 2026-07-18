@@ -30,6 +30,8 @@ export class QdrantService implements OnModuleInit {
 
   // D-17: Qwen embeddings = 4096-dim with Cosine distance
   private readonly VECTOR_SIZE = 4096;
+  // D-10: ArcFace embeddings = 512-dim with Cosine distance
+  private readonly FACE_VECTOR_SIZE = 512;
   private readonly DISTANCE = "Cosine" as const;
 
   // Collection names
@@ -37,6 +39,7 @@ export class QdrantService implements OnModuleInit {
     events: "events",
     knowledge: "knowledge",
     incidents: "incidents",
+    faces: "faces",
   } as const;
 
   constructor(private readonly configService: ConfigService) {
@@ -64,21 +67,22 @@ export class QdrantService implements OnModuleInit {
         existing.collections.map((c) => c.name),
       );
 
-      const collectionNames = [
-        this.COLLECTIONS.events,
-        this.COLLECTIONS.knowledge,
-        this.COLLECTIONS.incidents,
+      const collectionNames: Array<{ name: string; size: number }> = [
+        { name: this.COLLECTIONS.events, size: this.VECTOR_SIZE },
+        { name: this.COLLECTIONS.knowledge, size: this.VECTOR_SIZE },
+        { name: this.COLLECTIONS.incidents, size: this.VECTOR_SIZE },
+        { name: this.COLLECTIONS.faces, size: this.FACE_VECTOR_SIZE },
       ];
 
-      for (const name of collectionNames) {
+      for (const { name, size } of collectionNames) {
         if (!existingNames.has(name)) {
           await this.client.createCollection(name, {
             vectors: {
-              size: this.VECTOR_SIZE,
+              size,
               distance: this.DISTANCE,
             },
           });
-          this.logger.log(`Qdrant collection created: ${name}`);
+          this.logger.log(`Qdrant collection created: ${name} (${size}-d)`);
         }
       }
 
@@ -216,6 +220,107 @@ export class QdrantService implements OnModuleInit {
     } catch (err: any) {
       this.logger.warn(`Qdrant searchKnowledge failed: ${err.message}`);
       return [];
+    }
+  }
+
+  /**
+   * Bulk upsert face embeddings to the `faces` collection (512-d Cosine).
+   * @param points Array of { id, vector, payload } to upsert.
+   */
+  async upsertFaces(points: QdrantPoint[]): Promise<void> {
+    if (points.length === 0) return;
+
+    try {
+      await this.client.upsert(this.COLLECTIONS.faces, {
+        wait: true,
+        points: points.map((p) => ({
+          id: p.id,
+          vector: p.vector,
+          payload: p.payload,
+        })),
+      });
+      this.logger.debug(`Upserted ${points.length} face(s) to Qdrant`);
+    } catch (err: any) {
+      this.logger.warn(`Qdrant upsertFaces failed: ${err.message}`);
+    }
+  }
+
+  /**
+   * Search the `faces` collection for matching faces by embedding similarity.
+   * Always filters by organizationId for tenant isolation.
+   */
+  async searchFaces(
+    queryEmbedding: number[],
+    filters: { organizationId: string; limit?: number },
+  ): Promise<QdrantSearchResult[]> {
+    const must: Array<{ key: string; match: { value: unknown } }> = [
+      {
+        key: "organizationId",
+        match: { value: filters.organizationId },
+      },
+    ];
+
+    try {
+      const result = await this.client.search(this.COLLECTIONS.faces, {
+        vector: queryEmbedding,
+        filter: { must },
+        limit: filters.limit ?? 5,
+        with_payload: true,
+      });
+
+      return result.map((r) => ({
+        id: r.id,
+        score: r.score,
+        payload: (r.payload ?? {}) as Record<string, unknown>,
+      }));
+    } catch (err: any) {
+      this.logger.warn(`Qdrant searchFaces failed: ${err.message}`);
+      return [];
+    }
+  }
+
+  /**
+   * Delete face embedding points from the `faces` collection by their Qdrant point IDs.
+   * @param pointIds Array of Qdrant point IDs to delete.
+   */
+  async deleteFacePoints(pointIds: string[]): Promise<void> {
+    if (pointIds.length === 0) return;
+
+    try {
+      await this.client.delete(this.COLLECTIONS.faces, {
+        wait: true,
+        points: pointIds,
+      });
+      this.logger.debug(`Deleted ${pointIds.length} face point(s) from Qdrant`);
+    } catch (err: any) {
+      this.logger.warn(`Qdrant deleteFacePoints failed: ${err.message}`);
+    }
+  }
+
+  /**
+   * Idempotent creation of the `faces` collection. Checks if exists before creating.
+   * Called on first face access to ensure collection is ready.
+   */
+  async ensureFacesCollection(): Promise<void> {
+    try {
+      const existing = await this.client.getCollections();
+      const existingNames = new Set(
+        existing.collections.map((c) => c.name),
+      );
+
+      if (!existingNames.has(this.COLLECTIONS.faces)) {
+        await this.client.createCollection(this.COLLECTIONS.faces, {
+          vectors: {
+            size: this.FACE_VECTOR_SIZE,
+            distance: this.DISTANCE,
+          },
+        });
+        this.logger.log(`Qdrant faces collection created (${this.FACE_VECTOR_SIZE}-d)`);
+      }
+    } catch (err: any) {
+      this.logger.warn(
+        `Qdrant ensureFacesCollection failed (Qdrant may be offline): ${err.message}`,
+      );
     }
   }
 
