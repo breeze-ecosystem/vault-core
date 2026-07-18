@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-last_updated: "2026-07-18"
+last_updated: "2026-07-18T18:30:00.000Z"
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 0
   total_plans: 8
-  completed_plans: 8
-  percent: 20
+  completed_plans: 2
+  percent: 0
 ---
 
 # STATE: VaultOS v1.0
@@ -38,12 +38,14 @@ progress:
 
 ## Current Position
 
+Phase: 03 (bastion-ai-access-control) — CONTEXT
+Plan: Not yet planned
 | Dimension | Value |
 |-----------|-------|
-| Current Phase | Phase 2: VISION Pack |
-| Current Plan | Planning complete — 8 plans across 3 waves |
-| Phase Status | Plans ready for execution |
-| Phase Progress | ██░░░░░░░░░ 15% |
+| Current Phase | Phase 3: BASTION AI & Access Control |
+| Current Plan | Context gathered — awaiting `/gsd-plan-phase 3` |
+| Phase Status | Context gathered |
+| Phase Progress | ░░░░░░░░░░░ 0% |
 
 ---
 
@@ -107,12 +109,14 @@ progress:
 ## Session Continuity
 
 **Planned phases workflow**: Sequential execution starting from Phase 1.
-**Next session trigger**: `/gsd-plan-phase 1`
+**Next session trigger**: `/gsd-plan-phase 3`
 
 ### Context for Next Agent
 
-- License refactor is the hardest dependency: vault-app needs admin auth + org CRUD + key generation before vault-os can validate
-- Feature gating (FREE/PROFESSIONAL/ENTERPRISE → VISION/BASTION+modules) touches every module in vault-os
-- Mode dégradé and read-only on expiry need infrastructure for local license caching and grace period tracking
-- WhatsApp alerts require WhatsApp Business API account setup
-- HAPDP compliance is a complete sub-system (wizard, register, consent, pseudonymization, subject portal, traceability) — treat as separate tracks within Phase 4
+- Phase 3 context captured with 31 decisions (D-01 to D-31) across multi-site, face rec, anti-spoofing, behavior, weapons, RFID/biometric, and access correlation
+- Face recognition (InsightFace/ArcFace) and multi-site parent-child data model are the two largest new systems
+- AI Preprocessor needs significant extension: face detection, embedding, anti-spoofing, weapon detection, abandoned objects, crowd counting, behavior analysis endpoints
+- Qdrant needs new `faces` collection for face embeddings
+- Multi-site requires `parentOrganizationId` on Organization model + hierarchical RBAC extension
+- Access control is largely already built — focus on credential provisioning UX and face-rec-as-credential integration
+- SSO and audit are production-ready — reuse as-is
