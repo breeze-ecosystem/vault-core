@@ -123,3 +123,7 @@ Plan: 6 of 6
   - Mobile: Face enrollment with camera capture, site switcher, access event log
   - Tests: 7 pytest tests + 20 Jest tests across AI Preprocessor, BastionModule, and Multi-site
 - Phase 4 (BASTION Enterprise) covers: compliance reporting, API integration, advanced storage/retention, SSO enforcement, audit dashboards
+- Phase 4 UI-SPEC approved (2026-07-18) — 4 PASS, 2 FLAG, 0 BLOCK
+  - Design contract covers HAPDP wizard, analytics dashboard, subject access portal, advanced storage UI, webhook management, fire alarm/BMS integration
+  - All 18 CTAs, 13 empty states, 13 error states, 5 destructive actions defined in French
+  - 22 new components, 9 new pages, 7 menu entries
