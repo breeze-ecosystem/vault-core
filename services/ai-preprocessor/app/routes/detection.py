@@ -91,8 +91,17 @@ async def _notify_nestjs(
     timestamp: str | None,
     face_matches: list[dict] | None = None,
     zone_hits: list[bool] | None = None,
+    weapons: list[dict] | None = None,
+    abandoned_objects: list[dict] | None = None,
+    crowd_counts: list[dict] | None = None,
+    behaviors: list[dict] | None = None,
 ) -> None:
-    """POST detection results to the NestJS internal detection-fire endpoint."""
+    """POST detection results to the NestJS internal detection-fire endpoint.
+
+    BASTION detection outputs (weapons, abandoned_objects, crowd_counts, behaviors)
+    are passed as optional fields — populated only when BASTION detection is enabled
+    on the frame. VISION detection continues to work unchanged with empty lists.
+    """
     if not settings.NESTJS_API_URL:
         logger.warning("NESTJS_API_URL not configured — skipping notification")
         return
@@ -105,6 +114,11 @@ async def _notify_nestjs(
         "detections": [d.model_dump() for d in detections],
         "face_matches": face_matches or [],
         "zone_hits": zone_hits or [],
+        # BASTION fields (empty by default, populated when BASTION detection enabled)
+        "weapons": weapons or [],
+        "abandoned_objects": abandoned_objects or [],
+        "crowd_counts": crowd_counts or [],
+        "behaviors": behaviors or [],
     }
 
     try:

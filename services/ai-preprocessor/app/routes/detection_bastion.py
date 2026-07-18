@@ -14,13 +14,13 @@ from fastapi import APIRouter, HTTPException
 from PIL import Image
 
 from app.config import settings
-from app.models.detector import detect
+from app.models.detector import WEAPON_CLASS_IDS, detect
 from app.models.face_recogniser import (
     get_face_recogniser,
     is_dark_frame,
     match_whitelist,
 )
-from app.models.tracker import get_tracker, track
+from app.models.tracker import get_tracker, set_object_position, track
 from app.schemas.bastion import (
     AbandonedObjectAlert,
     BastionDetectionRequest,
@@ -34,11 +34,6 @@ from app.schemas.bastion import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-
-# ── BASTION YOLO class ID constants ───────────────────────────────────────────
-WEAPON_CLASS_IDS: set[int] = {96, 97, 98}  # placeholder: firearm, knife, suspicious_object
-# NOTE: These class IDs will be updated once the fine-tuned YOLO model is deployed.
-# Fine-tune adds COCO classes beyond the default 80 classes.
 
 
 # ── Pipeline stage helpers (implemented in Task 2-3) ───────────────────────────
@@ -425,6 +420,17 @@ async def bastion_detect(request: BastionDetectionRequest):
 
     # ── 4. ByteTrack cross-frame tracking ───────────────────────────────────
     detections_tracked = track(detections_sv)
+
+    # Record centroid positions for all tracked detections (per-camera state)
+    # Required for abandoned object static-duration and loitering detection.
+    if hasattr(detections_tracked, "tracker_id") and detections_tracked.tracker_id is not None:
+        for i in range(len(detections_tracked)):
+            tid = int(detections_tracked.tracker_id[i])
+            if tid is not None:
+                bbox = detections_tracked.xyxy[i]
+                cx = float((bbox[0] + bbox[2]) / 2)
+                cy = float((bbox[1] + bbox[3]) / 2)
+                set_object_position(request.camera_id, tid, (cx, cy))
 
     # ── 5. Weapon detection ─────────────────────────────────────────────────
     weapons = _check_weapons(detections_tracked, frame)
