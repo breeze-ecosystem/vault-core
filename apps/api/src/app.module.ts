@@ -41,6 +41,7 @@ import { WebhookModule } from './modules/webhook/webhook.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
 import { LicenseModule } from './modules/license/license.module';
 import { ContactModule } from './modules/contact/contact.module';
+import { DetectionModule } from './modules/detection/detection.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { RiskModule } from './modules/risk/risk.module';
 import { PatternsModule } from './modules/patterns/patterns.module';
@@ -89,6 +90,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     ControllerModule,
     CorrelationModule,
     DashboardModule,
+    DetectionModule,
     DoorModule,
     EquipmentModule,
     FeatureGateModule,
