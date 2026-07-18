@@ -1,7 +1,8 @@
 ---
 phase: 1
 slug: architecture-license-foundation
-status: draft
+status: approved
+reviewed_at: 2026-07-18
 shadcn_initialized: true
 preset: shadcn/ui default (slate base, CSS variables, dark mode)
 created: 2026-07-18
