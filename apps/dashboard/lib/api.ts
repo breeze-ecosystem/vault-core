@@ -2432,6 +2432,17 @@ export async function listLicenses(): Promise<LicenseDto[]> {
   return res.json();
 }
 
+export async function startTrial(): Promise<{ status: string; trialEndsAt: string }> {
+  const res = await fetchWithAuth(`${API_URL}/api/licenses/trial`, {
+    method: 'POST',
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec du démarrage de l'essai gratuit");
+  }
+  return res.json();
+}
+
 export async function listApiKeys(): Promise<{ id: string; name: string; keyPrefix: string; isActive: boolean; createdAt: string }[]> {
   const res = await fetchWithAuth(`${API_URL}/api/licenses/api-keys`);
   if (!res.ok) throw new Error('Échec du chargement des clés API');
