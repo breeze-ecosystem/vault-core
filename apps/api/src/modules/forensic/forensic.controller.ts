@@ -18,7 +18,9 @@ import { RequiresPack } from "../../common/decorators/feature-gate.decorator";
 import { Audited } from "../../common/decorators/audited.decorator";
 import { forensicEvidenceSchema } from "@repo/shared";
 import * as fs from "fs";
+import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 
+@ApiTags("forensic")
 @Controller("forensic")
 @RequiresPack("BASTION")
 export class ForensicController {
@@ -34,6 +36,8 @@ export class ForensicController {
   @Post("certify")
   @Roles("ADMIN", "SUPER_ADMIN")
   @Audited({ action: "forensic.certify", entity: "ForensicEvidence" })
+  @ApiOperation({ summary: "Certifier une preuve judiciaire", description: "Envoie une demande de certification de preuve avec horodatage TSA (RFC 3161). Le traitement est asynchrone via BullMQ." })
+  @ApiBearerAuth()
   async certify(
     @Body(new ZodValidationPipe(forensicEvidenceSchema)) body: any,
     @Req() req: FastifyRequest,
@@ -53,6 +57,8 @@ export class ForensicController {
    */
   @Get("evidence/:id")
   @Roles("ADMIN", "SUPERVISOR")
+  @ApiOperation({ summary: "Obtenir une preuve", description: "Retourne les métadonnées d'une preuve judiciaire certifiée." })
+  @ApiBearerAuth()
   async getEvidence(
     @Param("id") id: string,
     @Req() req: FastifyRequest,
@@ -66,6 +72,8 @@ export class ForensicController {
    */
   @Get("evidence/:id/download")
   @Roles("ADMIN", "SUPERVISOR")
+  @ApiOperation({ summary: "Télécharger une preuve", description: "Télécharge le fichier ZIP contenant la preuve judiciaire certifiée avec son certificat TSA." })
+  @ApiBearerAuth()
   async downloadEvidence(
     @Param("id") id: string,
     @Res() reply: FastifyReply,
@@ -95,6 +103,8 @@ export class ForensicController {
    */
   @Get("evidence")
   @Roles("ADMIN", "SUPERVISOR")
+  @ApiOperation({ summary: "Lister les preuves", description: "Liste toutes les preuves judiciaires certifiées pour l'organisation, avec pagination." })
+  @ApiBearerAuth()
   async listEvidence(
     @Query("page") page?: string,
     @Query("limit") limit?: string,

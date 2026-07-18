@@ -12,6 +12,7 @@ import {
   DefaultValuePipe,
 } from "@nestjs/common";
 import { FastifyRequest, FastifyReply } from "fastify";
+import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { ComplianceService } from "./compliance.service";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
@@ -24,6 +25,10 @@ import {
   consentSignageSchema,
 } from "@repo/shared";
 import { z } from "zod";
+import {
+  HapdpDeclarationDto,
+  ConsentSignageDto,
+} from "./dto/hapdp-declaration.dto";
 
 const generateComplianceReportSchema = z.object({
   reportType: z.enum(["soc2", "iso27001", "access-review"], {
@@ -33,6 +38,7 @@ const generateComplianceReportSchema = z.object({
   dateTo: z.string().datetime().optional(),
 });
 
+@ApiTags("compliance")
 @Controller("compliance")
 export class ComplianceController {
   constructor(
@@ -210,5 +216,34 @@ export class ComplianceController {
     });
 
     return result;
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────────
+  // Integration Guide
+  // ──────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * GET /api/compliance/integration-guide
+   * Download the API integration guide as PDF.
+   * Protected — ADMIN and SUPER_ADMIN only.
+   */
+  @Get("integration-guide")
+  @Roles("ADMIN", "SUPER_ADMIN")
+  @RequiresPack("BASTION")
+  @ApiOperation({
+    summary: "Guide d'intégration API",
+    description: "Télécharge le guide PDF complet d'intégration de l'API BASTION avec références des endpoints, types d'événements webhook et exemples de code.",
+  })
+  @ApiBearerAuth()
+  async getIntegrationGuide(
+    @Req() req: FastifyRequest,
+    @Res() reply: FastifyReply,
+  ) {
+    const orgId = (req as any).user?.orgId;
+    const result = await this.complianceService.generateIntegrationGuide(orgId);
+
+    reply.header("Content-Type", "application/pdf");
+    reply.header("Content-Disposition", `attachment; filename="${result.filename}"`);
+    reply.send(result.buffer);
   }
 }

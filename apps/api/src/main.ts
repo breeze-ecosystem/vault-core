@@ -145,6 +145,14 @@ async function bootstrap() {
     .addTag("audit", "Audit logs")
     .addTag("notifications", "Notifications")
     .addTag("health", "Health checks")
+    .addTag("bastion", "BASTION enterprise features")
+    .addTag("compliance", "HAPDP compliance management")
+    .addTag("analytics", "BASTION analytics & KPIs")
+    .addTag("reports", "BASTION report generation")
+    .addTag("governance", "Retention policy management")
+    .addTag("forensic", "Forensic evidence certification")
+    .addTag("backup", "Backup configuration & jobs")
+    .addTag("integrations", "Third-party integrations (fire alarm, BMS)")
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup("api/docs", app, document);

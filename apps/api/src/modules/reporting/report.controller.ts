@@ -13,7 +13,9 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { TenantIsolationGuard } from '../../common/guards/tenant-isolation.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { FeatureGateGuard } from '../../common/guards/feature-gate.guard';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('reports')
 @Controller('reports')
 @UseGuards(JwtAuthGuard, TenantIsolationGuard, RolesGuard, FeatureGateGuard)
 @RequiresPack('BASTION')
@@ -32,6 +34,8 @@ export class ReportController {
   @Post('weekly')
   @Roles('ADMIN', 'SUPER_ADMIN')
   @Audited({ entity: 'report', action: 'GENERATE_WEEKLY' })
+  @ApiOperation({ summary: 'Rapport hebdomadaire', description: 'Génère un rapport PDF hebdomadaire avec résumé exécutif et annexe.' })
+  @ApiBearerAuth()
   async generateWeeklyReport(@Req() req: FastifyRequest) {
     const orgId = (req as any).user?.orgId;
     const job = await this.reportQueue.add('generate-weekly', {
@@ -47,6 +51,8 @@ export class ReportController {
   @Post('monthly')
   @Roles('ADMIN', 'SUPER_ADMIN')
   @Audited({ entity: 'report', action: 'GENERATE_MONTHLY' })
+  @ApiOperation({ summary: 'Rapport mensuel', description: 'Génère un rapport PDF mensuel avec tendances et analyse détaillée.' })
+  @ApiBearerAuth()
   async generateMonthlyReport(@Req() req: FastifyRequest) {
     const orgId = (req as any).user?.orgId;
     const job = await this.reportQueue.add('generate-monthly', {

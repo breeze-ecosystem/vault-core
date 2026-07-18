@@ -1,0 +1,224 @@
+<h1 style="text-align:center;font-size:24px;">Guide d'Intégration API — VaultOS BASTION</h1>
+<p style="text-align:center;font-size:12px;color:#666;">Version 1.0 — {{generatedAt}}</p>
+
+<div style="page-break-after:always;"></div>
+
+<h2>1. Authentification</h2>
+<p>L'API BASTION utilise deux méthodes d'authentification :</p>
+
+<h3>1.1 JWT Bearer Token (Dashboard)</h3>
+<p>Les endpoints d'administration utilisent l'authentification JWT standard.</p>
+<pre><code>Authorization: Bearer &lt;votre_token_jwt&gt;</code></pre>
+
+<h3>1.2 Clé API (Intégrations tierces)</h3>
+<p>Les webhooks entrants (alarme incendie, GTB) utilisent une clé partagée optionnelle.</p>
+<pre><code>X-Integration-Key: &lt;votre_cle_partagee&gt;</pre></code>
+
+<p>Les jetons API sont créés depuis l'interface d'administration.</p>
+
+<h2>2. URL de Base et Conventions</h2>
+<table>
+  <tr><td>URL de base</td><td><code>https://[votre-instance]/api</code></td></tr>
+  <tr><td>Format des réponses</td><td>JSON (application/json)</td></tr>
+  <tr><td>Encodage</td><td>UTF-8</td></tr>
+  <tr><td>Pages</td><td><code>?page=1&amp;limit=20</code></td></tr>
+</table>
+
+<h2>3. Endpoints</h2>
+
+<h3>3.1 Analytics & Rapports</h3>
+<table>
+  <tr><th>Méthode</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/api/analytics/bastion/kpis</td><td>KPIs en temps réel</td></tr>
+  <tr><td>GET</td><td>/api/analytics/bastion/trends</td><td>Tendances 7j/30j</td></tr>
+  <tr><td>GET</td><td>/api/analytics/bastion/search</td><td>Recherche avancée</td></tr>
+  <tr><td>POST</td><td>/api/reports/weekly</td><td>Générer rapport hebdo</td></tr>
+  <tr><td>POST</td><td>/api/reports/monthly</td><td>Générer rapport mensuel</td></tr>
+</table>
+
+<h3>3.2 Conformité HAPDP</h3>
+<table>
+  <tr><th>Méthode</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>POST</td><td>/api/compliance/hapdp/declaration</td><td>Générer déclaration HAPDP</td></tr>
+  <tr><td>POST</td><td>/api/compliance/hapdp/consent-signage</td><td>Générer affichage consentement</td></tr>
+  <tr><td>GET</td><td>/api/compliance/registre</td><td>Exporter registre traitements</td></tr>
+  <tr><td>POST</td><td>/api/compliance/subject-access/request-otp</td><td>Demander code OTP</td></tr>
+  <tr><td>POST</td><td>/api/compliance/subject-access/verify-otp</td><td>Vérifier OTP</td></tr>
+  <tr><td>POST</td><td>/api/compliance/subject-access/submit-request</td><td>Soumettre demande</td></tr>
+</table>
+
+<h3>3.3 Stockage (Rétention, Preuve, Sauvegarde)</h3>
+<table>
+  <tr><th>Méthode</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>POST</td><td>/api/governance/policies</td><td>Créer politique rétention</td></tr>
+  <tr><td>GET</td><td>/api/governance/policies</td><td>Lister politiques</td></tr>
+  <tr><td>POST</td><td>/api/forensic/certify</td><td>Certifier preuve judiciaire</td></tr>
+  <tr><td>GET</td><td>/api/forensic/evidence</td><td>Lister preuves</td></tr>
+  <tr><td>POST</td><td>/api/backup/config</td><td>Configurer sauvegarde</td></tr>
+  <tr><td>POST</td><td>/api/backup/run</td><td>Lancer sauvegarde manuelle</td></tr>
+</table>
+
+<h3>3.4 API & Webhooks</h3>
+<table>
+  <tr><th>Méthode</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>POST</td><td>/api/webhooks/subscriptions</td><td>Créer abonnement webhook</td></tr>
+  <tr><td>GET</td><td>/api/webhooks/subscriptions</td><td>Lister abonnements</td></tr>
+  <tr><td>GET</td><td>/api/webhooks/subscriptions/:id/deliveries</td><td>Historique livraisons</td></tr>
+</table>
+
+<h3>3.5 Intégrations tierces</h3>
+<table>
+  <tr><th>Méthode</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>POST</td><td>/api/integrations/fire-alarm</td><td>Webhook entrant alarme incendie</td></tr>
+  <tr><td>POST</td><td>/api/integrations/bms</td><td>Webhook entrant GTB</td></tr>
+  <tr><td>GET</td><td>/api/integrations</td><td>Lister intégrations</td></tr>
+  <tr><td>POST</td><td>/api/integrations</td><td>Configurer intégration</td></tr>
+</table>
+
+<h2>4. Webhooks — Types d'Événements</h2>
+<p>Tous les types d'événements BASTION sont disponibles pour les abonnements webhook :</p>
+
+<h3>Alertes</h3>
+<ul>
+  <li><code>bastion.alert_created</code> — Nouvelle alerte créée</li>
+  <li><code>bastion.alert_resolved</code> — Alerte résolue</li>
+</ul>
+
+<h3>Contrôle d'accès</h3>
+<ul>
+  <li><code>bastion.access_granted</code> — Accès autorisé</li>
+  <li><code>bastion.access_denied</code> — Accès refusé</li>
+  <li><code>bastion.door_forced</code> — Porte forcée</li>
+</ul>
+
+<h3>Détection IA</h3>
+<ul>
+  <li><code>bastion.ai_detection</code> — Détection IA générique</li>
+  <li><code>bastion.face_match</code> — Correspondance visage</li>
+  <li><code>bastion.weapon_detected</code> — Arme détectée</li>
+</ul>
+
+<h3>Conformité</h3>
+<ul>
+  <li><code>bastion.compliance_event</code> — Événement conformité</li>
+  <li><code>bastion.subject_access_request</code> — Demande d'accès sujet</li>
+</ul>
+
+<h3>Intégrations</h3>
+<ul>
+  <li><code>bastion.fire_alarm</code> — Alarme incendie</li>
+  <li><code>bastion.bms_event</code> — Événement GTB</li>
+</ul>
+
+<h3>Rapports</h3>
+<ul>
+  <li><code>bastion.report_ready</code> — Rapport prêt</li>
+</ul>
+
+<h3>Sauvegarde</h3>
+<ul>
+  <li><code>bastion.backup_completed</code> — Sauvegarde réussie</li>
+  <li><code>bastion.backup_failed</code> — Sauvegarde échouée</li>
+</ul>
+
+<h2>5. Limites et Bonnes Pratiques</h2>
+
+<h3>Rate Limiting</h3>
+<table>
+  <tr><th>Type</th><th>Limite</th><th>Fenêtre</th></tr>
+  <tr><td>API générale</td><td>100 requêtes</td><td>60 secondes</td></tr>
+  <tr><td>Authentification</td><td>5 requêtes</td><td>60 secondes</td></tr>
+</table>
+
+<h3>Sécurité</h3>
+<ul>
+  <li>HTTPS obligatoire pour tous les webhooks sortants</li>
+  <li>Signature HMAC-SHA256 sur chaque payload webhook</li>
+  <li>Les jetons API sont affichés une seule fois à la création</li>
+  <li>Préfixe des jetons : 8 premiers caractères</li>
+</ul>
+
+<h3>Gestion des erreurs</h3>
+<table>
+  <tr><th>Code</th><th>Signification</th></tr>
+  <tr><td>200</td><td>Succès</td></tr>
+  <tr><td>201</td><td>Créé</td></tr>
+  <tr><td>400</td><td>Requête invalide</td></tr>
+  <tr><td>401</td><td>Non authentifié</td></tr>
+  <tr><td>403</td><td>Accès refusé</td></tr>
+  <tr><td>404</td><td>Ressource non trouvée</td></tr>
+  <tr><td>429</td><td>Trop de requêtes</td></tr>
+  <tr><td>500</td><td>Erreur serveur</td></tr>
+</table>
+
+<h2>6. Exemples de Code</h2>
+
+<h3>cURL — Créer un webhook</h3>
+<pre><code>curl -X POST https://[votre-instance]/api/webhooks/subscriptions \
+  -H "Authorization: Bearer &lt;token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "eventType": "bastion.fire_alarm",
+    "targetUrl": "https://votre-serveur/webhook"
+  }'</code></pre>
+
+<h3>cURL — Alarme Incendie (webhook entrant)</h3>
+<pre><code>curl -X POST https://[votre-instance]/api/integrations/fire-alarm \
+  -H "Content-Type: application/json" \
+  -H "X-Integration-Key: &lt;cle_partagee&gt;" \
+  -d '{
+    "siteId": "uuid-du-site",
+    "zone": "Bâtiment A - 3ème étage",
+    "sensorId": "SENSOR-001",
+    "severity": "CRITICAL",
+    "message": "Détection fumée - local technique"
+  }'</code></pre>
+
+<h3>cURL — Événement GTB (webhook entrant)</h3>
+<pre><code>curl -X POST https://[votre-instance]/api/integrations/bms \
+  -H "Content-Type: application/json" \
+  -H "X-Integration-Key: &lt;cle_partagee&gt;" \
+  -d '{
+    "siteId": "uuid-du-site",
+    "zone": "Salle serveur",
+    "eventType": "hvac_temperature",
+    "value": 42,
+    "unit": "°C",
+    "message": "Température critique salle serveur"
+  }'</code></pre>
+
+<h3>cURL — Certifier une preuve judiciaire</h3>
+<pre><code>curl -X POST https://[votre-instance]/api/forensic/certify \
+  -H "Authorization: Bearer &lt;token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "eventId": "uuid-evenement",
+    "mediaType": "zip"
+  }'</code></pre>
+
+<div style="page-break-after:always;"></div>
+
+<h2>Codes d'Erreur</h2>
+<table>
+  <tr><th>Code HTTP</th><th>Erreur</th><th>Description</th></tr>
+  <tr><td>400</td><td>Bad Request</td><td>Payload invalide ou champs manquants</td></tr>
+  <tr><td>401</td><td>Unauthorized</td><td>Token manquant, invalide ou expiré</td></tr>
+  <tr><td>403</td><td>Forbidden</td><td>Permissions insuffisantes</td></tr>
+  <tr><td>404</td><td>Not Found</td><td>Ressource inexistante</td></tr>
+  <tr><td>409</td><td>Conflict</td><td>Conflit (ressource déjà existante)</td></tr>
+  <tr><td>429</td><td>Too Many Requests</td><td>Dépassement du rate limit</td></tr>
+  <tr><td>500</td><td>Internal Server Error</td><td>Erreur serveur interne</td></tr>
+</table>
+
+<h2>Support</h2>
+<p>Pour toute question relative à l'intégration API :</p>
+<ul>
+  <li>Documentation interactive : /api/docs</li>
+  <li>Documentation API publique : /api/docs/v1</li>
+</ul>
+
+<div style="margin-top:50px;padding-top:20px;border-top:1px solid #ccc;font-size:10px;color:#999;">
+<p>CONFIDENTIEL — Usage interne — VaultOS v1.0</p>
+<p>Ce guide est généré automatiquement. Les spécifications des endpoints sont susceptibles d'être modifiées.</p>
+<p>Généré le : {{generatedAt}}</p>
+</div>

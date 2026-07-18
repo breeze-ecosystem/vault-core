@@ -826,4 +826,42 @@ export class ComplianceService {
 
     return sections;
   }
+
+  // ──────────────────────────────────────────────────────────────────────────────
+  // Integration Guide PDF (BAS-41 / D-10)
+  // ──────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Generate the API integration guide PDF.
+   * Renders the integration-guide.hbs template into a PDF document.
+   */
+  async generateIntegrationGuide(orgId: string): Promise<ReportResult> {
+    const org = await this.prisma.organization.findUnique({ where: { id: orgId } });
+    const orgName = org?.displayName || org?.name || "VaultOS";
+
+    // Read and compile the template
+    const templatePath = path.join(__dirname, "templates", "integration-guide.hbs");
+    let templateSource: string;
+    try {
+      templateSource = fs.readFileSync(templatePath, "utf-8");
+    } catch (err: any) {
+      this.logger.error(`Integration guide template not found: ${templatePath} — ${err.message}`);
+      templateSource = `<h1>Guide d'Intégration API</h1><p>Généré le: {{generatedAt}}</p>`;
+    }
+
+    const template = Handlebars.compile(templateSource);
+    const generatedAt = new Date().toLocaleString("fr-FR");
+    const html = template({
+      orgName,
+      generatedAt,
+    });
+
+    // Convert HTML to PDF via pdfkit (same pattern as other reports)
+    const pdfBuffer = await this.generateHapdpPdf(html, orgName);
+    const filename = `integration-guide-${orgId.slice(0, 8)}-${new Date().toISOString().split("T")[0]}.pdf`;
+
+    this.logger.log(`Integration guide generated for org ${orgId}: ${filename}`);
+
+    return { buffer: pdfBuffer, filename };
+  }
 }

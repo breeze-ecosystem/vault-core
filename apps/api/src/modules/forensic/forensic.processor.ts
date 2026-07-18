@@ -2,6 +2,9 @@ import { Logger } from "@nestjs/common";
 import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Job } from "bullmq";
 import { ForensicService } from "./forensic.service";
+import { WebhookService } from "../webhook/webhook.service";
+import { BASTION_EVENT_TYPES } from "@repo/shared";
+import * as crypto from "crypto";
 
 export interface ForensicJobData {
   eventId: string;
@@ -13,7 +16,10 @@ export interface ForensicJobData {
 export class ForensicProcessor extends WorkerHost {
   private readonly logger = new Logger(ForensicProcessor.name);
 
-  constructor(private readonly forensicService: ForensicService) {
+  constructor(
+    private readonly forensicService: ForensicService,
+    private readonly webhookService: WebhookService,
+  ) {
     super();
   }
 
@@ -34,6 +40,18 @@ export class ForensicProcessor extends WorkerHost {
 
       this.logger.log(
         `Forensic certification ${jobId} completed: evidence=${result.evidenceId}`,
+      );
+
+      // Dispatch webhook after evidence certification
+      await this.webhookService.dispatchWebhook(
+        BASTION_EVENT_TYPES.ALERT_CREATED,
+        orgId,
+        {
+          eventId,
+          evidenceId: result.evidenceId,
+          mediaType,
+          timestamp: new Date().toISOString(),
+        },
       );
 
       return result;
