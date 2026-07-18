@@ -1,0 +1,26 @@
+{
+  "phase": "2",
+  "phase_name": "VISION Pack",
+  "timestamp": "2026-07-18T14:55:00.000Z",
+  "areas_completed": ["WhatsApp & SMS alert channels"],
+  "areas_remaining": [],
+  "decisions": {
+    "WhatsApp & SMS alert channels": [
+      {"question": "How is WhatsApp Business API connected?", "answer": "Use Hermes Agent (open-source) at client site instead of direct WhatsApp Business API. QR code WhatsApp Web — no Business account needed.", "options_presented": ["Proxy through vault-app", "Per-client setup", "You decide"]},
+      {"question": "SMS: GSM modem or cloud gateway?", "answer": "Support both. GSM modem primary (Huawei E3372 ~20€), cloud gateway as optional fallback. Client chooses in dashboard.", "options_presented": ["GSM modem preferred", "Cloud SMS gateway preferred", "Both — modem primary, gateway fallback"]},
+      {"question": "No-channel fallback when internet + SMS down?", "answer": "Queue alerts locally. Retry when connection restores.", "options_presented": ["Queue alerts locally", "Skip silently", "Local buzzer/GPIO"]},
+      {"question": "WhatsApp message format?", "answer": "Text + screenshot image (rich media).", "options_presented": ["Text + screenshot image", "Text only", "You decide"]},
+      {"question": "Who pays WhatsApp costs?", "answer": "Included in VISION license. VaultOS pays (one central Meta/WhatsApp account via Hermes, absorbing cost in license price).", "options_presented": ["Inclus dans licence VISION", "À la charge du client"]},
+      {"question": "Estimated SMS volume per client/month?", "answer": "Low (<100 SMS/client/month). Modem sufficient.", "options_presented": ["Faible (<100)", "Moyen (100-1000)", "Élevé ou incertain"]},
+      {"question": "Where is Hermes Agent deployed?", "answer": "At client site, inside their Docker Compose alongside vault-os.", "options_presented": ["Chez le client (dans vault-os)", "Centralisé chez VaultOS"]},
+      {"question": "Does Hermes replace SMS too?", "answer": "No. Hermes for WhatsApp + Telegram. GSM modem for SMS (offline-capable and resilient).", "options_presented": ["Hermes pour chat, GSM modem pour SMS", "Tout par Hermes"]},
+      {"question": "Which channels for VISION v1.0?", "answer": "WhatsApp + Telegram via Hermes.", "options_presented": ["WhatsApp + Telegram", "WhatsApp seulement", "Tout ce que Hermes permet"]},
+      {"question": "Hermes WhatsApp connection method?", "answer": "QR code WhatsApp Web (no Business API). Client scans QR on first setup.", "options_presented": ["QR code WhatsApp Web", "WhatsApp Business API", "À voir pendant la recherche"]},
+      {"question": "Telegram priority?", "answer": "Optional — client chooses. WhatsApp is primary.", "options_presented": ["Optionnel — le client choisit", "WhatsApp obligatoire, Telegram plus tard", "WhatsApp d'abord"]},
+      {"question": "SMS modem budget?", "answer": "~20€ Huawei E3372 3G/4G USB modem.", "options_presented": ["~20€ (Huawei E3372)", "~100€ (routeur 4G pro)"]},
+      {"question": "Document Hermes + modem decision?", "answer": "Yes, document this decision as a technical note/ADR.", "options_presented": ["Oui, documenter", "Non, CONTEXT.md suffit"]}
+    ]
+  },
+  "deferred_ideas": [],
+  "canonical_refs": []
+}

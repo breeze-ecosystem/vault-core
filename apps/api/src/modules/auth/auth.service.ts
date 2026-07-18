@@ -42,7 +42,6 @@ export class AuthService {
         data: {
           name: data.organizationName,
           billingEmail: data.email,
-          planTier: "FREE",
         },
       });
 

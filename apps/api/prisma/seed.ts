@@ -44,7 +44,6 @@ async function seedProduction() {
       name: `${COMPANY_NAME} – Default Organization`,
       city: "Unknown",
       country: "XX",
-      planTier: "FREE",
     },
   });
 
@@ -122,7 +121,6 @@ async function seedSample() {
       country: "SN",
       latitude: 14.6937,
       longitude: -17.4441,
-      planTier: "FREE",
     },
   });
 
@@ -137,7 +135,6 @@ async function seedSample() {
       country: "FR",
       latitude: 48.8566,
       longitude: 2.3522,
-      planTier: "PROFESSIONAL",
     },
   });
 
@@ -152,7 +149,6 @@ async function seedSample() {
       country: "FR",
       latitude: 45.7609,
       longitude: 4.8596,
-      planTier: "FREE",
     },
   });
 
