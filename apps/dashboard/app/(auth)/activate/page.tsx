@@ -14,6 +14,7 @@ export default function ActivationPage() {
   const [trialStarting, setTrialStarting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [showTrialConfirm, setShowTrialConfirm] = useState(false);
 
   useEffect(() => {
     async function check() {
@@ -45,7 +46,13 @@ export default function ActivationPage() {
     }
   }
 
-  async function handleTrial() {
+  function handleTrialClick() {
+    setError("");
+    setShowTrialConfirm(true);
+  }
+
+  async function confirmTrial() {
+    setShowTrialConfirm(false);
     setError("");
     setTrialStarting(true);
     try {
@@ -160,7 +167,7 @@ export default function ActivationPage() {
           )}
 
           <button
-            onClick={handleTrial}
+            onClick={handleTrialClick}
             disabled={trialStarting}
             className={`flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-all ${
               !showKeyInput
@@ -183,6 +190,50 @@ export default function ActivationPage() {
           &copy; 2026 DigitSoft Africa
         </p>
       </div>
+
+      {/* Trial confirmation dialog */}
+      {showTrialConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl">
+            <h2 className="text-lg font-semibold text-white">Confirmer l&apos;essai gratuit</h2>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Vous allez bénéficier de toutes les fonctionnalités du pack VISION pendant 7 jours, sans engagement.
+            </p>
+            <ul className="mt-4 space-y-2">
+              {[
+                "Max 10 caméras",
+                "Détection IA",
+                "Alertes WhatsApp/SMS",
+                "Stockage local 7 jours",
+              ].map((feature) => (
+                <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setShowTrialConfirm(false)}
+                className="flex-1 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/5"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmTrial}
+                disabled={trialStarting}
+                className="flex flex-1 items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                {trialStarting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Confirmer"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
