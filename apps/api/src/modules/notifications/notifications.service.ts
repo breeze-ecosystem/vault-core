@@ -1,11 +1,20 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { Resend } from 'resend';
+import { HermesService } from '../hermes/hermes.service';
+import { ModemService } from '../modem/modem.service';
+
+// Prisma NotificationChannel enum + PUSH (for AlertChannelConfig which uses String)
+export type NotificationChannel = 'EMAIL' | 'WEBHOOK' | 'IN_APP' | 'WHATSAPP' | 'SMS' | 'PUSH';
+
+// Prisma-compatible channel type (no PUSH)
+export type PrismaNotificationChannel = 'EMAIL' | 'WEBHOOK' | 'IN_APP' | 'WHATSAPP' | 'SMS';
 
 export interface NotificationJobData {
   alertId: string;
-  channel: 'EMAIL' | 'WEBHOOK' | 'IN_APP';
+  channel: NotificationChannel;
   recipient: string;
   payload?: Record<string, unknown>;
 }
@@ -20,6 +29,8 @@ export class NotificationsService {
   constructor(
     private prisma: PrismaService,
     private config: ConfigService,
+    @Optional() private hermesService?: HermesService,
+    @Optional() private modemService?: ModemService,
   ) {
     this.notificationEnabled = this.config.get<string>('NOTIFICATION_ENABLED', 'true') === 'true';
     this.emailFrom = this.config.get<string>('RESEND_FROM_EMAIL', 'OVERSIGHT AI <onboarding@resend.dev>');
@@ -41,7 +52,7 @@ export class NotificationsService {
   // Core dispatch
   // ──────────────────────────────────────────────────────────────────────────────
 
-  async sendNotification(alertId: string, channel: 'EMAIL' | 'WEBHOOK' | 'IN_APP', recipient: string) {
+  async sendNotification(alertId: string, channel: NotificationChannel, recipient: string) {
     if (!this.notificationEnabled) {
       this.logger.debug('Notifications disabled, skipping');
       return;
@@ -57,12 +68,12 @@ export class NotificationsService {
     });
 
     if (!alert) {
-      this.logger.warn(`Alert ${alertId} not found — skipping notification`);
+      this.logger.warn(`Alerte ${alertId} introuvable — notification ignorée`);
       return;
     }
 
     const log = await this.prisma.notificationLog.create({
-      data: { alertId, channel, recipient, status: 'PENDING' },
+      data: { alertId, channel: channel as any, recipient, status: 'PENDING' },
     });
 
     try {
@@ -87,6 +98,15 @@ export class NotificationsService {
         case 'IN_APP':
           this.logger.debug(`IN_APP notification logged for ${recipient}`);
           break;
+        case 'WHATSAPP':
+          await this.sendWhatsAppNotification(recipient, alert);
+          break;
+        case 'SMS':
+          await this.sendSmsNotification(recipient, alert);
+          break;
+        case 'PUSH':
+          this.logger.debug(`PUSH notification logged for ${recipient}`);
+          break;
       }
 
       await this.prisma.notificationLog.update({
@@ -94,13 +114,17 @@ export class NotificationsService {
         data: { status: 'SENT', sentAt: new Date() },
       });
 
-      this.logger.log(`Notification sent: ${channel} → ${recipient} for alert ${alertId}`);
+      this.logger.log(`Notification envoyée: ${channel} → ${recipient} pour l'alerte ${alertId}`);
     } catch (error: any) {
+      // For WHATSAPP/SMS, store as PENDING for retry instead of FAILED
+      const retryChannels: NotificationChannel[] = ['WHATSAPP', 'SMS'];
+      const status = retryChannels.includes(channel) ? 'PENDING' : 'FAILED';
+
       await this.prisma.notificationLog.update({
         where: { id: log.id },
-        data: { status: 'FAILED', error: error.message ?? String(error) },
+        data: { status, error: error.message ?? String(error) },
       });
-      this.logger.error(`Notification failed: ${channel} → ${recipient}: ${error.message}`);
+      this.logger.error(`Notification échouée: ${channel} → ${recipient}: ${error.message}`);
     }
   }
 
@@ -177,12 +201,93 @@ export class NotificationsService {
   }
 
   // ──────────────────────────────────────────────────────────────────────────────
+  // WhatsApp provider (Hermes Agent)
+  // ──────────────────────────────────────────────────────────────────────────────
+
+  private async sendWhatsAppNotification(recipient: string, alert: any): Promise<void> {
+    if (!this.hermesService) {
+      throw new Error('Hermes Agent non configuré — WhatsApp indisponible');
+    }
+
+    const cameraName = alert.camera?.name ?? 'Caméra';
+    const message = `[${alert.severity}] ${alert.title}\n📹 ${cameraName}\n${alert.description ?? ''}`
+      .trim()
+      .slice(0, 4096); // WhatsApp message limit
+
+    const imageBase64 = alert.snapshotUrl ? undefined : undefined; // Hermes can fetch from URL
+    const result = await this.hermesService.sendWhatsApp(recipient, message, imageBase64);
+
+    if (!result.success) {
+      throw new Error(result.error ?? 'Envoi WhatsApp échoué');
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────────
+  // SMS provider (GSM Modem)
+  // ──────────────────────────────────────────────────────────────────────────────
+
+  private async sendSmsNotification(recipient: string, alert: any): Promise<void> {
+    if (!this.modemService) {
+      throw new Error('Modem GSM non configuré — SMS indisponible');
+    }
+
+    const cameraName = alert.camera?.name ?? 'Caméra';
+    const message = `[${alert.severity}] ${alert.title} — ${cameraName}`
+      .slice(0, 160); // GSM 7-bit limit for single SMS
+
+    const result = await this.modemService.sendSms(recipient, message);
+
+    if (!result.success) {
+      throw new Error(result.error ?? 'Envoi SMS échoué');
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────────
+  // Retry queue for failed WHATSAPP/SMS notifications
+  // ──────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Retry PENDING WHATSAPP/SMS notifications every 5 minutes.
+   * Re-adds PENDING jobs to the BullMQ queue for processing.
+   */
+  @Cron('*/5 * * * *')
+  async retryFailedNotifications() {
+    try {
+      const pendingLogs = await this.prisma.notificationLog.findMany({
+        where: {
+          channel: { in: ['WHATSAPP', 'SMS'] },
+          status: 'PENDING',
+          sentAt: null,
+        },
+        take: 50,
+        orderBy: { createdAt: 'asc' },
+      });
+
+      if (pendingLogs.length === 0) return;
+
+      this.logger.log(`Tentative de reprise de ${pendingLogs.length} notification(s) en attente`);
+
+      const { getQueueToken } = await import('@nestjs/bullmq');
+      // We'll process them inline to avoid requiring queue access here
+      for (const log of pendingLogs) {
+        try {
+          await this.sendNotification(log.alertId, log.channel as NotificationChannel, log.recipient);
+        } catch (error: any) {
+          this.logger.warn(`Reprise échouée pour ${log.id}: ${error.message}`);
+        }
+      }
+    } catch (error: any) {
+      this.logger.error(`Erreur lors de la reprise des notifications: ${error.message}`);
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────────
   // BullMQ queue processor
   // ──────────────────────────────────────────────────────────────────────────────
 
   async processQueue(job: { data: NotificationJobData }) {
     const { alertId, channel, recipient } = job.data;
-    this.logger.debug(`Processing notification job: ${channel} → ${recipient}`);
+    this.logger.debug(`Traitement du job de notification: ${channel} → ${recipient}`);
     await this.sendNotification(alertId, channel, recipient);
   }
 
@@ -200,15 +305,17 @@ export class NotificationsService {
 
   async updateUserSettings(
     userId: string,
-    dto: { channel: 'EMAIL' | 'WEBHOOK' | 'IN_APP'; enabled: boolean; config?: any }[],
+    dto: { channel: NotificationChannel; enabled: boolean; config?: any }[],
   ) {
     const results = await Promise.all(
-      dto.map((item) =>
-        this.prisma.notificationSetting.upsert({
-          where: { userId_channel: { userId, channel: item.channel } },
+      dto.map((item) => {
+        // PUSH not in Prisma NotificationChannel enum — fallback to IN_APP
+        const prismaChannel = item.channel === 'PUSH' ? 'IN_APP' : (item.channel as PrismaNotificationChannel);
+        return this.prisma.notificationSetting.upsert({
+          where: { userId_channel: { userId, channel: prismaChannel } },
           create: {
             userId,
-            channel: item.channel,
+            channel: prismaChannel,
             enabled: item.enabled,
             config: item.config ?? {},
           },
@@ -216,8 +323,8 @@ export class NotificationsService {
             enabled: item.enabled,
             config: item.config ?? {},
           },
-        }),
-      ),
+        });
+      }),
     );
     return results;
   }
@@ -246,6 +353,57 @@ export class NotificationsService {
     ]);
 
     return { data, total, page, limit };
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────────
+  // Channel configuration (org-level alert channels)
+  // ──────────────────────────────────────────────────────────────────────────────
+
+  async getChannelConfigs(organizationId: string) {
+    const configs = await this.prisma.alertChannelConfig.findMany({
+      where: { organizationId },
+      orderBy: { channel: 'asc' },
+    });
+
+    // Return defaults if none configured
+    if (configs.length === 0) {
+      return [
+        { channel: 'PUSH', enabled: true, configJson: {} },
+        { channel: 'SMS', enabled: false, configJson: {} },
+        { channel: 'WHATSAPP', enabled: false, configJson: {} },
+      ];
+    }
+
+    return configs;
+  }
+
+  async updateChannelConfig(
+    organizationId: string,
+    channel: string,
+    data: { enabled?: boolean; configJson?: Record<string, unknown> },
+  ) {
+    const validChannels = ['PUSH', 'SMS', 'WHATSAPP'];
+    if (!validChannels.includes(channel)) {
+      throw new Error(`Canal invalide: ${channel}. Canaux autorisés: ${validChannels.join(', ')}`);
+    }
+
+    const config = await this.prisma.alertChannelConfig.upsert({
+      where: {
+        organizationId_channel: { organizationId, channel },
+      },
+      create: {
+        organizationId,
+        channel,
+        enabled: data.enabled ?? true,
+        configJson: (data.configJson ?? {}) as any,
+      },
+      update: {
+        enabled: data.enabled !== undefined ? data.enabled : undefined,
+        configJson: data.configJson !== undefined ? (data.configJson as any) : undefined,
+      },
+    });
+
+    return config;
   }
 
   // ──────────────────────────────────────────────────────────────────────────────
@@ -307,16 +465,22 @@ export class NotificationsService {
 
       for (const setting of userSettings) {
         let recipient = user.id;
+        const config = setting.config as Record<string, any> | null;
+
         if (setting.channel === 'EMAIL') {
-          const config = setting.config as any;
           recipient = config?.email ?? user.email;
         } else if (setting.channel === 'WEBHOOK') {
-          const config = setting.config as any;
           recipient = config?.url ?? '';
+          if (!recipient) continue;
+        } else if (setting.channel === 'SMS') {
+          recipient = config?.phone ?? '';
+          if (!recipient) continue;
+        } else if (setting.channel === 'WHATSAPP') {
+          recipient = config?.phone ?? '';
           if (!recipient) continue;
         }
 
-        jobs.push({ alertId, channel: setting.channel as any, recipient });
+        jobs.push({ alertId, channel: setting.channel as NotificationChannel, recipient });
       }
     }
 

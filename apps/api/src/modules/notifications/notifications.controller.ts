@@ -2,13 +2,16 @@ import {
   Controller,
   Get,
   Put,
+  Patch,
   Post,
+  Param,
   Body,
   Query,
   Req,
 } from '@nestjs/common';
 import { FastifyRequest } from 'fastify';
-import { NotificationsService } from './notifications.service';
+import { NotificationsService, NotificationChannel } from './notifications.service';
+import { Roles } from '../../common/decorators/roles.decorator';
 
 @Controller('notifications')
 export class NotificationsController {
@@ -32,10 +35,35 @@ export class NotificationsController {
   @Put('settings')
   async updateSettings(
     @Req() req: FastifyRequest,
-    @Body() body: { settings: { channel: 'EMAIL' | 'WEBHOOK' | 'IN_APP'; enabled: boolean; config?: any }[] },
+    @Body() body: { settings: { channel: NotificationChannel; enabled: boolean; config?: any }[] },
   ) {
     const userId = (req as any).user.id;
     return this.notificationsService.updateUserSettings(userId, body.settings);
+  }
+
+  /**
+   * GET /notifications/channels
+   * Get the organization's alert channel configurations.
+   */
+  @Get('channels')
+  async getChannels(@Req() req: FastifyRequest) {
+    const orgId = (req as any).user.organizationId ?? (req as any).orgId;
+    return this.notificationsService.getChannelConfigs(orgId);
+  }
+
+  /**
+   * PATCH /notifications/channels/:channel
+   * Update an organization's alert channel configuration.
+   */
+  @Patch('channels/:channel')
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  async updateChannel(
+    @Req() req: FastifyRequest,
+    @Param('channel') channel: string,
+    @Body() body: { enabled?: boolean; configJson?: Record<string, unknown> },
+  ) {
+    const orgId = (req as any).user.organizationId ?? (req as any).orgId;
+    return this.notificationsService.updateChannelConfig(orgId, channel, body);
   }
 
   /**

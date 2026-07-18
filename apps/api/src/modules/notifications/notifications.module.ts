@@ -6,9 +6,11 @@ import { QueueModule } from '../queue/queue.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { NotificationModule } from '../notification/notification.module';
+import { HermesModule } from '../hermes/hermes.module';
+import { ModemModule } from '../modem/modem.module';
 
 @Module({
-  imports: [QueueModule, PrismaModule, ConfigModule, NotificationModule],
+  imports: [QueueModule, PrismaModule, ConfigModule, NotificationModule, HermesModule, ModemModule],
   controllers: [NotificationsController],
   providers: [NotificationsService, NotificationsProcessor],
   exports: [NotificationsService],

@@ -15,9 +15,9 @@ export class NotificationsProcessor extends WorkerHost {
   }
 
   async process(job: { data: NotificationJobData | any; name: string }) {
-    this.logger.debug(`Processing notification job: ${job.name}`);
+    this.logger.debug(`Traitement du job de notification: ${job.name}`);
 
-    // Handle new-style jobs (EMAIL / WEBHOOK / IN_APP)
+    // Handle new-style jobs (EMAIL / WEBHOOK / IN_APP / WHATSAPP / SMS / PUSH)
     if (job.data.alertId && job.data.channel && job.data.recipient) {
       await this.notificationsService.processQueue(job as { data: NotificationJobData });
       return;
@@ -30,6 +30,6 @@ export class NotificationsProcessor extends WorkerHost {
       return;
     }
 
-    this.logger.warn(`Unknown notification job type: ${JSON.stringify(job.data)}`);
+    this.logger.warn(`Type de job de notification inconnu: ${JSON.stringify(job.data)}`);
   }
 }
