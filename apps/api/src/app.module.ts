@@ -54,6 +54,8 @@ import { RolesGuard } from './common/guards/roles.guard';
 import { FeatureGateGuard } from './common/guards/feature-gate.guard';
 import { LicenseExpiryGuard } from './modules/license/guards/license-expiry.guard';
 import { FeatureGateModule } from './modules/feature-gate/feature-gate.module';
+import { HermesModule } from './modules/hermes/hermes.module';
+import { ModemModule } from './modules/modem/modem.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { IngestionService } from './modules/ingestion/ingestion.service';
 import { AuditInterceptor } from './modules/audit/audit.interceptor';
@@ -98,6 +100,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     FeatureGateModule,
     GovernanceModule,
     HealthModule,
+    HermesModule,
     IncidentModule,
     InferenceModule,
     IngestionModule,
@@ -106,6 +109,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     LicenseModule,
     MaintenanceModule,
     MqttModule,
+    ModemModule,
     NotificationModule,
     NotificationsModule,
     OrganizationModule,
