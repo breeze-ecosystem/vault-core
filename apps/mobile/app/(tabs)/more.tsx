@@ -6,15 +6,11 @@ import {
   MessageSquareText,
   MapPin,
   Settings,
-  FileText,
-  KeyRound,
   ChevronRight,
   Shield,
   BarChart3,
   Clock,
   Activity,
-  ShieldCheck,
-  Bot,
   Gauge,
   Users,
   Car,
@@ -55,16 +51,6 @@ function useMenuItems() {
       route: "/(tabs)/more/notifications/index",
     },
     {
-      id: "ia", label: t("nav.ia"),
-      icon: <Bot size={22} color={colors.dark.text} />,
-      route: "/(tabs)/more/ia/index",
-    },
-    {
-      id: "gouvernance", label: t("nav.gouvernance"),
-      icon: <ShieldCheck size={22} color={colors.dark.text} />,
-      route: "/(tabs)/more/gouvernance/index",
-    },
-    {
       id: "risque", label: t("nav.risque"),
       icon: <Gauge size={22} color={colors.dark.text} />,
       route: "/(tabs)/more/risque/index",
@@ -90,16 +76,7 @@ function useMenuItems() {
       icon: <Settings size={22} color={colors.dark.text} />,
       route: "/settings",
     },
-    {
-      id: "audit", label: t("nav.audit"),
-      icon: <FileText size={22} color={colors.dark.text} />,
-      route: "/audit",
-    },
-    {
-      id: "licences", label: t("nav.licences"),
-      icon: <KeyRound size={22} color={colors.dark.text} />,
-      route: "/licences",
-    },
+
   ];
 }
 
