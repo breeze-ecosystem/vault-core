@@ -66,6 +66,7 @@ import { ModemModule } from './modules/modem/modem.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { IngestionService } from './modules/ingestion/ingestion.service';
 import { AuditInterceptor } from './modules/audit/audit.interceptor';
+import { PseudonymizationModule } from './modules/pseudonymization/pseudonymization.module';
 
 @Module({
   imports: [
@@ -127,6 +128,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     OrganizationModule,
     PatternsModule,
     PrismaModule,
+    PseudonymizationModule,
     QueueModule,
     RecordingModule,
     RiskModule,
