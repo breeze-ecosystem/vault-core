@@ -34,7 +34,8 @@ export class RecordingCleanupService {
       let totalSizeFreed = 0;
 
       for (const config of orgConfigs) {
-        const retentionDays = config.retentionDays || 7;
+        // Support 30d to 1yr+ retention (BAS-26)
+        const retentionDays = config.retentionDays || 30;
         const basePath = config.storagePath || "/mnt/recordings";
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - retentionDays);

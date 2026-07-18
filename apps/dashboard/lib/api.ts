@@ -2600,6 +2600,112 @@ export async function setTimedPass(visitId: string, timeWindowStart: string, tim
   return res.json();
 }
 
+// ─── Backup Types & API Functions (04-04) ───
+
+export interface BackupConfigDto {
+  id: string;
+  organizationId: string;
+  targetPath: string;
+  schedule: string;
+  enabled: boolean;
+  lastBackupAt: string | null;
+  lastStatus: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BackupJobDto {
+  id: string;
+  backupConfigId: string;
+  organizationId: string;
+  status: "RUNNING" | "SUCCESS" | "FAILED";
+  sizeBytes: string | null;
+  error: string | null;
+  startedAt: string;
+  completedAt: string | null;
+}
+
+/**
+ * Get backup configuration.
+ * GET /api/backup/config
+ */
+export async function getBackupConfig(): Promise<BackupConfigDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/backup/config`);
+  if (!res.ok) throw new Error("Échec du chargement de la configuration de sauvegarde");
+  return res.json();
+}
+
+/**
+ * Save backup configuration.
+ * POST /api/backup/config
+ */
+export async function saveBackupConfig(data: {
+  targetPath: string;
+  username?: string;
+  password?: string;
+  schedule?: string;
+}): Promise<BackupConfigDto> {
+  const res = await fetchWithAuth(`${API_URL}/api/backup/config`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec de la sauvegarde de la configuration");
+  }
+  return res.json();
+}
+
+/**
+ * Test NAS connection.
+ * POST /api/backup/test
+ */
+export async function testBackupConnection(data: {
+  targetPath: string;
+  username?: string;
+  password?: string;
+}): Promise<{ success: boolean; message: string }> {
+  const res = await fetchWithAuth(`${API_URL}/api/backup/test`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || "Échec du test de connexion");
+  }
+  return res.json();
+}
+
+/**
+ * Run manual backup.
+ * POST /api/backup/run
+ */
+export async function runManualBackup(): Promise<{ jobId: string; status: string }> {
+  const res = await fetchWithAuth(`${API_URL}/api/backup/run`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) throw new Error("Échec du lancement de la sauvegarde");
+  return res.json();
+}
+
+/**
+ * List backup jobs.
+ * GET /api/backup/jobs
+ */
+export async function getBackupJobs(
+  page?: number,
+  limit?: number,
+): Promise<{ data: BackupJobDto[]; total: number; page: number; limit: number }> {
+  const searchParams = new URLSearchParams();
+  if (page) searchParams.set("page", String(page));
+  if (limit) searchParams.set("limit", String(limit));
+  const qs = searchParams.toString() ? `?${searchParams.toString()}` : "";
+  const res = await fetchWithAuth(`${API_URL}/api/backup/jobs${qs}`);
+  if (!res.ok) throw new Error("Échec du chargement de l'historique des sauvegardes");
+  return res.json();
+}
+
 // ─── Forensic Evidence Types & API Functions (04-04) ───
 
 export interface ForensicEvidenceDto {
