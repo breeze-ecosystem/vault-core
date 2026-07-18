@@ -80,20 +80,20 @@ Requirements for the Minimum Commercial Product. Each maps to roadmap phases.
 
 ### Pack BASTION — Stockage & Archivage
 
-- [ ] **BAS-25**: Stockage local illimité — selon capacité disque du client
-- [ ] **BAS-26**: Rétention configurable — par site, par type d'événement, 30j à 1an+
-- [ ] **BAS-27**: Preuve judiciaire — export conforme, timestamp certifié
-- [ ] **BAS-28**: Redondance disque — support RAID 1/5/10
-- [ ] **BAS-29**: Backup auto — backup sur NAS secondaire ou disque externe
+- [x] **BAS-25**: Stockage local illimité — selon capacité disque du client
+- [x] **BAS-26**: Rétention configurable — par site, par type d'événement, 30j à 1an+
+- [x] **BAS-27**: Preuve judiciaire — export conforme, timestamp certifié
+- [x] **BAS-28**: Redondance disque — support RAID 1/5/10
+- [x] **BAS-29**: Backup auto — backup sur NAS secondaire ou disque externe
 
 ### Pack BASTION — Conformité HAPDP
 
-- [ ] **BAS-30**: Déclaration HAPDP assistée — wizard auto-rempli, génération PDF
-- [ ] **BAS-31**: Registre des traitements — base traçabilité, export CSV/PDF
-- [ ] **BAS-32**: Affichage consentement — module signalétique caméra, preuve timestampée
-- [ ] **BAS-33**: Pseudonymisation — données sensibles masquées par défaut
-- [ ] **BAS-34**: Droit accès sujet — portail self-service : voir, rectifier, supprimer
-- [ ] **BAS-35**: Traçabilité accès — qui a vu quoi, quand
+- [x] **BAS-30**: Déclaration HAPDP assistée — wizard auto-rempli, génération PDF
+- [x] **BAS-31**: Registre des traitements — base traçabilité, export CSV/PDF
+- [x] **BAS-32**: Affichage consentement — module signalétique caméra, preuve timestampée
+- [x] **BAS-33**: Pseudonymisation — données sensibles masquées par défaut
+- [x] **BAS-34**: Droit accès sujet — portail self-service : voir, rectifier, supprimer
+- [x] **BAS-35**: Traçabilité accès — qui a vu quoi, quand
 
 ### Pack BASTION — Support & SLA
 
@@ -105,10 +105,10 @@ Requirements for the Minimum Commercial Product. Each maps to roadmap phases.
 
 ### Pack BASTION — API & Intégrations
 
-- [ ] **BAS-41**: API REST locale — documentation complète, authentification
-- [ ] **BAS-42**: Webhooks locaux — notifications événements vers systèmes internes
-- [ ] **BAS-43**: Intégration alarme incendie — corrélation détection fumée + vidéo
-- [ ] **BAS-44**: Intégration BMS — liaison HVAC, éclairage, accès
+- [x] **BAS-41**: API REST locale — documentation complète, authentification
+- [x] **BAS-42**: Webhooks locaux — notifications événements vers systèmes internes
+- [x] **BAS-43**: Intégration alarme incendie — corrélation détection fumée + vidéo
+- [x] **BAS-44**: Intégration BMS — liaison HVAC, éclairage, accès
 
 ### Licence & Activation
 
@@ -194,26 +194,26 @@ Explicitly excluded from v1.0. Documented to prevent scope creep.
 | BAS-22 | Phase 4 | Pending |
 | BAS-23 | Phase 4 | Pending |
 | BAS-24 | Phase 4 | Pending |
-| BAS-25 | Phase 4 | Pending |
-| BAS-26 | Phase 4 | Pending |
-| BAS-27 | Phase 4 | Pending |
-| BAS-28 | Phase 4 | Pending |
-| BAS-29 | Phase 4 | Pending |
-| BAS-30 | Phase 4 | Pending |
-| BAS-31 | Phase 4 | Pending |
-| BAS-32 | Phase 4 | Pending |
-| BAS-33 | Phase 4 | Pending |
-| BAS-34 | Phase 4 | Pending |
-| BAS-35 | Phase 4 | Pending |
+| BAS-25 | Phase 4 | Complete |
+| BAS-26 | Phase 4 | Complete |
+| BAS-27 | Phase 4 | Complete |
+| BAS-28 | Phase 4 | Complete |
+| BAS-29 | Phase 4 | Complete |
+| BAS-30 | Phase 4 | Complete |
+| BAS-31 | Phase 4 | Complete |
+| BAS-32 | Phase 4 | Complete |
+| BAS-33 | Phase 4 | Complete |
+| BAS-34 | Phase 4 | Complete |
+| BAS-35 | Phase 4 | Complete |
 | BAS-36 | Phase 5 | Pending |
 | BAS-37 | Phase 5 | Pending |
 | BAS-38 | Phase 5 | Pending |
 | BAS-39 | Phase 5 | Pending |
 | BAS-40 | Phase 5 | Pending |
-| BAS-41 | Phase 4 | Pending |
-| BAS-42 | Phase 4 | Pending |
-| BAS-43 | Phase 4 | Pending |
-| BAS-44 | Phase 4 | Pending |
+| BAS-41 | Phase 4 | Complete |
+| BAS-42 | Phase 4 | Complete |
+| BAS-43 | Phase 4 | Complete |
+| BAS-44 | Phase 4 | Complete |
 | LIC-01 | Phase 1 | Pending |
 | LIC-02 | Phase 1 | Pending |
 | LIC-03 | Phase 1 | Pending |

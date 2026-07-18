@@ -150,7 +150,7 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] 04-01-PLAN.md — Schema + Shared Package + Pseudonymization (Wave 1)
+- [x] 04-01-PLAN.md — Schema + Shared Package + Pseudonymization (Wave 1)
 - [ ] 04-02-PLAN.md — Reports & Analytics Backend (Wave 2)
 - [ ] 04-03-PLAN.md — HAPDP Compliance Backend (Wave 2)
 - [ ] 04-04-PLAN.md — Advanced Storage & Archiving Backend (Wave 2)
@@ -188,5 +188,5 @@ Plans:
 | 1. Architecture & License Foundation | 8/8 | Complete | 2026-07-18 |
 | 2. VISION Pack | 0/8 | Planning complete | - |
 | 3. BASTION AI & Access Control | 6/6 | Complete   | 2026-07-18 |
-| 4. BASTION Enterprise | 0/7 | Planning complete | - |
+| 4. BASTION Enterprise | 1/7 | In Progress|  |
 | 5. Launch Readiness | 0/0 | Not started | - |
