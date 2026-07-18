@@ -14,7 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "./language-switcher";
+import { GlobalSearchCommand } from "./global-search-command";
 import { Bell, LogOut, Settings, User, Building2, Loader2 } from "lucide-react";
+import type { Site } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n/context";
 import { useRouter } from "next/navigation";
 
@@ -46,7 +48,7 @@ export function Header() {
 
       <div className="flex items-center gap-2">
         <LanguageSwitcher />
-
+        <GlobalSearchCommand />
         <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground">
           <Bell className="h-4 w-4" />
           <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive" />
