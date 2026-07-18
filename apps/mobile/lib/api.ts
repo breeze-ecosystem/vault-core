@@ -926,6 +926,106 @@ export async function fetchAccessSchedules(): Promise<AccessScheduleDto[]> {
   return res.json();
 }
 
+// ─── BASTION Pack: Face Enrollment & Site Switching ───
+
+export interface BastionFaceEntry {
+  id: string;
+  name: string;
+  photoBase64: string;
+  isBlacklisted: boolean;
+  riskThreshold: number | null;
+  organizationId: string;
+  createdAt: string;
+  updatedAt: string;
+  organization?: { id: string; name: string };
+}
+
+export interface Site {
+  id: string;
+  name: string;
+  city: string | null;
+  country: string;
+  isActive: boolean;
+  _count?: { cameras: number; doors: number; members: number };
+}
+
+export interface AccessEvent {
+  id: string;
+  doorId: string;
+  doorName: string;
+  personName: string | null;
+  credentialType: string;
+  decision: "AUTHORIZED" | "DENIED" | "FORCED" | "HELD_OPEN";
+  timestamp: string;
+  snapshotUrl: string | null;
+  videoClipUrl: string | null;
+  metadata: Record<string, unknown> | null;
+}
+
+export interface AccessEventDetail extends AccessEvent {
+  credentialId: string | null;
+  cameraId: string | null;
+  zoneId: string;
+  organizationId: string;
+  updatedAt: string;
+}
+
+export const TYPE_COLORS: Record<string, string> = {
+  BADGE: "#06b6d4",
+  PIN: "#a855f7",
+  MOBILE: "#10b981",
+  QR: "#f59e0b",
+  FINGERPRINT: "#ec4899",
+  FACE: "#3b82f6",
+};
+
+export async function enrollFace(data: { name: string; photoBase64: string; isBlacklisted?: boolean }): Promise<BastionFaceEntry> {
+  const res = await fetchWithAuth(`${API_BASE}/bastion/faces`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || "L'enrôlement a échoué. Vérifiez la qualité de la photo et réessayez.");
+  }
+  return res.json();
+}
+
+export async function getBastionFaces(params?: { page?: number; limit?: number }): Promise<PaginatedResponse<BastionFaceEntry>> {
+  const search = new URLSearchParams();
+  if (params?.page) search.set("page", String(params.page));
+  if (params?.limit) search.set("limit", String(params.limit));
+  const qs = search.toString();
+  const res = await fetchWithAuth(`${API_BASE}/bastion/faces${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des visages");
+  return res.json();
+}
+
+export async function getSites(): Promise<Site[]> {
+  const res = await fetchWithAuth(`${API_BASE}/sites`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des sites");
+  const data = await res.json();
+  return data.data || data;
+}
+
+export async function getAccessEvents(params?: { siteId?: string; type?: string; page?: number; limit?: number }): Promise<PaginatedResponse<AccessEvent>> {
+  const search = new URLSearchParams();
+  if (params?.siteId) search.set("siteId", params.siteId);
+  if (params?.type) search.set("type", params.type);
+  if (params?.page) search.set("page", String(params.page));
+  if (params?.limit) search.set("limit", String(params.limit));
+  const qs = search.toString();
+  const res = await fetchWithAuth(`${API_BASE}/access/events${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw new Error("Erreur lors du chargement des événements d'accès");
+  return res.json();
+}
+
+export async function getAccessEvent(id: string): Promise<AccessEventDetail> {
+  const res = await fetchWithAuth(`${API_BASE}/access/events/${id}`);
+  if (!res.ok) throw new Error("Erreur lors du chargement de l'événement d'accès");
+  return res.json();
+}
+
 // ─── Analytics ───
 
 export interface AnalyticsData {

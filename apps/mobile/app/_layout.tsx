@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 import { View, Text, StyleSheet } from "react-native";
 import * as Sentry from "@sentry/react-native";
 import { AuthProvider } from "@/lib/auth-context";
+import { SiteProvider } from "@/lib/site-context";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { I18nProvider } from "@/lib/i18n";
 import { IS_CONFIG_VALID } from "@/lib/config";
@@ -38,6 +39,7 @@ export default Sentry.wrap(function RootLayout() {
     <ErrorBoundary>
       <I18nProvider>
         <AuthProvider>
+          <SiteProvider>
         <Stack
           screenOptions={{
             headerStyle: { backgroundColor: colors.dark.surface },
@@ -54,8 +56,11 @@ export default Sentry.wrap(function RootLayout() {
           <Stack.Screen name="alert/[id]" options={{ title: "Alerte", headerBackTitle: "Retour" }} />
           <Stack.Screen name="notifications" options={{ title: "Notifications", headerBackTitle: "Paramètres" }} />
           <Stack.Screen name="visages/ajouter" options={{ title: "Ajouter un visage", headerBackTitle: "Visages", presentation: "modal" }} />
+          <Stack.Screen name="visages/enroler" options={{ title: "Enrôler un visage", headerBackTitle: "Visages", presentation: "modal" }} />
+          <Stack.Screen name="visages/index" options={{ title: "Visages", headerBackTitle: "Retour" }} />
           <Stack.Screen name="partager/[token]" options={{ headerShown: false }} />
         </Stack>
+          </SiteProvider>
       </AuthProvider>
     </I18nProvider>
     </ErrorBoundary>
