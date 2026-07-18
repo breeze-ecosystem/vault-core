@@ -6,16 +6,19 @@ import { hasMinRole } from "@repo/shared";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { DataTable } from "@/components/ui/table";
 import {
   fetchUsers,
   updateUser,
   createUser,
   deleteUser,
+  createInvite,
+  inviteBySms,
   type DashboardUser,
 } from "@/lib/api";
 import { toast } from "@/components/ui/toast";
-import { ShieldX, Plus, Trash2 } from "lucide-react";
+import { ShieldX, Plus, Trash2, Mail, MessageSquare, UserPlus, Crown, AlertTriangle } from "lucide-react";
 
 const roleVariant: Record<string, "default" | "secondary" | "destructive" | "warning" | "success"> = {
   SUPER_ADMIN: "destructive",
@@ -48,6 +51,12 @@ export default function UtilisateursPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<UserForm>({ ...emptyForm });
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [inviteMethod, setInviteMethod] = useState<"email" | "sms" | "manual">("email");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [invitePhone, setInvitePhone] = useState("");
+  const [inviteRole, setInviteRole] = useState("VIEWER");
+  const [inviting, setInviting] = useState(false);
 
   if (isLoading) {
     return (
@@ -131,14 +140,32 @@ export default function UtilisateursPage() {
         title="Utilisateurs"
         description="Gestion des comptes utilisateurs"
         action={{
-          label: "Ajouter",
+          label: "Inviter",
           icon: Plus,
           onClick: () => {
-            resetForm();
-            setShowForm(true);
+            setInviteEmail("");
+            setInvitePhone("");
+            setInviteRole("VIEWER");
+            setInviteMethod("email");
+            setShowInviteDialog(true);
           },
         }}
       />
+
+      {/* VISION limit banner */}
+      <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
+        <div className="flex items-start gap-3">
+          <Crown className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+          <div>
+            <p className="text-sm font-medium text-amber-300">
+              Pack VISION — Limite de 3 utilisateurs secondaires
+            </p>
+            <p className="mt-0.5 text-xs text-amber-400/70">
+              Passez à BASTION pour débloquer des utilisateurs illimités et des fonctionnalités avancées.
+            </p>
+          </div>
+        </div>
+      </div>
 
       {showForm && (
         <form
@@ -213,6 +240,130 @@ export default function UtilisateursPage() {
           </div>
         </form>
       )}
+
+      {/* Invite Dialog */}
+      <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Inviter un utilisateur</DialogTitle>
+            <DialogDescription>
+              Choisissez la méthode d&apos;invitation pour ce nouvel utilisateur.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Invite method selector */}
+            <div className="flex gap-2">
+              <Button
+                variant={inviteMethod === "email" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setInviteMethod("email")}
+              >
+                <Mail className="mr-1.5 h-4 w-4" />
+                Email
+              </Button>
+              <Button
+                variant={inviteMethod === "sms" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setInviteMethod("sms")}
+              >
+                <MessageSquare className="mr-1.5 h-4 w-4" />
+                SMS
+              </Button>
+              <Button
+                variant={inviteMethod === "manual" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setInviteMethod("manual")}
+              >
+                <UserPlus className="mr-1.5 h-4 w-4" />
+                Manuel
+              </Button>
+            </div>
+
+            {inviteMethod === "email" && (
+              <div>
+                <label className="mb-1 block text-sm text-muted-foreground">Adresse email</label>
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="utilisateur@exemple.com"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
+              </div>
+            )}
+
+            {inviteMethod === "sms" && (
+              <div>
+                <label className="mb-1 block text-sm text-muted-foreground">Numéro de téléphone</label>
+                <input
+                  type="tel"
+                  value={invitePhone}
+                  onChange={(e) => setInvitePhone(e.target.value)}
+                  placeholder="+227 XX XX XX XX"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
+              </div>
+            )}
+
+            {/* Role selector */}
+            <div>
+              <label className="mb-1 block text-sm text-muted-foreground">Rôle</label>
+              <select
+                value={inviteRole}
+                onChange={(e) => setInviteRole(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="VIEWER">Viewer — Accès live et chronologie uniquement</option>
+                <option value="ADMIN">Admin — Accès complet à la configuration</option>
+              </select>
+            </div>
+
+            {/* Limit info */}
+            <div className="flex items-start gap-2 rounded-lg bg-muted/30 p-3">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+              <p className="text-xs text-muted-foreground">
+                Pack VISION : maximum 3 utilisateurs secondaires. Les utilisateurs existants avec des rôles supérieurs (SUPER_ADMIN, etc.) ne sont pas comptés dans cette limite.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowInviteDialog(false)}>
+              Annuler
+            </Button>
+            <Button
+              onClick={async () => {
+                setInviting(true);
+                try {
+                  const orgId = user?.organizationId;
+                  if (!orgId) throw new Error("Organisation non trouvée");
+
+                  if (inviteMethod === "email") {
+                    await createInvite(orgId, { email: inviteEmail, role: inviteRole });
+                    toast("Invitation envoyée par email", "success");
+                  } else if (inviteMethod === "sms") {
+                    await inviteBySms(orgId, { phone: invitePhone, role: inviteRole });
+                    toast("Invitation envoyée par SMS", "success");
+                  } else {
+                    resetForm();
+                    setShowForm(true);
+                  }
+                  setShowInviteDialog(false);
+                  setRefreshKey((k) => k + 1);
+                } catch (e: any) {
+                  toast(e.message, "error");
+                } finally {
+                  setInviting(false);
+                }
+              }}
+              disabled={inviting}
+            >
+              {inviting ? "Envoi..." : "Inviter"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <DataTable
         key={refreshKey}
