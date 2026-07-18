@@ -18,6 +18,12 @@ class Settings(BaseSettings):
     WHISPER_MODEL: str = "medium"
     WHISPER_DEVICE: str = "cpu"
 
+    # ── Face Recognition (insightface) ────────────────────────────
+    FACE_RECOGNITION_ENABLED: bool = True
+    FACE_MATCH_THRESHOLD: float = 0.48
+    FACE_WHITELIST_REFRESH_INTERVAL: int = 60  # seconds
+    MIN_FACE_SIZE: int = 80  # minimum face crop dimension in px
+
     class Config:
         env_file = ".env"
 

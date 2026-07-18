@@ -5,6 +5,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Pre-download insightface model to avoid cold-start latency
+RUN python -c "from insightface.app import FaceAnalysis; FaceAnalysis(name='buffalo_l', providers=['CPUExecutionProvider'])"
+
+VOLUME /root/.insightface
+
 COPY . .
 
 EXPOSE 8000
