@@ -20,6 +20,7 @@
 ## Phase Details
 
 ### Phase 1: Architecture & License Foundation
+
 **Goal**: License system is refactored so vault-app generates keys and vault-os validates them, with feature gating, mode dégradé, trial, and vault-app admin portal foundation
 
 **Depends on**: Nothing (foundation phase)
@@ -27,6 +28,7 @@
 **Requirements**: LIC-01, LIC-02, LIC-03, LIC-04, LIC-05, LIC-06, ADM-01, ADM-02, ADM-03
 
 **Success Criteria** (what must be TRUE):
+
 1. VaultOS admin can log in to vault-app admin portal and manage organizations (CRUD, license status, history)
 2. Admin can generate VISION and BASTION license keys in vault-app (client never generates their own key)
 3. Client can activate a license in vault-os using the key — feature gating enables/disables VISION vs BASTION modules correctly (VISION limited to 10 cameras)
@@ -37,6 +39,7 @@
 **UI hint**: yes
 
 Plans:
+
 - [ ] 01-PLN-01-schema-shared — Schema + shared package refactor (VISION/BASTION model)
 - [ ] 01-PLN-02-vaultapp-setup — vault-app Prisma setup (schema, deps, env config)
 - [ ] 01-PLN-03-vaultapp-api — vault-app backend API (auth, orgs, license gen, verify)
@@ -49,6 +52,7 @@ Plans:
 ---
 
 ### Phase 2: VISION Pack
+
 **Goal**: All 23 VISION features are complete and working — streaming, AI human-only detection, push/SMS/WhatsApp alerts, local storage with H.265, event timeline, geofencing, multi-user
 
 **Depends on**: Phase 1 (feature gates must exist to enforce VISION limits)
@@ -56,6 +60,7 @@ Plans:
 **Requirements**: VIS-01, VIS-02, VIS-03, VIS-04, VIS-05, VIS-06, VIS-07, VIS-08, VIS-09, VIS-10, VIS-11, VIS-12, VIS-13, VIS-14, VIS-15, VIS-16, VIS-17, VIS-18, VIS-19, VIS-20, VIS-21, VIS-22, VIS-23
 
 **Success Criteria** (what must be TRUE):
+
 1. Operator can view live camera feeds on dashboard and mobile app on local network, with AI night vision enhancement and adaptive quality based on device capability
 2. AI detects human motion only (filters animals, vegetation, shadows, weather); operator can define per-camera detection zones and sensitivity thresholds
 3. Basic facial recognition works (whitelist/blacklist, max 50 faces, manual upload); alerts fire via push notification, SMS (if modem present), and WhatsApp Business API
@@ -68,6 +73,7 @@ Plans:
 **UI hint**: yes
 
 Plans:
+
 - [ ] 02-01-PLAN.md — Schema + Shared Package (Prisma models, Zod schemas, types)
 - [ ] 02-02-PLAN.md — AI Preprocessor (insightface face rec, night vision, detection pipeline)
 - [ ] 02-03-PLAN.md — Detection + Face + Camera API Backend (zones, whitelist CRUD, ONVIF)
@@ -80,6 +86,7 @@ Plans:
 ---
 
 ### Phase 3: BASTION AI & Access Control
+
 **Goal**: Advanced AI capabilities (unlimited facial rec, anti-spoofing, weapons, abandoned objects, crowd counting, behavior analysis) and full access control integration with multi-site management
 
 **Depends on**: Phase 2 (BASTION includes VISION infrastructure; builds on AI pipeline, streaming, and recording)
@@ -87,6 +94,7 @@ Plans:
 **Requirements**: BAS-01, BAS-02, BAS-03, BAS-04, BAS-05, BAS-06, BAS-07, BAS-08, BAS-09, BAS-10, BAS-11, BAS-12, BAS-13, BAS-14, BAS-15, BAS-16, BAS-17, BAS-18, BAS-19
 
 **Success Criteria** (what must be TRUE):
+
 1. Facial recognition supports unlimited faces with risk scoring (0-100), passage history, dynamic blacklist, and anti-spoofing (detects photo/screen/mask liveness)
 2. System detects abandoned objects (alert if static > X minutes), weapons (firearm, knife, suspicious object), crowd density (real-time count + threshold alert), and behavioral anomalies (running, falling, fighting, loitering, zone intrusion)
 3. Access control integrates RFID readers, biometric fingerprint, and QR code credentials with automatic video correlation snapshots on denied or forced access
@@ -98,16 +106,31 @@ Plans:
 **UI hint**: yes
 
 Plans:
+**Wave 1**
+
 - [ ] 03-01-PLAN.md — AI Preprocessor BASTION detection pipeline (weapons, abandoned, crowd, behavior, face, anti-spoofing)
 - [ ] 03-02-PLAN.md — Schema foundation + shared package + Qdrant faces (models, types, Zod schemas, roles)
+
+**Wave 3** *(blocked on Wave 1 completion)*
+
 - [ ] 03-03-PLAN.md — Backend APIs (face enrollment, access groups, video correlation, multi-site, RBAC, SSO)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 03-04-PLAN.md — Dashboard multi-site + admin UI (sites, RBAC editor, SSO config, global search)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 03-05-PLAN.md — Dashboard face + access control UI (enrollment, credentials, schedules, events)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
 - [ ] 03-06-PLAN.md — Mobile + integration tests (face capture, site switcher, access log, tests)
 
 ---
 
 ### Phase 4: BASTION Enterprise
+
 **Goal**: HAPDP compliance module, reports & analytics dashboard, REST API + webhooks, advanced storage & archiving, and third-party integrations
 
 **Depends on**: Phase 3 (enterprise features sit on BASTION foundation)
@@ -115,6 +138,7 @@ Plans:
 **Requirements**: BAS-20, BAS-21, BAS-22, BAS-23, BAS-24, BAS-25, BAS-26, BAS-27, BAS-28, BAS-29, BAS-30, BAS-31, BAS-32, BAS-33, BAS-34, BAS-35, BAS-41, BAS-42, BAS-43, BAS-44
 
 **Success Criteria** (what must be TRUE):
+
 1. Security manager generates automated weekly/monthly PDF reports (incidents, attendance, anomalies) and exports CSV data with advanced search filters (date, site, event type, person)
 2. Real-time analytics dashboard displays charts, trends, KPIs with interactive filtering
 3. Storage supports unlimited local capacity, per-site/per-event retention (30d to 1yr+), RAID 1/5/10 redundancy, auto-backup to secondary NAS/external disk, and certified forensic evidence export with timestamp
@@ -127,6 +151,7 @@ Plans:
 ---
 
 ### Phase 5: Launch Readiness
+
 **Goal**: vault-app admin complete with usage dashboard, public pricing page, technical documentation, support channels, and training materials
 
 **Depends on**: Phase 1 (admin portal foundation), Phase 4 (full product feature set for docs and support readiness)
@@ -134,6 +159,7 @@ Plans:
 **Requirements**: ADM-04, ADM-05, BAS-36, BAS-37, BAS-38, BAS-39, BAS-40
 
 **Success Criteria** (what must be TRUE):
+
 1. VaultOS team views aggregated usage stats per client in admin portal: camera count, storage consumption, uptime, alert volume
 2. Public pricing page displays FCFA prices for VISION and BASTION packs with product/solution pages, blog, case studies, demo request, and contact form
 3. Technical documentation is published covering installation, configuration, troubleshooting, and maintenance
