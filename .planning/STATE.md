@@ -1,118 +1,97 @@
----
-gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: Minimum Commercial Product (VISION + BASTION)
-status: planning
-last_updated: "2026-07-18T13:42:39.011Z"
-last_activity: 2026-07-18
-progress:
-  total_phases: 0
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
----
+# STATE: VaultOS v1.0
 
-# Project State
+**Project**: VaultOS — Self-hosted AI video surveillance
+**Milestone**: v1.0 Minimum Commercial Product (VISION + BASTION)
+**Last updated**: 2026-07-18
+
+---
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-17)
+**Core Value**: Correlate every physical security event with video evidence and AI analysis in real time, so security operators know what happened, where, and what to do — without switching between disconnected systems.
 
-**Core value:** Correlate every physical security event with video evidence and AI analysis in real time, so security operators know what happened, where, and what to do — without switching between disconnected systems.
-**Current focus:** Phase 02 — hardware-integration
+**Current Focus**: Establish foundation architecture (license system, feature gating, vault-app admin portal) then complete VISION and BASTION packs per founders' spec.
+
+**Key Decisions**:
+- vault-os = product deployed at client sites; vault-app = admin portal for VaultOS teams
+- License generation in vault-app; activation only in vault-os
+- 2 fixed packs only (VISION + BASTION), no custom packs
+- Annual license only (no monthly), out-of-band payment
+- 24h verification + 72h degraded mode + read-only on expiry
+
+---
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-07-18 — Milestone v1.0 started
+| Dimension | Value |
+|-----------|-------|
+| Current Phase | None (roadmapping complete) |
+| Current Plan | Awaiting `/gsd-plan-phase 1` |
+| Phase Status | Not started |
+| Phase Progress | ░░░░░░░░░░░ 0% |
+
+---
 
 ## Performance Metrics
 
-**Velocity:**
+| Metric | Current | Target |
+|--------|---------|--------|
+| Requirements mapped | 78/78 (100%) | 100% |
+| Phases defined | 5 | 3-5 (coarse) |
+| Unmapped requirements | 0 | 0 |
 
-- Total plans completed: 14
-- Average duration: 18 min
-- Total execution time: 1.08 hours
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 003 Kiosk | 2 | 3 | 16 min |
-| 04 | 10 | - | - |
-
-**Recent Trend:**
-
-- Last 5 plans: —
-- Trend: —
-
-| Phase 05 P04 | 8 min | 3 tasks | 16 files |
-
-*Updated after each plan completion*
-| Phase 05 P02 | 44 min | 1 tasks | 13 files |
-| Phase 05 P03 | 19min | 2 tasks | 28 files |
-| Phase 05 P05 | 15 min | 3 tasks | 28 files |
-| Phase 05 P06 | 3 min | 3 tasks | 11 files |
-| Phase 05-bug-fixing-cross-platform-polish P07 | 5 min | 3 tasks | 16 files |
+---
 
 ## Accumulated Context
 
-### Decisions
+### Decisions Made
+| Decision | Rationale |
+|----------|-----------|
+| 5 phases for coarse granularity | 78 requirements naturally cluster into 5 delivery boundaries; 4 would overload Phase 4 with 30 requirements |
+| Phase 1 = License + Admin foundation | Everything depends on license system; vault-app admin portal needed first to generate keys |
+| Phase 2 = VISION complete | VISION is entry-level product; must ship before BASTION enterprise features |
+| Phase 3 = BASTION AI + Access | Advanced AI and physical access control are the core BASTION differentiators |
+| Phase 4 = BASTION Enterprise | Compliance, API, advanced storage are additive enterprise value |
+| Phase 5 = Launch Readiness | Documentation, support, training, marketing are launch prerequisites, not feature work |
+| BAS-36 to BAS-40 in Phase 5 | Support/SLA/doc items are non-software deliverables; belong in launch prep |
+| ADM-04 (usage dashboard) in Phase 5 | Usage stats require production data to be meaningful; must come after product features ship |
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
+### TODOs
+- [ ] `/gsd-plan-phase 1` — Architecture & License Foundation
+- [ ] Research WhatsApp Business API integration options
+- [ ] Research SMS gateway providers for Niger/West Africa
+- [ ] Research HAPDP compliance requirements (Niger data protection authority)
 
-- [v3.0 Roadmap]: Phase numbering resets to 1 for v3.0 milestone (coarse granularity, 5 phases)
-- [v3.0 Roadmap]: INF (infrastructure) is Phase 1 — Edge Agent async rewrite is prerequisite for all hardware protocol work
-- [v3.0 Roadmap]: HWR (hardware integration) is Phase 2 — depends on Phase 1 for MQTT TLS and Docker networking
-- [v3.0 Roadmap]: KIO (visitor kiosk) is Phase 3 — depends on Phase 1 for Docker infrastructure; parallelizable with Phase 2
-- [v3.0 Roadmap]: MKT (marketing redesign) is Phase 4 — fully independent frontend work, no infra dependencies
-- [v3.0 Roadmap]: POL (bug fixing) is Phase 5 — final pass after all feature phases complete
-- [03-01 Kiosk Scaffold]: Three-stage Docker build (deps + builder + runner) — matches dashboard pattern, avoids node_modules resolution issues
-- [03-01 Kiosk Scaffold]: Custom CUPS configuration allowing local admin — default Alpine CUPS requires auth for lpadmin
-- [03-01 Kiosk Scaffold]: CUPS entrypoint with readiness polling + retry — more reliable than fixed sleep
-- [03-01 Kiosk Scaffold]: autoprefixer as explicit devDep — required for Docker build (not hoisted from workspace)
-- [03-01 Kiosk Scaffold]: apps/kiosk/app/page.tsx added as build requirement — Next.js 14 needs at least one page
-- [03-02 Kiosk Backend]: KioskModule imports VisitorModule directly for VisitorService injection (no circular deps)
-- [03-02 Kiosk Backend]: KioskAuthGuard validates X-API-Key (SHA-256) OR JWT with @Public() skip pattern
-- [03-02 Kiosk Backend]: ZPL generation is hand-rolled (no node-zpl dependency) — template is simple enough
-- [03-03 Kiosk Frontend]: API client routes through KioskController endpoints (/kiosk/...), not direct @Roles-guarded visitor endpoints
-- [03-03 Kiosk Frontend]: instascan requires webpack fs:false fallback + manual type declarations (pre-2017 Emscripten-compiled library)
-- [03-03 Kiosk Frontend]: QR decode handler fetches visit status to route check-in vs check-out paths
-- [03-03 Kiosk Frontend]: French (fr) is default locale per D-27, toggled via welcome screen buttons
+### Blockers
+- None currently
 
-- [03-04 Kiosk Frontend]: PrintingScreen uses internal progress simulation (connecting→generating→printing→complete) with timers independent of API call timing
-- [03-04 Kiosk Frontend]: handleConfirm dispatches CONFIRM immediately before API call for instant visual feedback
-- [03-04 Kiosk Frontend]: ErrorScreen maps errorCode to context-specific messages with auto-reset for non-fatal errors
-- [03-04 Kiosk Frontend]: handlePrintRetry re-calls printBadge API (not just dispatches CONFIRM) to ensure actual retry
+### Risks
+| Risk | Mitigation |
+|------|------------|
+| WhatsApp Business API approval delays | Start Phase 2 research early; prepare SMS-only fallback |
+| HAPDP compliance complexity | Phase 4 starts after legal review of requirements; wizard approach reduces implementation risk |
+| License system refactor breaks existing deployments | Phase 1 must include migration path for existing vault-os instances without licenses |
+| SMS modem compatibility | Support common GSM modems (Huawei, ZTE) via PPP/AT commands |
 
-### Pending Todos
+### Existing Code Reuse Notes
+- Video ingestion pipeline, camera management, ONVIF discovery — already built, minor alignment needed for VIS-01
+- Alert system (BullMQ + Socket.IO) — extend for WhatsApp/SMS channels
+- Access control (OSDP, badges, QR, zones) — upgrade for BAS-07 to BAS-12 specifics
+- JWT auth + RBAC — extend for granular roles (BAS-16) and SSO (BAS-17)
+- Audit logs — already built (BAS-18), verify hash-chain coverage
+- Marketing site — already has pages (ADM-05), needs pricing section
+- Multi-site — already exists in code, needs dashboard and sync (BAS-13 to BAS-19)
 
-None yet.
-
-### Blockers/Concerns
-
-None yet.
-
-- [05-04 Design Token Reconciliation]: theme.ts maintains flattened backward-compatible color export from @repo/design instead of force-migrating all screens to nested access pattern — prevents hundreds of edits across 14 files while resolving divergence at source
-- [05-04 Sentry]: `enabled: !!process.env.EXPO_PUBLIC_SENTRY_DSN` prevents Sentry init crash during development without DSN configured
-
-## Deferred Items
-
-| Category | Item | Status | Deferred At |
-|----------|------|--------|-------------|
-| v3.1 | MKT-05 Live demo environment | Deferred | 2026-07-17 |
-| v3.1 | MKT-06 Documentation section | Deferred | 2026-07-17 |
-| v3.1 | HWR-06 Smart lock integration | Deferred | 2026-07-17 |
-| v3.1 | HWR-07 Controller auto-discovery | Deferred | 2026-07-17 |
-| v3.1 | KIO-05 NFC card encoding | Deferred | 2026-07-17 |
-| v3.1 | POL-05 Performance benchmarks | Deferred | 2026-07-17 |
+---
 
 ## Session Continuity
 
-Last session: 2026-07-17T21:49:33.551Z
-Stopped at: Completed 05-07-PLAN.md
-Resume file: None
+**Planned phases workflow**: Sequential execution starting from Phase 1.
+**Next session trigger**: `/gsd-plan-phase 1`
+
+### Context for Next Agent
+- License refactor is the hardest dependency: vault-app needs admin auth + org CRUD + key generation before vault-os can validate
+- Feature gating (FREE/PROFESSIONAL/ENTERPRISE → VISION/BASTION+modules) touches every module in vault-os
+- Mode dégradé and read-only on expiry need infrastructure for local license caching and grace period tracking
+- WhatsApp alerts require WhatsApp Business API account setup
+- HAPDP compliance is a complete sub-system (wizard, register, consent, pseudonymization, subject portal, traceability) — treat as separate tracks within Phase 4

@@ -1,181 +1,127 @@
-# Roadmap: Oversight Hub
+# Roadmap: VaultOS v1.0 — Minimum Commercial Product (VISION + BASTION)
 
-## Overview
+**Milestone**: v1.0
+**Granularity**: Coarse
+**Total requirements**: 78 (23 VIS + 44 BAS + 6 LIC + 5 ADM)
+**Created**: 2026-07-18
 
-v3.0 transforms Oversight Hub from a polished SaaS platform into a production-ready physical security system with direct hardware integration. The Edge Agent gains async OSDP protocol handling for door controllers, ONVIF auto-discovery brings cameras online without manual setup, a visitor kiosk enables self-service lobby check-in, the marketing site gets a premium visual redesign with full 6-language translation, and a final bug-fixing pass ensures zero known issues across all apps.
-
-**Milestone goal:** Hardware connecté, bugs zero, marketing premium, kiosk déployé.
-
-## Milestones
-
-- ✅ **v1.0 MVP** — Technical foundation (video ingestion, access control, AI analysis, auth) — shipped
-- ✅ **v2.0 Commercial SaaS** — Premium redesign, billing/licensing, multi-tenant, enterprise features — shipped
-- 📋 **v3.0 Production Readiness & Hardware Integration** — 5 phases (planned)
+---
 
 ## Phases
 
-- [x] **Phase 1: Infrastructure Foundation** — Edge Agent async rewrite, MQTT security, Docker networking for hardware
-- [x] **Phase 2: Hardware Integration** — OSDP door protocol and ONVIF camera auto-discovery (completed 2026-07-17)
-- [x] **Phase 3: Visitor Kiosk** — Self-check-in/out touchscreen with badge printing and QR scanning
-- [x] **Phase 4: Marketing Site Redesign** — Premium design, enriched content, 6-language translation, interactive demo (completed 2026-07-17)
-- [x] **Phase 5: Bug Fixing & Cross-Platform Polish** — Zero-bug release with full platform consistency (completed 2026-07-18)
+- [ ] **Phase 1: Architecture & License Foundation** — Refactor license system (generation in vault-app, activation in vault-os), feature gating VISION/BASTION, mode dégradé, vault-app admin portal foundation
+- [ ] **Phase 2: VISION Pack** — Complete all 23 VISION features: streaming, AI detection, WhatsApp/SMS alerts, local storage, geofencing, multi-user, sharing
+- [ ] **Phase 3: BASTION AI & Access Control** — Advanced AI (facial rec, anti-spoofing, weapons, behavior), access control integrations, multi-site management
+- [ ] **Phase 4: BASTION Enterprise** — HAPDP compliance, reports & analytics, API/webhooks, advanced storage, third-party integrations
+- [ ] **Phase 5: Launch Readiness** — vault-app usage dashboard, marketing pages, documentation, support SLA, training
+
+---
 
 ## Phase Details
 
-### Phase 1: Infrastructure Foundation
+### Phase 1: Architecture & License Foundation
+**Goal**: License system is refactored so vault-app generates keys and vault-os validates them, with feature gating, mode dégradé, trial, and vault-app admin portal foundation
 
-**Goal**: Edge Agent rewritten with async I/O for concurrent hardware protocols; MQTT and Docker networking hardened for production hardware traffic
-**Depends on**: Nothing (first phase)
-**Requirements**: INF-01, INF-02, INF-03
+**Depends on**: Nothing (foundation phase)
+
+**Requirements**: LIC-01, LIC-02, LIC-03, LIC-04, LIC-05, LIC-06, ADM-01, ADM-02, ADM-03
+
 **Success Criteria** (what must be TRUE):
+1. VaultOS admin can log in to vault-app admin portal and manage organizations (CRUD, license status, history)
+2. Admin can generate VISION and BASTION license keys in vault-app (client never generates their own key)
+3. Client can activate a license in vault-os using the key — feature gating enables/disables VISION vs BASTION modules correctly (VISION limited to 10 cameras)
+4. Vault-os pings vault-app every 24h; after 72h without internet it enters degraded mode (continues working offline); when license expires it becomes read-only (dashboard accessible, no new AI alerts)
+5. New organizations automatically receive a 7-day trial license with full VISION features
 
-   1. Edge Agent handles concurrent serial (OSDP), MQTT publish/subscribe, and HTTP operations without blocking — no single-protocol hang stalls other functionality
-   2. MQTT broker rejects unauthenticated connections; only TLS-authenticated clients with valid credentials can publish or subscribe
-   3. Docker containers can reach hardware via serial device passthrough (RS-485/RS-232) and multicast UDP (ONVIF WS-Discovery on 239.255.255.50:3702)
-   4. Existing Edge Agent functionality (heartbeat reporting, health monitoring, event forwarding) continues operating correctly after async rewrite
-
-**Plans**: 3 plans
-
-Plans:
-
-- [ ] 01-01-PLAN.md — Mosquitto MQTT security + Docker networking for serial/multicast (INF-02, INF-03)
-- [ ] 01-02-PLAN.md — Edge Agent async rewrite with asyncio, aiomqtt, pyserial-asyncio, aiohttp (INF-01)
-- [ ] 01-03-PLAN.md — Unit/integration tests + build validation (INF-01, INF-02, INF-03)
-
-### Phase 2: Hardware Integration
-
-**Goal**: Physical security hardware — OSDP door controllers and ONVIF cameras — are discovered, controlled, and stream events into the platform
-**Depends on**: Phase 1
-**Requirements**: HWR-01, HWR-02, HWR-03, HWR-04, HWR-05
-**Success Criteria** (what must be TRUE):
-
-   1. OSDP door controllers (via Edge Agent bridge) report real-time events (badge read, door state change, tamper alert) that appear in the platform event journal within 500ms
-   2. Security operator can lock/unlock an OSDP door and change zone assignments from the Dashboard — command reaches the controller within 1 second
-   3. ONVIF cameras on the local LAN are auto-discovered via WS-Discovery and auto-provisioned with RTSP streams, PTZ capabilities, and event subscriptions — zero manual IP configuration
-   4. PTZ controls (pan, tilt, zoom, preset recall) are available in the Dashboard camera view for ONVIF Profile S/T cameras
-   5. All hardware-to-platform communication uses authenticated MQTT with TLS — no unencrypted hardware traffic traverses the network
-
-**Plans**: 5 plans
-
-Plans:
-
-- [x] 02-01-PLAN.md — Edge Agent OSDP protocol + ONVIF enhancement with site grouping (D-03), replace-on-discovery (D-15), PTZ probing, snapshot capture (HWR-01, HWR-03)
-- [x] 02-02-PLAN.md — Prisma schema (Camera PTZ/ONVIF fields, Controller model, Door FK) + shared package extensions (schemas, types, constants, barrel) + schema push (HWR-01, HWR-02, HWR-03)
-- [x] 02-03-PLAN.md — NestJS backend: MqttService OSDP routing, Controller module, Door API (commands, CameraDoorMap CRUD), PTZ endpoints, TimescaleDB 90-day retention (D-18), Socket.IO events, api.ts (HWR-01, HWR-02, HWR-03)
-- [x] 02-04-PLAN.md — Dashboard door controls (card with auto-retry D-11, zone dropdown), bulk ops, controller enrollment, event enrichment with inline thumbnail (D-09) (HWR-02, HWR-03)
-- [x] 02-05-PLAN.md — Dashboard PTZ overlay controls (directional pad, zoom, presets) (HWR-03)
-
-### Phase 3: Visitor Kiosk
-
-**Goal**: Visitors can autonomously check in and out at a lobby kiosk with badge printing and QR code scanning
-**Depends on**: Phase 1
-**Requirements**: KIO-01, KIO-02, KIO-03, KIO-04
-**Success Criteria** (what must be TRUE):
-
-  1. Visitor approaches kiosk, scans a pre-registered QR code or enters their name, and checks in within 30 seconds — badge prints automatically
-  2. Kiosk prints a visitor badge on the connected thermal/ZPL printer upon successful check-in with visitor name, host, timestamp, and photo
-  3. Visitor scans their badge QR code at check-out — exit timestamp is recorded, host receives check-out notification
-  4. Kiosk deploys as standalone Docker container with CUPS printing bundled — boots directly into fullscreen kiosk mode on startup with no manual intervention
-
-**Plans**: 4/4 plans executed
-
-Plans:
-
-- [x] 03-01-PLAN.md — Kiosk App Scaffold + Docker Infrastructure (KIO-04)
-- [x] 03-02-PLAN.md — NestJS Kiosk Backend — Auth + Print Endpoint (KIO-02, KIO-04)
-- [x] 03-03-PLAN.md — Kiosk Frontend — Core UI Components (KIO-01, KIO-03)
-- [x] 03-04-PLAN.md — Kiosk Frontend — Printing, Success, Check-out, Error Screens (KIO-01, KIO-02, KIO-03)
-
+**Plans**: TBD
 **UI hint**: yes
 
-### Phase 4: Marketing Site Redesign
+---
 
-**Goal**: Marketing site transformed into a premium visual showcase with complete product content, interactive demo, and full 6-language translation
-**Depends on**: Nothing (independent frontend work)
-**Requirements**: MKT-01, MKT-02, MKT-03, MKT-04
+### Phase 2: VISION Pack
+**Goal**: All 23 VISION features are complete and working — streaming, AI human-only detection, push/SMS/WhatsApp alerts, local storage with H.265, event timeline, geofencing, multi-user
+
+**Depends on**: Phase 1 (feature gates must exist to enforce VISION limits)
+
+**Requirements**: VIS-01, VIS-02, VIS-03, VIS-04, VIS-05, VIS-06, VIS-07, VIS-08, VIS-09, VIS-10, VIS-11, VIS-12, VIS-13, VIS-14, VIS-15, VIS-16, VIS-17, VIS-18, VIS-19, VIS-20, VIS-21, VIS-22, VIS-23
+
 **Success Criteria** (what must be TRUE):
+1. Operator can view live camera feeds on dashboard and mobile app on local network, with AI night vision enhancement and adaptive quality based on device capability
+2. AI detects human motion only (filters animals, vegetation, shadows, weather); operator can define per-camera detection zones and sensitivity thresholds
+3. Basic facial recognition works (whitelist/blacklist, max 50 faces, manual upload); alerts fire via push notification, SMS (if modem present), and WhatsApp Business API
+4. Operator configures silent hours (DND mode); geofencing auto-arms/disarms based on phone location; temporary stream share works for third parties on same network
+5. Event timeline is searchable by date/time with 30s video clip export and automatic screenshots on every alert
+6. Local recording stores to client disk/NAS with configurable retention (7/15/30 days) and H.265/HEVC compression; up to 3 secondary user accounts with role-based access
 
-  1. Landing page and product pages feature fluid scroll animations, glassmorphism accent panels, and a premium dark theme matching Linear/Vercel quality bar
-  2. All 6 languages (French primary, English, Spanish, German, Japanese, Arabic) show complete, consistent content — no missing sections, placeholder text, or machine-translation artifacts in any locale
-  3. Interactive product demo or feature tour lets prospects explore key platform capabilities (live camera grid, access events, AI alerts) without requiring a login
-  4. Site includes detailed product pages (video, access control, AI, analytics), industry solutions pages, and case study templates that tell a coherent product story
-
-**Plans**: 10 plans
-
-Plans:
-
-**Wave 1**
-
-- [x] 04-01-PLAN.md — CSS & Design Token Foundation (Wave 1)
-- [x] 04-02-PLAN.md — Shared UI Components (Wave 1)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 04-03-PLAN.md — Navigation & Layout Refresh (Wave 2)
-- [x] 04-04-PLAN.md — Landing Section Component Rewrites (Wave 2)
-
-**Wave 3** *(blocked on Wave 2 completion)*
-
-- [x] 04-05-PLAN.md — Homepage Rewrite & Existing Page Refresh (Wave 3)
-- [x] 04-06-PLAN.md — i18n Messages & Content Infrastructure (Wave 3)
-
-**Wave 4** *(blocked on Wave 3 completion)*
-
-- [x] 04-07-PLAN.md — Products Section (Wave 4)
-- [x] 04-08-PLAN.md — Solutions Section (Wave 4)
-- [x] 04-09-PLAN.md — Case Studies Section (Wave 4)
-
-**Wave 5** *(blocked on Wave 4 completion)*
-
-- [x] 04-10-PLAN.md — Interactive Demo Tour (Wave 5)
-
+**Plans**: TBD
 **UI hint**: yes
 
-### Phase 5: Bug Fixing & Cross-Platform Polish
+---
 
-**Goal**: All known production bugs eliminated; Dashboard and Mobile deliver a consistent, polished, crash-free experience
-**Depends on**: Phase 2, Phase 3, Phase 4
-**Requirements**: POL-01, POL-02, POL-03, POL-04
+### Phase 3: BASTION AI & Access Control
+**Goal**: Advanced AI capabilities (unlimited facial rec, anti-spoofing, weapons, abandoned objects, crowd counting, behavior analysis) and full access control integration with multi-site management
+
+**Depends on**: Phase 2 (BASTION includes VISION infrastructure; builds on AI pipeline, streaming, and recording)
+
+**Requirements**: BAS-01, BAS-02, BAS-03, BAS-04, BAS-05, BAS-06, BAS-07, BAS-08, BAS-09, BAS-10, BAS-11, BAS-12, BAS-13, BAS-14, BAS-15, BAS-16, BAS-17, BAS-18, BAS-19
+
 **Success Criteria** (what must be TRUE):
+1. Facial recognition supports unlimited faces with risk scoring (0-100), passage history, dynamic blacklist, and anti-spoofing (detects photo/screen/mask liveness)
+2. System detects abandoned objects (alert if static > X minutes), weapons (firearm, knife, suspicious object), crowd density (real-time count + threshold alert), and behavioral anomalies (running, falling, fighting, loitering, zone intrusion)
+3. Access control integrates RFID readers, biometric fingerprint, and QR code credentials with automatic video correlation snapshots on denied or forced access
+4. Administrator programs access schedules by day/hour and role-based groups (employee, manager, visitor)
+5. Multi-site dashboard shows up to 5 sites with cross-site metrics comparison, centralized RBAC with custom roles, enterprise SSO (SAML/OAuth2), and inter-site data synchronization
+6. Immutable audit trail logs every user action with hash-chain integrity (extending existing system)
 
-  1. All tracked production bugs across API, Dashboard, and Mobile are fixed and verified — zero unresolved critical or high-severity issues
-  2. Every screen in Dashboard has a functionally consistent counterpart in Mobile showing the same data, same states, and same behavior — no visual or functional discrepancies
-  3. Mobile app (iOS and Android) navigation is smooth at 60fps with no crashes during standard operator workflows (view cameras, respond to alerts, check door status, manage visitors)
-  4. All application UI text and API error messages in French show no untranslated English strings, placeholder text, or inconsistent terminology across Dashboard, Mobile, and API
-
-**Plans**: 8 plans
+**Plans**: TBD
 **UI hint**: yes
 
-Plans:
+---
 
-**Wave 1**
-- [x] 05-01-PLAN.md — Foundation: Parity Matrix + Dependencies + Sentry Setup (POL-02, POL-03)
+### Phase 4: BASTION Enterprise
+**Goal**: HAPDP compliance module, reports & analytics dashboard, REST API + webhooks, advanced storage & archiving, and third-party integrations
 
-**Wave 2** *(blocked on Wave 1)*
-- [x] 05-02-PLAN.md — Dashboard Bug Audit + Fix (POL-01)
-- [x] 05-03-PLAN.md — Dashboard i18n Audit & Translation Coverage (POL-04)
+**Depends on**: Phase 3 (enterprise features sit on BASTION foundation)
 
-**Wave 3** *(blocked on Wave 2)*
-- [x] 05-04-PLAN.md — Mobile Design Tokens + Performance Infra (POL-03)
+**Requirements**: BAS-20, BAS-21, BAS-22, BAS-23, BAS-24, BAS-25, BAS-26, BAS-27, BAS-28, BAS-29, BAS-30, BAS-31, BAS-32, BAS-33, BAS-34, BAS-35, BAS-41, BAS-42, BAS-43, BAS-44
 
-**Wave 4** *(blocked on Wave 3)*
-- [x] 05-05-PLAN.md — Mobile i18n Framework + Migration (POL-04)
+**Success Criteria** (what must be TRUE):
+1. Security manager generates automated weekly/monthly PDF reports (incidents, attendance, anomalies) and exports CSV data with advanced search filters (date, site, event type, person)
+2. Real-time analytics dashboard displays charts, trends, KPIs with interactive filtering
+3. Storage supports unlimited local capacity, per-site/per-event retention (30d to 1yr+), RAID 1/5/10 redundancy, auto-backup to secondary NAS/external disk, and certified forensic evidence export with timestamp
+4. HAPDP compliance features: assisted declaration wizard (auto-filled PDF), processing register with CSV/PDF export, camera consent signage module (timestamped proof), pseudonymization of sensitive data, subject access self-service portal (view/rectify/delete), and access traceability (who viewed what when)
+5. REST API is documented and authenticated locally; webhooks push events to internal systems; fire alarm and BMS integrations correlate smoke detection with video
 
-**Wave 5** *(blocked on Wave 4)*
-- [x] 05-06-PLAN.md — Mobile Parity Batch 1: API Functions + 8 Simple Screens (POL-02)
+**Plans**: TBD
+**UI hint**: yes
 
-**Wave 6** *(blocked on Wave 5)*
-- [x] 05-07-PLAN.md — Mobile Parity Batch 2: 11 Complex Screens + Navigation (POL-02)
+---
 
-**Wave 7** *(blocked on Wave 6)*
-- [x] 05-08-PLAN.md — Final Mobile Verification + Cross-Platform Audit (POL-01, POL-02, POL-03, POL-04)
+### Phase 5: Launch Readiness
+**Goal**: vault-app admin complete with usage dashboard, public pricing page, technical documentation, support channels, and training materials
+
+**Depends on**: Phase 1 (admin portal foundation), Phase 4 (full product feature set for docs and support readiness)
+
+**Requirements**: ADM-04, ADM-05, BAS-36, BAS-37, BAS-38, BAS-39, BAS-40
+
+**Success Criteria** (what must be TRUE):
+1. VaultOS team views aggregated usage stats per client in admin portal: camera count, storage consumption, uptime, alert volume
+2. Public pricing page displays FCFA prices for VISION and BASTION packs with product/solution pages, blog, case studies, demo request, and contact form
+3. Technical documentation is published covering installation, configuration, troubleshooting, and maintenance
+4. Support channels (hotline, chat, email) are operational with defined SLA (4h intervention Niamey) and 24/7 coverage
+5. Training session materials (2h initial client session) and update distribution process are documented and ready
+
+**Plans**: TBD
+**UI hint**: yes
+
+---
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure Foundation | 3/3 | Complete | 2026-07-17 |
-| 2. Hardware Integration | 5/5 | Complete   | 2026-07-17 |
-| 3. Visitor Kiosk | 4/4 | Complete | 2026-07-17 |
-| 4. Marketing Site Redesign | 10/10 | Complete   | 2026-07-17 |
-| 5. Bug Fixing & Cross-Platform Polish | 8/8 | Complete   | 2026-07-18 |
+| 1. Architecture & License Foundation | 0/0 | Not started | - |
+| 2. VISION Pack | 0/0 | Not started | - |
+| 3. BASTION AI & Access Control | 0/0 | Not started | - |
+| 4. BASTION Enterprise | 0/0 | Not started | - |
+| 5. Launch Readiness | 0/0 | Not started | - |

@@ -147,89 +147,89 @@ Explicitly excluded from v1.0. Documented to prevent scope creep.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| VIS-01 | — | Pending |
-| VIS-02 | — | Pending |
-| VIS-03 | — | Pending |
-| VIS-04 | — | Pending |
-| VIS-05 | — | Pending |
-| VIS-06 | — | Pending |
-| VIS-07 | — | Pending |
-| VIS-08 | — | Pending |
-| VIS-09 | — | Pending |
-| VIS-10 | — | Pending |
-| VIS-11 | — | Pending |
-| VIS-12 | — | Pending |
-| VIS-13 | — | Pending |
-| VIS-14 | — | Pending |
-| VIS-15 | — | Pending |
-| VIS-16 | — | Pending |
-| VIS-17 | — | Pending |
-| VIS-18 | — | Pending |
-| VIS-19 | — | Pending |
-| VIS-20 | — | Pending |
-| VIS-21 | — | Pending |
-| VIS-22 | — | Pending |
-| VIS-23 | — | Pending |
-| BAS-01 | — | Pending |
-| BAS-02 | — | Pending |
-| BAS-03 | — | Pending |
-| BAS-04 | — | Pending |
-| BAS-05 | — | Pending |
-| BAS-06 | — | Pending |
-| BAS-07 | — | Pending |
-| BAS-08 | — | Pending |
-| BAS-09 | — | Pending |
-| BAS-10 | — | Pending |
-| BAS-11 | — | Pending |
-| BAS-12 | — | Pending |
-| BAS-13 | — | Pending |
-| BAS-14 | — | Pending |
-| BAS-15 | — | Pending |
-| BAS-16 | — | Pending |
-| BAS-17 | — | Pending |
-| BAS-18 | — | Pending |
-| BAS-19 | — | Pending |
-| BAS-20 | — | Pending |
-| BAS-21 | — | Pending |
-| BAS-22 | — | Pending |
-| BAS-23 | — | Pending |
-| BAS-24 | — | Pending |
-| BAS-25 | — | Pending |
-| BAS-26 | — | Pending |
-| BAS-27 | — | Pending |
-| BAS-28 | — | Pending |
-| BAS-29 | — | Pending |
-| BAS-30 | — | Pending |
-| BAS-31 | — | Pending |
-| BAS-32 | — | Pending |
-| BAS-33 | — | Pending |
-| BAS-34 | — | Pending |
-| BAS-35 | — | Pending |
-| BAS-36 | — | Pending |
-| BAS-37 | — | Pending |
-| BAS-38 | — | Pending |
-| BAS-39 | — | Pending |
-| BAS-40 | — | Pending |
-| BAS-41 | — | Pending |
-| BAS-42 | — | Pending |
-| BAS-43 | — | Pending |
-| BAS-44 | — | Pending |
-| LIC-01 | — | Pending |
-| LIC-02 | — | Pending |
-| LIC-03 | — | Pending |
-| LIC-04 | — | Pending |
-| LIC-05 | — | Pending |
-| LIC-06 | — | Pending |
-| ADM-01 | — | Pending |
-| ADM-02 | — | Pending |
-| ADM-03 | — | Pending |
-| ADM-04 | — | Pending |
-| ADM-05 | — | Pending |
+| VIS-01 | Phase 2 | Pending |
+| VIS-02 | Phase 2 | Pending |
+| VIS-03 | Phase 2 | Pending |
+| VIS-04 | Phase 2 | Pending |
+| VIS-05 | Phase 2 | Pending |
+| VIS-06 | Phase 2 | Pending |
+| VIS-07 | Phase 2 | Pending |
+| VIS-08 | Phase 2 | Pending |
+| VIS-09 | Phase 2 | Pending |
+| VIS-10 | Phase 2 | Pending |
+| VIS-11 | Phase 2 | Pending |
+| VIS-12 | Phase 2 | Pending |
+| VIS-13 | Phase 2 | Pending |
+| VIS-14 | Phase 2 | Pending |
+| VIS-15 | Phase 2 | Pending |
+| VIS-16 | Phase 2 | Pending |
+| VIS-17 | Phase 2 | Pending |
+| VIS-18 | Phase 2 | Pending |
+| VIS-19 | Phase 2 | Pending |
+| VIS-20 | Phase 2 | Pending |
+| VIS-21 | Phase 2 | Pending |
+| VIS-22 | Phase 2 | Pending |
+| VIS-23 | Phase 2 | Pending |
+| BAS-01 | Phase 3 | Pending |
+| BAS-02 | Phase 3 | Pending |
+| BAS-03 | Phase 3 | Pending |
+| BAS-04 | Phase 3 | Pending |
+| BAS-05 | Phase 3 | Pending |
+| BAS-06 | Phase 3 | Pending |
+| BAS-07 | Phase 3 | Pending |
+| BAS-08 | Phase 3 | Pending |
+| BAS-09 | Phase 3 | Pending |
+| BAS-10 | Phase 3 | Pending |
+| BAS-11 | Phase 3 | Pending |
+| BAS-12 | Phase 3 | Pending |
+| BAS-13 | Phase 3 | Pending |
+| BAS-14 | Phase 3 | Pending |
+| BAS-15 | Phase 3 | Pending |
+| BAS-16 | Phase 3 | Pending |
+| BAS-17 | Phase 3 | Pending |
+| BAS-18 | Phase 3 | Pending |
+| BAS-19 | Phase 3 | Pending |
+| BAS-20 | Phase 4 | Pending |
+| BAS-21 | Phase 4 | Pending |
+| BAS-22 | Phase 4 | Pending |
+| BAS-23 | Phase 4 | Pending |
+| BAS-24 | Phase 4 | Pending |
+| BAS-25 | Phase 4 | Pending |
+| BAS-26 | Phase 4 | Pending |
+| BAS-27 | Phase 4 | Pending |
+| BAS-28 | Phase 4 | Pending |
+| BAS-29 | Phase 4 | Pending |
+| BAS-30 | Phase 4 | Pending |
+| BAS-31 | Phase 4 | Pending |
+| BAS-32 | Phase 4 | Pending |
+| BAS-33 | Phase 4 | Pending |
+| BAS-34 | Phase 4 | Pending |
+| BAS-35 | Phase 4 | Pending |
+| BAS-36 | Phase 5 | Pending |
+| BAS-37 | Phase 5 | Pending |
+| BAS-38 | Phase 5 | Pending |
+| BAS-39 | Phase 5 | Pending |
+| BAS-40 | Phase 5 | Pending |
+| BAS-41 | Phase 4 | Pending |
+| BAS-42 | Phase 4 | Pending |
+| BAS-43 | Phase 4 | Pending |
+| BAS-44 | Phase 4 | Pending |
+| LIC-01 | Phase 1 | Pending |
+| LIC-02 | Phase 1 | Pending |
+| LIC-03 | Phase 1 | Pending |
+| LIC-04 | Phase 1 | Pending |
+| LIC-05 | Phase 1 | Pending |
+| LIC-06 | Phase 1 | Pending |
+| ADM-01 | Phase 1 | Pending |
+| ADM-02 | Phase 1 | Pending |
+| ADM-03 | Phase 1 | Pending |
+| ADM-04 | Phase 5 | Pending |
+| ADM-05 | Phase 5 | Pending |
 
 **Coverage:**
-- v1 requirements: 79 total
-- Mapped to phases: 0
-- Unmapped: 79 ⚠️
+- v1 requirements: 78 total
+- Mapped to phases: 78 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-07-18*
