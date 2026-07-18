@@ -91,36 +91,36 @@ enum LicenseStatus {
 // ─── Phase 1: Access Control Reference Tables ───
 
 model Credential {
-  id             String         @id @default(uuid())
-  userId         String
-  type           CredentialType
-  badgeNumber    String?        @unique
-  pinHash        String?
-  mobileWalletId String?
-  qrSeed         String?
-  isActive       Boolean        @default(true)
-  validFrom      DateTime?
-  validUntil     DateTime?
-  maxUses        Int?
-  useCount       Int            @default(0)
+  id                      String         @id @default(uuid())
+  userId                  String
+  type                    CredentialType
+  badgeNumber             String?        @unique
+  pinHash                 String?
+  mobileWalletId          String?
+  qrSeed                  String?
+  isActive                Boolean        @default(true)
+  validFrom               DateTime?
+  validUntil              DateTime?
+  maxUses                 Int?
+  useCount                Int            @default(0)
   // Phase 3: BASTION extended credential fields
-  fingerprintTemplateHash String?  // Fingerprint template hash (reference identifier per D-23)
-  faceEmbeddingId         String?  // UUID pointing to Qdrant face point for FACE credential type
-  organizationId String
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  revokedAt      DateTime?
-  revokedReason  String?
-  revokedById    String?
-  lastAccessedAt DateTime?
-  zoneRestrictions Json?
+  fingerprintTemplateHash String? // Fingerprint template hash (reference identifier per D-23)
+  faceEmbeddingId         String? // UUID pointing to Qdrant face point for FACE credential type
+  organizationId          String
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  revokedAt               DateTime?
+  revokedReason           String?
+  revokedById             String?
+  lastAccessedAt          DateTime?
+  zoneRestrictions        Json?
 
-  user            User          @relation("CredentialUser", fields: [userId], references: [id])
-  revokedBy       User?         @relation("CredentialRevoker", fields: [revokedById], references: [id])
-  organization    Organization  @relation(fields: [organizationId], references: [id])
-  accessLevels    AccessLevel[]
-  visits          Visit[]
-  siteAccesses    CredentialSiteAccess[]
+  user         User                   @relation("CredentialUser", fields: [userId], references: [id])
+  revokedBy    User?                  @relation("CredentialRevoker", fields: [revokedById], references: [id])
+  organization Organization           @relation(fields: [organizationId], references: [id])
+  accessLevels AccessLevel[]
+  visits       Visit[]
+  siteAccesses CredentialSiteAccess[]
 
   @@index([userId])
   @@index([type, badgeNumber])
@@ -128,39 +128,39 @@ model Credential {
 }
 
 model Door {
-  id           String   @id @default(uuid())
-  name         String
-  organizationId String
-  zoneId       String
-  location     String?
-  controllerId String?
-  alertConfig  Json     @default("{}")
+  id                  String   @id @default(uuid())
+  name                String
+  organizationId      String
+  zoneId              String
+  location            String?
+  controllerId        String?
+  alertConfig         Json     @default("{}")
   heldOpenThresholdMs Int?
-  settlingTimeoutMs Int?
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  settlingTimeoutMs   Int?
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
-  organization Organization   @relation(fields: [organizationId], references: [id])
-  zone         Zone           @relation(fields: [zoneId], references: [id])
+  organization Organization    @relation(fields: [organizationId], references: [id])
+  zone         Zone            @relation(fields: [zoneId], references: [id])
   cameraMaps   CameraDoorMap[]
-  controller   Controller? @relation(fields: [controllerId], references: [id])
+  controller   Controller?     @relation(fields: [controllerId], references: [id])
 
+  @@unique([controllerId, organizationId])
   @@index([organizationId])
   @@index([zoneId])
-  @@unique([controllerId, organizationId])
 }
 
 model Zone {
-  id          String   @id @default(uuid())
-  name        String
+  id             String   @id @default(uuid())
+  name           String
   organizationId String
-  description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  description    String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id])
+  organization Organization  @relation(fields: [organizationId], references: [id])
   doors        Door[]
   schedules    Schedule[]
   accessLevels AccessLevel[]
@@ -218,36 +218,36 @@ model CameraDoorMap {
 // ─── Phase 2: Incident Management Models ───
 
 model Incident {
-  id              String   @id @default(uuid())
-  title           String
-  description     String?
-  severity        AlertSeverity
-  status          String   @default("OPEN")
-  organizationId  String
-  sourceType      String?
-  sourceId        String?
-  assignedToId    String?
-  assignedAt      DateTime?
+  id             String        @id @default(uuid())
+  title          String
+  description    String?
+  severity       AlertSeverity
+  status         String        @default("OPEN")
+  organizationId String
+  sourceType     String?
+  sourceId       String?
+  assignedToId   String?
+  assignedAt     DateTime?
 
   // Maintenance ticket fields (WFL-01):
-  ticketType         String?  @default("SECURITY_INCIDENT")  // 'SECURITY_INCIDENT' | 'MAINTENANCE_TICKET'
-  deviceId           String?  // FK to camera/reader/controller
-  deviceType         String?  // 'camera' | 'reader' | 'controller'
-  deviceName         String?  // Denormalized for quick display
+  ticketType String? @default("SECURITY_INCIDENT") // 'SECURITY_INCIDENT' | 'MAINTENANCE_TICKET'
+  deviceId   String? // FK to camera/reader/controller
+  deviceType String? // 'camera' | 'reader' | 'controller'
+  deviceName String? // Denormalized for quick display
 
-  escalationChain Json     @default("[]")
-  slaMinutes      Int      @default(30)
+  escalationChain Json      @default("[]")
+  slaMinutes      Int       @default(30)
   closedAt        DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  organization    Organization          @relation(fields: [organizationId], references: [id])
-  assignedTo      User?                 @relation("IncidentAssignee", fields: [assignedToId], references: [id])
-  alert           Alert?                @relation(fields: [sourceId], references: [id])
-  comments        IncidentComment[]
-  assignments     IncidentAssignment[]
-  escalations     IncidentEscalation[]
-  evidence        IncidentEvidence[]
+  organization Organization         @relation(fields: [organizationId], references: [id])
+  assignedTo   User?                @relation("IncidentAssignee", fields: [assignedToId], references: [id])
+  alert        Alert?               @relation(fields: [sourceId], references: [id])
+  comments     IncidentComment[]
+  assignments  IncidentAssignment[]
+  escalations  IncidentEscalation[]
+  evidence     IncidentEvidence[]
 
   @@index([organizationId, status])
   @@index([assignedToId])
@@ -293,7 +293,7 @@ model IncidentEscalation {
   notifiedAt   DateTime?
   resolvedAt   DateTime?
 
-  incident  Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
   notifyUser User?    @relation(fields: [notifyUserId], references: [id])
 
   @@index([incidentId])
@@ -304,10 +304,10 @@ model IncidentEscalation {
 model IncidentEvidence {
   id           String   @id @default(uuid())
   incidentId   String
-  type         String   // 'video_clip', 'snapshot', 'access_event', 'document', 'note'
-  url          String?  // URL to video clip, snapshot image, or document
-  eventType    String?  // 'access_granted', 'door_forced', 'tailgating', etc.
-  eventId      String?  // ID of the referenced event in TimescaleDB hypertable
+  type         String // 'video_clip', 'snapshot', 'access_event', 'document', 'note'
+  url          String? // URL to video clip, snapshot image, or document
+  eventType    String? // 'access_granted', 'door_forced', 'tailgating', etc.
+  eventId      String? // ID of the referenced event in TimescaleDB hypertable
   description  String?
   uploadedById String
   createdAt    DateTime @default(now())
@@ -338,24 +338,24 @@ model Visitor {
 }
 
 model Visit {
-  id              String    @id @default(uuid())
-  visitorId       String
-  hostUserId      String
-  purpose         String?
-  validFrom       DateTime
-  validUntil      DateTime
-  credentialId    String
-  checkedInAt     DateTime?
-  checkedOutAt    DateTime?
-  status          String    @default("scheduled")
-  approvalStatus  String    @default("pending")
-  approvedById    String?
-  approvedAt      DateTime?
-  timeWindowStart DateTime?
-  timeWindowEnd   DateTime?
+  id               String    @id @default(uuid())
+  visitorId        String
+  hostUserId       String
+  purpose          String?
+  validFrom        DateTime
+  validUntil       DateTime
+  credentialId     String
+  checkedInAt      DateTime?
+  checkedOutAt     DateTime?
+  status           String    @default("scheduled")
+  approvalStatus   String    @default("pending")
+  approvedById     String?
+  approvedAt       DateTime?
+  timeWindowStart  DateTime?
+  timeWindowEnd    DateTime?
   zoneRestrictions Json?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   visitor    Visitor    @relation(fields: [visitorId], references: [id])
   host       User       @relation("VisitHost", fields: [hostUserId], references: [id])
@@ -371,15 +371,15 @@ model Visit {
 // ─── ANPR/Vehicle Models ───
 
 model VehicleList {
-  id          String   @id @default(uuid())
-  type        String   // 'allowlist' or 'blocklist'
-  plate       String
+  id             String   @id @default(uuid())
+  type           String // 'allowlist' or 'blocklist'
+  plate          String
   organizationId String
-  description String?
-  isActive    Boolean  @default(true)
-  createdById String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  description    String?
+  isActive       Boolean  @default(true)
+  createdById    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   createdBy    User         @relation(fields: [createdById], references: [id])
   organization Organization @relation(fields: [organizationId], references: [id])
@@ -394,12 +394,12 @@ model VehicleList {
 model RetentionPolicy {
   id                String   @id @default(uuid())
   eventType         String   @unique
-  tableType         String   // 'timescaledb' or 'prisma'
+  tableType         String // 'timescaledb' or 'prisma'
   retentionDays     Int
   enabled           Boolean  @default(true)
-  classification    String?  // 'PII', 'security', 'audit', 'operational'
+  classification    String? // 'PII', 'security', 'audit', 'operational'
   exportBeforePurge Boolean  @default(false)
-  exportFormat      String?  // 'PDF' or 'CSV'
+  exportFormat      String? // 'PDF' or 'CSV'
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -410,105 +410,107 @@ model RetentionPolicy {
 // ─── Organization Model (renamed from Site) ───
 
 model Organization {
-  id        String   @id @default(uuid())
-  name      String
-  address   String?
-  city      String?
-  country   String   @default("SN")
-  latitude  Float?
-  longitude Float?
-  isActive  Boolean  @default(true)
-  stripeCustomerId String?
-  billingEmail     String?
-  trialStartDate   DateTime?
-  lastVerifiedAt         DateTime?
+  id                       String    @id @default(uuid())
+  name                     String
+  address                  String?
+  city                     String?
+  country                  String    @default("SN")
+  latitude                 Float?
+  longitude                Float?
+  isActive                 Boolean   @default(true)
+  stripeCustomerId         String?
+  billingEmail             String?
+  trialStartDate           DateTime?
+  lastVerifiedAt           DateTime?
   lastVerificationFailedAt DateTime?
-  trialEndDate     DateTime?
-  logoUrl         String?  // White-label: custom logo URL
-  primaryColor    String?  // White-label: hex color (#RRGGBB)
-  displayName     String?  // White-label: custom display name
+  trialEndDate             DateTime?
+  logoUrl                  String? // White-label: custom logo URL
+  primaryColor             String? // White-label: hex color (#RRGGBB)
+  displayName              String? // White-label: custom display name
   // Phase 3: BASTION multi-site parent-child hierarchy
-  parentOrganizationId String?
-  maxSites            Int      @default(1)
-  slaProfiles Json @default("{}")
-  anprConfidenceThreshold Int @default(70)
-  healthThresholds Json @default("{}")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  parentOrganizationId     String?
+  maxSites                 Int       @default(1)
+  slaProfiles              Json      @default("{}")
+  anprConfidenceThreshold  Int       @default(70)
+  healthThresholds         Json      @default("{}")
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
 
-  parent              Organization?         @relation("OrgHierarchy", fields: [parentOrganizationId], references: [id])
-  children            Organization[]        @relation("OrgHierarchy")
-  cameras             Camera[]
-  doors               Door[]
-  zones               Zone[]
-  incidents           Incident[]
-  members             OrganizationMember[]
-  invites             Invite[]
-  auditLogs           AuditLog[]
-  vehicleListEntries  VehicleList[]
-  featureFlags        FeatureFlag[]
-  credentials         Credential[]
-  alerts              Alert[]
-  cameraPrompts       CameraPrompt[]
-  licenses            License[]
-  tenantApiKeys       TenantApiKey[]
-  controllers         Controller[]
-  idpConfig           IdpConfig?
-  webhookSubscriptions WebhookSubscription[]
-  webhookDeliveries    WebhookDelivery[]
+  parent                 Organization?          @relation("OrgHierarchy", fields: [parentOrganizationId], references: [id])
+  children               Organization[]         @relation("OrgHierarchy")
+  cameras                Camera[]
+  doors                  Door[]
+  zones                  Zone[]
+  incidents              Incident[]
+  members                OrganizationMember[]
+  invites                Invite[]
+  auditLogs              AuditLog[]
+  vehicleListEntries     VehicleList[]
+  featureFlags           FeatureFlag[]
+  credentials            Credential[]
+  alerts                 Alert[]
+  cameraPrompts          CameraPrompt[]
+  licenses               License[]
+  tenantApiKeys          TenantApiKey[]
+  controllers            Controller[]
+  idpConfig              IdpConfig?
+  webhookSubscriptions   WebhookSubscription[]
+  webhookDeliveries      WebhookDelivery[]
   // Phase 2: VISION Pack relations
-  faceWhitelists       FaceWhitelist[]
-  streamShares         StreamShare[]
-  geofencingConfig     GeofencingConfig?
-  dndSchedule          DNDSchedule?
-  alertChannelConfigs  AlertChannelConfig[]
-  recordingConfig      RecordingConfig?
+  faceWhitelists         FaceWhitelist[]
+  streamShares           StreamShare[]
+  geofencingConfig       GeofencingConfig?
+  dndSchedule            DNDSchedule?
+  alertChannelConfigs    AlertChannelConfig[]
+  recordingConfig        RecordingConfig?
   // Phase 3: BASTION Pack relations
   faces                  Face[]
   accessGroups           AccessGroup[]
   credentialSiteAccesses CredentialSiteAccess[]
+  facePassages           FacePassage[]
 }
 
 model Camera {
-  id              String       @id @default(uuid())
-  name            String
-  rtspUrl         String
-  status          CameraStatus @default(OFFLINE)
-  organizationId  String
-  resolution      String?
-  fps             Int          @default(25)
-  captureInterval Int          @default(5)
-  isRecording     Boolean      @default(false)
-  lastSnapshotUrl String?
-  lastHeartbeat   DateTime?
+  id                  String       @id @default(uuid())
+  name                String
+  rtspUrl             String
+  status              CameraStatus @default(OFFLINE)
+  organizationId      String
+  resolution          String?
+  fps                 Int          @default(25)
+  captureInterval     Int          @default(5)
+  isRecording         Boolean      @default(false)
+  lastSnapshotUrl     String?
+  lastHeartbeat       DateTime?
   // Phase 2: PTZ capabilities (JSON — flexible schema per camera model)
-  ptzCapabilities   Json?
+  ptzCapabilities     Json?
   // Phase 2: ONVIF provisioning fields
-  onvifAddress      String?
-  onvifUsername     String?
-  onvifPassword     String?
-  onvifProfileToken String?
-  onvifSerialNumber String?
+  onvifAddress        String?
+  onvifUsername       String?
+  onvifPassword       String?
+  onvifProfileToken   String?
+  onvifSerialNumber   String?
   // Phase 2: PTZ presets (JSON array of { token, name, snapshotUrl })
-  ptzPresets        Json?
+  ptzPresets          Json?
   // Phase 2: VISION pack camera extensions
-  detectionConfidence Float?  // Per-camera sensitivity override (VIS-10)
-  substreamUrl         String? // SD stream URL for adaptive quality (VIS-05)
-  recordingEnabled     Boolean @default(true) // Per-camera recording toggle
-  createdAt         DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  detectionConfidence Float? // Per-camera sensitivity override (VIS-10)
+  substreamUrl        String? // SD stream URL for adaptive quality (VIS-05)
+  recordingEnabled    Boolean      @default(true) // Per-camera recording toggle
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
 
-  organization    Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  alerts          Alert[]
-  prompts         CameraPrompt[]
-  cameraDoorMaps  CameraDoorMap[]
-  detectionZones  DetectionZone[]
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  alerts         Alert[]
+  prompts        CameraPrompt[]
+  cameraDoorMaps CameraDoorMap[]
+  detectionZones DetectionZone[]
+  facePassages   FacePassage[]
 
   @@index([organizationId])
 }
 
 model Controller {
-  id              String    @id @default(uuid())
+  id              String       @id @default(uuid())
   name            String?
   serialNumber    String?
   manufacturer    String?
@@ -518,11 +520,12 @@ model Controller {
   siteId          String?
   serialPort      String?
   osdpAddress     Int?
-  secureChannel   Boolean   @default(true)
-  status          String    @default("PENDING")
+  secureChannel   Boolean      @default(true)
+  status          String       @default("PENDING")
   lastSeen        DateTime?
   doors           Door[]
   organization    Organization @relation(fields: [organizationId], references: [id])
+
   @@index([organizationId])
   @@index([status])
 }
@@ -537,27 +540,27 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  memberships              OrganizationMember[]
-  credentials              Credential[]           @relation("CredentialUser")
-  revokedCredentials       Credential[]           @relation("CredentialRevoker")
-  refreshTokens            RefreshToken[]
-  pushTokens               MobilePushToken[]
-  auditLogs                AuditLog[]
-  notificationSettings     NotificationSetting[]
-  assignedIncidents        Incident[]             @relation("IncidentAssignee")
-  incidentComments         IncidentComment[]
-  incidentAssignmentsBy    IncidentAssignment[]    @relation("AssignmentBy")
-  incidentAssignmentsTo    IncidentAssignment[]    @relation("AssignmentTo")
-  incidentEscalations      IncidentEscalation[]
-  uploadedEvidence         IncidentEvidence[]
-  hostedVisits             Visit[]                @relation("VisitHost")
-  approvedVisits           Visit[]                @relation("VisitApprover")
-  vehicleListEntries       VehicleList[]
-  createdInvites           Invite[]               @relation("InviteCreator")
-  acceptedInvites          Invite[]               @relation("InviteAcceptor")
-  tenantApiKeys            TenantApiKey[]
-  webhookSubscriptions     WebhookSubscription[]
-  createdStreamShares      StreamShare[]
+  memberships           OrganizationMember[]
+  credentials           Credential[]          @relation("CredentialUser")
+  revokedCredentials    Credential[]          @relation("CredentialRevoker")
+  refreshTokens         RefreshToken[]
+  pushTokens            MobilePushToken[]
+  auditLogs             AuditLog[]
+  notificationSettings  NotificationSetting[]
+  assignedIncidents     Incident[]            @relation("IncidentAssignee")
+  incidentComments      IncidentComment[]
+  incidentAssignmentsBy IncidentAssignment[]  @relation("AssignmentBy")
+  incidentAssignmentsTo IncidentAssignment[]  @relation("AssignmentTo")
+  incidentEscalations   IncidentEscalation[]
+  uploadedEvidence      IncidentEvidence[]
+  hostedVisits          Visit[]               @relation("VisitHost")
+  approvedVisits        Visit[]               @relation("VisitApprover")
+  vehicleListEntries    VehicleList[]
+  createdInvites        Invite[]              @relation("InviteCreator")
+  acceptedInvites       Invite[]              @relation("InviteAcceptor")
+  tenantApiKeys         TenantApiKey[]
+  webhookSubscriptions  WebhookSubscription[]
+  createdStreamShares   StreamShare[]
 }
 
 // ─── Multi-Tenancy: Organization Member Join Table ───
@@ -587,18 +590,18 @@ model OrganizationMember {
 // ─── Multi-Tenancy: Invite Token Tracking ───
 
 model Invite {
-  id             String       @id @default(uuid())
+  id             String    @id @default(uuid())
   organizationId String
   email          String
   role           Role
-  token          String       @unique
-  status         String       @default("PENDING")  // PENDING, ACCEPTED, EXPIRED, REVOKED
+  token          String    @unique
+  status         String    @default("PENDING") // PENDING, ACCEPTED, EXPIRED, REVOKED
   createdById    String
   acceptedById   String?
   acceptedAt     DateTime?
   expiresAt      DateTime
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id])
   createdBy    User         @relation("InviteCreator", fields: [createdById], references: [id])
@@ -615,8 +618,8 @@ model FeatureFlag {
   organizationId String
   key            String
   enabled        Boolean  @default(false)
-  pack           String?  // 'VISION' | 'BASTION'
-  moduleKey      String?  // optional module identifier for BASTION modules
+  pack           String? // 'VISION' | 'BASTION'
+  moduleKey      String? // optional module identifier for BASTION modules
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -645,23 +648,23 @@ model Alert {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
-  camera            Camera             @relation(fields: [cameraId], references: [id], onDelete: Cascade)
-  organization      Organization       @relation(fields: [organizationId], references: [id])
-  notificationLogs  NotificationLog[]
-  incidents         Incident[]
+  camera           Camera            @relation(fields: [cameraId], references: [id], onDelete: Cascade)
+  organization     Organization      @relation(fields: [organizationId], references: [id])
+  notificationLogs NotificationLog[]
+  incidents        Incident[]
 
   @@index([organizationId])
 }
 
 model CameraPrompt {
-  id        String        @id @default(uuid())
-  cameraId  String
-  text      String
-  severity  AlertSeverity @default(MEDIUM)
-  isActive  Boolean       @default(true)
+  id             String        @id @default(uuid())
+  cameraId       String
+  text           String
+  severity       AlertSeverity @default(MEDIUM)
+  isActive       Boolean       @default(true)
   organizationId String
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   camera       Camera       @relation(fields: [cameraId], references: [id], onDelete: Cascade)
   organization Organization @relation(fields: [organizationId], references: [id])
@@ -675,8 +678,8 @@ model FaceWhitelist {
   id              String   @id @default(uuid())
   organizationId  String
   name            String
-  imageBase64     String   // The uploaded face photo
-  embeddingBase64 String?  // Computed by AI preprocessor (base64-encoded float32 array)
+  imageBase64     String // The uploaded face photo
+  embeddingBase64 String? // Computed by AI preprocessor (base64-encoded float32 array)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -691,18 +694,42 @@ model Face {
   id              String   @id @default(uuid())
   organizationId  String
   name            String
-  photoBase64     String   // The uploaded face photo (base64-encoded)
-  embeddingBase64 String?  // Base64-encoded float32 array (512-d ArcFace)
-  qdrantPointId   String?  // UUID pointing to Qdrant `faces` collection point
+  photoBase64     String // The uploaded face photo (base64-encoded)
+  embeddingBase64 String? // Base64-encoded float32 array (512-d ArcFace)
+  qdrantPointId   String? // UUID pointing to Qdrant `faces` collection point
   isBlacklisted   Boolean  @default(false)
   riskThreshold   Int?     @default(85) // Per-person auto-unlock threshold per D-09
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id])
+  organization Organization  @relation(fields: [organizationId], references: [id])
+  passages     FacePassage[]
 
   @@index([organizationId])
   @@index([isBlacklisted])
+}
+
+// ─── Phase 3: BASTION Pack — Face Passage Model (face detection event log) ───
+
+model FacePassage {
+  id             String   @id @default(uuid())
+  faceId         String
+  cameraId       String
+  organizationId String
+  riskScore      Int      @default(0) // 0-100 risk score per D-11
+  snapshotUrl    String? // URL to the captured snapshot
+  metadata       Json     @default("{}")
+  detectedAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  face         Face         @relation(fields: [faceId], references: [id], onDelete: Cascade)
+  camera       Camera       @relation(fields: [cameraId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([faceId])
+  @@index([organizationId])
+  @@index([cameraId])
+  @@index([detectedAt])
 }
 
 // ─── Phase 3: BASTION Pack — Access Group Model ───
@@ -716,7 +743,7 @@ model AccessGroup {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id])
+  organization Organization         @relation(fields: [organizationId], references: [id])
   members      OrganizationMember[]
 
   @@index([organizationId])
@@ -727,7 +754,7 @@ model AccessGroup {
 model CredentialSiteAccess {
   id             String   @id @default(uuid())
   credentialId   String
-  organizationId String  // child site ID
+  organizationId String // child site ID
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
 
@@ -739,14 +766,14 @@ model CredentialSiteAccess {
 }
 
 model DetectionZone {
-  id        String   @id @default(uuid())
-  cameraId  String
-  name      String
-  polygon   Json     // Array of [x,y] vertices in native camera resolution coordinates
-  isActive  Boolean  @default(true)
+  id          String   @id @default(uuid())
+  cameraId    String
+  name        String
+  polygon     Json // Array of [x,y] vertices in native camera resolution coordinates
+  isActive    Boolean  @default(true)
   sensitivity Float? // Per-zone override
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   camera Camera @relation(fields: [cameraId], references: [id], onDelete: Cascade)
 
@@ -754,18 +781,18 @@ model DetectionZone {
 }
 
 model StreamShare {
-  id              String    @id @default(uuid())
-  organizationId  String
-  token           String    @unique
-  cameraIds       Json      // Array of camera IDs
-  durationHours   Int
-  expiresAt       DateTime
-  status          String    @default("ACTIVE") // ACTIVE / REVOKED / EXPIRED
-  createdById     String
-  lastAccessedAt  DateTime?
-  accessCount     Int       @default(0)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String    @id @default(uuid())
+  organizationId String
+  token          String    @unique
+  cameraIds      Json // Array of camera IDs
+  durationHours  Int
+  expiresAt      DateTime
+  status         String    @default("ACTIVE") // ACTIVE / REVOKED / EXPIRED
+  createdById    String
+  lastAccessedAt DateTime?
+  accessCount    Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id])
   createdBy    User         @relation(fields: [createdById], references: [id])
@@ -776,19 +803,19 @@ model StreamShare {
 }
 
 model GeofencingConfig {
-  id                     String    @id @default(uuid())
-  organizationId         String    @unique
-  enabled                Boolean   @default(true)
-  trustedSsids           Json      // Array of WiFi SSID strings
-  armDelayMinutes        Int       @default(10)
-  absenceTimeoutMinutes  Int       @default(15)
-  reinforcedSensitivity  Boolean   @default(true)
-  manualArm              Boolean   @default(false)
-  manualArmUntil         DateTime?
-  scheduleEnabled        Boolean   @default(false)
-  scheduleJson           Json?     // Day-of-week schedule config
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
+  id                    String    @id @default(uuid())
+  organizationId        String    @unique
+  enabled               Boolean   @default(true)
+  trustedSsids          Json // Array of WiFi SSID strings
+  armDelayMinutes       Int       @default(10)
+  absenceTimeoutMinutes Int       @default(15)
+  reinforcedSensitivity Boolean   @default(true)
+  manualArm             Boolean   @default(false)
+  manualArmUntil        DateTime?
+  scheduleEnabled       Boolean   @default(false)
+  scheduleJson          Json? // Day-of-week schedule config
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id])
 
@@ -796,13 +823,13 @@ model GeofencingConfig {
 }
 
 model DNDSchedule {
-  id              String   @id @default(uuid())
-  organizationId  String   @unique
-  enabled         Boolean  @default(false)
-  scheduleJson    Json     // Days-of-week with time ranges per day
-  criticalOverride Boolean @default(true) // CRITICAL alerts bypass DND
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id               String   @id @default(uuid())
+  organizationId   String   @unique
+  enabled          Boolean  @default(false)
+  scheduleJson     Json // Days-of-week with time ranges per day
+  criticalOverride Boolean  @default(true) // CRITICAL alerts bypass DND
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id])
 
@@ -812,12 +839,12 @@ model DNDSchedule {
 model AlertChannelConfig {
   id                String   @id @default(uuid())
   organizationId    String
-  channel           String   // "PUSH", "SMS", "WHATSAPP"
+  channel           String // "PUSH", "SMS", "WHATSAPP"
   enabled           Boolean  @default(true)
   configJson        Json     @default("{}") // Phone number for SMS, whatsapp status, etc.
   modemDetected     Boolean? // For SMS
   whatsappConnected Boolean? @default(false)
-  whatsappQrCode    String?  // Base64 QR code for WhatsApp Web connection
+  whatsappQrCode    String? // Base64 QR code for WhatsApp Web connection
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -866,20 +893,20 @@ model MobilePushToken {
 }
 
 model AuditLog {
-  id          String   @id @default(cuid())
-  userId      String?
-  user        User?    @relation(fields: [userId], references: [id])
-  action      String
-  entity      String
-  entityId    String?
-  changes     Json?
-  ipAddress   String?
-  userAgent   String?
+  id             String   @id @default(cuid())
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id])
+  action         String
+  entity         String
+  entityId       String?
+  changes        Json?
+  ipAddress      String?
+  userAgent      String?
   organizationId String?
   previousHash   String?
   currentHash    String?
   content        String?
-  createdAt   DateTime @default(now())
+  createdAt      DateTime @default(now())
 
   organization Organization? @relation(fields: [organizationId], references: [id])
 
@@ -891,23 +918,23 @@ model AuditLog {
 }
 
 model NotificationTemplate {
-  id              String             @id @default(uuid())
-  name            String             @unique
+  id              String              @id @default(uuid())
+  name            String              @unique
   channel         NotificationChannel
   subjectTemplate String?
   bodyTemplate    String
-  createdAt       DateTime           @default(now())
+  createdAt       DateTime            @default(now())
 }
 
 model NotificationLog {
-  id        String             @id @default(uuid())
+  id        String              @id @default(uuid())
   alertId   String
   channel   NotificationChannel
   recipient String
-  status    NotificationStatus @default(PENDING)
+  status    NotificationStatus  @default(PENDING)
   sentAt    DateTime?
   error     String?
-  createdAt DateTime           @default(now())
+  createdAt DateTime            @default(now())
 
   alert Alert @relation(fields: [alertId], references: [id], onDelete: Cascade)
 
@@ -917,13 +944,13 @@ model NotificationLog {
 }
 
 model NotificationSetting {
-  id        String             @id @default(uuid())
+  id        String              @id @default(uuid())
   userId    String
   channel   NotificationChannel
-  enabled   Boolean            @default(true)
-  config    Json               @default("{}")
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
+  enabled   Boolean             @default(true)
+  config    Json                @default("{}")
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -947,45 +974,45 @@ model ContactSubmission {
 // ─── Phase 5: License Management Models ───
 
 model License {
-  id             String        @id @default(uuid())
-  organizationId String
-  licenseJwt     String
-  status         LicenseStatus @default(PENDING)
-  currency       String        @default("USD")
-  activatedAt    DateTime?
-  expiresAt      DateTime
-  maxCameras     Int
-  maxDoors       Int
-  maxUsers       Int          @default(5)
-  gracePeriodDays Int          @default(7)
-  licenseVersion  Int          @default(1)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id              String        @id @default(uuid())
+  organizationId  String
+  licenseJwt      String
+  status          LicenseStatus @default(PENDING)
+  currency        String        @default("USD")
+  activatedAt     DateTime?
+  expiresAt       DateTime
+  maxCameras      Int
+  maxDoors        Int
+  maxUsers        Int           @default(5)
+  gracePeriodDays Int           @default(7)
+  licenseVersion  Int           @default(1)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id])
 
-  @@index([organizationId])
   @@unique([organizationId, licenseVersion])
+  @@index([organizationId])
 }
 
 // ─── Phase 10: Enterprise — IdP Configuration (SSO) ───
 
 model IdpConfig {
-  id               String   @id @default(uuid())
-  organizationId   String   @unique
-  protocol         String   // 'saml' or 'oidc'
-  metadataUrl      String?  // IdP metadata URL for auto-fetch
-  entityId         String?  // SAML entity ID
-  certificate      String?  // IdP public certificate (SAML)
-  entryPoint       String?  // SAML IdP entry point URL
-  issuerUrl        String?  // OIDC issuer URL
-  clientId         String?  // OIDC client ID
-  clientSecret     String?  // Encrypted OIDC client secret
-  attributeMappings Json?  // IdP attribute → platform field mapping
-  isActive         Boolean  @default(true)
-  ssoEnforced      Boolean  @default(false)  // Force SSO-only login
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                String   @id @default(uuid())
+  organizationId    String   @unique
+  protocol          String // 'saml' or 'oidc'
+  metadataUrl       String? // IdP metadata URL for auto-fetch
+  entityId          String? // SAML entity ID
+  certificate       String? // IdP public certificate (SAML)
+  entryPoint        String? // SAML IdP entry point URL
+  issuerUrl         String? // OIDC issuer URL
+  clientId          String? // OIDC client ID
+  clientSecret      String? // Encrypted OIDC client secret
+  attributeMappings Json? // IdP attribute → platform field mapping
+  isActive          Boolean  @default(true)
+  ssoEnforced       Boolean  @default(false) // Force SSO-only login
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id])
 
@@ -1031,9 +1058,9 @@ model WebhookSubscription {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  organization  Organization      @relation(fields: [organizationId], references: [id])
-  createdBy     User              @relation(fields: [createdById], references: [id])
-  deliveries    WebhookDelivery[]
+  organization Organization      @relation(fields: [organizationId], references: [id])
+  createdBy    User              @relation(fields: [createdById], references: [id])
+  deliveries   WebhookDelivery[]
 
   @@index([organizationId])
   @@index([eventType, organizationId])
@@ -1042,19 +1069,19 @@ model WebhookSubscription {
 // ─── Phase 10: Enterprise — Webhook Delivery Logs ───
 
 model WebhookDelivery {
-  id              String   @id @default(uuid())
-  subscriptionId  String
-  eventType       String
-  payload         Json
-  statusCode      Int?
-  responseBody    String?
-  attemptNumber   Int      @default(0)
-  nextRetryAt     DateTime?
-  organizationId  String
-  createdAt       DateTime @default(now())
+  id             String    @id @default(uuid())
+  subscriptionId String
+  eventType      String
+  payload        Json
+  statusCode     Int?
+  responseBody   String?
+  attemptNumber  Int       @default(0)
+  nextRetryAt    DateTime?
+  organizationId String
+  createdAt      DateTime  @default(now())
 
-  subscription  WebhookSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-  organization  Organization        @relation(fields: [organizationId], references: [id])
+  subscription WebhookSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  organization Organization        @relation(fields: [organizationId], references: [id])
 
   @@index([subscriptionId])
   @@index([organizationId])

@@ -26,6 +26,7 @@ import { ControllerModule } from './modules/controller/controller.module';
 import { SupervisionModule } from './modules/supervision/supervision.module';
 import { MqttModule } from './mqtt/mqtt.module';
 import { AccessModule } from './modules/access/access.module';
+import { BastionModule } from './modules/bastion/bastion.module';
 import { DoorModule } from './modules/door/door.module';
 import { CorrelationModule } from './modules/correlation/correlation.module';
 import { IncidentModule } from './modules/incident/incident.module';
@@ -89,6 +90,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     AnalyticsModule,
     AnprModule,
     ApiKeyModule,
+    BastionModule,
     AuditModule,
     AuthModule,
     CameraModule,

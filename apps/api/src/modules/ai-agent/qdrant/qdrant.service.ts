@@ -298,6 +298,22 @@ export class QdrantService implements OnModuleInit {
   }
 
   /**
+   * Set a payload field on an existing face point in the `faces` collection.
+   * Used for updating blacklist status, name changes, etc.
+   */
+  async setFacePayload(pointId: string, payload: Record<string, unknown>): Promise<void> {
+    try {
+      await this.client.setPayload(this.COLLECTIONS.faces, {
+        points: [pointId],
+        payload,
+      });
+      this.logger.debug(`Face payload updated for point ${pointId}`);
+    } catch (err: any) {
+      this.logger.warn(`Qdrant setFacePayload failed: ${err.message}`);
+    }
+  }
+
+  /**
    * Idempotent creation of the `faces` collection. Checks if exists before creating.
    * Called on first face access to ensure collection is ready.
    */
