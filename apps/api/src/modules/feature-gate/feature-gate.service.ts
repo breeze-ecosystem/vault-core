@@ -1,28 +1,52 @@
-// @ts-nocheck — TODO: full rewrite in PLN-05 (feature gating)
 import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 
-/**
- * Feature-to-tier mapping: which features are available at each plan tier.
- * Features with a minimum tier are enabled for that tier and above.
- */
-const DEFAULT_FEATURES: {
-  key: string;
-  minTier: "FREE" | "PROFESSIONAL" | "ENTERPRISE";
-  description?: string;
-}[] = [
-  { key: "basic_monitoring", minTier: "FREE" },
-  { key: "advanced_analytics", minTier: "PROFESSIONAL" },
-  { key: "export_csv", minTier: "PROFESSIONAL" },
-  { key: "api_access", minTier: "ENTERPRISE" },
-  { key: "custom_branding", minTier: "ENTERPRISE" },
-  { key: "sso", minTier: "ENTERPRISE" },
-];
-
-const TIER_ORDER: Record<string, number> = {
-  FREE: 0,
-  PROFESSIONAL: 1,
-  ENTERPRISE: 2,
+const PACK_FEATURES: Record<string, Array<{ key: string; moduleKey?: string }>> = {
+  VISION: [
+    { key: "live_streaming" },
+    { key: "motion_detection" },
+    { key: "basic_facial_recognition" },
+    { key: "local_storage" },
+    { key: "event_timeline" },
+    { key: "video_export" },
+    { key: "multi_user" },
+    { key: "ai_night_vision" },
+    { key: "adaptive_quality" },
+    { key: "push_notifications" },
+    { key: "sms_alerts" },
+    { key: "whatsapp_alerts" },
+    { key: "sensitivity_threshold" },
+    { key: "detection_zones" },
+    { key: "configurable_retention" },
+    { key: "auto_screenshots" },
+    { key: "h265_compression" },
+    { key: "local_dashboard" },
+    { key: "stream_sharing" },
+    { key: "auto_geofencing" },
+    { key: "silent_hours" },
+    { key: "offline_vpn_access" },
+  ],
+  BASTION: [
+    { key: "advanced_facial_recognition" },
+    { key: "anti_spoofing" },
+    { key: "abandoned_object_detection" },
+    { key: "weapon_detection" },
+    { key: "crowd_counting" },
+    { key: "behavioral_analysis" },
+    { key: "access_control_integration" },
+    { key: "biometric_integration" },
+    { key: "qr_credential" },
+    { key: "multi_site" },
+    { key: "enterprise_sso" },
+    { key: "immutable_audit" },
+    { key: "extra_cameras", moduleKey: "extra_cameras" },
+    { key: "access_control", moduleKey: "access_control" },
+    { key: "extra_sites", moduleKey: "extra_sites" },
+    { key: "predictive_analytics", moduleKey: "predictive_analytics" },
+    { key: "dpo_service", moduleKey: "dpo_service" },
+    { key: "sla_premium", moduleKey: "sla_premium" },
+    { key: "api_tierce", moduleKey: "api_tierce" },
+  ],
 };
 
 @Injectable()
@@ -31,20 +55,17 @@ export class FeatureGateService {
 
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Seed default feature flags for a newly created organization.
-   * Features whose minimum tier is <= the org's plan tier are enabled.
-   * Uses upsert to be idempotent.
-   */
   async seedDefaultFlags(
     organizationId: string,
-    planTier: string = "FREE",
+    pack: string = "VISION",
+    moduleKeys: string[] = [],
   ): Promise<void> {
-    const orgTierLevel = TIER_ORDER[planTier] ?? 0;
+    const features = PACK_FEATURES[pack] ?? PACK_FEATURES.VISION;
 
-    for (const feature of DEFAULT_FEATURES) {
-      const featureMinLevel = TIER_ORDER[feature.minTier] ?? 0;
-      const enabled = orgTierLevel >= featureMinLevel;
+    for (const feature of features) {
+      const enabled = feature.moduleKey
+        ? moduleKeys.includes(feature.moduleKey)
+        : true;
 
       try {
         await this.prisma.featureFlag.upsert({
@@ -54,15 +75,13 @@ export class FeatureGateService {
               key: feature.key,
             },
           },
-          update: {
-            enabled,
-            tier: feature.minTier,
-          },
+          update: { enabled, pack, moduleKey: feature.moduleKey ?? null },
           create: {
             organizationId,
             key: feature.key,
             enabled,
-            tier: feature.minTier,
+            pack,
+            moduleKey: feature.moduleKey ?? null,
           },
         });
       } catch (err: unknown) {
@@ -74,7 +93,7 @@ export class FeatureGateService {
     }
 
     this.logger.log(
-      `Seeded ${DEFAULT_FEATURES.length} feature flags for org ${organizationId} (tier: ${planTier})`,
+      `Seeded ${features.length} feature flags for org ${organizationId} (pack: ${pack})`,
     );
   }
 }

@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Global, Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import Redis from "ioredis";
 import { FeatureGateService } from "./feature-gate.service";
@@ -17,6 +17,7 @@ const RedisProvider = {
   inject: [ConfigService],
 };
 
+@Global()
 @Module({
   providers: [FeatureGateService, RedisProvider],
   exports: [FeatureGateService, RedisProvider],

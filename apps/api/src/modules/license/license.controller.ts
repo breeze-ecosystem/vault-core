@@ -54,6 +54,16 @@ export class LicenseController {
     return this.licenseService.listLicenses();
   }
 
+  @Post("trial")
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Start a 7-day free trial for your organization" })
+  async startTrial(@Req() req: FastifyRequest) {
+    const orgId = (req as any).user.orgId;
+    return this.licenseService.startTrial(orgId);
+  }
+
   @Get("usage")
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)

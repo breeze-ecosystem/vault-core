@@ -1,11 +1,13 @@
 import {
   Injectable,
   BadRequestException,
+  ConflictException,
   NotFoundException,
   Logger,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { LicenseKeyManager } from "./license-key-manager";
+import { FeatureGateService } from "../feature-gate/feature-gate.service";
 import type { LicenseClaims } from "@repo/shared";
 import type { LicenseStatusResponse, UsageInfo } from "./license.types";
 import { TRIAL_DURATION_DAYS } from "@repo/shared";
@@ -18,6 +20,7 @@ export class LicenseService {
   constructor(
     private prisma: PrismaService,
     private keyManager: LicenseKeyManager,
+    private featureGateService: FeatureGateService,
   ) {}
 
   async verifyAndActivate(jwtToken: string, orgId: string) {
@@ -175,5 +178,30 @@ export class LicenseService {
         organization: { select: { id: true, name: true } },
       },
     });
+  }
+
+  async startTrial(organizationId: string) {
+    const activeLicense = await this.prisma.license.findFirst({
+      where: { organizationId, status: "ACTIVE" },
+    });
+
+    if (activeLicense) {
+      throw new ConflictException("Cette organisation a déjà une licence active");
+    }
+
+    const now = new Date();
+    const trialEndDate = new Date(now.getTime() + TRIAL_DURATION_DAYS * 86_400_000);
+
+    await this.prisma.organization.update({
+      where: { id: organizationId },
+      data: {
+        trialStartDate: now,
+        trialEndDate: trialEndDate,
+      },
+    });
+
+    await this.featureGateService.seedDefaultFlags(organizationId, "VISION");
+
+    return { status: "trial", trialEndsAt: trialEndDate.toISOString() };
   }
 }

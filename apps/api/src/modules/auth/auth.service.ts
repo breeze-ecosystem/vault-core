@@ -8,6 +8,7 @@ import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../prisma/prisma.service";
 import { InviteService } from "../organization/invite/invite.service";
+import { FeatureGateService } from "../feature-gate/feature-gate.service";
 import * as bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 
@@ -18,6 +19,7 @@ export class AuthService {
     private jwt: JwtService,
     private config: ConfigService,
     private inviteService: InviteService,
+    private featureGateService: FeatureGateService,
   ) {}
 
   async register(data: {
@@ -70,6 +72,8 @@ export class AuthService {
 
       return { org, user, member };
     });
+
+    await this.featureGateService.seedDefaultFlags(result.org.id, "VISION");
 
     const { accessToken, refreshToken } = await this.createTokens(
       result.user.id,

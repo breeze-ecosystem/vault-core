@@ -7,7 +7,11 @@ import {
 import { Reflector } from "@nestjs/core";
 import { Inject } from "@nestjs/common";
 import { PrismaService } from "../../modules/prisma/prisma.service";
-import { FEATURE_KEY } from "../decorators/feature-gate.decorator";
+import {
+  FEATURE_KEY,
+  PACK_KEY,
+  MODULE_KEY,
+} from "../decorators/feature-gate.decorator";
 import Redis from "ioredis";
 
 @Injectable()
@@ -23,7 +27,16 @@ export class FeatureGateGuard implements CanActivate {
       FEATURE_KEY,
       context.getHandler(),
     );
-    if (!feature) {
+    const requiredPack = this.reflector.get<string>(
+      PACK_KEY,
+      context.getHandler(),
+    );
+    const requiredModule = this.reflector.get<string>(
+      MODULE_KEY,
+      context.getHandler(),
+    );
+
+    if (!feature && !requiredPack && !requiredModule) {
       return true;
     }
 
@@ -33,46 +46,67 @@ export class FeatureGateGuard implements CanActivate {
       throw new ForbiddenException("No organization context");
     }
 
-    // Check Redis cache first
-    const cacheKey = `feature:${user.orgId}:${feature}`;
-    try {
-      const cached = await this.redis.get(cacheKey);
-      if (cached === "1") return true;
-      if (cached === "0")
-        throw new ForbiddenException("Feature not available on your plan");
-    } catch (err: any) {
-      // If Redis error is not a ForbiddenException from our cache hit,
-      // treat it as a cache miss and fall through to DB query
-      if (err instanceof ForbiddenException) throw err;
-    }
+    const orgId = user.orgId;
 
-    // Cache miss: query FeatureFlag table
-    // The Prisma extension auto-scopes this query to the current org via AsyncLocalStorage
-    const flag = await this.prisma.featureFlag.findUnique({
-      where: {
-        organizationId_key: {
-          organizationId: user.orgId,
-          key: feature,
+    if (feature) {
+      const cacheKey = `feature:${orgId}:${feature}`;
+      try {
+        const cached = await this.redis.get(cacheKey);
+        if (cached === "1") {
+          if (!requiredPack && !requiredModule) return true;
+        } else if (cached === "0") {
+          throw new ForbiddenException("Cette fonctionnalité n'est pas disponible");
+        }
+      } catch (err: any) {
+        if (err instanceof ForbiddenException) throw err;
+      }
+
+      const flag = await this.prisma.featureFlag.findUnique({
+        where: {
+          organizationId_key: {
+            organizationId: orgId,
+            key: feature,
+          },
         },
-      },
-    });
+      });
 
-    const enabled = flag?.enabled ?? false;
+      const enabled = flag?.enabled ?? false;
 
-    // Cache result in Redis with 5-minute TTL
-    try {
-      await this.redis.set(
-        cacheKey,
-        enabled ? "1" : "0",
-        "EX",
-        300,
-      );
-    } catch {
-      // Redis unavailable — proceed with DB result
+      try {
+        await this.redis.set(cacheKey, enabled ? "1" : "0", "EX", 300);
+      } catch {}
+
+      if (!enabled) {
+        throw new ForbiddenException("Cette fonctionnalité n'est pas disponible");
+      }
     }
 
-    if (!enabled) {
-      throw new ForbiddenException("Feature not available on your plan");
+    if (requiredPack) {
+      const orgFlag = await this.prisma.featureFlag.findFirst({
+        where: { organizationId: orgId, pack: { not: null } },
+        select: { pack: true },
+      });
+
+      if (!orgFlag?.pack) {
+        throw new ForbiddenException("Cette fonctionnalité n'est pas incluse dans votre pack");
+      }
+
+      if (requiredPack === "BASTION" && orgFlag.pack !== "BASTION") {
+        throw new ForbiddenException("Cette fonctionnalité n'est pas incluse dans votre pack");
+      }
+    }
+
+    if (requiredModule) {
+      const moduleFlag = await this.prisma.featureFlag.findFirst({
+        where: {
+          organizationId: orgId,
+          moduleKey: requiredModule,
+        },
+      });
+
+      if (!moduleFlag?.enabled) {
+        throw new ForbiddenException("Module optionnel non activé");
+      }
     }
 
     return true;
