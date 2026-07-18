@@ -48,6 +48,8 @@ import { RiskModule } from './modules/risk/risk.module';
 import { PatternsModule } from './modules/patterns/patterns.module';
 import { MaintenanceModule } from './modules/maintenance/maintenance.module';
 import { RecordingModule } from './modules/recording/recording.module';
+import { ShareModule } from './modules/share/share.module';
+import { EventModule } from './modules/event/event.module';
 import { TenantContextMiddleware } from './common/middleware/tenant-context.middleware';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { TenantIsolationGuard } from './common/guards/tenant-isolation.guard';
@@ -100,6 +102,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     DndModule,
     DoorModule,
     EquipmentModule,
+    EventModule,
     FaceRecognitionModule,
     FeatureGateModule,
     GeofencingModule,
@@ -123,6 +126,7 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor';
     QueueModule,
     RecordingModule,
     RiskModule,
+    ShareModule,
     SsoModule,
     SupervisionModule,
     UserModule,
