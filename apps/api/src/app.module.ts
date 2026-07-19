@@ -24,6 +24,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { ChatModule } from './modules/chat/chat.module';
 import { ControllerModule } from './modules/controller/controller.module';
 import { SupervisionModule } from './modules/supervision/supervision.module';
+import { SystemModule } from './modules/system/system.module';
 import { MqttModule } from './mqtt/mqtt.module';
 import { AccessModule } from './modules/access/access.module';
 import { BastionModule } from './modules/bastion/bastion.module';
@@ -143,6 +144,7 @@ import { ReportingModule } from './modules/reporting/report.module';
     ShareModule,
     SsoModule,
     SupervisionModule,
+    SystemModule,
     UserModule,
     VisitorModule,
     WebhookModule,
