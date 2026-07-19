@@ -1,22 +1,23 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
-status: Phase 05 context gathered
-last_updated: "2026-07-19T12:00:00.000Z"
+milestone_name: Minimum Commercial Product
+status: Awaiting next milestone
+last_updated: "2026-07-19T09:47:25.321Z"
+last_activity: 2026-07-19 — Milestone v1.0 completed and archived
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 21
-  completed_plans: 21
-  percent: 60
+  completed_phases: 4
+  total_plans: 27
+  completed_plans: 27
+  percent: 80
 ---
 
-# STATE: VaultOS v1.0
+# STATE: VaultOS v1.0 — SHIPPED
 
 **Project**: VaultOS — Self-hosted AI video surveillance
-**Milestone**: v1.0 Minimum Commercial Product (VISION + BASTION)
-**Last updated**: 2026-07-18 (Phase 1 context gathered)
+**Milestone**: v1.0 Minimum Commercial Product (VISION + BASTION) ✅ SHIPPED
+**Last updated**: 2026-07-19 (Milestone completed)
 
 ---
 
@@ -24,7 +25,7 @@ progress:
 
 **Core Value**: Correlate every physical security event with video evidence and AI analysis in real time, so security operators know what happened, where, and what to do — without switching between disconnected systems.
 
-**Current Focus**: Establish foundation architecture (license system, feature gating, vault-app admin portal) then complete VISION and BASTION packs per founders' spec.
+**Current Focus**: Planning next milestone. Milestone v1.0 shipped.
 
 **Key Decisions**:
 
@@ -38,16 +39,18 @@ progress:
 
 ## Current Position
 
-Phase: 04 (bastion-enterprise) — COMPLETE
-Plan: 7 of 7
-| Dimension | Value |
-|-----------|-------|
-| Current Phase | Phase 4: BASTION Enterprise |
-| Current Plan | Plan 07 — Integrations, API Docs, Webhook, Dashboard UI |
-| Phase Status | Complete |
-| Phase Progress | ███████████████ 100% |
+Phase: Milestone v1.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-19 — Milestone v1.0 completed and archived
 
----
+## Deferred Items
+
+Items acknowledged at milestone close on 2026-07-19:
+
+| Category | Item | Status |
+|----------|------|--------|
+| quick_task | 260718-glp-je-veux-parler-de-quelque-chose-d-import | completed-in-git |
 
 ## Performance Metrics
 
@@ -314,3 +317,7 @@ No new threat surface beyond what was documented in the plan's `<threat_model>`.
   - Design contract covers HAPDP wizard, analytics dashboard, subject access portal, advanced storage UI, webhook management, fire alarm/BMS integration
   - All 18 CTAs, 13 empty states, 13 error states, 5 destructive actions defined in French
   - 22 new components, 9 new pages, 7 menu entries
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

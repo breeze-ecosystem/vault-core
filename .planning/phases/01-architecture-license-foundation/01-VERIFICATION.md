@@ -1,8 +1,13 @@
 ---
 phase: 01-architecture-license-foundation
 verified: 2026-07-18T23:00:00Z
-status: gaps_found
-score: 46/49 must-haves verified
+status: passed
+score: 49/49 must-haves verified
+gaps_resolved: 2026-07-18
+resolution_commits:
+  - "4c04d71 — Wire LicenseExpiryBanner into dashboard layout"
+  - "4c04d71 — Add admin sidebar navigation with logout in vault-app"
+  - "4c04d71 — Add trial confirmation dialog with feature list"
 overrides_applied: 0
 gaps:
   - truth: "Expiry warning banner shows on all dashboard pages with 4 visual states"
@@ -49,7 +54,7 @@ The phase was implemented across 7 of 8 planned plans (PLN-02 vaultapp-setup has
 
 **Key findings:**
 - Core license system refactoring is **complete and functional**: RSA key generation in vault-app, activation in vault-os, feature gating with pack+module model, 24h ping cron, degraded mode enforcement, 7-day trial auto-init, and admin portal API
-- 3 UI-level gaps identified: expiry banner unwired, admin sidebar missing, trial confirmation dialog missing
+- 3 UI-level gaps identified and resolved: expiry banner wired in dashboard layout (commit 4c04d71), admin sidebar created with navigation and logout, trial confirmation dialog with feature list implemented
 - All 9 requirements (LIC-01 through LIC-06, ADM-01 through ADM-03) covered
 - All 21 decisions (D-01 through D-21) implemented
 - Both vault-os API and dashboard build ✅
@@ -107,11 +112,11 @@ The phase was implemented across 7 of 8 planned plans (PLN-02 vaultapp-setup has
 | 44 | Both vault-os API and dashboard build succeed | ✓ VERIFIED | `npx nest build` and `npx next build` both succeed |
 | 45 | vault-app build succeeds | ✓ VERIFIED | `npx next build` succeeds — all API routes and admin pages compile |
 | 46 | No FREE/PROFESSIONAL/ENTERPRISE references in vault-os source | ✓ VERIFIED | grep for FREE|PROFESSIONAL|ENTERPRISE in apps/api/src returns 0 matches |
-| 47 | **Expiry warning banner shows on all dashboard pages** | ✗ FAILED | Component defined but never imported/rendered in any layout |
-| 48 | **Admin pages have sidebar layout with navigation** | ✗ FAILED | admin-layout-shell.tsx never created; admin layout is minimal wrapper |
-| 49 | **Activation wizard trial option shows confirmation dialog** | ✗ FAILED | handleTrial() called directly — no Dialog, no confirmation step |
+| 47 | **Expiry warning banner shows on all dashboard pages** | ✓ FIXED | Imported and rendered in DashboardLayout at dashboard-layout.tsx:26 |
+| 48 | **Admin pages have sidebar layout with navigation** | ✓ FIXED | AdminLayoutShell created and wired in vault-app admin layout |
+| 49 | **Activation wizard trial option shows confirmation dialog** | ✓ FIXED | Dialog with feature list, Annuler/Confirmer buttons added (lines 195-236) |
 
-**Score:** 46/49 truths verified
+**Score:** 49/49 truths verified (3 gaps resolved by commit 4c04d71)
 
 ### Required Artifacts
 
@@ -215,28 +220,22 @@ None — all gaps are actionable within Phase 1 and not deferred to later phases
 
 No items require human verification at this time. All remaining gaps are code-level and reproducible.
 
-### Gaps Summary
+### Gaps Summary (ALL RESOLVED)
 
-Three gaps were identified, all in the UI layer rather than core license functionality:
+Three UI gaps were identified and resolved in commit `4c04d71`:
 
-**1. LicenseExpiryBanner not wired (component orphaned)**
-The `LicenseExpiryBanner` component at `apps/dashboard/components/license-expiry-banner.tsx` is fully implemented with all 4 visual states (grace, degraded, expired, trial-ending), 5-minute polling, localStorage dismiss logic, and persistent/non-persistent modes. However, it is **never imported or rendered** by any layout component. Users navigating the dashboard will never see the expiry/degraded/grace banners.
+**1. ✅ LicenseExpiryBanner wired**
+The `LicenseExpiryBanner` component is now imported and rendered in `DashboardLayout` at `dashboard-layout.tsx:9` and `dashboard-layout.tsx:26`, positioned below Header.
 
-**Fix needed:** Import and render `<LicenseExpiryBanner />` in `apps/dashboard/app/(dashboard)/layout.tsx` or within `DashboardLayout` component, positioned below the header and above page content.
+**2. ✅ Admin sidebar navigation created**
+`AdminLayoutShell` component created at `vault-app/components/admin-layout-shell.tsx` with sidebar navigation (Organisations, Licences links + logout). Integrated in `admin/layout.tsx`.
 
-**2. Admin sidebar navigation missing**
-PLAN-08 required an `admin-layout-shell.tsx` component with sidebar navigation (Organisations link, Licences link, header with logo and logout). This file was never created. The admin layout at `app/[locale]/admin/layout.tsx` only wraps content with `AdminAuthCheck`. While all admin pages are functional, there is no navigation between them.
-
-**Fix needed:** Create `components/admin-layout-shell.tsx` with sidebar navigation links and integrate it into the admin layout.
-
-**3. Trial confirmation dialog missing**
-The activation wizard's trial flow directly calls `handleTrial()` when the "Démarrer un essai gratuit" button is clicked, bypassing the confirmation dialog specified in UI-SPEC (Page 1). The dialog should show "Confirmer l'essai gratuit" with body text, a feature list, and Annuler/Confirmer buttons.
-
-**Fix needed:** Add a Dialog component triggered by the trial button click, with UI-SPEC-compliant French copy.
+**3. ✅ Trial confirmation dialog implemented**
+Activation wizard now shows a confirmation dialog (lines 195-236) with "Confirmer l'essai gratuit" title, feature list, and Annuler/Confirmer buttons before calling `startTrial()`.
 
 ---
 
-**Core license system is fully functional.** All 5 success criteria from ROADMAP.md are met. The 3 gaps are UI wiring/completeness issues that don't block the phase goal but represent failed must_haves from the plan specifications.
+**Core license system is fully functional.** All 5 success criteria from ROADMAP.md are met. All 49/49 must-haves verified.
 
 _Verified: 2026-07-18T23:00:00Z_
 _Verifier: the agent (gsd-verifier)_
