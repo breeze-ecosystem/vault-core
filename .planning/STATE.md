@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 04 complete
-last_updated: "2026-07-18T22:03:34.452Z"
+status: Phase 05 context gathered
+last_updated: "2026-07-19T12:00:00.000Z"
 progress:
   total_phases: 5
   completed_phases: 3
@@ -297,7 +297,7 @@ No new threat surface beyond what was documented in the plan's `<threat_model>`.
 ## Session Continuity
 
 **Planned phases workflow**: Sequential execution starting from Phase 1.
-**Next session trigger**: `/gsd-execute-phase 5` — Phase 5 (Launch Readiness)
+**Next session trigger**: `/gsd-plan-phase 5` — Phase 5 (Launch Readiness)
 
 ### Context for Next Agent
 
