@@ -155,7 +155,7 @@ Complete all launch preparation: vault-app usage dashboard for VaultOS team, mar
 - **Self-serve update from vault-os dashboard** — Nécessite que vault-os ait des privilèges Docker (monter le socket) ou un agent. Trop risqué pour v1. Laisser le client exécuter update.sh manuellement.
 - **Ticketing system integration** — Pour le moment, chat widget + email suffisent. Si le volume de tickets augmente, un système comme Zammad pourra être ajouté.
 
-None — discussion stayed within phase scope.
+- **Floating AI chat bubble (vault-os dashboard)** — Remplacer la page dédiée `/command-center` par une bulle flottante accessible depuis toutes les pages du dashboard. UX plus naturelle pour discuter avec l'agent IA. Phase future (UX v2).
 
 </deferred>
 

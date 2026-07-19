@@ -107,6 +107,7 @@
 
 ## Deferred Ideas
 
+- Floating AI chat bubble (vault-os dashboard) — Replace dedicated `/command-center` page with a floating bubble accessible everywhere. Better UX for AI agent chat. Future phase (UX v2).
 - Auto-update (one-click from dashboard) — Too risky for v1. Update failures would block the client.
 - Video training tutorials — Too costly for launch. Slides + live session better for early clients.
 - In-app guided tour — Great UX but high build effort. Future phase (e.g., Phase 6 "UX v2").
